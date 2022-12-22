@@ -1,0 +1,3 @@
+[submodule "build"]
+	path = build
+	url = https://git.mobisummer.com/liquid-network/dev/build.git
