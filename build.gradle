@@ -1,65 +1,62 @@
-// All
-
 buildscript {
-  apply from: "${rootDir}/build/dependencies.gradle"
-  repositories {
-    mavenCentral()
-    jcenter()
-  }
-  dependencies {
-    classpath gradle_plugins.values()
-  }
+    apply from: "${rootDir}/build/dependencies.gradle"
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath gradle_plugins.values()
+        classpath "io.freefair.gradle:lombok-plugin:6.6.1"
+        classpath 'org.springframework.boot:spring-boot-gradle-plugin:2.7.7'
+    }
 }
 
 // define global variables
-
 ext.global = [
-  javac_compatibility: 1.8,
-  root_dir: "${rootProject.projectDir}",
-  build_time: new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone("UTC")),
+        javac_compatibility: 1.8,
+        root_dir           : "${rootProject.projectDir}",
+        build_time         : new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone("UTC")),
 ]
 
 allprojects {
-  buildDir = new File(global.root_dir, "out/${project.name}")
+    buildDir = new File(global.root_dir, "out/${project.name}")
 
-  apply plugin: 'idea'
-  idea {
-    module {
-      inheritOutputDirs = true
+    apply plugin: 'idea'
+    idea {
+        module {
+            inheritOutputDirs = true
+        }
     }
-  }
 }
 
 subprojects {
-  apply from: "${rootDir}/build/dependencies.gradle"
+    apply from: "${rootDir}/build/dependencies.gradle"
 
-  repositories {
-    mavenCentral()
-    jcenter()
-  }
+    repositories {
+        mavenCentral()
+        jcenter()
+    }
 
-  apply plugin: 'java'
+    apply plugin: 'java'
 
-  sourceCompatibility = global.javac_compatibility
-  targetCompatibility = global.javac_compatibility
+    configurations {
+        compileOnly {
+            extendsFrom annotationProcessor
+        }
+        all*.exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
+    }
 
-  dependencies {
-    testCompile test_libraries.junit
-    testCompile test_libraries.mockito
-    testCompile test_libraries.powermock_junit4
-    testCompile test_libraries.powermock_api_mockito
-  }
+    sourceCompatibility = global.javac_compatibility
+    targetCompatibility = global.javac_compatibility
 
-  tasks.withType(JavaCompile) {
-    options.encoding = "UTF-8"
-  }
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+    }
 
-  tasks.withType(Test) {
-    // avoid "> superClassName is empty!" error
-    scanForTestClasses = false
-    include "**/*Test.class"
-    exclude "**/Abstract*.class"
-  }
+    tasks.withType(Test) {
+        // avoid "> superClassName is empty!" error
+        scanForTestClasses = false
+        include "**/*Test.class"
+        exclude "**/Abstract*.class"
+    }
 }
-
-

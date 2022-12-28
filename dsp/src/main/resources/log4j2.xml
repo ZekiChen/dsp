@@ -1,113 +1,117 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <Configuration status="INFO" monitorInterval="30" packages="com.tecdo">
 
-  <Properties>
-    <Property name="LOG_HOME">${sys:user.home}/logs/dsp</Property>
-    <Property name="BUSINESS_LOG_HOME">${sys:user.home}/business-logs/dsp</Property>
-    <Property name="ENCODER_PATTERN">
-      %d{yyyy-MM-dd HH:mm:ss.SSS}[%thread] %-5level %logger{80} - %msg%n
-    </Property>
-    <Property name="BUSINESS_ENCODER_PATTERN">
-      %msg%n
-    </Property>
-  </Properties>
+    <Properties>
+        <Property name="LOG_HOME">${sys:user.home}/logs/dsp</Property>
+        <Property name="BUSINESS_LOG_HOME">${sys:user.home}/business-logs/dsp</Property>
+        <Property name="ENCODER_PATTERN">
+            %d{yyyy-MM-dd HH:mm:ss.SSS}[%thread] %-5level %logger{80} - %msg%n
+        </Property>
+        <Property name="BUSINESS_ENCODER_PATTERN">
+            %msg%n
+        </Property>
+        <!-- 彩色日志格式 -->
+        <Property name="PID">????</Property>
+        <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx</Property>
+        <property name="CONSOLE_LOG_PATTERN" value="%clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{faint} %clr{%5p} %clr{${sys:PID}}{magenta} %clr{---}{faint} %clr{[%15.15t]}{faint} %clr{%C{36}.%M:%L}{cyan} %clr{:}{faint} %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}"/>
+    </Properties>
 
-  <Appenders>
-    <Console name="STDOUT" target="SYSTEM_OUT">
-      <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
-      <PatternLayout pattern="${ENCODER_PATTERN}"/>
-    </Console>
+    <Appenders>
+        <Console name="STDOUT" target="SYSTEM_OUT">
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            <PatternLayout pattern="${CONSOLE_LOG_PATTERN}"/>
+        </Console>
 
-    <RollingFile name="DEBUG" fileName="${LOG_HOME}/debug.log"
-                 filePattern="${LOG_HOME}/history/debug-%d{yyyy-MM-dd-HH}.%i.zip">
-      <PatternLayout pattern="${ENCODER_PATTERN}"/>
-      <Policies>
-        <TimeBasedTriggeringPolicy/>
-        <SizeBasedTriggeringPolicy size="200MB"/>
-      </Policies>
-      <DefaultRolloverStrategy compressionLevel="1" max="64">
-        <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
-          <IfFileName glob="debug-*.zip"/>
-          <IfLastModified age="360H"/>
-        </Delete>
-      </DefaultRolloverStrategy>
-      <Filters>
-        <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
-      </Filters>
-    </RollingFile>
+        <RollingFile name="DEBUG" fileName="${LOG_HOME}/debug.log"
+                     filePattern="${LOG_HOME}/history/debug-%d{yyyy-MM-dd-HH}.%i.zip">
+            <PatternLayout pattern="${ENCODER_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="200MB"/>
+            </Policies>
+            <DefaultRolloverStrategy compressionLevel="1" max="64">
+                <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
+                    <IfFileName glob="debug-*.zip"/>
+                    <IfLastModified age="360H"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+            <Filters>
+                <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
 
-    <RollingFile name="INFO" fileName="${LOG_HOME}/info.log"
-                 filePattern="${LOG_HOME}/history/info-%d{yyyy-MM-dd-HH}.%i.zip">
-      <PatternLayout pattern="${ENCODER_PATTERN}"/>
-      <Policies>
-        <TimeBasedTriggeringPolicy/>
-        <SizeBasedTriggeringPolicy size="200MB"/>
-      </Policies>
-      <DefaultRolloverStrategy compressionLevel="1" max="64">
-        <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
-          <IfFileName glob="info-*.zip"/>
-          <IfLastModified age="360H"/>
-        </Delete>
-      </DefaultRolloverStrategy>
-      <Filters>
-        <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
-      </Filters>
-    </RollingFile>
+        <RollingFile name="INFO" fileName="${LOG_HOME}/info.log"
+                     filePattern="${LOG_HOME}/history/info-%d{yyyy-MM-dd-HH}.%i.zip">
+            <PatternLayout pattern="${ENCODER_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="200MB"/>
+            </Policies>
+            <DefaultRolloverStrategy compressionLevel="1" max="64">
+                <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
+                    <IfFileName glob="info-*.zip"/>
+                    <IfLastModified age="360H"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+            <Filters>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
 
-    <RollingFile name="ERROR" fileName="${LOG_HOME}/error.log"
-                 filePattern="${LOG_HOME}/history/error-%d{yyyy-MM-dd-HH}.%i.zip">
-      <PatternLayout pattern="${ENCODER_PATTERN}"/>
-      <Policies>
-        <TimeBasedTriggeringPolicy/>
-        <SizeBasedTriggeringPolicy size="200MB"/>
-      </Policies>
-      <DefaultRolloverStrategy compressionLevel="1" max="64">
-        <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
-          <IfFileName glob="error-*.zip"/>
-          <IfLastModified age="360H"/>
-        </Delete>
-      </DefaultRolloverStrategy>
-      <Filters>
-        <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
-      </Filters>
-    </RollingFile>
+        <RollingFile name="ERROR" fileName="${LOG_HOME}/error.log"
+                     filePattern="${LOG_HOME}/history/error-%d{yyyy-MM-dd-HH}.%i.zip">
+            <PatternLayout pattern="${ENCODER_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+                <SizeBasedTriggeringPolicy size="200MB"/>
+            </Policies>
+            <DefaultRolloverStrategy compressionLevel="1" max="64">
+                <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
+                    <IfFileName glob="error-*.zip"/>
+                    <IfLastModified age="360H"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+            <Filters>
+                <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
 
-    <RollingFile name="REQUEST_LOG" fileName="${BUSINESS_LOG_HOME}/request.log"
-                 filePattern="${BUSINESS_LOG_HOME}/request-%d{yyyy-MM-dd-HH}.log">
-      <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
-      <Policies>
-        <TimeBasedTriggeringPolicy/>
-      </Policies>
-      <DefaultRolloverStrategy>
-        <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
-          <IfFileName glob="request-*.log"/>
-          <IfAccumulatedFileSize exceeds="50GB"/>
-        </Delete>
-      </DefaultRolloverStrategy>
-      <Filters>
-        <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
-      </Filters>
-    </RollingFile>
+        <RollingFile name="REQUEST_LOG" fileName="${BUSINESS_LOG_HOME}/request.log"
+                     filePattern="${BUSINESS_LOG_HOME}/request-%d{yyyy-MM-dd-HH}.log">
+            <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                    <IfFileName glob="request-*.log"/>
+                    <IfAccumulatedFileSize exceeds="50GB"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+            <Filters>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
 
-    <CatLog4j2Appender name="CatLog4j2Appender">
-      <PatternLayout pattern="${ENCODER_PATTERN}"/>
-    </CatLog4j2Appender>
-  </Appenders>
+        <CatLog4j2Appender name="CatLog4j2Appender">
+            <PatternLayout pattern="${ENCODER_PATTERN}"/>
+        </CatLog4j2Appender>
+    </Appenders>
 
-  <Loggers>
-    <AsyncLogger name="com.tecdo" level="INFO">
-      <AppenderRef ref="INFO"/>
-      <AppenderRef ref="ERROR" level="ERROR"/>
-    </AsyncLogger>
+    <Loggers>
+        <AsyncLogger name="com.tecdo" level="INFO">
+            <AppenderRef ref="INFO"/>
+            <AppenderRef ref="ERROR" level="ERROR"/>
+        </AsyncLogger>
 
-    <Root level="INFO">
-      <AppenderRef ref="STDOUT" level="INFO"/>
-      <AppenderRef ref="CatLog4j2Appender"/>
-    </Root>
+        <Root level="INFO">
+            <AppenderRef ref="STDOUT" level="INFO"/>
+            <AppenderRef ref="CatLog4j2Appender"/>
+        </Root>
 
-    <Logger name="request_log" level="INFO" additivity="false">
-      <AppenderRef ref="REQUEST_LOG"/>
-    </Logger>
+        <Logger name="request_log" level="INFO" additivity="false">
+            <AppenderRef ref="REQUEST_LOG"/>
+        </Logger>
 
-  </Loggers>
+    </Loggers>
 </Configuration>

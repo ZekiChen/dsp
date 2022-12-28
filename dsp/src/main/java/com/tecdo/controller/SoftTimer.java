@@ -2,9 +2,8 @@ package com.tecdo.controller;
 
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
-
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
 import java.util.Timer;
@@ -13,98 +12,87 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.atomic.AtomicLong;
 
+@Slf4j
+@Component
 public class SoftTimer {
 
-  private Logger log = LoggerFactory.getLogger(getClass());
+    private final AtomicLong itemId = new AtomicLong(0);
 
-  private AtomicLong itemId = new AtomicLong(0);
+    private final MessageQueue messageQueue;
 
-  private static SoftTimer instance;
+    private SoftTimer(MessageQueue messageQueue) {
+        this.messageQueue = messageQueue;
+        startCheckTimer();
+    }
 
-  private SoftTimer() {
-    startCheckTimer();
-  }
+    static class TimerItem {
+        long id;
+        Params params;
+        long startTime;
+        long delay;
+        EventType event;
+    }
 
-  public static SoftTimer getInstance() {
-    if (instance == null) {
-      synchronized (SoftTimer.class) {
-        if (instance == null) {
-          instance = new SoftTimer();
+    // active items
+    private final ConcurrentHashMap<Long, TimerItem> itemRegistered = new ConcurrentHashMap<>();
+    // item pool for reuse
+    private final ConcurrentLinkedQueue<TimerItem> itemPool = new ConcurrentLinkedQueue<>();
+
+    private Timer checkTimer;
+    private long checkInterval = 10;
+
+    protected void startCheckTimer() {
+        checkTimer = new Timer();
+
+        // The timer can not be scheduled after it's cancelled, so there, the repeat mode is using
+        this.checkTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                check();
+            }
+        }, this.checkInterval, this.checkInterval);
+    }
+
+    private void check() {
+        long currentTime;
+        Iterator<TimerItem> itr;
+
+        currentTime = System.currentTimeMillis();
+        itr = this.itemRegistered.values().iterator();
+
+        while (itr.hasNext()) {
+            TimerItem item = itr.next();
+            if ((item != null) && (item.delay <= (currentTime - item.startTime))) {
+                messageQueue.putMessage(item.event, item.params);
+                // push into pool for re-use
+                itr.remove();
+                this.itemPool.add(item);
+            }
         }
-      }
-    }
-    return instance;
-  }
-
-  class TimerItem {
-
-    long id;
-    Params params;
-    long startTime;
-    long delay;
-    EventType event;
-  }
-
-  // active items
-  private ConcurrentHashMap<Long, TimerItem> itemRegistered = new ConcurrentHashMap<>();
-  // item pool for reuse
-  private ConcurrentLinkedQueue<TimerItem> itemPool = new ConcurrentLinkedQueue<>();
-
-  private Timer checkTimer;
-  private long checkInterval = 10;
-
-  protected void startCheckTimer() {
-    checkTimer = new Timer();
-
-    // The timer can not be scheduled after it's cancelled, so there, the repeat mode is using
-    this.checkTimer.schedule(new TimerTask() {
-      @Override
-      public void run() {
-        check();
-      }
-    }, this.checkInterval, this.checkInterval);
-  }
-
-  private void check() {
-    long currentTime;
-    Iterator<TimerItem> itr;
-
-    currentTime = System.currentTimeMillis();
-    itr = this.itemRegistered.values().iterator();
-
-    while (itr.hasNext()) {
-      TimerItem item = itr.next();
-      if ((item != null) && (item.delay <= (currentTime - item.startTime))) {
-        MessageQueue.getInstance().putMessage(item.event, item.params);
-        // push into pool for re-use
-        itr.remove();
-        this.itemPool.add(item);
-      }
-    }
-  }
-
-  public long startTimer(EventType event, Params params, long delay) {
-    long id = itemId.incrementAndGet();
-    TimerItem timerItem = this.itemPool.poll();
-    if (timerItem == null) {
-      timerItem = new TimerItem();
     }
 
-    timerItem.id = id;
-    timerItem.params = params;
-    timerItem.startTime = System.currentTimeMillis();
-    timerItem.delay = delay;
-    timerItem.event = event;
+    public long startTimer(EventType event, Params params, long delay) {
+        long id = itemId.incrementAndGet();
+        TimerItem timerItem = this.itemPool.poll();
+        if (timerItem == null) {
+            timerItem = new TimerItem();
+        }
 
-    this.itemRegistered.put(id, timerItem);
-    if (log.isDebugEnabled()) {
-      log.debug("start timer. event is {}", event);
+        timerItem.id = id;
+        timerItem.params = params;
+        timerItem.startTime = System.currentTimeMillis();
+        timerItem.delay = delay;
+        timerItem.event = event;
+
+        this.itemRegistered.put(id, timerItem);
+        if (log.isDebugEnabled()) {
+            log.debug("start timer. event is {}", event);
+        }
+        return id;
     }
-    return id;
-  }
 
-  public void cancel(long id) {
-    this.itemRegistered.remove(id);
-  }
+    public void cancel(long id) {
+        this.itemRegistered.remove(id);
+    }
 
 }

@@ -1,47 +1,44 @@
-apply plugin: 'spring-boot'
+apply plugin: "io.freefair.lombok"
+apply plugin: 'org.springframework.boot'
+apply plugin: 'io.spring.dependency-management'
 
 dependencies {
 
-  compile libraries.netty
+    implementation 'org.springframework.boot:spring-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+    implementation libraries.disruptor
+    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-  compile libraries.common_lang3
-  compile libraries.common_collections
+    implementation 'cn.hutool:hutool-all:5.8.10'
 
-  compile libraries.log4j_slf4j_impl
-  compile libraries.log4j_core
-  compile libraries.log4j_api
-  compile libraries.disruptor
+    implementation libraries.netty
 
-  compile libraries.fastjson
-  compile libraries.jackson_core
-  compile libraries.jackson_databinding
+    implementation libraries.guava
 
-  compile libraries.guava
-  compile libraries.mybatis
-  compile libraries.mysql_connector
-  compile libraries.spring_jdbc
+    implementation libraries.common_lang3
+    implementation libraries.common_collections
 
-  compile libraries.okhttp
+    implementation libraries.fastjson
+    implementation libraries.jackson_core
+    implementation libraries.jackson_databinding
 
-  compile(
-    "com.dianping.cat:cat-client:3.1.0",
-    "org.unidal.framework:web-framework:2.5.0",
-    "org.unidal.framework:foundation-service:2.5.0",
-    "org.codehaus.plexus:plexus-classworlds:2.5.1",
-    "org.codehaus.plexus:plexus-utils:3.0.24",
-    "org.codehaus.plexus:plexus-container-default:1.6",
-    'commons-logging:commons-logging:1.1.1',
-    'com.google.http-client:google-http-client:1.42.2',
+    implementation libraries.okhttp
 
-  )
+    implementation 'com.alibaba:druid-spring-boot-starter:1.2.8'
+    implementation 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
+    implementation 'mysql:mysql-connector-java:8.0.22'
 
-  testCompile test_libraries.powermock_junit4
-  testCompile test_libraries.powermock_api_mockito
+    implementation "com.dianping.cat:cat-client:3.1.0"
+    implementation 'org.codehaus.plexus:plexus-classworlds:2.5.1'
+    implementation 'org.codehaus.plexus:plexus-utils:3.0.24'
+    implementation('org.codehaus.plexus:plexus-container-default:1.6') {
+        exclude group: 'com.google.collections', module: 'google-collections'
+    }
+    implementation 'com.google.http-client:google-http-client:1.42.2'
 
-}
-
-bootRepackage {
-  mainClass = 'com.tecdo.main.Main'
+    testImplementation test_libraries.powermock_junit4
+    testImplementation test_libraries.powermock_api_mockito
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 version "1.0-SNAPSHOT"

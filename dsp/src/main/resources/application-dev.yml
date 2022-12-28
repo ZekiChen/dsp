@@ -1,0 +1,5 @@
+spring:
+  datasource:
+    url: jdbc:mysql://172.24.2.26:3306/eric?characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull
+    username: mobi
+    password: mobisummer2112
