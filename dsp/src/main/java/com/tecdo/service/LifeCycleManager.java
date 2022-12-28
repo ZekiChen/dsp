@@ -24,12 +24,12 @@ public class LifeCycleManager {
     private final ConditionManager conditionManager;
     private final RtaManager rtaManager;
 
-    private State currentState = State.INIT_STATE;
+    private State currentState = State.INIT;
 
     @AllArgsConstructor
     private enum State {
-        INIT_STATE(1, "init state"),
-        WAITING_DB_DATA_INIT_COMPLETED(2, "waiting db data init completed");
+        INIT(1, "init"),
+        WAIT_DATA_INIT_COMPLETED(2, "waiting data init completed");
 
         private int code;
         private String desc;
@@ -47,40 +47,44 @@ public class LifeCycleManager {
     public void handleEvent(EventType eventType, Params params) {
         switch (eventType) {
             case SERVER_START:
-                loadDbDataInit();
+                handleDbDataInit();
+                break;
+            case AFFILIATES_LOAD:
+            case AFFILIATES_LOAD_RESPONSE:
+            case AFFILIATES_LOAD_SUCCESS:
+            case AFFILIATES_LOAD_TIMEOUT:
+                affiliateManager.handleEvent(eventType, params);
                 break;
             case DB_DATA_INIT_COMPLETE:
-                finishDbDataInit();
+                handleFinishDbDataInit();
                 break;
             default:
                 log.error("Can't handle event, type: {}", eventType);
-                break;
         }
     }
 
-    private void loadDbDataInit() {
+    private void handleDbDataInit() {
         switch (currentState) {
-            case INIT_STATE:
+            case INIT:
                 affiliateManager.init();
+                // TODO
                 adManager.init();
                 conditionManager.init();
                 rtaManager.init();
-                switchState(State.WAITING_DB_DATA_INIT_COMPLETED);
+                switchState(State.WAIT_DATA_INIT_COMPLETED);
                 break;
             default:
                 log.error("Can't handle event, state: {}", currentState);
-                break;
         }
     }
 
-    private void finishDbDataInit() {
+    private void handleFinishDbDataInit() {
         switch (currentState) {
-            case WAITING_DB_DATA_INIT_COMPLETED:
+            case WAIT_DATA_INIT_COMPLETED:
                 log.info("DB data init finish!");
                 break;
             default:
                 log.error("Can't handle event, state: {}", currentState);
-                break;
         }
     }
 }
