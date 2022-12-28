@@ -4,8 +4,8 @@ import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.fsm.ContextManager;
 import com.tecdo.service.LifeCycleManager;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -13,11 +13,12 @@ import org.springframework.stereotype.Component;
  **/
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class Controller implements MessageObserver {
 
-    private final LifeCycleManager lifeCycleManager;
-    private final ContextManager contextManager;
+    @Autowired
+    private LifeCycleManager lifeCycleManager;
+    @Autowired
+    private ContextManager contextManager;
 
     @Override
     public void handle(EventType eventType, Params params) {

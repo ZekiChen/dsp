@@ -33,7 +33,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     private List<Affiliate> affiliates;
 
     /**
-     * 拿到 affiliate 集合，每 5 分钟刷新一次缓存
+     * 从 DB 加载 affiliate 集合，每 5 分钟刷新一次缓存
      */
     public List<Affiliate> listAffiliate() {
         return this.affiliates;
