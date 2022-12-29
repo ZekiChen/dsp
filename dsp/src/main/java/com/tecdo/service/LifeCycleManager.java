@@ -2,6 +2,7 @@ package com.tecdo.service;
 
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
+import com.tecdo.entity.Affiliate;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.service.init.ConditionManager;
@@ -10,6 +11,8 @@ import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -52,10 +55,13 @@ public class LifeCycleManager {
             case AFFILIATES_LOAD:
             case AFFILIATES_LOAD_RESPONSE:
             case AFFILIATES_LOAD_SUCCESS:
+            case AFFILIATES_LOAD_ERROR:
             case AFFILIATES_LOAD_TIMEOUT:
                 affiliateManager.handleEvent(eventType, params);
                 break;
             case DB_DATA_INIT_COMPLETE:
+                List<Affiliate> affiliates = affiliateManager.listAffiliate();
+                System.out.println(affiliates);
                 handleFinishDbDataInit();
                 break;
             default:

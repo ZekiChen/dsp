@@ -15,7 +15,8 @@ public enum EventType {
     AFFILIATES_LOAD(2, "affiliates load"),
     AFFILIATES_LOAD_RESPONSE(3, "affiliates load response"),
     AFFILIATES_LOAD_SUCCESS(4, "affiliates load success"),
-    AFFILIATES_LOAD_TIMEOUT(5, "affiliates load timeout"),
+    AFFILIATES_LOAD_ERROR(5, "affiliates load failure"),
+    AFFILIATES_LOAD_TIMEOUT(6, "affiliates load timeout"),
 
     DB_DATA_INIT_COMPLETE(4, "db data init complete"),
 

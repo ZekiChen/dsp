@@ -5,6 +5,7 @@ import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.Constant;
 import com.tecdo.constant.EventType;
+import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.entity.Affiliate;
@@ -81,10 +82,13 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
                 handleAffiliatesReload();
                 break;
             case AFFILIATES_LOAD_RESPONSE:
-                handleAffiliatesResponse();
+                handleAffiliatesResponse(params);
                 break;
             case AFFILIATES_LOAD_SUCCESS:
                 handleAffiliatesSuccess();
+                break;
+            case AFFILIATES_LOAD_ERROR:
+                handleAffiliatesError();
                 break;
             case AFFILIATES_LOAD_TIMEOUT:
                 handleAffiliatesTimeout();
@@ -99,8 +103,13 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
             case INIT:
             case RUNNING:
                 ThreadPool.getInstance().execute(() -> {
-                    this.affiliates = list();
-                    messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE);
+                    try {
+                        Params params = Params.create(ParamKey.AFFILIATES_CACHE_KEY, list());
+                        messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
+                    } catch (Exception e) {
+                        log.error("list affiliate failure from db: {}", e.getMessage());
+                        messageQueue.putMessage(EventType.AFFILIATES_LOAD_ERROR);
+                    }
                 });
                 startReloadTimeoutTimer();
                 switchState(currentState == State.INIT ? State.WAIT_INIT_RESPONSE : State.UPDATING);
@@ -110,12 +119,13 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         }
     }
 
-    private void handleAffiliatesResponse() {
+    private void handleAffiliatesResponse(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
-                messageQueue.putMessage(EventType.AFFILIATES_LOAD_SUCCESS);
                 cancelReloadTimeoutTimer();
+                this.affiliates = params.get(ParamKey.AFFILIATES_CACHE_KEY);
+                messageQueue.putMessage(EventType.AFFILIATES_LOAD_SUCCESS);
                 startNextReloadTimer();
                 switchState(State.RUNNING);
                 break;
@@ -126,6 +136,26 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
 
     private void handleAffiliatesSuccess() {
         log.info("affiliates load success, size: {}", affiliates.size());
+        switch (currentState) {
+            case RUNNING:
+                messageQueue.putMessage(EventType.DB_DATA_INIT_COMPLETE);
+                break;
+            default:
+                log.error("Can't handle event, state: {}", currentState);
+        }
+    }
+
+    private void handleAffiliatesError() {
+        switch (currentState) {
+            case WAIT_INIT_RESPONSE:
+            case UPDATING:
+                cancelReloadTimeoutTimer();
+                startNextReloadTimer();
+                switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
+                break;
+            default:
+                log.error("Can't handle event, state: {}", currentState);
+        }
     }
 
     private void handleAffiliatesTimeout() {

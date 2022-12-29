@@ -11,4 +11,6 @@ public interface ParamKey {
   String HTTP_CODE = "httpCode";
   String RESPONSE_HEADER = "responseHeader";
   String RESPONSE_BODY = "responseBody";
+
+  String AFFILIATES_CACHE_KEY = "affiliates-cache-key";
 }
