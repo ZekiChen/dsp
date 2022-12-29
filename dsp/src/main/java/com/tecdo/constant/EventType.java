@@ -27,9 +27,9 @@ public enum EventType {
     RTA_INFOS_LOAD_ERROR(1303, "rta infos load failure"),
     RTA_INFOS_LOAD_TIMEOUT(1304, "rta infos load timeout"),
 
-    DB_DATA_INIT_COMPLETE(4, "db data init complete"),
+//    DB_DATA_INIT_COMPLETE(1999, "db data init complete"),
 
-    CONTEXT_START(5, "context start"),
+    CONTEXT_START(2001, "context start"),
     ;
 
     private int code;

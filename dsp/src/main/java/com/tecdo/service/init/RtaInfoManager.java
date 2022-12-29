@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RtaManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
+public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
 
     private final SoftTimer softTimer;
     private final MessageQueue messageQueue;
@@ -126,7 +126,6 @@ public class RtaManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
                 cancelReloadTimeoutTimer();
                 this.rtaInfoMap = params.get(ParamKey.RTA_INFOS_CACHE_KEY);
                 log.info("rta infos load success, size: {}", rtaInfoMap.size());
-                messageQueue.putMessage(EventType.DB_DATA_INIT_COMPLETE);
                 startNextReloadTimer();
                 switchState(State.RUNNING);
                 break;

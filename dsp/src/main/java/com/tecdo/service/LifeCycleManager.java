@@ -2,8 +2,9 @@ package com.tecdo.service;
 
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
-import com.tecdo.controller.MessageQueue;
-import com.tecdo.service.init.*;
+import com.tecdo.service.init.AdManager;
+import com.tecdo.service.init.AffiliateManager;
+import com.tecdo.service.init.RtaInfoManager;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -19,9 +20,7 @@ public class LifeCycleManager {
 
     private final AffiliateManager affManager;
     private final AdManager adManager;
-    private final RtaManager rtaManager;
-
-    private final MessageQueue messageQueue;
+    private final RtaInfoManager rtaManager;
 
     private State currentState = State.INIT;
 
@@ -67,9 +66,9 @@ public class LifeCycleManager {
             case RTA_INFOS_LOAD_TIMEOUT:
                 rtaManager.handleEvent(eventType, params);
                 break;
-            case DB_DATA_INIT_COMPLETE:
-                handleFinishDbDataInit();
-                break;
+//            case DB_DATA_INIT_COMPLETE:
+//                handleFinishDbDataInit();
+//                break;
             default:
                 log.error("Can't handle event, type: {}", eventType);
         }
@@ -88,6 +87,7 @@ public class LifeCycleManager {
         }
     }
 
+    // TODO 全部数据完成初始化后才执行
     private void handleFinishDbDataInit() {
         switch (currentState) {
             case WAIT_DATA_INIT_COMPLETED:
