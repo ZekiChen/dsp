@@ -2,17 +2,12 @@ package com.tecdo.service;
 
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
-import com.tecdo.entity.Affiliate;
-import com.tecdo.service.init.AdManager;
-import com.tecdo.service.init.AffiliateManager;
-import com.tecdo.service.init.ConditionManager;
-import com.tecdo.service.init.RtaManager;
+import com.tecdo.controller.MessageQueue;
+import com.tecdo.service.init.*;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
-
-import java.util.List;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -22,17 +17,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class LifeCycleManager {
 
-    private final AffiliateManager affiliateManager;
+    private final AffiliateManager affManager;
     private final AdManager adManager;
-    private final ConditionManager conditionManager;
     private final RtaManager rtaManager;
+
+    private final MessageQueue messageQueue;
 
     private State currentState = State.INIT;
 
     @AllArgsConstructor
     private enum State {
         INIT(1, "init"),
-        WAIT_DATA_INIT_COMPLETED(2, "waiting data init completed");
+        WAIT_DATA_INIT_COMPLETED(2, "waiting data init completed"),
+        RUNNING(3, "data init success, now is running");
 
         private int code;
         private String desc;
@@ -56,11 +53,21 @@ public class LifeCycleManager {
             case AFFILIATES_LOAD_RESPONSE:
             case AFFILIATES_LOAD_ERROR:
             case AFFILIATES_LOAD_TIMEOUT:
-                affiliateManager.handleEvent(eventType, params);
+                affManager.handleEvent(eventType, params);
+                break;
+            case ADS_LOAD:
+            case ADS_LOAD_RESPONSE:
+            case ADS_LOAD_ERROR:
+            case ADS_LOAD_TIMEOUT:
+                adManager.handleEvent(eventType, params);
+                break;
+            case RTA_INFOS_LOAD:
+            case RTA_INFOS_LOAD_RESPONSE:
+            case RTA_INFOS_LOAD_ERROR:
+            case RTA_INFOS_LOAD_TIMEOUT:
+                rtaManager.handleEvent(eventType, params);
                 break;
             case DB_DATA_INIT_COMPLETE:
-                List<Affiliate> affiliates = affiliateManager.listAffiliate();
-                System.out.println(affiliates);
                 handleFinishDbDataInit();
                 break;
             default:
@@ -71,10 +78,8 @@ public class LifeCycleManager {
     private void handleDbDataInit() {
         switch (currentState) {
             case INIT:
-                affiliateManager.init();
-                // TODO
+                affManager.init();
                 adManager.init();
-                conditionManager.init();
                 rtaManager.init();
                 switchState(State.WAIT_DATA_INIT_COMPLETED);
                 break;
@@ -86,6 +91,7 @@ public class LifeCycleManager {
     private void handleFinishDbDataInit() {
         switch (currentState) {
             case WAIT_DATA_INIT_COMPLETED:
+                switchState(State.RUNNING);
                 log.info("DB data init finish!");
                 break;
             default:

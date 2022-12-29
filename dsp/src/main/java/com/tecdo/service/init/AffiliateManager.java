@@ -9,13 +9,15 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.entity.Affiliate;
+import com.tecdo.entity.base.IdEntity;
 import com.tecdo.mapper.AffiliateMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -25,19 +27,19 @@ import java.util.List;
 @RequiredArgsConstructor
 public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
 
-    private final MessageQueue messageQueue;
     private final SoftTimer softTimer;
+    private final MessageQueue messageQueue;
 
     private State currentState = State.INIT;
     private long timerId;
 
-    private List<Affiliate> affiliates;
+    private Map<Integer, Affiliate> affiliateMap;
 
     /**
      * 从 DB 加载 affiliate 集合，每 5 分钟刷新一次缓存
      */
-    public List<Affiliate> listAffiliate() {
-        return this.affiliates;
+    public Map<Integer, Affiliate> getAffiliateMap() {
+        return this.affiliateMap;
     }
 
     @AllArgsConstructor
@@ -61,7 +63,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     }
 
     private void startReloadTimeoutTimer() {
-        timerId = softTimer.startTimer(EventType.AFFILIATES_LOAD_TIMEOUT, null, Constant.TIMEOUT_LOAD_DB_CACHE);
+        timerId = softTimer.startTimer(EventType.AFFILIATES_LOAD_TIMEOUT, null, Constant.TIMEOUT_LOAD_DB_CACHE_GENERAL);
     }
 
     private void cancelReloadTimeoutTimer() {
@@ -69,7 +71,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     }
 
     private void startNextReloadTimer() {
-        softTimer.startTimer(EventType.AFFILIATES_LOAD, null, Constant.RELOAD_DB_CACHE);
+        softTimer.startTimer(EventType.AFFILIATES_LOAD, null, Constant.INTERVAL_RELOAD_DB_CACHE);
     }
 
     public void switchState(State state) {
@@ -101,10 +103,11 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
             case RUNNING:
                 ThreadPool.getInstance().execute(() -> {
                     try {
-                        Params params = Params.create(ParamKey.AFFILIATES_CACHE_KEY, list());
+                        Map<Integer, Affiliate> affiliateMap = list().stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        Params params = Params.create(ParamKey.AFFILIATES_CACHE_KEY, affiliateMap);
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
                     } catch (Exception e) {
-                        log.error("list affiliate failure from db: {}", e.getMessage());
+                        log.error("affiliates load failure from db: {}", e.getMessage());
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_ERROR);
                     }
                 });
@@ -121,8 +124,8 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
                 cancelReloadTimeoutTimer();
-                this.affiliates = params.get(ParamKey.AFFILIATES_CACHE_KEY);
-                log.info("affiliates load success, size: {}", affiliates.size());
+                this.affiliateMap = params.get(ParamKey.AFFILIATES_CACHE_KEY);
+                log.info("affiliates load success, size: {}", affiliateMap.size());
                 startNextReloadTimer();
                 switchState(State.RUNNING);
                 break;

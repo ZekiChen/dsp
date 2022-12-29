@@ -7,7 +7,7 @@
         <result column="campaign_id" property="campaignId"/>
         <result column="adv_campaign_id" property="advCampaignId"/>
         <result column="adv_id" property="advId"/>
-        <result column="rta_feature" property="rtaFeature"/>
+        <result column="rta_future" property="rtaFuture"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>
     </resultMap>

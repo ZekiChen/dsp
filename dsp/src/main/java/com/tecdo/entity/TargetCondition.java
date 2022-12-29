@@ -21,9 +21,9 @@ public class TargetCondition extends BaseEntity {
     private Integer adGroupId;
 
     /**
-     * 键
+     * 属性
      */
-    private String key;
+    private String attribute;
 
     /**
      * 操作

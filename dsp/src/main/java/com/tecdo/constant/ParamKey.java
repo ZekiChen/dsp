@@ -13,4 +13,6 @@ public interface ParamKey {
   String RESPONSE_BODY = "responseBody";
 
   String AFFILIATES_CACHE_KEY = "affiliates-cache-key";
+  String ADS_CACHE_KEY = "ads-cache-key";
+  String RTA_INFOS_CACHE_KEY = "rta-infos-cache-key";
 }
