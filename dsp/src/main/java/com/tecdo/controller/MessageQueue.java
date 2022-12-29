@@ -66,7 +66,7 @@ public class MessageQueue {
                 observer.handle(item.eventType, item.param);
                 long cost = System.currentTimeMillis() - startTime;
                 if (cost > WARN_COST) {
-                    log.warn("handle event {} cost long time: {} ms", item.eventType, cost);
+                    log.warn("handle event: {}, cost long time: {} ms", item.eventType, cost);
                 }
                 item.param = null;
                 itemPool.offer(item);
