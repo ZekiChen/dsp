@@ -17,10 +17,10 @@ public enum EventType {
     AFFILIATES_LOAD_ERROR(1103, "affiliates load failure"),
     AFFILIATES_LOAD_TIMEOUT(1104, "affiliates load timeout"),
 
-    ADS_LOAD(1201, "ad list load"),
-    ADS_LOAD_RESPONSE(1202, "ad list load response"),
-    ADS_LOAD_ERROR(1203, "ad list load failure"),
-    ADS_LOAD_TIMEOUT(1204, "ad list load timeout"),
+    ADS_LOAD(1201, "ad dto list load"),
+    ADS_LOAD_RESPONSE(1202, "ad dto list load response"),
+    ADS_LOAD_ERROR(1203, "ad dto list load failure"),
+    ADS_LOAD_TIMEOUT(1204, "ad dto list load timeout"),
 
     RTA_INFOS_LOAD(1301, "rta infos load"),
     RTA_INFOS_LOAD_RESPONSE(1302, "rta infos load response"),
