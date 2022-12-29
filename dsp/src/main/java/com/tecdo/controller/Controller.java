@@ -26,7 +26,7 @@ public class Controller implements MessageObserver {
             case SERVER_START:
             case AFFILIATES_LOAD:
             case AFFILIATES_LOAD_RESPONSE:
-            case AFFILIATES_LOAD_SUCCESS:
+            case AFFILIATES_LOAD_ERROR:
             case AFFILIATES_LOAD_TIMEOUT:
             case DB_DATA_INIT_COMPLETE:
                 lifeCycleManager.handleEvent(eventType, params);

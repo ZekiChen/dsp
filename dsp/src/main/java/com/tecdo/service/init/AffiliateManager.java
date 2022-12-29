@@ -84,9 +84,6 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
             case AFFILIATES_LOAD_RESPONSE:
                 handleAffiliatesResponse(params);
                 break;
-            case AFFILIATES_LOAD_SUCCESS:
-                handleAffiliatesSuccess();
-                break;
             case AFFILIATES_LOAD_ERROR:
                 handleAffiliatesError();
                 break;
@@ -125,20 +122,9 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.affiliates = params.get(ParamKey.AFFILIATES_CACHE_KEY);
-                messageQueue.putMessage(EventType.AFFILIATES_LOAD_SUCCESS);
+                log.info("affiliates load success, size: {}", affiliates.size());
                 startNextReloadTimer();
                 switchState(State.RUNNING);
-                break;
-            default:
-                log.error("Can't handle event, state: {}", currentState);
-        }
-    }
-
-    private void handleAffiliatesSuccess() {
-        log.info("affiliates load success, size: {}", affiliates.size());
-        switch (currentState) {
-            case RUNNING:
-                messageQueue.putMessage(EventType.DB_DATA_INIT_COMPLETE);
                 break;
             default:
                 log.error("Can't handle event, state: {}", currentState);

@@ -54,7 +54,6 @@ public class LifeCycleManager {
                 break;
             case AFFILIATES_LOAD:
             case AFFILIATES_LOAD_RESPONSE:
-            case AFFILIATES_LOAD_SUCCESS:
             case AFFILIATES_LOAD_ERROR:
             case AFFILIATES_LOAD_TIMEOUT:
                 affiliateManager.handleEvent(eventType, params);
