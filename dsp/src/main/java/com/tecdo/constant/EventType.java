@@ -31,6 +31,12 @@ public enum EventType {
     NETTY_START(1999, "all data finish init, netty start"),
 
     CONTEXT_START(2001, "context start"),
+
+    VALIDATE_BID_REQUEST(3001,"validate bid request"),
+    RECEIVE_BID_REQUEST(3002,"receive bid request"),
+    WAIT_TASK_RESPONSE_TIMEOUT(3003,"wait task response timeout"),
+
+    RESPONSE_RESULT(6001,"response result"),
     ;
 
     private int code;

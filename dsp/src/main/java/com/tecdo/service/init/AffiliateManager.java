@@ -33,13 +33,17 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     private State currentState = State.INIT;
     private long timerId;
 
-    private Map<Integer, Affiliate> affiliateMap;
+    private Map<String, Affiliate> affiliateMap;
 
     /**
      * 从 DB 加载 affiliate 集合，每 5 分钟刷新一次缓存
      */
-    public Map<Integer, Affiliate> getAffiliateMap() {
+    public Map<String, Affiliate> getAffiliateMap() {
         return this.affiliateMap;
+    }
+
+    public Affiliate getAffiliate(String secret){
+        return affiliateMap.get(secret);
     }
 
     @AllArgsConstructor
@@ -103,7 +107,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
             case RUNNING:
                 ThreadPool.getInstance().execute(() -> {
                     try {
-                        Map<Integer, Affiliate> affiliateMap = list().stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        Map<String, Affiliate> affiliateMap = list().stream().collect(Collectors.toMap(Affiliate::getSecret, e -> e));
                         Params params = Params.create(ParamKey.AFFILIATES_CACHE_KEY, affiliateMap);
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
                     } catch (Exception e) {

@@ -1,5 +1,12 @@
 package com.tecdo.server.handler;
 
+import com.tecdo.common.Params;
+import com.tecdo.constant.Constant;
+import com.tecdo.constant.EventType;
+import com.tecdo.constant.HttpCode;
+import com.tecdo.constant.ParamKey;
+import com.tecdo.constant.RequestPath;
+import com.tecdo.controller.MessageQueue;
 import com.tecdo.server.request.HttpRequest;
 
 import org.slf4j.Logger;
@@ -18,11 +25,14 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
 
   private static Logger logger = LoggerFactory.getLogger(SimpleHttpChannelInboundHandler.class);
 
-  public SimpleHttpChannelInboundHandler() {
+  public SimpleHttpChannelInboundHandler(MessageQueue messageQueue) {
     super();
+    this.messageQueue = messageQueue;
   }
 
-  private AtomicLong atomicLong = new AtomicLong();
+  private final AtomicLong atomicLong = new AtomicLong();
+
+  private final MessageQueue messageQueue;
 
   @Override
   protected void channelRead0(ChannelHandlerContext ctx, FullHttpRequest msg) {
@@ -34,7 +44,28 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
   }
 
   private void router(HttpRequest request) {
+    String path = getPath(request.getUri());
+    EventType eventType;
+    Params params = Params.create();
+    switch (path) {
+      case RequestPath.BID_REQUEST:
+        eventType = EventType.VALIDATE_BID_REQUEST;
+        params.put(ParamKey.HTTP_REQUEST, request);
+        break;
+      default:
+        eventType = EventType.RESPONSE_RESULT;
+        params.put(ParamKey.HTTP_CODE, HttpCode.NOT_FOUND);
+        params.put(ParamKey.CHANNEL_CONTEXT, request.getChannelContext());
+    }
+    messageQueue.putMessage(eventType, params);
+  }
 
+  private String getPath(String uri) {
+    int index = uri.indexOf(Constant.QUESTION_MARK);
+    if (0 < index) {
+      uri = uri.substring(0, index);
+    }
+    return uri;
   }
 
 

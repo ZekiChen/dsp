@@ -3,15 +3,18 @@ package com.tecdo.fsm;
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
+import com.tecdo.domain.request.BidRequest;
 import com.tecdo.fsm.context.Context;
 import com.tecdo.server.request.HttpRequest;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -22,7 +25,14 @@ public class ContextManager {
     private final Queue<Context> contextPool = new LinkedList<>();
 
     public void handleEvent(EventType eventType, Params params) {
-
+        switch (eventType){
+            case RECEIVE_BID_REQUEST:
+                Context context = retrieveContext(params.get(ParamKey.HTTP_REQUEST),params.get(ParamKey.BID_REQUEST));
+                context.handleEvent(eventType,params);
+                break;
+            default:
+                dispatchToContext(eventType,params);
+        }
     }
 
     private void handleBidRequestComplete(Params params) {
@@ -43,13 +53,13 @@ public class ContextManager {
         return contextMap.get(requestId);
     }
 
-    private Context retrieveContext(HttpRequest request) {
-        long requestId = request.getRequestId();
+    private Context retrieveContext(HttpRequest httpRequest, BidRequest bidRequest) {
+        long requestId = httpRequest.getRequestId();
         Context context = contextPool.poll();
         if (context == null) {
             context = new Context();
         }
-        context.init(request);
+        context.init(httpRequest, bidRequest);
         contextMap.put(requestId, context);
         return context;
     }

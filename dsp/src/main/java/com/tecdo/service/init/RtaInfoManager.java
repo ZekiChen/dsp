@@ -42,6 +42,10 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
         return this.rtaInfoMap;
     }
 
+    public RtaInfo getRtaInfo(Integer advId) {
+        return this.rtaInfoMap.get(advId);
+    }
+
     @AllArgsConstructor
     private enum State {
         INIT(1, "init"),
@@ -103,7 +107,7 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
             case RUNNING:
                 ThreadPool.getInstance().execute(() -> {
                     try {
-                        Map<Integer, RtaInfo> rtaInfoMap = list().stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        Map<Integer, RtaInfo> rtaInfoMap = list().stream().collect(Collectors.toMap(RtaInfo::getAdvId, e -> e));
                         Params params = Params.create(ParamKey.RTA_INFOS_CACHE_KEY, rtaInfoMap);
                         messageQueue.putMessage(EventType.RTA_INFOS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
