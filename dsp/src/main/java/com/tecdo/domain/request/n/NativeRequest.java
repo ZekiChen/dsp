@@ -9,10 +9,10 @@ import lombok.Setter;
 
 /**
  * 原生广告的请求，作为json字符串在{@link com.tecdo.domain.request.Native#request}中
- * 也有一部分协议是选择将当前响应作为对象返回到{@link com.tecdo.domain.request.Native}的其他字段中
- * OpenRTB 2.3/2.4只支持JSON编码的字符串
+ * 也有一部分交易所是选择将当前响应作为对象返回到{@link com.tecdo.domain.request.Native}的其他字段中
+ * 标准的协议只支持JSON编码的字符串
  * <p>
- * 在1.1版本之前，当前请求是被包装多了一层map，作为native字段的值，{"native":"当前请求的json字符串"}
+ * 在1.1版本之前，当前请求是被包装多了一层map，作为native字段的值，{"native":NativeRequest},见{@link NativeRequestWrapper}
  * 再将这个map转为json字符串给{@link com.tecdo.domain.request.Native#request}
  */
 @Getter
@@ -75,6 +75,4 @@ public class NativeRequest extends Extension {
    */
   private List<Asset> assets;
 
-  public NativeRequest() {
-  }
 }

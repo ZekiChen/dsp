@@ -1,10 +1,12 @@
 package com.tecdo.domain.request;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tecdo.domain.base.Extension;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 一个广告位或者将要参与竞拍的展示信息。
@@ -45,6 +47,7 @@ public class Imp extends Extension {
     /**
      * 如果展示需要以 原生广告 的形式提供则需要填充
      */
+    @JsonProperty(value = "native")
     private Native native1;
 
     /**

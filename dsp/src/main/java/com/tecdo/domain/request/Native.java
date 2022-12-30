@@ -1,12 +1,16 @@
 package com.tecdo.domain.request;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tecdo.domain.base.Extension;
+import com.tecdo.domain.request.n.NativeRequest;
+import com.tecdo.domain.request.n.NativeRequestWrapper;
 import com.tecdo.enums.APIFrameworkEnum;
 import com.tecdo.enums.CreativeAttributeEnum;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 表示一个Native类型的展示。Native广告单元需要无缝的插入其周围的内容中（例如，一个对Twitter或Facebook赞助）。
@@ -27,6 +31,8 @@ public class Native extends Extension {
 
     /**
      * 遵守Native Ad规范的请求体（必须）
+     * 在1.1版本之前为{@link com.tecdo.domain.request.n.NativeRequestWrapper}的json字符串
+     * 在1.1版本机之后为{@link com.tecdo.domain.request.n.NativeRequest}的json字符串
      */
     private String request;
 
@@ -46,4 +52,10 @@ public class Native extends Extension {
      * @see CreativeAttributeEnum
      */
     private List<Integer> battr;
+
+    @JsonIgnore
+    private NativeRequest nativeRequest;
+
+    @JsonIgnore
+    private NativeRequestWrapper nativeRequestWrapper;
 }
