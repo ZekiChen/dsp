@@ -10,16 +10,26 @@ import lombok.AllArgsConstructor;
 @AllArgsConstructor
 public enum EventType {
 
-    SERVER_START(1, "server start"),
+    SERVER_START(1001, "server start"),
 
-    AFFILIATES_LOAD(2, "affiliates load"),
-    AFFILIATES_LOAD_RESPONSE(3, "affiliates load response"),
-    AFFILIATES_LOAD_SUCCESS(4, "affiliates load success"),
-    AFFILIATES_LOAD_TIMEOUT(5, "affiliates load timeout"),
+    AFFILIATES_LOAD(1101, "affiliates load"),
+    AFFILIATES_LOAD_RESPONSE(1102, "affiliates load response"),
+    AFFILIATES_LOAD_ERROR(1103, "affiliates load failure"),
+    AFFILIATES_LOAD_TIMEOUT(1104, "affiliates load timeout"),
 
-    DB_DATA_INIT_COMPLETE(4, "db data init complete"),
+    ADS_LOAD(1201, "ad dto list load"),
+    ADS_LOAD_RESPONSE(1202, "ad dto list load response"),
+    ADS_LOAD_ERROR(1203, "ad dto list load failure"),
+    ADS_LOAD_TIMEOUT(1204, "ad dto list load timeout"),
 
-    CONTEXT_START(5, "context start"),
+    RTA_INFOS_LOAD(1301, "rta infos load"),
+    RTA_INFOS_LOAD_RESPONSE(1302, "rta infos load response"),
+    RTA_INFOS_LOAD_ERROR(1303, "rta infos load failure"),
+    RTA_INFOS_LOAD_TIMEOUT(1304, "rta infos load timeout"),
+
+//    DB_DATA_INIT_COMPLETE(1999, "db data init complete"),
+
+    CONTEXT_START(2001, "context start"),
     ;
 
     private int code;

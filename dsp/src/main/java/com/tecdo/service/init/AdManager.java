@@ -1,16 +1,233 @@
 package com.tecdo.service.init;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tecdo.common.Params;
+import com.tecdo.common.ThreadPool;
+import com.tecdo.constant.Constant;
+import com.tecdo.constant.EventType;
+import com.tecdo.constant.ParamKey;
+import com.tecdo.controller.MessageQueue;
+import com.tecdo.controller.SoftTimer;
+import com.tecdo.domain.dto.AdDTO;
+import com.tecdo.entity.*;
+import com.tecdo.entity.base.IdEntity;
+import com.tecdo.mapper.*;
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 /**
  * Created by Zeki on 2022/12/27
  **/
 @Slf4j
-@Component
+@Service
+@RequiredArgsConstructor
 public class AdManager {
 
-    public void init() {
+    private final SoftTimer softTimer;
+    private final MessageQueue messageQueue;
 
+    private final AdMapper adMapper;
+    private final CreativeMapper creativeMapper;
+    private final AdGroupMapper adGroupMapper;
+    private final TargetConditionMapper conditionMapper;
+    private final CampaignMapper campaignMapper;
+    private final CampaignRtaInfoMapper campaignRtaMapper;
+
+    private State currentState = State.INIT;
+    private long timerId;
+
+    private Map<Integer, AdDTO> adDTOMap;
+
+    /**
+     * 从 DB 加载 ad（creative）- group（target_condition）- campaign（campaign_rta_info） 集合，每 5 分钟刷新一次缓存
+     */
+    public Map<Integer, AdDTO> getAdDTOMap() {
+        return this.adDTOMap;
+    }
+
+    @AllArgsConstructor
+    private enum State {
+        INIT(1, "init"),
+        WAIT_INIT_RESPONSE(2, "waiting init response"),
+        RUNNING(3, "init success, now is running"),
+        UPDATING(4, "updating");
+
+        private int code;
+        private String desc;
+
+        @Override
+        public String toString() {
+            return code + " - " + desc;
+        }
+    }
+
+    public void init() {
+        messageQueue.putMessage(EventType.ADS_LOAD);
+    }
+
+    private void startReloadTimeoutTimer() {
+        timerId = softTimer.startTimer(EventType.ADS_LOAD_TIMEOUT, null, Constant.TIMEOUT_LOAD_DB_CACHE_AD_DTO);
+    }
+
+    private void cancelReloadTimeoutTimer() {
+        softTimer.cancel(timerId);
+    }
+
+    private void startNextReloadTimer() {
+        softTimer.startTimer(EventType.ADS_LOAD, null, Constant.INTERVAL_RELOAD_DB_CACHE);
+    }
+
+    public void switchState(State state) {
+        this.currentState = state;
+    }
+
+    public void handleEvent(EventType eventType, Params params) {
+        switch (eventType) {
+            case ADS_LOAD:
+                handleAdsReload();
+                break;
+            case ADS_LOAD_RESPONSE:
+                handleAdsResponse(params);
+                break;
+            case ADS_LOAD_ERROR:
+                handleAdsError();
+                break;
+            case ADS_LOAD_TIMEOUT:
+                handleAdsTimeout();
+                break;
+            default:
+                log.error("Can't handle event, type: {}", eventType);
+        }
+    }
+
+    private void handleAdsReload() {
+        switch (currentState) {
+            case INIT:
+            case RUNNING:
+                ThreadPool.getInstance().execute(() -> {
+                    try {
+                        messageQueue.putMessage(EventType.ADS_LOAD_RESPONSE, listAndConvertAds());
+                    } catch (Exception e) {
+                        log.error("ad list load failure from db: {}", e.getMessage());
+                        messageQueue.putMessage(EventType.ADS_LOAD_ERROR);
+                    }
+                });
+                startReloadTimeoutTimer();
+                switchState(currentState == State.INIT ? State.WAIT_INIT_RESPONSE : State.UPDATING);
+                break;
+            default:
+                log.error("Can't handle event, state: {}", currentState);
+        }
+    }
+
+    /**
+     * 将 ad（creative）、ad_group（target_condition）、campaign（campaign_rta_info）数据平铺整合 AdDTO 集
+     */
+    private Params listAndConvertAds() {
+        List<Ad> ads = adMapper.selectList(Wrappers.lambdaQuery());
+        Map<Integer, Creative> creativeMap = creativeMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+        Map<Integer, AdGroup> adGroupMap = adGroupMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+        List<TargetCondition> conditions = conditionMapper.selectList(Wrappers.lambdaQuery());
+        Map<Integer, Campaign> campaignMap = campaignMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+        List<CampaignRtaInfo> campaignRtaInfos = campaignRtaMapper.selectList(Wrappers.lambdaQuery());
+
+        List<AdDTO> adDTOs = new ArrayList<>();
+        for (Ad ad : ads) {
+            List<Creative> creatives = listCreativesByAd(creativeMap, ad);
+            AdGroup adGroup = getAdGroupByAd(adGroupMap, ad);
+            List<TargetCondition> targetConditions = listConditionByGroup(conditions, adGroup);
+            Campaign campaign = getCampaignByGroup(campaignMap, adGroup);
+            CampaignRtaInfo campaignRtaInfo = getCampaignRtaByCampaign(campaignRtaInfos, campaign);
+            AdDTO adDTO = AdDTO.builder()
+                    .ad(ad).creative(creatives)
+                    .adGroup(adGroup).conditions(targetConditions)
+                    .campaign(campaign).campaignRtaInfo(campaignRtaInfo)
+                    .build();
+            adDTOs.add(adDTO);
+        }
+        Map<Integer, AdDTO> adDTOMap = adDTOs.stream().collect(Collectors.toMap(e -> e.getAd().getId(), e -> e));
+        return Params.create(ParamKey.ADS_CACHE_KEY, adDTOMap);
+    }
+
+    private List<Creative> listCreativesByAd(Map<Integer, Creative> creativeMap, Ad ad) {
+        List<Creative> creatives = new ArrayList<>();
+        if (ad.getIcon() != null) {
+            creatives.add(creativeMap.get(ad.getIcon()));
+        }
+        if (ad.getImage() != null) {
+            creatives.add(creativeMap.get(ad.getImage()));
+        }
+        if (ad.getVideo() != null) {
+            creatives.add(creativeMap.get(ad.getVideo()));
+        }
+        return creatives;
+    }
+
+    private AdGroup getAdGroupByAd(Map<Integer, AdGroup> adGroupMap, Ad ad) {
+        return adGroupMap.get(ad.getGroupId());
+    }
+
+    private List<TargetCondition> listConditionByGroup(List<TargetCondition> conditions, AdGroup adGroup) {
+        return adGroup == null ? null :
+                conditions.stream().filter(e -> Objects.equals(adGroup.getId(), e.getAdGroupId())).collect(Collectors.toList());
+    }
+
+    private Campaign getCampaignByGroup(Map<Integer, Campaign> campaignMap, AdGroup adGroup) {
+        return adGroup == null ? null : campaignMap.get(adGroup.getCampaignId());
+    }
+
+    private CampaignRtaInfo getCampaignRtaByCampaign(List<CampaignRtaInfo> campaignRtaInfos, Campaign campaign) {
+        if (campaign != null) {
+            Optional<CampaignRtaInfo> optional = campaignRtaInfos.stream().filter(e -> Objects.equals(campaign.getId(), e.getCampaignId())).findFirst();
+            if (optional.isPresent()) {
+                return optional.get();
+            }
+        }
+        return null;
+    }
+
+    private void handleAdsResponse(Params params) {
+        switch (currentState) {
+            case WAIT_INIT_RESPONSE:
+            case UPDATING:
+                cancelReloadTimeoutTimer();
+                this.adDTOMap = params.get(ParamKey.ADS_CACHE_KEY);
+                log.info("ad dto list load success, size: {}", adDTOMap.size());
+                startNextReloadTimer();
+                switchState(State.RUNNING);
+                break;
+            default:
+                log.error("Can't handle event, state: {}", currentState);
+        }
+    }
+
+    private void handleAdsError() {
+        switch (currentState) {
+            case WAIT_INIT_RESPONSE:
+            case UPDATING:
+                cancelReloadTimeoutTimer();
+                startNextReloadTimer();
+                switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
+                break;
+            default:
+                log.error("Can't handle event, state: {}", currentState);
+        }
+    }
+
+    private void handleAdsTimeout() {
+        switch (currentState) {
+            case WAIT_INIT_RESPONSE:
+            case UPDATING:
+                startNextReloadTimer();
+                switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
+                break;
+            default:
+                log.error("Can't handle event, state: {}", currentState);
+        }
     }
 }

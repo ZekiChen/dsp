@@ -8,9 +8,9 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.entity.Affiliate;
+import com.tecdo.entity.RtaInfo;
 import com.tecdo.entity.base.IdEntity;
-import com.tecdo.mapper.AffiliateMapper;
+import com.tecdo.mapper.RtaInfoMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
+public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
 
     private final SoftTimer softTimer;
     private final MessageQueue messageQueue;
@@ -33,13 +33,13 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     private State currentState = State.INIT;
     private long timerId;
 
-    private Map<Integer, Affiliate> affiliateMap;
+    private Map<Integer, RtaInfo> rtaInfoMap;
 
     /**
-     * 从 DB 加载 affiliate 集合，每 5 分钟刷新一次缓存
+     * 从 DB 加载 rta_info 集合，每 5 分钟刷新一次缓存
      */
-    public Map<Integer, Affiliate> getAffiliateMap() {
-        return this.affiliateMap;
+    public Map<Integer, RtaInfo> getRtaInfoMap() {
+        return this.rtaInfoMap;
     }
 
     @AllArgsConstructor
@@ -59,11 +59,11 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     }
 
     public void init() {
-        messageQueue.putMessage(EventType.AFFILIATES_LOAD);
+        messageQueue.putMessage(EventType.RTA_INFOS_LOAD);
     }
 
     private void startReloadTimeoutTimer() {
-        timerId = softTimer.startTimer(EventType.AFFILIATES_LOAD_TIMEOUT, null, Constant.TIMEOUT_LOAD_DB_CACHE_GENERAL);
+        timerId = softTimer.startTimer(EventType.RTA_INFOS_LOAD_TIMEOUT, null, Constant.TIMEOUT_LOAD_DB_CACHE_GENERAL);
     }
 
     private void cancelReloadTimeoutTimer() {
@@ -71,7 +71,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     }
 
     private void startNextReloadTimer() {
-        softTimer.startTimer(EventType.AFFILIATES_LOAD, null, Constant.INTERVAL_RELOAD_DB_CACHE);
+        softTimer.startTimer(EventType.RTA_INFOS_LOAD, null, Constant.INTERVAL_RELOAD_DB_CACHE);
     }
 
     public void switchState(State state) {
@@ -80,35 +80,35 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
 
     public void handleEvent(EventType eventType, Params params) {
         switch (eventType) {
-            case AFFILIATES_LOAD:
-                handleAffiliatesReload();
+            case RTA_INFOS_LOAD:
+                handleRtaInfosReload();
                 break;
-            case AFFILIATES_LOAD_RESPONSE:
-                handleAffiliatesResponse(params);
+            case RTA_INFOS_LOAD_RESPONSE:
+                handleRtaInfosResponse(params);
                 break;
-            case AFFILIATES_LOAD_ERROR:
-                handleAffiliatesError();
+            case RTA_INFOS_LOAD_ERROR:
+                handleRtaInfosError();
                 break;
-            case AFFILIATES_LOAD_TIMEOUT:
-                handleAffiliatesTimeout();
+            case RTA_INFOS_LOAD_TIMEOUT:
+                handleRtaInfosTimeout();
                 break;
             default:
                 log.error("Can't handle event, type: {}", eventType);
         }
     }
 
-    private void handleAffiliatesReload() {
+    private void handleRtaInfosReload() {
         switch (currentState) {
             case INIT:
             case RUNNING:
                 ThreadPool.getInstance().execute(() -> {
                     try {
-                        Map<Integer, Affiliate> affiliateMap = list().stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
-                        Params params = Params.create(ParamKey.AFFILIATES_CACHE_KEY, affiliateMap);
-                        messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
+                        Map<Integer, RtaInfo> rtaInfoMap = list().stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        Params params = Params.create(ParamKey.RTA_INFOS_CACHE_KEY, rtaInfoMap);
+                        messageQueue.putMessage(EventType.RTA_INFOS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
-                        log.error("affiliates load failure from db: {}", e.getMessage());
-                        messageQueue.putMessage(EventType.AFFILIATES_LOAD_ERROR);
+                        log.error("rta infos load failure from db: {}", e.getMessage());
+                        messageQueue.putMessage(EventType.RTA_INFOS_LOAD_ERROR);
                     }
                 });
                 startReloadTimeoutTimer();
@@ -119,13 +119,13 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         }
     }
 
-    private void handleAffiliatesResponse(Params params) {
+    private void handleRtaInfosResponse(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
                 cancelReloadTimeoutTimer();
-                this.affiliateMap = params.get(ParamKey.AFFILIATES_CACHE_KEY);
-                log.info("affiliates load success, size: {}", affiliateMap.size());
+                this.rtaInfoMap = params.get(ParamKey.RTA_INFOS_CACHE_KEY);
+                log.info("rta infos load success, size: {}", rtaInfoMap.size());
                 startNextReloadTimer();
                 switchState(State.RUNNING);
                 break;
@@ -134,7 +134,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         }
     }
 
-    private void handleAffiliatesError() {
+    private void handleRtaInfosError() {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
@@ -147,7 +147,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         }
     }
 
-    private void handleAffiliatesTimeout() {
+    private void handleRtaInfosTimeout() {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
@@ -158,5 +158,4 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
                 log.error("Can't handle event, state: {}", currentState);
         }
     }
-
 }
