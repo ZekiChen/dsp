@@ -122,6 +122,7 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
     private void handleRtaInfosResponse(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                messageQueue.putMessage(EventType.A_DATA_READY);
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.rtaInfoMap = params.get(ParamKey.RTA_INFOS_CACHE_KEY);

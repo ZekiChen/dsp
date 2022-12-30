@@ -194,6 +194,7 @@ public class AdManager {
     private void handleAdsResponse(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                messageQueue.putMessage(EventType.A_DATA_READY);
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.adDTOMap = params.get(ParamKey.ADS_CACHE_KEY);
