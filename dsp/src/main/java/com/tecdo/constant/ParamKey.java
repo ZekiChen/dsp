@@ -9,6 +9,8 @@ public interface ParamKey {
   String IMP = "imp";
   String BID_REQUEST = "bidRequest";
 
+  String REQUEST_RTA_RESPONSE = "requestRtaResponse";
+
   String TASK_ID = "taskId";
 
   // control response

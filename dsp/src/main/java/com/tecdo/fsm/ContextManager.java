@@ -30,6 +30,9 @@ public class ContextManager {
                 Context context = retrieveContext(params.get(ParamKey.HTTP_REQUEST),params.get(ParamKey.BID_REQUEST));
                 context.handleEvent(eventType,params);
                 break;
+            case BID_REQUEST_COMPLETE:
+                handleBidRequestComplete(params);
+                break;
             default:
                 dispatchToContext(eventType,params);
         }

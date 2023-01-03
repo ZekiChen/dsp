@@ -1,8 +1,10 @@
 package com.tecdo.fsm.context;
 
 import com.tecdo.common.Params;
+import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
+import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.domain.dto.AdDTO;
 import com.tecdo.domain.request.BidRequest;
@@ -12,7 +14,7 @@ import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.RtaInfoManager;
-import com.tecdo.service.rta.RtaService;
+import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
 
 import java.util.HashMap;
@@ -35,14 +37,16 @@ public class Context {
 
   private Map<String, Task> taskMap = new HashMap<>();
 
+  private Map<String, Object> taskResponse = new HashMap<>();
+
   private Map<EventType, Long> eventTimerMap = new HashMap<>();
 
+  private final MessageQueue messageQueue = SpringUtil.getBean(MessageQueue.class);
 
   private final SoftTimer softTimer = SpringUtil.getBean(SoftTimer.class);
 
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
 
-  private final RtaService rtaService = SpringUtil.getBean(RtaService.class);
 
   public void handleEvent(EventType eventType, Params params) {
     currentState.handleEvent(eventType, params, this);
@@ -57,14 +61,36 @@ public class Context {
     List<Imp> impList = bidRequest.getImp();
     impList.forEach(imp -> {
       Task task = TaskPool.getInstance().get();
+      taskMap.put(imp.getId(), task);
       task.handleEvent(EventType.RECEIVE_BID_REQUEST,
                        Params.create(ParamKey.IMP, imp).put(ParamKey.BID_REQUEST, bidRequest));
-      taskMap.put(imp.getId(), task);
     });
   }
 
+  public void saveTaskResponse(Params params) {
+
+  }
+
+  public boolean isReceiveAllTaskResponse() {
+    return taskResponse.size() == taskMap.size();
+  }
+
   public void requestRta() {
+    ThreadPool.getInstance().execute(() -> {
+
+      try {
+        Map<Integer, Target> rtaResMap = doRequestRta();
+        messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
+                                assignParams().put(ParamKey.REQUEST_RTA_RESPONSE, rtaResMap));
+      } catch (Exception e) {
+
+      }
+    });
+  }
+
+  public Map<Integer, Target> doRequestRta() {
     List<AdDTO> adDTOList = null;
+    // todo 协议中的是国家三字码，需要转为对应的二字码
     String country = bidRequest.getDevice().getGeo().getCountry();
     String deviceId = bidRequest.getDevice().getIfa();
     Map<Integer, Target> rtaResMap = new HashMap<>();
@@ -75,15 +101,47 @@ public class Context {
                                                                                                   .getAdvId()));
     advToAdList.forEach((advId, adList) -> {
       RtaInfo rtaInfo = rtaInfoManager.getRtaInfo(advId);
-      rtaService.requestRta(rtaInfo, adList, country, deviceId, rtaResMap);
+      RtaHelper.requestRta(rtaInfo, adList, country, deviceId, rtaResMap);
     });
+    Map<Integer, List<AdDTO>> campaignIdToAdList =
+      adDTOList.stream().collect(Collectors.groupingBy(adDTO -> adDTO.getCampaign().getId()));
     for (Map.Entry<Integer, Target> entry : rtaResMap.entrySet()) {
       Integer campaignId = entry.getKey();
       Target t = entry.getValue();
       if (t.isTarget()) {
         String token = t.getToken();
+        campaignIdToAdList.get(campaignId).forEach(i -> i.setRtaToken(token));
       }
     }
+    return rtaResMap;
+  }
+
+  public void saveRtaResponse(Params params) {
+
+  }
+
+  public void sort() {
+
+  }
+
+  public void saveSortAdResponse(Params params) {
+
+  }
+
+  public void responseData() {
+
+  }
+
+  public void buildResponse() {
+
+  }
+
+  private void buildAdm() {
+
+  }
+
+  public void requestComplete() {
+    messageQueue.putMessage(EventType.BID_REQUEST_COMPLETE, assignParams());
   }
 
   public void reset() {
@@ -103,7 +161,7 @@ public class Context {
     eventTimerMap.put(eventType, timerId);
   }
 
-  private void cancelTimer(EventType eventType) {
+  public void cancelTimer(EventType eventType) {
     if (eventTimerMap.containsKey(eventType)) {
       softTimer.cancel(eventTimerMap.get(eventType));
     } else {

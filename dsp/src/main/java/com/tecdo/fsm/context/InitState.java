@@ -14,10 +14,10 @@ public class InitState implements IContextState {
   public void handleEvent(EventType eventType, Params params, Context context) {
     switch (eventType) {
       case RECEIVE_BID_REQUEST:
-        context.handleBidRequest();
         context.startTimer(EventType.WAIT_TASK_RESPONSE_TIMEOUT,
                            context.assignParams(),
                            Constant.TIMEOUT_WAIT_TASK_RESPONSE);
+        context.handleBidRequest();
         context.switchState(Instance.of(WaitForAllResponseState.class));
 
         break;

@@ -9,37 +9,28 @@ import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.RtaInfo;
 import com.tecdo.util.JsonHelper;
 
-import org.springframework.stereotype.Component;
-
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Component
-public class RtaService {
+public class RtaHelper {
 
   private static final String SINGAPORE = "https://api.lazada.sg/rest";
   private static final String API_NAME = "/marketing/rta/adrequest";
 
-  private ConcurrentHashMap<String, LazopClient> clientMap = new ConcurrentHashMap<>();
+  private static final ConcurrentHashMap<String, LazopClient> clientMap = new ConcurrentHashMap<>();
 
-  /**
-   * @param rtaInfo
-   * @param adList
-   * @param country
-   * @param gaid
-   * @param rtaResMap
-   */
-  public void requestRta(RtaInfo rtaInfo,
-                          List<AdDTO> adList,
-                          String country,
-                          String gaid,
-                          Map<Integer, Target> rtaResMap) {
+  public static void requestRta(RtaInfo rtaInfo,
+                                List<AdDTO> adList,
+                                String country,
+                                String gaid,
+                                Map<Integer, Target> rtaResMap) {
 
 
     Integer advMemberId = rtaInfo.getAdvId();
@@ -47,16 +38,16 @@ public class RtaService {
     String advAppSecret = rtaInfo.getAppSecret();
 
     // advCampaignId,List<CampaignId>
-    Map<Integer, List<Integer>> advCampaignId2CampaignIdList = //
+    Map<Integer, Set<Integer>> advCampaignId2CampaignIdSet = //
       adList.stream()
             .map(AdDTO::getCampaignRtaInfo)
             .collect(Collectors.groupingBy(CampaignRtaInfo::getAdvCampaignId,
                                            Collectors.mapping(CampaignRtaInfo::getCampaignId,
-                                                              Collectors.toList())));
+                                                              Collectors.toSet())));
 
     StringBuilder sb = new StringBuilder();
     sb.append("[");
-    advCampaignId2CampaignIdList.keySet().forEach(advCampaignId -> {
+    advCampaignId2CampaignIdSet.keySet().forEach(advCampaignId -> {
       sb.append("\"").append(advCampaignId).append("\"").append(",");
     });
     sb.delete(sb.length() - 1, sb.length());
@@ -88,9 +79,9 @@ public class RtaService {
             target.setTarget(false);
           }
           String advCampaignId = i.getAdvCampaignId();
-          List<Integer> campaignIdList =
-            advCampaignId2CampaignIdList.get(Integer.valueOf(advCampaignId));
-          campaignIdList.forEach(campaignId -> {
+          Set<Integer> campaignIdSet =
+            advCampaignId2CampaignIdSet.get(Integer.valueOf(advCampaignId));
+          campaignIdSet.forEach(campaignId -> {
             rtaResMap.put(campaignId, target);
           });
         });
@@ -99,12 +90,12 @@ public class RtaService {
   }
 
 
-  private LazopResponse requestRta(String country,
-                                  String gaid,
-                                  String campaignIdList,
-                                  String advMemberId,
-                                  String appKey,
-                                  String appSecret) throws ApiException {
+  private static LazopResponse requestRta(String country,
+                                          String gaid,
+                                          String campaignIdList,
+                                          String advMemberId,
+                                          String appKey,
+                                          String appSecret) throws ApiException {
     LazopClient client = getClient(advMemberId, appKey, appSecret);
     LazopRequest request = new LazopRequest(API_NAME);
     request.setTimestamp(new Date().getTime());
@@ -116,7 +107,7 @@ public class RtaService {
     return response;
   }
 
-  private LazopClient getClient(String advMemberId, String appKey, String appSecret) {
+  private static LazopClient getClient(String advMemberId, String appKey, String appSecret) {
 
     return clientMap.computeIfAbsent(advMemberId,
                                      key -> new LazopClient(SINGAPORE, appKey, appSecret));
