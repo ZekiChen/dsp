@@ -31,6 +31,9 @@ public enum EventType {
     NETTY_START(1999, "all data finish init, netty start"),
 
     CONTEXT_START(2001, "context start"),
+
+    TASK_START(3001, "task start"),
+    RECALL_FINISH(3002, "ad recall finish"),
     ;
 
     private int code;

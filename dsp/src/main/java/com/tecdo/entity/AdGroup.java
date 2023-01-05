@@ -53,7 +53,7 @@ public class AdGroup extends BaseEntity {
     /**
      * 竞价策略
      */
-    private Integer bidStrategy;
+    private Double bidStrategy;
 
     /**
      * 操作价格

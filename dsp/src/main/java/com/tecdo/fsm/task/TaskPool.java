@@ -1,37 +1,28 @@
 package com.tecdo.fsm.task;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.LinkedList;
 import java.util.Queue;
 
+@Component
 public class TaskPool {
-  private static final Logger logger = LoggerFactory.getLogger(TaskPool.class);
-  private static final TaskPool instance = new TaskPool();
 
-  private Queue<Task> pool = new LinkedList<>();
+    private final Queue<Task> pool = new LinkedList<>();
 
-  public static TaskPool getInstance() {
-    return instance;
-  }
-
-  private TaskPool() {
-  }
-
-  public Task get() {
-    Task task = pool.poll();
-    if (task == null) {
-      task = new Task();
+    public Task get() {
+        Task task = pool.poll();
+        if (task == null) {
+            task = new Task();
+        }
+        return task;
     }
-    return task;
-  }
 
-  public void release(Task task) {
-    if (task != null) {
-      task.reset();
-      pool.offer(task);
+    public void release(Task task) {
+        if (task != null) {
+            task.reset();
+            pool.offer(task);
+        }
     }
-  }
 
 }
