@@ -1,4 +1,4 @@
-package com.tecdo.filter.chain;
+package com.tecdo.filter.util;
 
 import com.tecdo.filter.AbstractRecallFilter;
 

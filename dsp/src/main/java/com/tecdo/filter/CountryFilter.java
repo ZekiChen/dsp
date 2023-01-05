@@ -5,6 +5,7 @@ import com.tecdo.domain.request.BidRequest;
 import com.tecdo.domain.request.Imp;
 import com.tecdo.domain.request.User;
 import com.tecdo.entity.TargetCondition;
+import com.tecdo.filter.util.ConditionCompareUtil;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -31,11 +32,6 @@ public class CountryFilter extends AbstractRecallFilter {
             return false;
         }
         // 2. request 中有传递 country，进行匹配校验
-        String country = user.getGeo().getCountry();
-        if (Constant.EQ.equals(condition.getOperation())) {
-            return country.equals(condition.getValue());
-        }
-        // TODO else if ...
-        return true;
+        return ConditionCompareUtil.compare(user.getGeo().getCountry(), condition.getOperation(), condition.getValue());
     }
 }

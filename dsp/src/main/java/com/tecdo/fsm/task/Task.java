@@ -9,7 +9,7 @@ import com.tecdo.domain.request.BidRequest;
 import com.tecdo.domain.request.Imp;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.filter.AbstractRecallFilter;
-import com.tecdo.filter.chain.FilterChainUtil;
+import com.tecdo.filter.util.FilterChainUtil;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.service.init.AdManager;
