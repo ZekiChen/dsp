@@ -62,8 +62,9 @@ public class Context {
     impList.forEach(imp -> {
       Task task = TaskPool.getInstance().get();
       taskMap.put(imp.getId(), task);
-      task.handleEvent(EventType.RECEIVE_BID_REQUEST,
-                       Params.create(ParamKey.IMP, imp).put(ParamKey.BID_REQUEST, bidRequest));
+      messageQueue.putMessage(EventType.RECEIVE_BID_REQUEST,
+                              Params.create(ParamKey.IMP, imp)
+                                    .put(ParamKey.BID_REQUEST, bidRequest));
     });
   }
 
@@ -110,6 +111,7 @@ public class Context {
       Target t = entry.getValue();
       if (t.isTarget()) {
         String token = t.getToken();
+        // todo wrong code
         campaignIdToAdList.get(campaignId).forEach(i -> i.setRtaToken(token));
       }
     }
