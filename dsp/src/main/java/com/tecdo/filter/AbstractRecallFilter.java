@@ -1,13 +1,12 @@
 package com.tecdo.filter;
 
+import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.TargetCondition;
 import lombok.Getter;
 import lombok.Setter;
 
 import java.util.HashSet;
-import java.util.List;
 import java.util.Set;
 
 /**
@@ -57,8 +56,8 @@ public abstract class AbstractRecallFilter {
      *
      * @param bidRequest 竞价请求对象
      * @param imp        展示对象
-     * @param conditions AD包含的定向条件集
+     * @param adDTO      AD完整数据
      * @return           true: 召回
      */
-    public abstract boolean doFilter(BidRequest bidRequest, Imp imp, List<TargetCondition> conditions);
+    public abstract boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO);
 }

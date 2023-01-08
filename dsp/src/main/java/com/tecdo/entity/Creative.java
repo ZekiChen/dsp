@@ -2,6 +2,7 @@ package com.tecdo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tecdo.entity.base.BaseEntity;
+import com.tecdo.enums.biz.CreativeTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -22,18 +23,19 @@ public class Creative extends BaseEntity {
 
     /**
      * 物料类型
+     * @see CreativeTypeEnum
      */
     private Integer type;
 
     /**
-     * 物料长度
+     * 物料高度，多个用逗号分隔
      */
-    private Integer length;
+    private String height;
 
     /**
-     * 物料宽度
+     * 物料宽度，多个用逗号分隔
      */
-    private Integer width;
+    private String width;
 
     /**
      * 物料URL

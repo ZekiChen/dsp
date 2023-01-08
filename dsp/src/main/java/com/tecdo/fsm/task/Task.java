@@ -63,8 +63,9 @@ public class Task {
                 resMap.put(adDTO.getAd().getId(), adDTO);
                 continue;
             }
+            adDTO.setConditions(conditions);
             // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
-            if (executeFilter(filters.get(0), conditions)) {
+            if (executeFilter(filters.get(0), adDTO)) {
                 resMap.put(adDTO.getAd().getId(), adDTO);
             }
         }
@@ -82,11 +83,11 @@ public class Task {
     /**
      * 每个 AD 都需要被所有 filter 判断一遍
      */
-    private boolean executeFilter(AbstractRecallFilter curFilter, List<TargetCondition> conditions) {
-        boolean filterFlag = curFilter.doFilter(bidRequest, imp, conditions);
+    private boolean executeFilter(AbstractRecallFilter curFilter, AdDTO adDTO) {
+        boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTO);
         while (filterFlag && curFilter.hasNext()) {
             curFilter = curFilter.getNextFilter();
-            filterFlag = curFilter.doFilter(bidRequest, imp, conditions);
+            filterFlag = curFilter.doFilter(bidRequest, imp, adDTO);
         }
         return filterFlag;
     }

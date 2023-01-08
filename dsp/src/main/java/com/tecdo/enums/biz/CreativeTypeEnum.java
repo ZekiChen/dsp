@@ -3,6 +3,8 @@ package com.tecdo.enums.biz;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 /**
  * 物料类型
  *
@@ -17,6 +19,10 @@ public enum CreativeTypeEnum {
     AUDIO(3, "audio"),
     NATIVE(4, "native");
 
-    private final int value;
+    private final int type;
     private final String desc;
+
+    public static CreativeTypeEnum of(int type) {
+        return Arrays.stream(CreativeTypeEnum.values()).filter(e -> e.type == type).findFirst().orElse(null);
+    }
 }
