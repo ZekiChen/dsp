@@ -57,7 +57,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     }
                     break;
                 case VIDEO:
-                    if (video == null || video.getW() == null) {
+                    if (video == null || video.getW() == null || video.getH() == null) {
                         return false;
                     }
                     if (!ConditionUtil.compare(video.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
