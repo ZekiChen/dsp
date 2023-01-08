@@ -3,7 +3,7 @@ package com.tecdo.fsm.task.state;
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.controller.MessageQueue;
-import com.tecdo.domain.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.fsm.task.Task;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,7 +29,13 @@ public class InitState implements ITaskState {
     public void handleEvent(EventType eventType, Params params, Task task) {
         switch (eventType) {
             case TASK_START:
-                Map<Integer, AdDTO> adDTOMap = task.listRecallAd();
+                try {
+                    Map<Integer, AdDTO> adDTOMap = task.listRecallAd();
+                } catch (Exception e) {
+                    log.error("Task error, so this request will not participate in bidding: {}", e.getMessage());
+                    messageQueue.putMessage(EventType.RECALL_ERROR);
+                    break;
+                }
                 // TODO
                 messageQueue.putMessage(EventType.RECALL_FINISH);
                 task.switchState(waitForRecallState);

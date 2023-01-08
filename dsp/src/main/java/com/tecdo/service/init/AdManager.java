@@ -8,7 +8,7 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.domain.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.entity.*;
 import com.tecdo.entity.base.IdEntity;
 import com.tecdo.mapper.*;

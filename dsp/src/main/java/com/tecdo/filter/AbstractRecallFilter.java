@@ -1,7 +1,7 @@
 package com.tecdo.filter;
 
-import com.tecdo.domain.request.BidRequest;
-import com.tecdo.domain.request.Imp;
+import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.TargetCondition;
 import lombok.Getter;
 import lombok.Setter;

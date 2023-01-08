@@ -34,10 +34,11 @@ public enum EventType {
 
     TASK_START(3001, "task start"),
     RECALL_FINISH(3002, "ad recall finish"),
+    RECALL_ERROR(3003, "ad recall error"),
     ;
 
-    private int code;
-    private String desc;
+    private final int code;
+    private final String desc;
 
     @Override
     public String toString() {

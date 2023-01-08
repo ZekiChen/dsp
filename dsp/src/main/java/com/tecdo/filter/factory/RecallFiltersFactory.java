@@ -3,7 +3,7 @@ package com.tecdo.filter.factory;
 import cn.hutool.core.collection.CollUtil;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.AffiliateFilter;
-import com.tecdo.filter.CountryFilter;
+import com.tecdo.filter.DeviceCountryFilter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,7 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecallFiltersFactory {
 
-    private final CountryFilter countryFilter;
+    private final DeviceCountryFilter countryFilter;
     private final AffiliateFilter affiliateFilter;
 
     /**
