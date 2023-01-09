@@ -57,13 +57,13 @@ public class Task {
         Map<Integer, AdDTO> resMap = new HashMap<>();
         for (AdDTO adDTO : adManager.getAdDTOMap().values()) {
             List<TargetCondition> conditions = listLegalCondition(adDTO.getConditions());
+            adDTO.setConditions(conditions);
             // 该 AD 没有定投需求，说明投哪都行，召回
             if (CollUtil.isEmpty(conditions)) {
                 log.info("ad: {} doesn't have condition, direct recall", adDTO.getAd().getId());
                 resMap.put(adDTO.getAd().getId(), adDTO);
                 continue;
             }
-            adDTO.setConditions(conditions);
             // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
             if (executeFilter(filters.get(0), adDTO)) {
                 resMap.put(adDTO.getAd().getId(), adDTO);
