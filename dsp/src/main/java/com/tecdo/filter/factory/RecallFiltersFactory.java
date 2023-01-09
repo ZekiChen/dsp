@@ -1,9 +1,7 @@
 package com.tecdo.filter.factory;
 
 import cn.hutool.core.collection.CollUtil;
-import com.tecdo.filter.AbstractRecallFilter;
-import com.tecdo.filter.AffiliateFilter;
-import com.tecdo.filter.DeviceCountryFilter;
+import com.tecdo.filter.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -18,13 +16,24 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RecallFiltersFactory {
 
-    private final DeviceCountryFilter countryFilter;
     private final AffiliateFilter affiliateFilter;
+    private final AppBundleFilter appBundleFilter;
+    private final ConnectTypeFilter connectTypeFilter;
+    private final ContentLangFilter contentLangFilter;
+    private final CreativeFormatFilter creativeFormatFilter;
+    private final DeviceCountryFilter deviceCountryFilter;
+    private final DeviceMakeFilter deviceMakeFilter;
+    private final DeviceOSFilter deviceOSFilter;
+    private final DeviceOSVFilter deviceOSVFilter;
+    private final TimePeriodFilter timePeriodFilter;
 
     /**
      * 获取广告召回流程所需的全部过滤器集
      */
     public List<AbstractRecallFilter> createFilters() {
-        return CollUtil.newArrayList(countryFilter, affiliateFilter);
+        return CollUtil.newArrayList(
+                affiliateFilter, appBundleFilter, connectTypeFilter, contentLangFilter, creativeFormatFilter,
+                deviceCountryFilter, deviceMakeFilter, deviceOSFilter, deviceOSVFilter, timePeriodFilter
+        );
     }
 }
