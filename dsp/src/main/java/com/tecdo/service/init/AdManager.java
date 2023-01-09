@@ -138,13 +138,13 @@ public class AdManager {
 
         List<AdDTO> adDTOs = new ArrayList<>();
         for (Ad ad : ads) {
-            List<Creative> creatives = listCreativesByAd(creativeMap, ad);
+            Map<Integer, Creative> creatives = listCreativesByAd(creativeMap, ad);
             AdGroup adGroup = getAdGroupByAd(adGroupMap, ad);
             List<TargetCondition> targetConditions = listConditionByGroup(conditions, adGroup);
             Campaign campaign = getCampaignByGroup(campaignMap, adGroup);
             CampaignRtaInfo campaignRtaInfo = getCampaignRtaByCampaign(campaignRtaInfos, campaign);
             AdDTO adDTO = AdDTO.builder()
-                    .ad(ad).creative(creatives)
+                    .ad(ad).creativeMap(creatives)
                     .adGroup(adGroup).conditions(targetConditions)
                     .campaign(campaign).campaignRtaInfo(campaignRtaInfo)
                     .build();
@@ -154,18 +154,18 @@ public class AdManager {
         return Params.create(ParamKey.ADS_CACHE_KEY, adDTOMap);
     }
 
-    private List<Creative> listCreativesByAd(Map<Integer, Creative> creativeMap, Ad ad) {
-        List<Creative> creatives = new ArrayList<>();
+    private Map<Integer, Creative> listCreativesByAd(Map<Integer, Creative> creativeMap, Ad ad) {
+        Map<Integer, Creative> resMap = new HashMap<>();
         if (ad.getIcon() != null) {
-            creatives.add(creativeMap.get(ad.getIcon()));
+            resMap.put(ad.getIcon(), creativeMap.get(ad.getIcon()));
         }
         if (ad.getImage() != null) {
-            creatives.add(creativeMap.get(ad.getImage()));
+            resMap.put(ad.getImage(), creativeMap.get(ad.getImage()));
         }
         if (ad.getVideo() != null) {
-            creatives.add(creativeMap.get(ad.getVideo()));
+            resMap.put(ad.getVideo(), creativeMap.get(ad.getVideo()));
         }
-        return creatives;
+        return resMap;
     }
 
     private AdGroup getAdGroupByAd(Map<Integer, AdGroup> adGroupMap, Ad ad) {

@@ -21,71 +21,64 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO) {
-        if (CollUtil.isEmpty(adDTO.getCreative())) {
+        AdTypeEnum curAdTypeEnum = AdTypeEnum.of(adDTO.getAd().getType());
+        if (curAdTypeEnum == null || CollUtil.isEmpty(adDTO.getCreativeMap())) {
             return true;
         }
-        Banner banner = imp.getBanner();
-        Video video = imp.getVideo();
-        Native native1 = imp.getNative1();
-        for (Creative creative : adDTO.getCreative()) {
-            switch (AdTypeEnum.of(creative.getType())) {
-                case BANNER:
-                    if (banner == null) {
+        switch (curAdTypeEnum) {
+            case BANNER:
+                Banner banner = imp.getBanner();
+                if (banner == null) {
+                    return false;
+                }
+                Creative creative = adDTO.getCreativeMap().get(adDTO.getAd().getIcon());
+                if (banner.getW() != null && banner.getH() != null) {
+                    if (!ConditionUtil.compare(banner.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
+                            || !ConditionUtil.compare(banner.getH().toString(), INCLUDE_OPERATION, creative.getHeight())) {
                         return false;
                     }
-                    if (banner.getW() != null && banner.getH() != null) {
-                        if (!ConditionUtil.compare(banner.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
-                                || !ConditionUtil.compare(banner.getH().toString(), INCLUDE_OPERATION, creative.getHeight())) {
-                            return false;
-                        }
-                    } else {
-                        if (CollUtil.isEmpty(banner.getFormat())) {
-                            return false;
-                        }
-                        boolean hitFlag = false;
-                        for (Format format : banner.getFormat()) {
-                            if (format.getW() != null && format.getH() != null) {
-                                if (ConditionUtil.compare(format.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
-                                        && ConditionUtil.compare(format.getH().toString(), INCLUDE_OPERATION, creative.getHeight())) {
-                                    hitFlag = true;
-                                }
-                            }
-                        }
-                        if (!hitFlag) {
-                            return false;
-                        }
-                    }
-                    break;
-                case VIDEO:
-                    if (video == null || video.getW() == null || video.getH() == null) {
-                        return false;
-                    }
-                    if (!ConditionUtil.compare(video.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
-                            || !ConditionUtil.compare(video.getH().toString(), INCLUDE_OPERATION, creative.getHeight())) {
-                        return false;
-                    }
-                    break;
-                case NATIVE:
-                    if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
+                    return ConditionUtil.compare(banner.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
+                            && ConditionUtil.compare(banner.getH().toString(), INCLUDE_OPERATION, creative.getHeight());
+                } else {
+                    if (CollUtil.isEmpty(banner.getFormat())) {
                         return false;
                     }
                     boolean hitFlag = false;
-                    for (Asset asset : native1.getNativeRequest().getAssets()) {
-                        if (asset.getImg() == null || asset.getImg().getW() == null || asset.getImg().getH() == null) {
-                            return false;
-                        }
-                        if (ConditionUtil.compare(asset.getImg().getW().toString(), INCLUDE_OPERATION, creative.getWidth())
-                                && ConditionUtil.compare(asset.getImg().getH().toString(), INCLUDE_OPERATION, creative.getHeight())) {
-                            hitFlag = true;
+                    for (Format format : banner.getFormat()) {
+                        if (format.getW() != null && format.getH() != null) {
+                            if (ConditionUtil.compare(format.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
+                                    && ConditionUtil.compare(format.getH().toString(), INCLUDE_OPERATION, creative.getHeight())) {
+                                hitFlag = true;
+                            }
                         }
                     }
-                    if (!hitFlag) {
+                    return hitFlag;
+                }
+            case VIDEO:
+                Video video = imp.getVideo();
+                if (video == null || video.getW() == null || video.getH() == null) {
+                    return false;
+                }
+                creative = adDTO.getCreativeMap().get(adDTO.getAd().getVideo());
+                return ConditionUtil.compare(video.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
+                        && ConditionUtil.compare(video.getH().toString(), INCLUDE_OPERATION, creative.getHeight());
+            case NATIVE:
+                Native native1 = imp.getNative1();
+                creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
+                if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
+                    return false;
+                }
+                boolean hitFlag = false;
+                for (Asset asset : native1.getNativeRequest().getAssets()) {
+                    if (asset.getImg() == null || asset.getImg().getW() == null || asset.getImg().getH() == null) {
                         return false;
                     }
-                    break;
-                default:
-                    throw new IllegalArgumentException("Invalid creative type: " + creative.getType());
-            }
+                    if (ConditionUtil.compare(asset.getImg().getW().toString(), INCLUDE_OPERATION, creative.getWidth())
+                            && ConditionUtil.compare(asset.getImg().getH().toString(), INCLUDE_OPERATION, creative.getHeight())) {
+                        hitFlag = true;
+                    }
+                }
+                return hitFlag;
         }
         return true;
     }

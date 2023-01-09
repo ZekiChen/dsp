@@ -7,6 +7,7 @@ import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.List;
+import java.util.Map;
 
 /**
  * 将 ad-group-campaign 数据打平，平铺到 AdDTO 中
@@ -26,7 +27,7 @@ public class AdDTO implements Serializable {
     /**
      * AD关联的物料集，比如native广告就需要 logo 和 image
      */
-    private List<Creative> creative;
+    private Map<Integer, Creative> creativeMap;
 
     /**
      * 广告所属的组信息
