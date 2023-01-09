@@ -12,7 +12,7 @@ import java.util.Arrays;
  **/
 @Getter
 @AllArgsConstructor
-public enum CreativeTypeEnum {
+public enum AdTypeEnum {
 
     BANNER(1, "banner"),
     VIDEO(2, "video"),
@@ -22,7 +22,7 @@ public enum CreativeTypeEnum {
     private final int type;
     private final String desc;
 
-    public static CreativeTypeEnum of(int type) {
-        return Arrays.stream(CreativeTypeEnum.values()).filter(e -> e.type == type).findFirst().orElse(null);
+    public static AdTypeEnum of(int type) {
+        return Arrays.stream(AdTypeEnum.values()).filter(e -> e.type == type).findFirst().orElse(null);
     }
 }

@@ -5,7 +5,7 @@ import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.*;
 import com.tecdo.domain.openrtb.request.n.Asset;
 import com.tecdo.entity.Creative;
-import com.tecdo.enums.biz.CreativeTypeEnum;
+import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.filter.util.ConditionUtil;
 import org.springframework.stereotype.Component;
 
@@ -28,7 +28,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
         Video video = imp.getVideo();
         Native native1 = imp.getNative1();
         for (Creative creative : adDTO.getCreative()) {
-            switch (CreativeTypeEnum.of(creative.getType())) {
+            switch (AdTypeEnum.of(creative.getType())) {
                 case BANNER:
                     if (banner == null) {
                         return false;

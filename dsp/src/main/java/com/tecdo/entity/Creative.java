@@ -2,7 +2,7 @@ package com.tecdo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tecdo.entity.base.BaseEntity;
-import com.tecdo.enums.biz.CreativeTypeEnum;
+import com.tecdo.enums.biz.AdTypeEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -23,7 +23,7 @@ public class Creative extends BaseEntity {
 
     /**
      * 物料类型
-     * @see CreativeTypeEnum
+     * @see AdTypeEnum
      */
     private Integer type;
 
