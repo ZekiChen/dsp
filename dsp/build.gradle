@@ -4,17 +4,16 @@ apply plugin: 'io.spring.dependency-management'
 
 dependencies {
 
+    // SpringBoot
     implementation 'org.springframework.boot:spring-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-log4j2'
     implementation libraries.disruptor
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-    implementation 'cn.hutool:hutool-all:5.8.10'
-
     implementation libraries.netty
 
+    implementation 'cn.hutool:hutool-all:5.8.10'
     implementation libraries.guava
-
     implementation libraries.common_lang3
     implementation libraries.common_collections
 
@@ -22,12 +21,15 @@ dependencies {
     implementation libraries.jackson_core
     implementation libraries.jackson_databinding
 
-    implementation libraries.okhttp
+    // OkHttp3-FastJson2
+    implementation 'com.squareup.okio:okio:2.8.0'
+    implementation 'cn.zhxu:okhttps-fastjson2:4.0.0'
 
     implementation 'com.alibaba:druid-spring-boot-starter:1.2.8'
     implementation 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
     implementation 'mysql:mysql-connector-java:8.0.22'
 
+    // CAT
     implementation "com.dianping.cat:cat-client:3.1.0"
     implementation 'org.codehaus.plexus:plexus-classworlds:2.5.1'
     implementation 'org.codehaus.plexus:plexus-utils:3.0.24'
@@ -36,6 +38,7 @@ dependencies {
     }
     implementation 'com.google.http-client:google-http-client:1.42.2'
 
+    // Test、Mock
     testImplementation test_libraries.powermock_junit4
     testImplementation test_libraries.powermock_api_mockito
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
