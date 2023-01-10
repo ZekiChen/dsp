@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class CreativeFormatFilter extends AbstractRecallFilter {
 
-    private static final String INCLUDE_OPERATION = "include";
+    private static final String EQ_OPERATION = "eq";
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO) {
@@ -33,12 +33,10 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 }
                 Creative creative = adDTO.getCreativeMap().get(adDTO.getAd().getIcon());
                 if (banner.getW() != null && banner.getH() != null) {
-                    if (!ConditionUtil.compare(banner.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
-                            || !ConditionUtil.compare(banner.getH().toString(), INCLUDE_OPERATION, creative.getHeight())) {
+                    if (!ConditionUtil.compare(banner.getW().toString(), EQ_OPERATION, creative.getWidth().toString())
+                            || !ConditionUtil.compare(banner.getH().toString(), EQ_OPERATION, creative.getHeight().toString())) {
                         return false;
                     }
-                    return ConditionUtil.compare(banner.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
-                            && ConditionUtil.compare(banner.getH().toString(), INCLUDE_OPERATION, creative.getHeight());
                 } else {
                     if (CollUtil.isEmpty(banner.getFormat())) {
                         return false;
@@ -46,8 +44,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     boolean hitFlag = false;
                     for (Format format : banner.getFormat()) {
                         if (format.getW() != null && format.getH() != null) {
-                            if (ConditionUtil.compare(format.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
-                                    && ConditionUtil.compare(format.getH().toString(), INCLUDE_OPERATION, creative.getHeight())) {
+                            if (ConditionUtil.compare(format.getW().toString(), EQ_OPERATION, creative.getWidth().toString())
+                                    && ConditionUtil.compare(format.getH().toString(), EQ_OPERATION, creative.getHeight().toString())) {
                                 hitFlag = true;
                             }
                         }
@@ -60,8 +58,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     return false;
                 }
                 creative = adDTO.getCreativeMap().get(adDTO.getAd().getVideo());
-                return ConditionUtil.compare(video.getW().toString(), INCLUDE_OPERATION, creative.getWidth())
-                        && ConditionUtil.compare(video.getH().toString(), INCLUDE_OPERATION, creative.getHeight());
+                return ConditionUtil.compare(video.getW().toString(), EQ_OPERATION, creative.getWidth().toString())
+                        && ConditionUtil.compare(video.getH().toString(), EQ_OPERATION, creative.getHeight().toString());
             case NATIVE:
                 Native native1 = imp.getNative1();
                 creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
@@ -73,8 +71,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     if (asset.getImg() == null || asset.getImg().getW() == null || asset.getImg().getH() == null) {
                         return false;
                     }
-                    if (ConditionUtil.compare(asset.getImg().getW().toString(), INCLUDE_OPERATION, creative.getWidth())
-                            && ConditionUtil.compare(asset.getImg().getH().toString(), INCLUDE_OPERATION, creative.getHeight())) {
+                    if (ConditionUtil.compare(asset.getImg().getW().toString(), EQ_OPERATION, creative.getWidth().toString())
+                            && ConditionUtil.compare(asset.getImg().getH().toString(), EQ_OPERATION, creative.getHeight().toString())) {
                         hitFlag = true;
                     }
                 }
