@@ -27,7 +27,7 @@ public class AppBundleFilter extends AbstractRecallFilter {
         }
         App app = bidRequest.getApp();
         if (app == null || StrUtil.isBlank(app.getBundle())) {
-            return false;
+            return true;
         }
         return ConditionUtil.compare(app.getBundle(), condition.getOperation(), condition.getValue());
     }
