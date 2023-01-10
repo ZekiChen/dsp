@@ -92,9 +92,10 @@ public class LifeCycleManager {
     private void handleDbDataInit() {
         switch (currentState) {
             case INIT:
-                affManager.init();
-                adManager.init();
-                rtaManager.init();
+                Params params = Params.create();
+                affManager.init(params);
+                adManager.init(params);
+                rtaManager.init(params);
                 switchState(State.WAIT_DATA_INIT_COMPLETED);
                 break;
             default:

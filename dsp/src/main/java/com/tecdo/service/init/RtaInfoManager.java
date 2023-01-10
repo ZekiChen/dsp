@@ -58,8 +58,8 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
         }
     }
 
-    public void init() {
-        messageQueue.putMessage(EventType.RTA_INFOS_LOAD);
+    public void init(Params params) {
+        messageQueue.putMessage(EventType.RTA_INFOS_LOAD, params);
     }
 
     private void startReloadTimeoutTimer() {
@@ -81,7 +81,7 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
     public void handleEvent(EventType eventType, Params params) {
         switch (eventType) {
             case RTA_INFOS_LOAD:
-                handleRtaInfosReload();
+                handleRtaInfosReload(params);
                 break;
             case RTA_INFOS_LOAD_RESPONSE:
                 handleRtaInfosResponse(params);
@@ -97,14 +97,14 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
         }
     }
 
-    private void handleRtaInfosReload() {
+    private void handleRtaInfosReload(Params params) {
         switch (currentState) {
             case INIT:
             case RUNNING:
                 ThreadPool.getInstance().execute(() -> {
                     try {
                         Map<Integer, RtaInfo> rtaInfoMap = list().stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
-                        Params params = Params.create(ParamKey.RTA_INFOS_CACHE_KEY, rtaInfoMap);
+                        params.put(ParamKey.RTA_INFOS_CACHE_KEY, rtaInfoMap);
                         messageQueue.putMessage(EventType.RTA_INFOS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("rta infos load failure from db: {}", e.getMessage());

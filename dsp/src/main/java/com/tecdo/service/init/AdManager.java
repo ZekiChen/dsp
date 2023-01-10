@@ -66,8 +66,8 @@ public class AdManager {
         }
     }
 
-    public void init() {
-        messageQueue.putMessage(EventType.ADS_LOAD);
+    public void init(Params params) {
+        messageQueue.putMessage(EventType.ADS_LOAD, params);
     }
 
     private void startReloadTimeoutTimer() {
@@ -89,7 +89,7 @@ public class AdManager {
     public void handleEvent(EventType eventType, Params params) {
         switch (eventType) {
             case ADS_LOAD:
-                handleAdsReload();
+                handleAdsReload(params);
                 break;
             case ADS_LOAD_RESPONSE:
                 handleAdsResponse(params);
@@ -105,13 +105,14 @@ public class AdManager {
         }
     }
 
-    private void handleAdsReload() {
+    private void handleAdsReload(Params params) {
         switch (currentState) {
             case INIT:
             case RUNNING:
                 ThreadPool.getInstance().execute(() -> {
                     try {
-                        messageQueue.putMessage(EventType.ADS_LOAD_RESPONSE, listAndConvertAds());
+                        params.put(ParamKey.ADS_CACHE_KEY, listAndConvertAds());
+                        messageQueue.putMessage(EventType.ADS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("ad list load failure from db: {}", e.getMessage());
                         messageQueue.putMessage(EventType.ADS_LOAD_ERROR);
@@ -128,7 +129,7 @@ public class AdManager {
     /**
      * 将 ad（creative）、ad_group（target_condition）、campaign（campaign_rta_info）数据平铺整合 AdDTO 集
      */
-    private Params listAndConvertAds() {
+    private Map<Integer, AdDTO> listAndConvertAds() {
         List<Ad> ads = adMapper.selectList(Wrappers.lambdaQuery());
         Map<Integer, Creative> creativeMap = creativeMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
         Map<Integer, AdGroup> adGroupMap = adGroupMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
@@ -150,8 +151,7 @@ public class AdManager {
                     .build();
             adDTOs.add(adDTO);
         }
-        Map<Integer, AdDTO> adDTOMap = adDTOs.stream().collect(Collectors.toMap(e -> e.getAd().getId(), e -> e));
-        return Params.create(ParamKey.ADS_CACHE_KEY, adDTOMap);
+        return adDTOs.stream().collect(Collectors.toMap(e -> e.getAd().getId(), e -> e));
     }
 
     private Map<Integer, Creative> listCreativesByAd(Map<Integer, Creative> creativeMap, Ad ad) {

@@ -58,8 +58,8 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         }
     }
 
-    public void init() {
-        messageQueue.putMessage(EventType.AFFILIATES_LOAD);
+    public void init(Params params) {
+        messageQueue.putMessage(EventType.AFFILIATES_LOAD, params);
     }
 
     private void startReloadTimeoutTimer() {
@@ -81,7 +81,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     public void handleEvent(EventType eventType, Params params) {
         switch (eventType) {
             case AFFILIATES_LOAD:
-                handleAffiliatesReload();
+                handleAffiliatesReload(params);
                 break;
             case AFFILIATES_LOAD_RESPONSE:
                 handleAffiliatesResponse(params);
@@ -97,14 +97,14 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         }
     }
 
-    private void handleAffiliatesReload() {
+    private void handleAffiliatesReload(Params params) {
         switch (currentState) {
             case INIT:
             case RUNNING:
                 ThreadPool.getInstance().execute(() -> {
                     try {
                         Map<Integer, Affiliate> affiliateMap = list().stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
-                        Params params = Params.create(ParamKey.AFFILIATES_CACHE_KEY, affiliateMap);
+                        params.put(ParamKey.AFFILIATES_CACHE_KEY, affiliateMap);
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("affiliates load failure from db: {}", e.getMessage());
