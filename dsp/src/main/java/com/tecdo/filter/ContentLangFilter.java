@@ -2,7 +2,9 @@ package com.tecdo.filter;
 
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.domain.biz.dto.AdDTO;
-import com.tecdo.domain.openrtb.request.*;
+import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Content;
+import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.filter.util.ConditionUtil;
 import org.springframework.stereotype.Component;
@@ -23,13 +25,8 @@ public class ContentLangFilter extends AbstractRecallFilter {
         if (condition == null) {
             return true;
         }
-        Site site = bidRequest.getSite();
-        App app = bidRequest.getApp();
-        if ((site == null && app == null) || (site != null && app != null)) {
-            return false;
-        }
-        Content content = site != null ? site.getContent() : app.getContent();
-        if (StrUtil.isBlank(content.getLanguage())) {
+        Content content = bidRequest.getApp().getContent();
+        if (content == null || StrUtil.isBlank(content.getLanguage())) {
             return false;
         }
         return ConditionUtil.compare(content.getLanguage(), condition.getOperation(), condition.getValue());

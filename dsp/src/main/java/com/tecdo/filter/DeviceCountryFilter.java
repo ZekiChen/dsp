@@ -26,7 +26,7 @@ public class DeviceCountryFilter extends AbstractRecallFilter {
             return true;
         }
         Device device = bidRequest.getDevice();
-        if (device == null || device.getGeo() == null || StrUtil.isBlank(device.getGeo().getCountry())) {
+        if (device.getGeo() == null || StrUtil.isBlank(device.getGeo().getCountry())) {
             return false;
         }
         return ConditionUtil.compare(device.getGeo().getCountry(), condition.getOperation(), condition.getValue());

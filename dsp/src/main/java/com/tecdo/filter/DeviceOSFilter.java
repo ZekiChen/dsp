@@ -3,7 +3,6 @@ package com.tecdo.filter;
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
-import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.filter.util.ConditionUtil;
@@ -25,10 +24,9 @@ public class DeviceOSFilter extends AbstractRecallFilter {
         if (condition == null) {
             return true;
         }
-        Device device = bidRequest.getDevice();
-        if (device == null || StrUtil.isBlank(device.getOs())) {
+        if (StrUtil.isBlank(bidRequest.getDevice().getOs())) {
             return false;
         }
-        return ConditionUtil.compare(device.getGeo().getCountry(), condition.getOperation(), condition.getValue());
+        return ConditionUtil.compare(bidRequest.getDevice().getOs(), condition.getOperation(), condition.getValue());
     }
 }

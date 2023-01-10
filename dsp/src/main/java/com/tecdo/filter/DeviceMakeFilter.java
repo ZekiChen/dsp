@@ -3,14 +3,13 @@ package com.tecdo.filter;
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
-import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.filter.util.ConditionUtil;
 import org.springframework.stereotype.Component;
 
 /**
- * 设备品牌 过滤
+ * 设备品牌/制造商 过滤
  *
  * Created by Zeki on 2023/1/3
  **/
@@ -25,10 +24,9 @@ public class DeviceMakeFilter extends AbstractRecallFilter {
         if (condition == null) {
             return true;
         }
-        Device device = bidRequest.getDevice();
-        if (device == null || StrUtil.isBlank(device.getMake())) {
+        if (StrUtil.isBlank(bidRequest.getDevice().getMake())) {
             return false;
         }
-        return ConditionUtil.compare(device.getGeo().getCountry(), condition.getOperation(), condition.getValue());
+        return ConditionUtil.compare(bidRequest.getDevice().getMake(), condition.getOperation(), condition.getValue());
     }
 }

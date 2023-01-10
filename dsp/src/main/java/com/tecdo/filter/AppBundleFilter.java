@@ -2,7 +2,6 @@ package com.tecdo.filter;
 
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.domain.biz.dto.AdDTO;
-import com.tecdo.domain.openrtb.request.App;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.TargetCondition;
@@ -25,10 +24,9 @@ public class AppBundleFilter extends AbstractRecallFilter {
         if (condition == null) {
             return true;
         }
-        App app = bidRequest.getApp();
-        if (app == null || StrUtil.isBlank(app.getBundle())) {
-            return true;
+        if (StrUtil.isBlank(bidRequest.getApp().getBundle())) {
+            return false;
         }
-        return ConditionUtil.compare(app.getBundle(), condition.getOperation(), condition.getValue());
+        return ConditionUtil.compare(bidRequest.getApp().getBundle(), condition.getOperation(), condition.getValue());
     }
 }
