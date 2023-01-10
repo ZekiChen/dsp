@@ -33,6 +33,6 @@ public class CampaignRtaInfo extends BaseEntity {
     /**
      * 目标受众
      */
-    private String rtaFeature;
+    private Integer rtaFeature;
 
 }
