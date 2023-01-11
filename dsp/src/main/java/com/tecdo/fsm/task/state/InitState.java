@@ -1,15 +1,14 @@
 package com.tecdo.fsm.task.state;
 
 import com.tecdo.common.Params;
+import com.tecdo.constant.Constant;
 import com.tecdo.constant.EventType;
+import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
-import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.fsm.task.Task;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import java.util.Map;
 
 /**
  * 该状态内会进行广告召回
@@ -30,14 +29,16 @@ public class InitState implements ITaskState {
         switch (eventType) {
             case TASK_START:
                 try {
-                    Map<Integer, AdDTO> adDTOMap = task.listRecallAd();
+                    // TODO 需要有一个 Task 关联的 Params 对象，task-imp-taskParams，其他 State 也持有引用
+                    Params taskParams = null;
+                    taskParams.put(ParamKey.ADS_RECALL_KEY, task.listRecallAd());
+                    messageQueue.putMessage(EventType.ADS_RECALL_FINISH);
                 } catch (Exception e) {
                     log.error("Task error, so this request will not participate in bidding: {}", e.getMessage());
-                    messageQueue.putMessage(EventType.RECALL_ERROR);
+                    messageQueue.putMessage(EventType.ADS_RECALL_ERROR);
                     break;
                 }
-                // TODO
-                messageQueue.putMessage(EventType.RECALL_FINISH);
+                task.startTimer(Constant.TIMEOUT_ADS_RECALL);
                 task.switchState(waitForRecallState);
                 break;
             default:

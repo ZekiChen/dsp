@@ -27,14 +27,18 @@ public enum EventType {
     RTA_INFOS_LOAD_ERROR(1303, "rta infos load failure"),
     RTA_INFOS_LOAD_TIMEOUT(1304, "rta infos load timeout"),
 
-    A_DATA_READY(1998, "A data finish init, enter ready, count increased"),
+    ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
     NETTY_START(1999, "all data finish init, netty start"),
 
     CONTEXT_START(2001, "context start"),
 
     TASK_START(3001, "task start"),
-    RECALL_FINISH(3002, "ad recall finish"),
-    RECALL_ERROR(3003, "ad recall error"),
+    ADS_RECALL_FINISH(3002, "ads recall finish"),
+    ADS_RECALL_ERROR(3003, "ads recall error"),
+    ADS_RECALL_TIMEOUT(3003, "ads recall timeout"),
+
+    CTR_PREDICT_FINISH(3101, "ctr predict finish"),
+    CTR_PREDICT_ERROR(3101, "ctr predict error"),
     ;
 
     private final int code;

@@ -21,7 +21,7 @@ public class WaitForCalcPriceState implements ITaskState {
     @Override
     public void handleEvent(EventType eventType, Params params, Task task) {
         switch (eventType) {
-            case RECALL_FINISH:
+            case ADS_RECALL_FINISH:
                 // TODO
                 break;
             default:

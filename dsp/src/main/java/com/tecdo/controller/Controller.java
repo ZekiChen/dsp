@@ -36,7 +36,7 @@ public class Controller implements MessageObserver {
             case RTA_INFOS_LOAD_RESPONSE:
             case RTA_INFOS_LOAD_ERROR:
             case RTA_INFOS_LOAD_TIMEOUT:
-            case A_DATA_READY:
+            case ONE_DATA_READY:
             case NETTY_START:
                 lifeCycleManager.handleEvent(eventType, params);
                 break;

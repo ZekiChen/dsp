@@ -78,7 +78,7 @@ public class LifeCycleManager {
             case RTA_INFOS_LOAD_TIMEOUT:
                 rtaManager.handleEvent(eventType, params);
                 break;
-            case A_DATA_READY:
+            case ONE_DATA_READY:
                 handleFinishDbDataInit();
                 break;
             case NETTY_START:

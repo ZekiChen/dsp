@@ -13,6 +13,8 @@ import com.tecdo.filter.util.FilterChainUtil;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.service.init.AdManager;
+import com.tecdo.service.init.RtaInfoManager;
+import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
@@ -21,12 +23,14 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @Slf4j
+@Getter
 public class Task {
 
     private Imp imp;
     private BidRequest bidRequest;
 
     private AdManager adManager;
+    private RtaInfoManager rtaInfoManager;
     private RecallFiltersFactory filtersFactory;
 
     private ITaskState currentState;
@@ -43,12 +47,20 @@ public class Task {
         this.currentState = newState;
     }
 
+    public void startTimer(long delay) {
+
+    }
+
+    public void cancelTimer() {
+
+    }
+
     public void handleEvent(EventType eventType, Params params) {
         currentState.handleEvent(eventType, params, this);
     }
 
     /**
-     * 广告召回
+     * 广告召回（在此之前，应该有一个参数校验器，对 BidRequest 进行参数校验，不满足条件就直接不参与本次竞价）
      */
     public Map<Integer, AdDTO> listRecallAd() {
         List<AbstractRecallFilter> filters = filtersFactory.createFilters();

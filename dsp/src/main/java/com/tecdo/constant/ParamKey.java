@@ -19,4 +19,5 @@ public interface ParamKey {
 
     // task-imp
     String ADS_RECALL_KEY = "ads-recall-key";
+    String CTR_PREDICT_KEY = "ctr-predict-key";
 }
