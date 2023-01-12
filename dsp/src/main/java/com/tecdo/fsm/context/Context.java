@@ -77,14 +77,15 @@ public class Context {
   }
 
   public void requestRta() {
+    Params params = assignParams();
     ThreadPool.getInstance().execute(() -> {
 
       try {
         Map<Integer, Target> rtaResMap = doRequestRta();
         messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
-                                assignParams().put(ParamKey.REQUEST_RTA_RESPONSE, rtaResMap));
+                                params.put(ParamKey.REQUEST_RTA_RESPONSE, rtaResMap));
       } catch (Exception e) {
-
+        messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
       }
     });
   }
@@ -96,30 +97,33 @@ public class Context {
     String deviceId = bidRequest.getDevice().getIfa();
     Map<Integer, Target> rtaResMap = new HashMap<>();
 
+    // 只保留rta的单子，并将单子按照广告主分组
     Map<Integer, List<AdDTO>> advToAdList = adDTOList.stream()
                                                      .filter(i -> Objects.nonNull(i.getCampaignRtaInfo()))
                                                      .collect(Collectors.groupingBy(adDTO -> adDTO.getCampaignRtaInfo()
                                                                                                   .getAdvId()));
+    // 分广告主进行rta匹配
     advToAdList.forEach((advId, adList) -> {
       RtaInfo rtaInfo = rtaInfoManager.getRtaInfo(advId);
       RtaHelper.requestRta(rtaInfo, adList, country, deviceId, rtaResMap);
     });
+    return rtaResMap;
+  }
+
+  public void saveRtaResponse(Params params) {
+    List<AdDTO> adDTOList = null;
+    Map<Integer, Target> rtaResMap = params.get(ParamKey.REQUEST_RTA_RESPONSE);
     Map<Integer, List<AdDTO>> campaignIdToAdList =
       adDTOList.stream().collect(Collectors.groupingBy(adDTO -> adDTO.getCampaign().getId()));
+    // 将rta匹配的结果保存到AdDTO中
     for (Map.Entry<Integer, Target> entry : rtaResMap.entrySet()) {
       Integer campaignId = entry.getKey();
       Target t = entry.getValue();
       if (t.isTarget()) {
         String token = t.getToken();
-        // todo wrong code
         campaignIdToAdList.get(campaignId).forEach(i -> i.setRtaToken(token));
       }
     }
-    return rtaResMap;
-  }
-
-  public void saveRtaResponse(Params params) {
-
   }
 
   public void sort() {

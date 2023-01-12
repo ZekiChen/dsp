@@ -38,6 +38,7 @@ public enum EventType {
     RECEIVE_TASK_RESPONSE(3004,"receive task response"),
     WAIT_REQUEST_RTA_RESPONSE_TIMEOUT(3005, "wait request rta response timeout"),
     REQUEST_RTA_RESPONSE(3006, "request rta response"),
+    WAIT_REQUEST_RTA_RESPONSE_ERROR(3006, "wait request rta response error"),
     WAIT_SORT_AD_TIMEOUT(3007,"wait sort ad timeout"),
     SORT_AD_RESPONSE(3008,"sort ad response"),
 

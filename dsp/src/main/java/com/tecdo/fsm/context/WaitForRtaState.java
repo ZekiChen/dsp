@@ -25,6 +25,11 @@ public class WaitForRtaState implements IContextState {
         context.responseData();
         context.requestComplete();
         break;
+      case WAIT_REQUEST_RTA_RESPONSE_ERROR:
+        context.cancelTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT);
+        context.responseData();
+        context.requestComplete();
+        break;
       default:
         log.error("can't handel event:{}", eventType);
     }
