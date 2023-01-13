@@ -118,6 +118,6 @@ public class LifeCycleManager {
 
     private void handleNettyStart() {
         NetServer server = new NetServer();
-        server.startup(serverPort, new SimpleHttpChannelInboundHandler());
+        server.startup(serverPort, new SimpleHttpChannelInboundHandler(messageQueue));
     }
 }
