@@ -48,4 +48,16 @@ public class AdDTO implements Serializable {
      * campaign 关联的广告主的 campaign
      */
     private CampaignRtaInfo campaignRtaInfo;
+
+    // =====================以下是经过计算/逻辑判断后填充的属性==========================
+
+    /**
+     * 预估的ctr
+     */
+    private Double pCtr;
+
+    /**
+     * 出价cpc
+     */
+    private Double cpc;
 }
