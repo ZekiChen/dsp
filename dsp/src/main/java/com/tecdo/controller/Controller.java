@@ -2,8 +2,11 @@ package com.tecdo.controller;
 
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
+import com.tecdo.constant.ParamKey;
 import com.tecdo.fsm.ContextManager;
 import com.tecdo.service.LifeCycleManager;
+import com.tecdo.service.ValidateService;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -19,6 +22,9 @@ public class Controller implements MessageObserver {
     private LifeCycleManager lifeCycleManager;
     @Autowired
     private ContextManager contextManager;
+    @Autowired
+    private ValidateService validateService;
+
 
     @Override
     public void handle(EventType eventType, Params params) {
@@ -40,7 +46,11 @@ public class Controller implements MessageObserver {
             case NETTY_START:
                 lifeCycleManager.handleEvent(eventType, params);
                 break;
+            case VALIDATE_BID_REQUEST:
+                validateService.validateBidRequest(params.get(ParamKey.HTTP_REQUEST));
+                break;
             case CONTEXT_START:
+            case RECEIVE_BID_REQUEST:
                 contextManager.handleEvent(eventType, params);
                 break;
             default:

@@ -6,6 +6,13 @@ public interface ParamKey {
 
     String HTTP_REQUEST = "httpRequest";
 
+    String IMP = "imp";
+    String BID_REQUEST = "bidRequest";
+
+    String REQUEST_RTA_RESPONSE = "requestRtaResponse";
+
+    String TASK_ID = "taskId";
+
     // control response
     String CHANNEL_CONTEXT = "channelContext";
     String HTTP_CODE = "httpCode";

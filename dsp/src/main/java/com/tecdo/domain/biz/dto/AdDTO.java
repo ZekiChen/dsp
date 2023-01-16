@@ -59,5 +59,10 @@ public class AdDTO implements Serializable {
     /**
      * 出价cpc
      */
-    private Double cpc;
+    private Double bidPrice;
+
+    /**
+     * 广告主 rta token
+     */
+    private String rtaToken;
 }

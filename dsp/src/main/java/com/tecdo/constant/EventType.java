@@ -32,18 +32,32 @@ public enum EventType {
 
     CONTEXT_START(2001, "context start"),
 
-    TASK_START(3001, "task start"),
-    ADS_RECALL_FINISH(3002, "ads recall finish"),
-    ADS_RECALL_ERROR(3003, "ads recall error"),
-    ADS_RECALL_TIMEOUT(3004, "ads recall timeout"),
+    VALIDATE_BID_REQUEST(3001,"validate bid request"),
+    RECEIVE_BID_REQUEST(3002,"receive bid request"),
+    WAIT_TASK_RESPONSE_TIMEOUT(3003,"wait task response timeout"),
+    RECEIVE_TASK_RESPONSE(3004,"receive task response"),
+    WAIT_REQUEST_RTA_RESPONSE_TIMEOUT(3005, "wait request rta response timeout"),
+    REQUEST_RTA_RESPONSE(3006, "request rta response"),
+    WAIT_REQUEST_RTA_RESPONSE_ERROR(3006, "wait request rta response error"),
+    WAIT_SORT_AD_TIMEOUT(3007,"wait sort ad timeout"),
+    SORT_AD_RESPONSE(3008,"sort ad response"),
 
-    CTR_PREDICT_FINISH(3101, "ctr predict finish"),
-    CTR_PREDICT_ERROR(3102, "ctr predict error"),
-    CTR_PREDICT_TIMEOUT(3103, "ctr predict timeout"),
+    BID_REQUEST_COMPLETE(3100,"bid request complete"),
 
-    CALC_CPC_FINISH(3201, "calculate cpc finish"),
-    CALC_CPC_ERROR(3202, "calculate cpc error"),
-    CALC_CPC_TIMEOUT(3203, "calculate cpc timeout"),
+    TASK_START(4001, "task start"),
+    ADS_RECALL_FINISH(4002, "ads recall finish"),
+    ADS_RECALL_ERROR(4003, "ads recall error"),
+    ADS_RECALL_TIMEOUT(4004, "ads recall timeout"),
+
+    CTR_PREDICT_FINISH(4101, "ctr predict finish"),
+    CTR_PREDICT_ERROR(4102, "ctr predict error"),
+    CTR_PREDICT_TIMEOUT(4103, "ctr predict timeout"),
+
+    CALC_CPC_FINISH(4201, "calculate cpc finish"),
+    CALC_CPC_ERROR(4202, "calculate cpc error"),
+    CALC_CPC_TIMEOUT(4203, "calculate cpc timeout"),
+
+    RESPONSE_RESULT(6001,"response result"),
     ;
 
     private final int code;

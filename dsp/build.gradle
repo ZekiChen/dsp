@@ -38,6 +38,9 @@ dependencies {
     }
     implementation 'com.google.http-client:google-http-client:1.42.2'
 
+    // Lazada
+    implementation 'com.lazada:lazop-api-sdk:1.2.0'
+
     // Test、Mock
     testImplementation test_libraries.powermock_junit4
     testImplementation test_libraries.powermock_api_mockito
