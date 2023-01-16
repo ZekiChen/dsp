@@ -1,6 +1,10 @@
 package com.tecdo.fsm.context.validate;
 
+import cn.hutool.core.collection.CollUtil;
 import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Imp;
+
+import java.util.List;
 
 /**
  * BidRequest 参数校验器
@@ -20,10 +24,20 @@ public class ParamValidator {
         if (bidRequest.getApp() == null) {
             return false;
         }
-        // 设备信息都不传，也不太合理
+        // 设备信息都不传，不太合理
         if (bidRequest.getDevice() == null) {
             return false;
         }
+        // 展示位必须有
+        List<Imp> imp = bidRequest.getImp();
+        if (CollUtil.isEmpty(imp)) {
+            return false;
+        }
+        // 展示位底价必须有
+        if (imp.stream().anyMatch(e -> e.getBidfloor() == null)) {
+            return false;
+        }
+
         return true;
     }
 }

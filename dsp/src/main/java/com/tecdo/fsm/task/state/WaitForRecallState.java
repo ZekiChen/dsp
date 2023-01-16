@@ -53,16 +53,18 @@ public class WaitForRecallState implements ITaskState {
             case ADS_RECALL_FINISH:
                 task.cancelTimer();
                 Params taskParams = null;
+                Map<Integer, AdDTO> recallAdMap = taskParams.get(ParamKey.ADS_IMP_KEY);
                 // TODO 根据 http request 中的 token 获取 affId
                 Integer affId = getAffIdByReqToken(null, taskParams.get(ParamKey.AFFILIATES_CACHE_KEY));
                 ThreadPool.getInstance().execute(() -> {
-                    List<CtrRequest> ctrRequests = taskParams.<Map<Integer, AdDTO>>get(ParamKey.ADS_RECALL_KEY).values().stream().map(adDTO ->
+                    List<CtrRequest> ctrRequests = recallAdMap.values().stream().map(adDTO ->
                             buildCtrRequest(task.getBidRequest(), task.getImp(), affId, adDTO)).collect(Collectors.toList());
                     Map<String, Object> paramMap = MapUtil.<String, Object>builder().put("data", ctrRequests).build();
                     HttpResult httpResult = OkHttps.sync(ctrPredictUrl).addBodyPara(paramMap).get();
                     if (httpResult.isSuccessful()) {
                         R<List<CtrResponse>> result = httpResult.getBody().toBean(R.class);
-                        taskParams.put(ParamKey.CTR_PREDICT_KEY, result.getData());
+                        result.getData().forEach(e -> recallAdMap.get(e.getAdId()).setPCtr(e.getPCtr()));
+                        taskParams.put(ParamKey.ADS_IMP_KEY, recallAdMap);
                         messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, taskParams);
                     } else {
                         log.error("ctr request error: {}, reason: {}", httpResult.getStatus(), httpResult.getError().getMessage());

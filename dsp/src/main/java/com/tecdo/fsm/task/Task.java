@@ -60,7 +60,7 @@ public class Task {
     }
 
     /**
-     * 广告召回（在此之前，应该有一个参数校验器，对 BidRequest 进行参数校验，不满足条件就直接不参与本次竞价）
+     * 广告召回（在此之前，会有一个参数校验器 ParamValidator 对 BidRequest 进行参数校验，不满足必须条件就直接不参与本次竞价）
      */
     public Map<Integer, AdDTO> listRecallAd() {
         List<AbstractRecallFilter> filters = filtersFactory.createFilters();

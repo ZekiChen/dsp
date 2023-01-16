@@ -18,6 +18,5 @@ public interface ParamKey {
     String RTA_INFOS_CACHE_KEY = "rta-infos-cache-key";
 
     // task-imp
-    String ADS_RECALL_KEY = "ads-recall-key";
-    String CTR_PREDICT_KEY = "ctr-predict-key";
+    String ADS_IMP_KEY = "ads-imp-key";
 }
