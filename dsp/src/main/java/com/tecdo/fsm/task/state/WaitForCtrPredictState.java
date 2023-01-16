@@ -38,7 +38,7 @@ public class WaitForCtrPredictState implements ITaskState {
                 Map<Integer, AdDTO> adDTOMap = taskParams.get(ParamKey.ADS_IMP_KEY);
                 try {
                     ThreadPool.getInstance().execute(() -> {
-                        adDTOMap.values().forEach(e -> e.setCpc(e.getAdGroup().getOptPrice() * e.getPCtr() * 1000));
+                        adDTOMap.values().forEach(e -> e.setBidPrice(e.getAdGroup().getOptPrice() * e.getPCtr() * 1000));
                         taskParams.put(ParamKey.ADS_IMP_KEY, adDTOMap);
                         messageQueue.putMessage(EventType.CALC_CPC_FINISH);
                     });

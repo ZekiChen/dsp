@@ -34,7 +34,7 @@ public class WaitForCalcPriceState implements ITaskState {
                 Params taskParams = null;
                 ThreadPool.getInstance().execute(() -> {
                     Map<Integer, AdDTO> adDTOMap = taskParams.get(ParamKey.ADS_IMP_KEY);
-                    adDTOMap = adDTOMap.values().stream().filter(e -> e.getCpc() > task.getImp().getBidfloor())
+                    adDTOMap = adDTOMap.values().stream().filter(e -> e.getBidPrice() > task.getImp().getBidfloor())
                             .collect(Collectors.toMap(e -> e.getAd().getId(), e -> e));
                     taskParams.put(ParamKey.ADS_IMP_KEY, adDTOMap);
                 });
