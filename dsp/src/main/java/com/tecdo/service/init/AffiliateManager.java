@@ -9,7 +9,6 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.entity.Affiliate;
-import com.tecdo.entity.base.IdEntity;
 import com.tecdo.mapper.AffiliateMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -107,7 +106,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
             case RUNNING:
                 ThreadPool.getInstance().execute(() -> {
                     try {
-                        Map<String, Affiliate> affiliateMap = list().stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        Map<String, Affiliate> affiliateMap = list().stream().collect(Collectors.toMap(Affiliate::getSecret, e -> e));
                         params.put(ParamKey.AFFILIATES_CACHE_KEY, affiliateMap);
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
                     } catch (Exception e) {
