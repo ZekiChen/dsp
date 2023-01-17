@@ -50,7 +50,7 @@ public class WaitForRecallState implements ITaskState {
     public void handleEvent(EventType eventType, Params params, Task task) {
         switch (eventType) {
             case ADS_RECALL_FINISH:
-                task.cancelTimer();
+                task.cancelTimer(EventType.ADS_RECALL_TIMEOUT);
                 Map<Integer, AdDTO> recallAdMap = params.get(ParamKey.ADS_IMP_KEY);
                 // TODO 根据 http request 中的 token 获取 affId
                 Integer affId = getAffIdByReqToken(null, params.get(ParamKey.AFFILIATES_CACHE_KEY));
@@ -69,11 +69,11 @@ public class WaitForRecallState implements ITaskState {
                         messageQueue.putMessage(EventType.CTR_PREDICT_ERROR);
                     }
                 });
-                task.startTimer(Constant.TIMEOUT_PRE_DICT);
+                task.startTimer(EventType.CTR_PREDICT_TIMEOUT, params, Constant.TIMEOUT_PRE_DICT);
                 task.switchState(waitForCtrPredictState);
                 break;
             case ADS_RECALL_ERROR:
-                task.cancelTimer();
+                task.cancelTimer(EventType.ADS_RECALL_TIMEOUT);
                 // 本次 bid 不参与
                 break;
             case ADS_RECALL_TIMEOUT:

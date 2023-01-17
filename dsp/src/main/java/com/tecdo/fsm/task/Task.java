@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
+import com.tecdo.controller.SoftTimer;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -31,9 +32,11 @@ public class Task {
     private Imp imp;
     private BidRequest bidRequest;
 
-    private AdManager adManager = SpringUtil.getBean(AdManager.class);
-    private RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
-    private RecallFiltersFactory filtersFactory = SpringUtil.getBean(RecallFiltersFactory.class);
+    private final AdManager adManager = SpringUtil.getBean(AdManager.class);
+    private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
+    private final RecallFiltersFactory filtersFactory = SpringUtil.getBean(RecallFiltersFactory.class);
+    private final SoftTimer softTimer = SpringUtil.getBean(SoftTimer.class);
+    private final Map<EventType, Long> eventTimerMap = new HashMap<>();
 
     private ITaskState currentState = SpringUtil.getBean(InitState.class);
 
@@ -50,12 +53,17 @@ public class Task {
         this.currentState = newState;
     }
 
-    public void startTimer(long delay) {
-
+    public void startTimer(EventType eventType, Params params, long delay) {
+        long timerId = softTimer.startTimer(eventType, params, delay);
+        eventTimerMap.put(eventType, timerId);
     }
 
-    public void cancelTimer() {
-
+    public void cancelTimer(EventType eventType) {
+        if (eventTimerMap.containsKey(eventType)) {
+            softTimer.cancel(eventTimerMap.get(eventType));
+        } else {
+            log.warn("context: {}, not exist this timer: {}", bidRequest.getId(), eventType);
+        }
     }
 
     public void handleEvent(EventType eventType, Params params) {

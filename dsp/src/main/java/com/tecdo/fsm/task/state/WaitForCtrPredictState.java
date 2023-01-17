@@ -32,7 +32,7 @@ public class WaitForCtrPredictState implements ITaskState {
     public void handleEvent(EventType eventType, Params params, Task task) {
         switch (eventType) {
             case CTR_PREDICT_FINISH:
-                task.cancelTimer();
+                task.cancelTimer(EventType.CTR_PREDICT_TIMEOUT);
                 Map<Integer, AdDTO> adDTOMap = params.get(ParamKey.ADS_IMP_KEY);
                 try {
                     ThreadPool.getInstance().execute(() -> {
@@ -44,11 +44,11 @@ public class WaitForCtrPredictState implements ITaskState {
                     log.error("calculate cpc error: {}", e.getMessage());
                     messageQueue.putMessage(EventType.CALC_CPC_ERROR);
                 }
-                task.startTimer(Constant.TIMEOUT_CALC_PRICE);
+                task.startTimer(EventType.CALC_CPC_TIMEOUT, params, Constant.TIMEOUT_CALC_PRICE);
                 task.switchState(waitForCalcPriceState);
                 break;
             case CTR_PREDICT_ERROR:
-                task.cancelTimer();
+                task.cancelTimer(EventType.CTR_PREDICT_TIMEOUT);
                 // 本次 bid 不参与
                 break;
             case CTR_PREDICT_TIMEOUT:

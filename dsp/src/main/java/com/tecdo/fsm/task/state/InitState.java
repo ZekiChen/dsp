@@ -38,7 +38,7 @@ public class InitState implements ITaskState {
                         messageQueue.putMessage(EventType.ADS_RECALL_ERROR);
                     }
                 });
-                task.startTimer(Constant.TIMEOUT_ADS_RECALL);
+                task.startTimer(EventType.ADS_RECALL_TIMEOUT, params, Constant.TIMEOUT_ADS_RECALL);
                 task.switchState(waitForRecallState);
                 break;
             default:
