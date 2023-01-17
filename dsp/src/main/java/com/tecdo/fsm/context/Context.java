@@ -64,7 +64,7 @@ public class Context {
             Task task = taskPool.get();
             task.init(bidRequest, imp);
             taskMap.put(imp.getId(), task);
-            messageQueue.putMessage(EventType.RECEIVE_BID_REQUEST, Params.create());
+            messageQueue.putMessage(EventType.TASK_START, Params.create());
         });
     }
 
