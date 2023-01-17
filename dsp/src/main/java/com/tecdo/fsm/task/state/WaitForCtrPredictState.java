@@ -34,12 +34,11 @@ public class WaitForCtrPredictState implements ITaskState {
         switch (eventType) {
             case CTR_PREDICT_FINISH:
                 task.cancelTimer();
-                Params taskParams = null;
-                Map<Integer, AdDTO> adDTOMap = taskParams.get(ParamKey.ADS_IMP_KEY);
+                Map<Integer, AdDTO> adDTOMap = params.get(ParamKey.ADS_IMP_KEY);
                 try {
                     ThreadPool.getInstance().execute(() -> {
                         adDTOMap.values().forEach(e -> e.setBidPrice(e.getAdGroup().getOptPrice() * e.getPCtr() * 1000));
-                        taskParams.put(ParamKey.ADS_IMP_KEY, adDTOMap);
+                        params.put(ParamKey.ADS_IMP_KEY, adDTOMap);
                         messageQueue.putMessage(EventType.CALC_CPC_FINISH);
                     });
                 } catch (Exception e) {

@@ -31,9 +31,7 @@ public class InitState implements ITaskState {
             case TASK_START:
                 ThreadPool.getInstance().execute(() -> {
                     try {
-                        // TODO 需要有一个 Task 关联的 Params 对象，task-imp-taskParams，其他 State 也持有引用
-                        Params taskParams = null;
-                        taskParams.put(ParamKey.ADS_IMP_KEY, task.listRecallAd());
+                        params.put(ParamKey.ADS_IMP_KEY, task.listRecallAd());
                         messageQueue.putMessage(EventType.ADS_RECALL_FINISH);
                     } catch (Exception e) {
                         log.error("list recall ad error, imp id: {}, so this request will not participate in bidding, reason: {}",

@@ -52,10 +52,9 @@ public class WaitForRecallState implements ITaskState {
         switch (eventType) {
             case ADS_RECALL_FINISH:
                 task.cancelTimer();
-                Params taskParams = null;
-                Map<Integer, AdDTO> recallAdMap = taskParams.get(ParamKey.ADS_IMP_KEY);
+                Map<Integer, AdDTO> recallAdMap = params.get(ParamKey.ADS_IMP_KEY);
                 // TODO 根据 http request 中的 token 获取 affId
-                Integer affId = getAffIdByReqToken(null, taskParams.get(ParamKey.AFFILIATES_CACHE_KEY));
+                Integer affId = getAffIdByReqToken(null, params.get(ParamKey.AFFILIATES_CACHE_KEY));
                 ThreadPool.getInstance().execute(() -> {
                     List<CtrRequest> ctrRequests = recallAdMap.values().stream().map(adDTO ->
                             buildCtrRequest(task.getBidRequest(), task.getImp(), affId, adDTO)).collect(Collectors.toList());
@@ -64,8 +63,8 @@ public class WaitForRecallState implements ITaskState {
                     if (httpResult.isSuccessful()) {
                         R<List<CtrResponse>> result = httpResult.getBody().toBean(R.class);
                         result.getData().forEach(e -> recallAdMap.get(e.getAdId()).setPCtr(e.getPCtr()));
-                        taskParams.put(ParamKey.ADS_IMP_KEY, recallAdMap);
-                        messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, taskParams);
+                        params.put(ParamKey.ADS_IMP_KEY, recallAdMap);
+                        messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
                     } else {
                         log.error("ctr request error: {}, reason: {}", httpResult.getStatus(), httpResult.getError().getMessage());
                         messageQueue.putMessage(EventType.CTR_PREDICT_ERROR);

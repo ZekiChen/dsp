@@ -31,12 +31,11 @@ public class WaitForCalcPriceState implements ITaskState {
     public void handleEvent(EventType eventType, Params params, Task task) {
         switch (eventType) {
             case CALC_CPC_FINISH:
-                Params taskParams = null;
                 ThreadPool.getInstance().execute(() -> {
-                    Map<Integer, AdDTO> adDTOMap = taskParams.get(ParamKey.ADS_IMP_KEY);
+                    Map<Integer, AdDTO> adDTOMap = params.get(ParamKey.ADS_IMP_KEY);
                     adDTOMap = adDTOMap.values().stream().filter(e -> e.getBidPrice() > task.getImp().getBidfloor())
                             .collect(Collectors.toMap(e -> e.getAd().getId(), e -> e));
-                    taskParams.put(ParamKey.ADS_IMP_KEY, adDTOMap);
+                    params.put(ParamKey.ADS_IMP_KEY, adDTOMap);
                 });
                 task.startTimer(Constant.TIMEOUT_PRICE_FILTER);
                 break;
