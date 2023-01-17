@@ -8,8 +8,8 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.fsm.task.Task;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -22,10 +22,10 @@ import java.util.stream.Collectors;
  **/
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class WaitForCalcPriceState implements ITaskState {
 
-    @Autowired
-    private MessageQueue messageQueue;
+    private final MessageQueue messageQueue;
 
     @Override
     public void handleEvent(EventType eventType, Params params, Task task) {

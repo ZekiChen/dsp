@@ -7,8 +7,8 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.fsm.task.Task;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
@@ -18,12 +18,11 @@ import org.springframework.stereotype.Component;
  **/
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class InitState implements ITaskState {
 
-    @Autowired
-    private MessageQueue messageQueue;
-    @Autowired
-    private WaitForRecallState waitForRecallState;
+    private final MessageQueue messageQueue;
+    private final WaitForRecallState waitForRecallState;
 
     @Override
     public void handleEvent(EventType eventType, Params params, Task task) {

@@ -20,9 +20,9 @@ import com.tecdo.entity.Ad;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.fsm.task.Task;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -37,12 +37,11 @@ import java.util.stream.Collectors;
  **/
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class WaitForRecallState implements ITaskState {
 
-    @Autowired
-    private MessageQueue messageQueue;
-    @Autowired
-    private WaitForCtrPredictState waitForCtrPredictState;
+    private final MessageQueue messageQueue;
+    private final WaitForCtrPredictState waitForCtrPredictState;
 
     @Value("${pac.ctr-predict.url}")
     private String ctrPredictUrl;
