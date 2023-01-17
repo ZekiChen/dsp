@@ -2,6 +2,7 @@ package com.tecdo.fsm.task;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.domain.biz.dto.AdDTO;
@@ -12,6 +13,7 @@ import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.util.FilterChainUtil;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.fsm.task.state.ITaskState;
+import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
 import lombok.Getter;
@@ -29,14 +31,15 @@ public class Task {
     private Imp imp;
     private BidRequest bidRequest;
 
-    private AdManager adManager;
-    private RtaInfoManager rtaInfoManager;
-    private RecallFiltersFactory filtersFactory;
+    private AdManager adManager = SpringUtil.getBean(AdManager.class);
+    private RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
+    private RecallFiltersFactory filtersFactory = SpringUtil.getBean(RecallFiltersFactory.class);
 
-    private ITaskState currentState;
+    private ITaskState currentState = SpringUtil.getBean(InitState.class);
 
-    public void init() {
-
+    public void init(BidRequest bidRequest, Imp imp) {
+        this.bidRequest = bidRequest;
+        this.imp = imp;
     }
 
     public void reset() {
