@@ -6,13 +6,12 @@ import com.tecdo.constant.HttpCode;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
-import com.tecdo.domain.request.BidRequest;
+import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

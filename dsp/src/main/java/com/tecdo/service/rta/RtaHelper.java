@@ -4,10 +4,11 @@ import com.lazada.lazop.api.LazopClient;
 import com.lazada.lazop.api.LazopRequest;
 import com.lazada.lazop.api.LazopResponse;
 import com.lazada.lazop.util.ApiException;
-import com.tecdo.domain.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.RtaInfo;
 import com.tecdo.util.JsonHelper;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 import java.util.List;
@@ -15,8 +16,6 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RtaHelper {

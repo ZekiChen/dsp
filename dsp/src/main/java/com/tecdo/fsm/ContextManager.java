@@ -3,18 +3,16 @@ package com.tecdo.fsm;
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
-import com.tecdo.domain.request.BidRequest;
+import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.fsm.context.Context;
 import com.tecdo.server.request.HttpRequest;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Queue;
-
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
