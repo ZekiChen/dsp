@@ -31,7 +31,7 @@ public class InitState implements ITaskState {
                 ThreadPool.getInstance().execute(() -> {
                     try {
                         params.put(ParamKey.ADS_IMP_KEY, task.listRecallAd());
-                        messageQueue.putMessage(EventType.ADS_RECALL_FINISH);
+                        messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
                     } catch (Exception e) {
                         log.error("list recall ad error, imp id: {}, so this request will not participate in bidding, reason: {}",
                                 task.getImp().getId(), e.getMessage());

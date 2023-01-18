@@ -37,7 +37,7 @@ public class WaitForCtrPredictState implements ITaskState {
                 try {
                     ThreadPool.getInstance().execute(() -> {
                         adDTOMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e)));
-                        messageQueue.putMessage(EventType.CALC_CPC_FINISH);
+                        messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
                     });
                 } catch (Exception e) {
                     log.error("calculate cpc error: {}", e.getMessage());
