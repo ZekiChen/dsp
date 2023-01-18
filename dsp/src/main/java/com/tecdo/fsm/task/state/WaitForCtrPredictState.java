@@ -36,8 +36,7 @@ public class WaitForCtrPredictState implements ITaskState {
                 Map<Integer, AdDTO> adDTOMap = params.get(ParamKey.ADS_IMP_KEY);
                 try {
                     ThreadPool.getInstance().execute(() -> {
-                        adDTOMap.values().forEach(e -> e.setBidPrice(e.getAdGroup().getOptPrice() * e.getPCtr() * 1000));
-                        params.put(ParamKey.ADS_IMP_KEY, adDTOMap);
+                        adDTOMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e)));
                         messageQueue.putMessage(EventType.CALC_CPC_FINISH);
                     });
                 } catch (Exception e) {
@@ -57,5 +56,9 @@ public class WaitForCtrPredictState implements ITaskState {
             default:
                 log.error("Task can't handle event, type: {}", eventType);
         }
+    }
+
+    private static double doCalcPrice(AdDTO e) {
+        return e.getAdGroup().getOptPrice() * e.getPCtr() * 1000;
     }
 }
