@@ -53,18 +53,14 @@ public class WaitForRecallState implements ITaskState {
         switch (eventType) {
             case ADS_RECALL_FINISH:
                 task.cancelTimer(EventType.ADS_RECALL_TIMEOUT);
-                Map<Integer, AdDTO> recallAdMap = params.get(ParamKey.ADS_IMP_KEY);
+                Map<Integer, AdDTO> adDTOMap = params.get(ParamKey.ADS_IMP_KEY);
                 // TODO 根据 http request 中的 token 获取 affId
                 Integer affId = getAffIdByReqToken(null, affiliateManager.getAffiliateMap());
                 ThreadPool.getInstance().execute(() -> {
-                    List<CtrRequest> ctrRequests = recallAdMap.values().stream().map(adDTO ->
-                            buildCtrRequest(task.getBidRequest(), task.getImp(), affId, adDTO)).collect(Collectors.toList());
-                    Map<String, Object> paramMap = MapUtil.<String, Object>builder().put("data", ctrRequests).build();
-                    HttpResult httpResult = OkHttps.sync(ctrPredictUrl).addBodyPara(paramMap).get();
+                    HttpResult httpResult = buildAndCallCtr3Api(task, adDTOMap, affId);
                     if (httpResult.isSuccessful()) {
                         R<List<CtrResponse>> result = httpResult.getBody().toBean(R.class);
-                        result.getData().forEach(e -> recallAdMap.get(e.getAdId()).setPCtr(e.getPCtr()));
-                        params.put(ParamKey.ADS_IMP_KEY, recallAdMap);
+                        result.getData().forEach(resp -> adDTOMap.get(resp.getAdId()).setPCtr(resp.getPCtr()));
                         messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
                     } else {
                         log.error("ctr request error: {}, reason: {}", httpResult.getStatus(), httpResult.getError().getMessage());
@@ -90,6 +86,13 @@ public class WaitForRecallState implements ITaskState {
     private static Integer getAffIdByReqToken(String token, Map<String, Affiliate> affiliateMap) {
         Affiliate affiliate = affiliateMap.values().stream().filter(e -> token.equals(e.getSecret())).findFirst().orElse(null);
         return affiliate != null ? affiliate.getId() : null;
+    }
+
+    private HttpResult buildAndCallCtr3Api(Task task, Map<Integer, AdDTO> adDTOMap, Integer affId) {
+        List<CtrRequest> ctrRequests = adDTOMap.values().stream().map(adDTO ->
+                buildCtrRequest(task.getBidRequest(), task.getImp(), affId, adDTO)).collect(Collectors.toList());
+        Map<String, Object> paramMap = MapUtil.<String, Object>builder().put("data", ctrRequests).build();
+        return OkHttps.sync(ctrPredictUrl).addBodyPara(paramMap).get();
     }
 
     private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
