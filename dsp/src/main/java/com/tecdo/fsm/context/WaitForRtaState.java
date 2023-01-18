@@ -1,14 +1,21 @@
 package com.tecdo.fsm.context;
 
-import com.tecdo.common.Instance;
 import com.tecdo.common.Params;
 import com.tecdo.constant.Constant;
 import com.tecdo.constant.EventType;
 
+import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
+@Component
+@RequiredArgsConstructor
 public class WaitForRtaState implements IContextState {
+
+  private WaitForSortState waitForSortState;
+
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {
     switch (eventType) {
@@ -19,7 +26,7 @@ public class WaitForRtaState implements IContextState {
         context.startTimer(EventType.WAIT_SORT_AD_TIMEOUT,
                            context.assignParams(),
                            Constant.TEN_MILLIS);
-        context.switchState(Instance.of(WaitForSortState.class));
+        context.switchState(waitForSortState);
         break;
       case WAIT_REQUEST_RTA_RESPONSE_TIMEOUT:
         context.responseData();

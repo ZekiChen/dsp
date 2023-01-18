@@ -3,7 +3,7 @@ package com.tecdo.filter;
 import cn.hutool.core.collection.CollUtil;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.*;
-import com.tecdo.domain.openrtb.request.n.Asset;
+import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
 import com.tecdo.entity.Creative;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.filter.util.ConditionUtil;
@@ -63,16 +63,16 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
             case NATIVE:
                 Native native1 = imp.getNative1();
                 creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
-                if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
+                if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getNativeRequestAssets())) {
                     return false;
                 }
                 boolean hitFlag = false;
-                for (Asset asset : native1.getNativeRequest().getAssets()) {
-                    if (asset.getImg() == null || asset.getImg().getW() == null || asset.getImg().getH() == null) {
+                for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getNativeRequestAssets()) {
+                    if (nativeRequestAsset.getImg() == null || nativeRequestAsset.getImg().getW() == null || nativeRequestAsset.getImg().getH() == null) {
                         return false;
                     }
-                    if (ConditionUtil.compare(asset.getImg().getW().toString(), EQ_OPERATION, creative.getWidth().toString())
-                            && ConditionUtil.compare(asset.getImg().getH().toString(), EQ_OPERATION, creative.getHeight().toString())) {
+                    if (ConditionUtil.compare(nativeRequestAsset.getImg().getW().toString(), EQ_OPERATION, creative.getWidth().toString())
+                            && ConditionUtil.compare(nativeRequestAsset.getImg().getH().toString(), EQ_OPERATION, creative.getHeight().toString())) {
                         hitFlag = true;
                     }
                 }

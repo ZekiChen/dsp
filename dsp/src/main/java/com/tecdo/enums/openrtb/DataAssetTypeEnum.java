@@ -1,5 +1,7 @@
 package com.tecdo.enums.openrtb;
 
+import java.util.Arrays;
+
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
@@ -22,8 +24,16 @@ public enum DataAssetTypeEnum {
   displayurl(11,
              "Display URL for the text ad. To be used when sponsoring entity doesn’t own the content"),
   ctatext(12,
-          "CTA description - descriptive text describing a ‘call to action’ button for the destination URL");
+          "CTA description - descriptive text describing a ‘call to action’ button for the destination URL"),
+  other(500, "oather");
 
   private final Integer value;
   private final String desc;
+
+  public static DataAssetTypeEnum of(int value) {
+    return Arrays.stream(DataAssetTypeEnum.values())
+                 .filter(e -> e.value == value)
+                 .findFirst()
+                 .orElse(other);
+  }
 }

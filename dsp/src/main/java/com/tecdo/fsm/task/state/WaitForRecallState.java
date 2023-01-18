@@ -118,11 +118,10 @@ public class WaitForRecallState implements ITaskState {
     private Integer getCreativeIdByAd(Ad ad) {
         switch (AdTypeEnum.of(ad.getType())) {
             case BANNER:
-                return ad.getIcon();
-            case VIDEO:
-                return ad.getVideo();
             case NATIVE:
                 return ad.getImage();
+            case VIDEO:
+                return ad.getVideo();
         }
         return null;
     }

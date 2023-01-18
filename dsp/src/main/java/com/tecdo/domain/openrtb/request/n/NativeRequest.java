@@ -74,6 +74,6 @@ public class NativeRequest extends Extension {
   /**
    * 一组资产对象。 任何出价响应都必须符合出价请求中表达的元素数组
    */
-  private List<Asset> assets;
+  private List<NativeRequestAsset> nativeRequestAssets;
 
 }

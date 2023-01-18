@@ -8,6 +8,7 @@
         <result column="daily_budget" property="dailyBudget"/>
         <result column="package_name" property="packageName"/>
         <result column="category" property="category"/>
+        <result column="domain" property="domain"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
         <result column="update_time" property="updateTime"/>

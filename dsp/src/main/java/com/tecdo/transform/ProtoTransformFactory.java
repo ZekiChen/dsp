@@ -1,7 +1,7 @@
 package com.tecdo.transform;
 
 
-import com.tecdo.common.Instance;
+import cn.hutool.extra.spring.SpringUtil;
 
 public class ProtoTransformFactory {
 
@@ -10,7 +10,7 @@ public class ProtoTransformFactory {
   public static IProtoTransform getProtoTransform(String api) {
     switch (api) {
       case O25_N11:
-        return Instance.of(O25N11Transform.class);
+        return SpringUtil.getBean(O25N11Transform.class);
       default:
         return null;
     }

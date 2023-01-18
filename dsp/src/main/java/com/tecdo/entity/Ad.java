@@ -26,7 +26,7 @@ public class Ad extends BaseEntity {
     private String name;
 
     /**
-     * 广告类型
+     * 广告类型 {@link com.tecdo.enums.biz.AdTypeEnum}
      */
     private Integer type;
 

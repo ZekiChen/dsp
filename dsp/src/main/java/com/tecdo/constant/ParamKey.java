@@ -8,6 +8,8 @@ public interface ParamKey {
 
     String IMP = "imp";
     String BID_REQUEST = "bidRequest";
+    String AFFILIATE = "affiliate";
+    String SORT_AD_RESPONSE = "sortAdResponse";
 
     String REQUEST_RTA_RESPONSE = "requestRtaResponse";
 

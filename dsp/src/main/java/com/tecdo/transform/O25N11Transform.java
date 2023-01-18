@@ -6,6 +6,9 @@ import com.tecdo.domain.openrtb.request.n.NativeRequest;
 import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.util.JsonHelper;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class O25N11Transform implements IProtoTransform {
 
   private O25N11Transform() {

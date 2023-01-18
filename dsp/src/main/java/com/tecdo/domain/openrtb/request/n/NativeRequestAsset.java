@@ -11,7 +11,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
-public class Asset extends Extension {
+public class NativeRequestAsset extends Extension {
 
   /**
    * 唯一的资产 ID，由交易所分配

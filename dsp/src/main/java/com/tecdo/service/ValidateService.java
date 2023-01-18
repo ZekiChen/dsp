@@ -12,6 +12,7 @@ import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
@@ -55,7 +56,8 @@ public class ValidateService {
 
     messageQueue.putMessage(EventType.RECEIVE_BID_REQUEST,
                             Params.create(ParamKey.BID_REQUEST, bidRequest)
-                                  .put(ParamKey.HTTP_REQUEST, httpRequest));
+                                  .put(ParamKey.HTTP_REQUEST, httpRequest)
+                                  .put(ParamKey.AFFILIATE, affiliate));
 
   }
 

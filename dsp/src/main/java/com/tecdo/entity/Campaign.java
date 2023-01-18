@@ -36,6 +36,11 @@ public class Campaign extends BaseEntity {
     private String category;
 
     /**
+     * 推广单子的域名
+     */
+    private String domain;
+
+    /**
      * 状态
      */
     private Integer status;
