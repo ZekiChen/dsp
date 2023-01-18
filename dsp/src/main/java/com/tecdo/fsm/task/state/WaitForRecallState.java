@@ -20,6 +20,7 @@ import com.tecdo.entity.Ad;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.fsm.task.Task;
+import com.tecdo.service.init.AffiliateManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.Nullable;
@@ -42,6 +43,7 @@ public class WaitForRecallState implements ITaskState {
 
     private final MessageQueue messageQueue;
     private final WaitForCtrPredictState waitForCtrPredictState;
+    private final AffiliateManager affiliateManager;
 
     @Value("${pac.ctr-predict.url}")
     private String ctrPredictUrl;
@@ -53,7 +55,7 @@ public class WaitForRecallState implements ITaskState {
                 task.cancelTimer(EventType.ADS_RECALL_TIMEOUT);
                 Map<Integer, AdDTO> recallAdMap = params.get(ParamKey.ADS_IMP_KEY);
                 // TODO 根据 http request 中的 token 获取 affId
-                Integer affId = getAffIdByReqToken(null, params.get(ParamKey.AFFILIATES_CACHE_KEY));
+                Integer affId = getAffIdByReqToken(null, affiliateManager.getAffiliateMap());
                 ThreadPool.getInstance().execute(() -> {
                     List<CtrRequest> ctrRequests = recallAdMap.values().stream().map(adDTO ->
                             buildCtrRequest(task.getBidRequest(), task.getImp(), affId, adDTO)).collect(Collectors.toList());
@@ -85,7 +87,7 @@ public class WaitForRecallState implements ITaskState {
     }
 
     @Nullable
-    private static Integer getAffIdByReqToken(String token, Map<Integer, Affiliate> affiliateMap) {
+    private static Integer getAffIdByReqToken(String token, Map<String, Affiliate> affiliateMap) {
         Affiliate affiliate = affiliateMap.values().stream().filter(e -> token.equals(e.getSecret())).findFirst().orElse(null);
         return affiliate != null ? affiliate.getId() : null;
     }
