@@ -7,6 +7,10 @@ import lombok.Setter;
 @Getter
 public class AdDTOWrapper {
 
+  public AdDTOWrapper(AdDTO adDTO){
+    this.adDTO = adDTO;
+  }
+
   private AdDTO adDTO;
 
   /**

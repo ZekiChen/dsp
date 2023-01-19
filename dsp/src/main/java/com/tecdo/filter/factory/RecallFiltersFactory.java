@@ -19,7 +19,7 @@ public class RecallFiltersFactory {
     private final AffiliateFilter affiliateFilter;
     private final AppBundleFilter appBundleFilter;
     private final ConnectTypeFilter connectTypeFilter;
-    private final ContentLangFilter contentLangFilter;
+    private final DeviceLangFilter deviceLangFilter;
     private final CreativeFormatFilter creativeFormatFilter;
     private final DeviceCountryFilter deviceCountryFilter;
     private final DeviceMakeFilter deviceMakeFilter;
@@ -32,8 +32,9 @@ public class RecallFiltersFactory {
      */
     public List<AbstractRecallFilter> createFilters() {
         return CollUtil.newArrayList(
-                affiliateFilter, appBundleFilter, connectTypeFilter, contentLangFilter, creativeFormatFilter,
-                deviceCountryFilter, deviceMakeFilter, deviceOSFilter, deviceOSVFilter, timePeriodFilter
+          affiliateFilter, appBundleFilter, connectTypeFilter,
+          deviceLangFilter, creativeFormatFilter,
+          deviceCountryFilter, deviceMakeFilter, deviceOSFilter, deviceOSVFilter, timePeriodFilter
         );
     }
 }

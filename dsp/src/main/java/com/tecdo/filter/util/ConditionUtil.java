@@ -33,6 +33,7 @@ public class ConditionUtil {
             case EQ:
                 return Objects.equals(source, target);
             case GT:
+                // todo 目前的数字比较还只有整形，但是后续可能会有小数的比较，比如osv就需要做处理
                 return Integer.parseInt(source) > Integer.parseInt(target);
             case LT:
                 return Integer.parseInt(source) < Integer.parseInt(target);

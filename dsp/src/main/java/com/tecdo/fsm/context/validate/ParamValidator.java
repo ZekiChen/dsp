@@ -33,10 +33,6 @@ public class ParamValidator {
         if (CollUtil.isEmpty(imp)) {
             return false;
         }
-        // 展示位底价必须有
-        if (imp.stream().anyMatch(e -> e.getBidfloor() == null)) {
-            return false;
-        }
 
         return true;
     }

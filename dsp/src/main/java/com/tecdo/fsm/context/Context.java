@@ -84,10 +84,10 @@ public class Context {
     List<Imp> impList = bidRequest.getImp();
     impList.forEach(imp -> {
       Task task = taskPool.get();
-      task.init(bidRequest, imp);
-      taskMap.put(imp.getId(), task);
-      messageQueue.putMessage(EventType.TASK_START,
-                              assignParams().put(ParamKey.TASK_ID, imp.getId()));
+      String taskId = imp.getId();
+      task.init(bidRequest, imp, affiliate, requestId, taskId);
+      taskMap.put(taskId, task);
+      messageQueue.putMessage(EventType.TASK_START, assignParams().put(ParamKey.TASK_ID, taskId));
     });
   }
 

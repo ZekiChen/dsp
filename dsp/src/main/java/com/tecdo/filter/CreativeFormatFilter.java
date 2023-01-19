@@ -4,6 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.*;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
+import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.Creative;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.filter.util.ConditionUtil;
@@ -17,13 +18,12 @@ import org.springframework.stereotype.Component;
 @Component
 public class CreativeFormatFilter extends AbstractRecallFilter {
 
-    private static final String EQ_OPERATION = "eq";
-
     @Override
-    public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO) {
+    public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
         AdTypeEnum curAdTypeEnum = AdTypeEnum.of(adDTO.getAd().getType());
+        // 没有物料
         if (curAdTypeEnum == null || CollUtil.isEmpty(adDTO.getCreativeMap())) {
-            return true;
+            return false;
         }
         switch (curAdTypeEnum) {
             case BANNER:
@@ -31,10 +31,10 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 if (banner == null) {
                     return false;
                 }
-                Creative creative = adDTO.getCreativeMap().get(adDTO.getAd().getIcon());
+                Creative creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
                 if (banner.getW() != null && banner.getH() != null) {
-                    if (!ConditionUtil.compare(banner.getW().toString(), EQ_OPERATION, creative.getWidth().toString())
-                            || !ConditionUtil.compare(banner.getH().toString(), EQ_OPERATION, creative.getHeight().toString())) {
+                    if (!ConditionUtil.compare(banner.getW().toString(), Constant.EQ, creative.getWidth().toString())
+                            || !ConditionUtil.compare(banner.getH().toString(), Constant.EQ, creative.getHeight().toString())) {
                         return false;
                     }
                 } else {
@@ -44,8 +44,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     boolean hitFlag = false;
                     for (Format format : banner.getFormat()) {
                         if (format.getW() != null && format.getH() != null) {
-                            if (ConditionUtil.compare(format.getW().toString(), EQ_OPERATION, creative.getWidth().toString())
-                                    && ConditionUtil.compare(format.getH().toString(), EQ_OPERATION, creative.getHeight().toString())) {
+                            if (ConditionUtil.compare(format.getW().toString(), Constant.EQ, creative.getWidth().toString())
+                                    && ConditionUtil.compare(format.getH().toString(), Constant.EQ, creative.getHeight().toString())) {
                                 hitFlag = true;
                             }
                         }
@@ -58,8 +58,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     return false;
                 }
                 creative = adDTO.getCreativeMap().get(adDTO.getAd().getVideo());
-                return ConditionUtil.compare(video.getW().toString(), EQ_OPERATION, creative.getWidth().toString())
-                        && ConditionUtil.compare(video.getH().toString(), EQ_OPERATION, creative.getHeight().toString());
+                return ConditionUtil.compare(video.getW().toString(), Constant.EQ, creative.getWidth().toString())
+                        && ConditionUtil.compare(video.getH().toString(), Constant.EQ, creative.getHeight().toString());
             case NATIVE:
                 Native native1 = imp.getNative1();
                 creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
@@ -68,12 +68,20 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 }
                 boolean hitFlag = false;
                 for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getNativeRequestAssets()) {
-                    if (nativeRequestAsset.getImg() == null || nativeRequestAsset.getImg().getW() == null || nativeRequestAsset.getImg().getH() == null) {
-                        return false;
+                    if (nativeRequestAsset.getImg() == null) {
+                        continue;
                     }
-                    if (ConditionUtil.compare(nativeRequestAsset.getImg().getW().toString(), EQ_OPERATION, creative.getWidth().toString())
-                            && ConditionUtil.compare(nativeRequestAsset.getImg().getH().toString(), EQ_OPERATION, creative.getHeight().toString())) {
-                        hitFlag = true;
+                    // 以下就是img的判断
+                    if(nativeRequestAsset.getImg().getW() != null && nativeRequestAsset.getImg().getH() != null){
+                        if (ConditionUtil.compare(nativeRequestAsset.getImg().getW().toString(), Constant.EQ, creative.getWidth().toString())
+                            && ConditionUtil.compare(nativeRequestAsset.getImg().getH().toString(), Constant.EQ, creative.getHeight().toString())) {
+                            hitFlag = true;
+                        }
+                    }else if(nativeRequestAsset.getImg().getWmin() != null && nativeRequestAsset.getImg().getHmin() != null){
+                        if (ConditionUtil.compare(creative.getWidth().toString(), Constant.GTE,nativeRequestAsset.getImg().getWmin().toString() )
+                            && ConditionUtil.compare( creative.getHeight().toString(),Constant.GTE, nativeRequestAsset.getImg().getHmin().toString())) {
+                            hitFlag = true;
+                        }
                     }
                 }
                 return hitFlag;

@@ -5,6 +5,7 @@ import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
+import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.filter.util.ConditionUtil;
 import org.springframework.stereotype.Component;
@@ -20,7 +21,7 @@ public class DeviceCountryFilter extends AbstractRecallFilter {
     private static final String COUNTRY_ATTR = "device_country";
 
     @Override
-    public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO) {
+    public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
         TargetCondition condition = adDTO.getConditions().stream().filter(e -> COUNTRY_ATTR.equals(e.getAttribute())).findFirst().orElse(null);
         if (condition == null) {
             return true;
