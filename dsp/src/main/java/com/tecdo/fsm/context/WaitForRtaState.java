@@ -16,6 +16,8 @@ public class WaitForRtaState implements IContextState {
 
   private WaitForSortState waitForSortState;
 
+  private WaitForRecycleState waiForRecycleState;
+
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {
     switch (eventType) {
@@ -29,11 +31,13 @@ public class WaitForRtaState implements IContextState {
         context.switchState(waitForSortState);
         break;
       case WAIT_REQUEST_RTA_RESPONSE_TIMEOUT:
+        context.switchState(waiForRecycleState);
         context.responseData();
         context.requestComplete();
         break;
       case WAIT_REQUEST_RTA_RESPONSE_ERROR:
         context.cancelTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT);
+        context.switchState(waiForRecycleState);
         context.responseData();
         context.requestComplete();
         break;

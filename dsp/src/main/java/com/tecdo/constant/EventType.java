@@ -4,71 +4,69 @@ import lombok.AllArgsConstructor;
 
 /**
  * 事件类型
- *
+ * <p>
  * Created by Zeki on 2022/12/27
  **/
 @AllArgsConstructor
 public enum EventType {
 
-    SERVER_START(1001, "server start"),
+  SERVER_START(1001, "server start"),
 
-    AFFILIATES_LOAD(1101, "affiliates load"),
-    AFFILIATES_LOAD_RESPONSE(1102, "affiliates load response"),
-    AFFILIATES_LOAD_ERROR(1103, "affiliates load failure"),
-    AFFILIATES_LOAD_TIMEOUT(1104, "affiliates load timeout"),
+  AFFILIATES_LOAD(1101, "affiliates load"),
+  AFFILIATES_LOAD_RESPONSE(1102, "affiliates load response"),
+  AFFILIATES_LOAD_ERROR(1103, "affiliates load failure"),
+  AFFILIATES_LOAD_TIMEOUT(1104, "affiliates load timeout"),
 
-    ADS_LOAD(1201, "ad dto list load"),
-    ADS_LOAD_RESPONSE(1202, "ad dto list load response"),
-    ADS_LOAD_ERROR(1203, "ad dto list load failure"),
-    ADS_LOAD_TIMEOUT(1204, "ad dto list load timeout"),
+  ADS_LOAD(1201, "ad dto list load"),
+  ADS_LOAD_RESPONSE(1202, "ad dto list load response"),
+  ADS_LOAD_ERROR(1203, "ad dto list load failure"),
+  ADS_LOAD_TIMEOUT(1204, "ad dto list load timeout"),
 
-    RTA_INFOS_LOAD(1301, "rta infos load"),
-    RTA_INFOS_LOAD_RESPONSE(1302, "rta infos load response"),
-    RTA_INFOS_LOAD_ERROR(1303, "rta infos load failure"),
-    RTA_INFOS_LOAD_TIMEOUT(1304, "rta infos load timeout"),
+  RTA_INFOS_LOAD(1301, "rta infos load"),
+  RTA_INFOS_LOAD_RESPONSE(1302, "rta infos load response"),
+  RTA_INFOS_LOAD_ERROR(1303, "rta infos load failure"),
+  RTA_INFOS_LOAD_TIMEOUT(1304, "rta infos load timeout"),
 
-    ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
-    NETTY_START(1999, "all data finish init, netty start"),
+  ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
+  NETTY_START(1999, "all data finish init, netty start"),
 
-    CONTEXT_START(2001, "context start"),
+  VALIDATE_BID_REQUEST(3001, "validate bid request"),
+  RECEIVE_BID_REQUEST(3002, "receive bid request"),
 
-    VALIDATE_BID_REQUEST(3001,"validate bid request"),
-    RECEIVE_BID_REQUEST(3002,"receive bid request"),
-    WAIT_TASK_RESPONSE_TIMEOUT(3003,"wait task response timeout"),
-    RECEIVE_TASK_RESPONSE(3004,"receive task response"),
-    WAIT_REQUEST_RTA_RESPONSE_TIMEOUT(3005, "wait request rta response timeout"),
-    REQUEST_RTA_RESPONSE(3006, "request rta response"),
-    WAIT_REQUEST_RTA_RESPONSE_ERROR(3006, "wait request rta response error"),
-    WAIT_SORT_AD_TIMEOUT(3007,"wait sort ad timeout"),
-    SORT_AD_RESPONSE(3008,"sort ad response"),
+  BID_TASK_FINISH(4301, "bid task finish"),
+  BID_TASK_FAILED(4302, "bid task failed"),
+  WAIT_TASK_RESPONSE_TIMEOUT(3003, "wait task response timeout"),
 
-    BID_REQUEST_COMPLETE(3100,"bid request complete"),
+  WAIT_REQUEST_RTA_RESPONSE_TIMEOUT(3005, "wait request rta response timeout"),
+  REQUEST_RTA_RESPONSE(3006, "request rta response"),
+  WAIT_REQUEST_RTA_RESPONSE_ERROR(3006, "wait request rta response error"),
 
-    TASK_START(4001, "task start"),
-    ADS_RECALL_FINISH(4002, "ads recall finish"),
-    ADS_RECALL_ERROR(4003, "ads recall error"),
-    ADS_RECALL_TIMEOUT(4004, "ads recall timeout"),
+  WAIT_SORT_AD_TIMEOUT(3007, "wait sort ad timeout"),
+  SORT_AD_RESPONSE(3008, "sort ad response"),
 
-    CTR_PREDICT_FINISH(4101, "ctr predict finish"),
-    CTR_PREDICT_ERROR(4102, "ctr predict error"),
-    CTR_PREDICT_TIMEOUT(4103, "ctr predict timeout"),
+  BID_REQUEST_COMPLETE(3100, "bid request complete"),
 
-    CALC_CPC_FINISH(4201, "calculate cpc finish"),
-    CALC_CPC_ERROR(4202, "calculate cpc error"),
-    CALC_CPC_TIMEOUT(4203, "calculate cpc timeout"),
+  TASK_START(4001, "task start"),
+  ADS_RECALL_FINISH(4002, "ads recall finish"),
+  ADS_RECALL_ERROR(4003, "ads recall error"),
+  ADS_RECALL_TIMEOUT(4004, "ads recall timeout"),
 
-    BID_TASK_FINISH(4301, "bid task finish"),
-    BID_TASK_FAILED(4302, "bid task failed"),
-    BID_TASK_TIMEOUT(4303, "bid task timeout"),
+  CTR_PREDICT_FINISH(4101, "ctr predict finish"),
+  CTR_PREDICT_ERROR(4102, "ctr predict error"),
+  CTR_PREDICT_TIMEOUT(4103, "ctr predict timeout"),
 
-    RESPONSE_RESULT(6001,"response result"),
-    ;
+  CALC_CPC_FINISH(4201, "calculate cpc finish"),
+  CALC_CPC_ERROR(4202, "calculate cpc error"),
+  CALC_CPC_TIMEOUT(4203, "calculate cpc timeout"),
 
-    private final int code;
-    private final String desc;
+  RESPONSE_RESULT(6001, "response result"),
+  ;
 
-    @Override
-    public String toString() {
-        return code + " - " + desc;
-    }
+  private final int code;
+  private final String desc;
+
+  @Override
+  public String toString() {
+    return code + " - " + desc;
+  }
 }

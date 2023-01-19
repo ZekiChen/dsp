@@ -11,19 +11,22 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class WaitForSortState implements IContextState{
+public class WaitForSortState implements IContextState {
 
+  private WaitForRecycleState waiForRecycleState;
 
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {
-    switch (eventType){
+    switch (eventType) {
       case SORT_AD_RESPONSE:
         context.cancelTimer(EventType.WAIT_SORT_AD_TIMEOUT);
         context.saveSortAdResponse(params);
+        context.switchState(waiForRecycleState);
         context.responseData();
         context.requestComplete();
         break;
       case WAIT_SORT_AD_TIMEOUT:
+        context.switchState(waiForRecycleState);
         context.responseData();
         context.requestComplete();
         break;

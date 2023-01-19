@@ -35,7 +35,7 @@ public class WaitForRecallState implements ITaskState {
         task.cancelTimer(EventType.ADS_RECALL_TIMEOUT);
         Map<Integer, AdDTOWrapper> adDTOMap = params.get(ParamKey.ADS_RECALL_RESPONSE);
         if (adDTOMap.isEmpty()) {
-          task.notifyFailed();
+          task.filerAdAndNotifySuccess(adDTOMap);
           task.switchState(waitForRecycleState);
           return;
         }

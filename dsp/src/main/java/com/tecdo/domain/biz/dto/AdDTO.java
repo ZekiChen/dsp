@@ -1,17 +1,23 @@
 package com.tecdo.domain.biz.dto;
 
-import com.tecdo.entity.*;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
+import com.tecdo.entity.Ad;
+import com.tecdo.entity.AdGroup;
+import com.tecdo.entity.Campaign;
+import com.tecdo.entity.CampaignRtaInfo;
+import com.tecdo.entity.Creative;
+import com.tecdo.entity.TargetCondition;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
 
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
+
 /**
  * 将 ad-group-campaign 数据打平，平铺到 AdDTO 中
- *
+ * <p>
  * Created by Zeki on 2022/12/29
  **/
 @Setter
@@ -19,56 +25,34 @@ import java.util.Map;
 @Builder
 public class AdDTO implements Serializable {
 
-    /**
-     * 广告信息
-     */
-    private Ad ad;
+  /**
+   * 广告信息
+   */
+  private Ad ad;
 
-    /**
-     * AD关联的物料集，比如native广告就需要 logo 和 image
-     */
-    private Map<Integer, Creative> creativeMap;
+  /**
+   * AD关联的物料集，比如native广告就需要 logo 和 image
+   */
+  private Map<Integer, Creative> creativeMap;
 
-    /**
-     * 广告所属的组信息
-     */
-    private AdGroup adGroup;
+  /**
+   * 广告所属的组信息
+   */
+  private AdGroup adGroup;
 
-    /**
-     * group关联的定向条件集
-     */
-    private List<TargetCondition> conditions;
+  /**
+   * group关联的定向条件集
+   */
+  private List<TargetCondition> conditions;
 
-    /**
-     * 广告所属的 campaign 信息
-     */
-    private Campaign campaign;
+  /**
+   * 广告所属的 campaign 信息
+   */
+  private Campaign campaign;
 
-    /**
-     * campaign 关联的广告主的 campaign
-     */
-    private CampaignRtaInfo campaignRtaInfo;
+  /**
+   * campaign 关联的广告主的 campaign
+   */
+  private CampaignRtaInfo campaignRtaInfo;
 
-    // =====================以下是经过计算/逻辑判断后填充的属性==========================
-    // 一个AdDTO会被多个task或者多次请求使用，除非每次获取时copy一份出来，否则不能修改，所以以下属性需要重新创建一个包装类来进行修改
-
-    /**
-     * 预估的ctr
-     */
-    private Double pCtr;
-
-    /**
-     * 出价cpc
-     */
-    private Double bidPrice;
-
-    /**
-     * 广告主 rta token
-     */
-    private String rtaToken;
-
-    /**
-     * imp的id
-     */
-    private String impId;
 }

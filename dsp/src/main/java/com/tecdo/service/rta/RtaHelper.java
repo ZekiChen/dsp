@@ -5,10 +5,10 @@ import com.lazada.lazop.api.LazopRequest;
 import com.lazada.lazop.api.LazopResponse;
 import com.lazada.lazop.util.ApiException;
 import com.tecdo.domain.biz.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.RtaInfo;
 import com.tecdo.util.JsonHelper;
-import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 import java.util.List;
@@ -16,6 +16,8 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RtaHelper {
@@ -26,7 +28,7 @@ public class RtaHelper {
   private static final ConcurrentHashMap<String, LazopClient> clientMap = new ConcurrentHashMap<>();
 
   public static void requestRta(RtaInfo rtaInfo,
-                                List<AdDTO> adList,
+                                List<AdDTOWrapper> adList,
                                 String country,
                                 String gaid,
                                 Map<Integer, Target> rtaResMap) {
@@ -39,6 +41,7 @@ public class RtaHelper {
     // advCampaignId,List<CampaignId>
     Map<Integer, Set<Integer>> advCampaignId2CampaignIdSet = //
       adList.stream()
+            .map(AdDTOWrapper::getAdDTO)
             .map(AdDTO::getCampaignRtaInfo)
             .collect(Collectors.groupingBy(CampaignRtaInfo::getAdvCampaignId,
                                            Collectors.mapping(CampaignRtaInfo::getCampaignId,

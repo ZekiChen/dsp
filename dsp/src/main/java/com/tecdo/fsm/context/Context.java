@@ -8,6 +8,7 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.domain.biz.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.domain.openrtb.response.Bid;
@@ -27,6 +28,7 @@ import com.tecdo.service.rta.Target;
 import com.tecdo.util.AdmGenerator;
 import com.tecdo.util.JsonHelper;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
@@ -50,13 +52,15 @@ public class Context {
 
   private Affiliate affiliate;
 
-  private AdDTO response;
+  private AdDTOWrapper response;
 
   private Long requestId;
 
   private Map<String, Task> taskMap = new HashMap<>();
 
-  private Map<String, Object> taskResponse = new HashMap<>();
+  private Map<String, Map<Integer, AdDTOWrapper>> taskResponse = new HashMap<>();
+
+  private List<AdDTOWrapper> adDTOWrapperList = new ArrayList<>();
 
   private Map<EventType, Long> eventTimerMap = new HashMap<>();
 
@@ -78,6 +82,21 @@ public class Context {
     this.bidRequest = bidRequest;
     this.affiliate = affiliate;
     this.requestId = httpRequest.getRequestId();
+  }
+
+  public void reset() {
+    this.currentState = SpringUtil.getBean(InitState.class);
+    this.bidRequest = null;
+    this.httpRequest = null;
+    this.affiliate = null;
+    this.response = null;
+    this.requestId = null;
+    this.taskMap.values().forEach(taskPool::release);
+    this.taskMap.clear();
+    this.taskResponse.clear();
+    this.adDTOWrapperList.clear();
+    this.eventTimerMap.clear();
+
   }
 
   public void handleBidRequest() {
@@ -102,7 +121,9 @@ public class Context {
   }
 
   public void saveTaskResponse(Params params) {
-
+    String taskId = params.get(ParamKey.TASK_ID);
+    Map<Integer, AdDTOWrapper> adDTOWrapperMap = params.get(ParamKey.ADS_TASK_RESPONSE);
+    taskResponse.put(taskId, adDTOWrapperMap);
   }
 
   public boolean isReceiveAllTaskResponse() {
@@ -111,6 +132,10 @@ public class Context {
 
   public void requestRta() {
     Params params = assignParams();
+    this.adDTOWrapperList = taskResponse.values()
+                                        .stream()
+                                        .flatMap(value -> value.values().stream())
+                                        .collect(Collectors.toList());
     ThreadPool.getInstance().execute(() -> {
       try {
         Map<Integer, Target> rtaResMap = doRequestRta();
@@ -123,17 +148,18 @@ public class Context {
   }
 
   public Map<Integer, Target> doRequestRta() {
-    List<AdDTO> adDTOList = null;
     // todo 协议中的是国家三字码，需要转为对应的二字码
     String country = bidRequest.getDevice().getGeo().getCountry();
     String deviceId = bidRequest.getDevice().getIfa();
     Map<Integer, Target> rtaResMap = new HashMap<>();
 
     // 只保留rta的单子，并将单子按照广告主分组
-    Map<Integer, List<AdDTO>> advToAdList = adDTOList.stream()
-                                                     .filter(i -> Objects.nonNull(i.getCampaignRtaInfo()))
-                                                     .collect(Collectors.groupingBy(adDTO -> adDTO.getCampaignRtaInfo()
-                                                                                                  .getAdvId()));
+    Map<Integer, List<AdDTOWrapper>> advToAdList = //
+      this.adDTOWrapperList.stream()
+                           .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()))
+                           .collect(Collectors.groupingBy(i -> i.getAdDTO()
+                                                                .getCampaignRtaInfo()
+                                                                .getAdvId()));
     // 分广告主进行rta匹配
     advToAdList.forEach((advId, adList) -> {
       RtaInfo rtaInfo = rtaInfoManager.getRtaInfo(advId);
@@ -143,11 +169,12 @@ public class Context {
   }
 
   public void saveRtaResponse(Params params) {
-    List<AdDTO> adDTOList = null;
+
     Map<Integer, Target> rtaResMap = params.get(ParamKey.REQUEST_RTA_RESPONSE);
-    Map<Integer, List<AdDTO>> campaignIdToAdList =
-      adDTOList.stream().collect(Collectors.groupingBy(adDTO -> adDTO.getCampaign().getId()));
-    // 将rta匹配的结果保存到AdDTO中
+    Map<Integer, List<AdDTOWrapper>> campaignIdToAdList = //
+      this.adDTOWrapperList.stream()
+                           .collect(Collectors.groupingBy(i -> i.getAdDTO().getCampaign().getId()));
+    // 将rta匹配的结果保存到AdDTOWrapper中
     for (Map.Entry<Integer, Target> entry : rtaResMap.entrySet()) {
       Integer campaignId = entry.getKey();
       Target t = entry.getValue();
@@ -156,21 +183,21 @@ public class Context {
         campaignIdToAdList.get(campaignId).forEach(i -> i.setRtaToken(token));
       }
     }
-    // 只保留非rta的单子 和 rta并别匹配的单子
-    adDTOList = adDTOList.stream()
-                         .filter(i -> i.getCampaignRtaInfo() == null || i.getRtaToken() != null)
-                         .collect(Collectors.toList());
+    // 只保留非rta的单子 和 rta并且匹配的单子
+    this.adDTOWrapperList = this.adDTOWrapperList.stream()
+                                                 .filter(i -> i.getAdDTO().getCampaignRtaInfo() ==
+                                                              null || i.getRtaToken() != null)
+                                                 .collect(Collectors.toList());
   }
 
   public void sort() {
-    List<AdDTO> adDTOList = null;
-    AdDTO res = null;
-    Double calc = Double.MIN_VALUE;
-    for (AdDTO adDTO : adDTOList) {
-      double temp = adDTO.getBidPrice() * adDTO.getPCtr();
+    AdDTOWrapper res = null;
+    double calc = Double.MIN_VALUE;
+    for (AdDTOWrapper adDTOWrapper : adDTOWrapperList) {
+      double temp = adDTOWrapper.getBidPrice() * adDTOWrapper.getPCtr();
       if (calc < temp) {
         calc = temp;
-        res = adDTO;
+        res = adDTOWrapper;
       }
     }
     messageQueue.putMessage(EventType.SORT_AD_RESPONSE,
@@ -178,8 +205,8 @@ public class Context {
   }
 
   public void saveSortAdResponse(Params params) {
-    AdDTO adDTO = params.get(ParamKey.SORT_AD_RESPONSE);
-    this.response = adDTO;
+    AdDTOWrapper adDTOWrapper = params.get(ParamKey.SORT_AD_RESPONSE);
+    this.response = adDTOWrapper;
   }
 
   public void responseData() {
@@ -197,29 +224,26 @@ public class Context {
     messageQueue.putMessage(eventType, params);
   }
 
-  private BidResponse buildResponse(AdDTO adDTO) {
+  private BidResponse buildResponse(AdDTOWrapper wrapper) {
+    AdDTO adDTO = wrapper.getAdDTO();
     String bidId = generateBidId();
     BidResponse bidResponse = new BidResponse();
     bidResponse.setId(bidRequest.getId());
     bidResponse.setBidid(bidId);
     Bid bid = new Bid();
     bid.setId(bidId);
-    bid.setImpid(adDTO.getImpId());
-    bid.setPrice(adDTO.getBidPrice().floatValue());
+    bid.setImpid(wrapper.getImpId());
+    bid.setPrice(wrapper.getBidPrice().floatValue());
     // todo 曝光链接等
     bid.setNurl("");
     bid.setBurl("");
-    bid.setAdm(buildAdm(adDTO));
+    bid.setAdm(buildAdm(wrapper));
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
     bid.setBundle(adDTO.getCampaign().getPackageName());
     bid.setIurl(adDTO.getCreativeMap().get(getCreativeIdByAd(adDTO.getAd())).getUrl());
     bid.setCid(String.valueOf(adDTO.getCampaign().getId()));
     bid.setCrid(String.valueOf(getCreativeIdByAd(adDTO.getAd())));
-
-    String adm = buildAdm(adDTO);
-
-    bid.setAdm(adm);
 
     SeatBid seatBid = new SeatBid();
     seatBid.setBid(Collections.singletonList(bid));
@@ -239,7 +263,8 @@ public class Context {
     return null;
   }
 
-  private String buildAdm(AdDTO adDTO) {
+  private String buildAdm(AdDTOWrapper wrapper) {
+    AdDTO adDTO = wrapper.getAdDTO();
     String adm = null;
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
       // todo clickurl deeplink 都需要做format
@@ -253,8 +278,10 @@ public class Context {
     }
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
       List<Imp> impList = bidRequest.getImp();
-      Imp imp =
-        impList.stream().filter(i -> Objects.equals(i.getId(), adDTO.getImpId())).findFirst().get();
+      Imp imp = impList.stream()
+                       .filter(i -> Objects.equals(i.getId(), wrapper.getImpId()))
+                       .findFirst()
+                       .get();
       NativeResponse nativeResponse = //
         AdmGenerator.nativeAdm(imp.getNative1().getNativeRequest(),
                                adDTO,
@@ -273,17 +300,6 @@ public class Context {
 
   public void requestComplete() {
     messageQueue.putMessage(EventType.BID_REQUEST_COMPLETE, assignParams());
-  }
-
-  public void reset() {
-    this.currentState = SpringUtil.getBean(InitState.class);
-    this.bidRequest = null;
-    this.httpRequest = null;
-    this.affiliate = null;
-    this.requestId = null;
-    this.taskMap.clear();
-    this.taskResponse.clear();
-    this.eventTimerMap.clear();
   }
 
   public void switchState(IContextState newState) {

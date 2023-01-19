@@ -68,7 +68,7 @@ public class Task {
   public void init(BidRequest bidRequest,
                    Imp imp,
                    Affiliate affiliate,
-                   long requestId,
+                   Long requestId,
                    String taskId) {
     this.bidRequest = bidRequest;
     this.imp = imp;
@@ -143,7 +143,7 @@ public class Task {
       }
       // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
       if (executeFilter(filters.get(0), adDTO)) {
-        resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(adDTO));
+        resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), adDTO));
       }
     }
     return resMap;
@@ -246,7 +246,7 @@ public class Task {
     Params params = assignParams();
     try {
       ThreadPool.getInstance().execute(() -> {
-        adDTOMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e.getAdDTO())));
+        adDTOMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e)));
         params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, adDTOMap);
         messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
       });
@@ -256,11 +256,12 @@ public class Task {
     }
   }
 
-  private double doCalcPrice(AdDTO adDTO) {
+  private double doCalcPrice(AdDTOWrapper adDTOWrapper) {
     // todo 根据策略有不同的计算方式
+    AdDTO adDTO = adDTOWrapper.getAdDTO();
     Integer bidStrategy = adDTO.getAdGroup().getBidStrategy();
     // todo 确认下pctr是0.01还是1表示1%
-    return adDTO.getAdGroup().getOptPrice() * adDTO.getPCtr() * 1000;
+    return adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
   }
 
   public void filerAdAndNotifySuccess(Map<Integer, AdDTOWrapper> adDTOMap) {
@@ -269,7 +270,7 @@ public class Task {
                        .stream()
                        .filter(e -> e.getBidPrice() > Optional.of(imp.getBidfloor()).orElse(0f))
                        .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
-    Params params = assignParams().put(ParamKey.ADS_IMP_KEY, adDTOMap);
+    Params params = assignParams().put(ParamKey.ADS_TASK_RESPONSE, adDTOMap);
     messageQueue.putMessage(EventType.BID_TASK_FINISH, params);
 
   }
