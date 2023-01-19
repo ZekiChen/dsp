@@ -57,9 +57,9 @@ public enum EventType {
     CALC_CPC_ERROR(4202, "calculate cpc error"),
     CALC_CPC_TIMEOUT(4203, "calculate cpc timeout"),
 
-    BID_PRICE_FILTER_FINISH(4301, "bid price filter finish"),
-    BID_PRICE_FILTER_ERROR(4302, "bid price filter error"),
-    BID_PRICE_FILTER_TIMEOUT(4303, "bid price filter timeout"),
+    BID_TASK_FINISH(4301, "bid task finish"),
+    BID_TASK_FAILED(4302, "bid task failed"),
+    BID_TASK_TIMEOUT(4303, "bid task timeout"),
 
     RESPONSE_RESULT(6001,"response result"),
     ;

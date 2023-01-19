@@ -263,15 +263,19 @@ public class Task {
     return adDTO.getAdGroup().getOptPrice() * adDTO.getPCtr() * 1000;
   }
 
-  public void filerAdAndNotify(Map<Integer, AdDTOWrapper> adDTOMap) {
+  public void filerAdAndNotifySuccess(Map<Integer, AdDTOWrapper> adDTOMap) {
 
     adDTOMap = adDTOMap.values()
                        .stream()
                        .filter(e -> e.getBidPrice() > Optional.of(imp.getBidfloor()).orElse(0f))
                        .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
     Params params = assignParams().put(ParamKey.ADS_IMP_KEY, adDTOMap);
-    messageQueue.putMessage(EventType.BID_PRICE_FILTER_FINISH, params);
+    messageQueue.putMessage(EventType.BID_TASK_FINISH, params);
 
+  }
+
+  public void notifyFailed() {
+    messageQueue.putMessage(EventType.BID_TASK_FAILED, assignParams());
   }
 
   public Params assignParams() {

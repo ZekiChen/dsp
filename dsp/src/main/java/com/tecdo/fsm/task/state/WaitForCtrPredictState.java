@@ -27,6 +27,8 @@ public class WaitForCtrPredictState implements ITaskState {
 
   private final WaitForCalcPriceState waitForCalcPriceState;
 
+  private final WaitForRecycleState waitForRecycleState;
+
   @Override
   public void handleEvent(EventType eventType, Params params, Task task) {
     switch (eventType) {
@@ -39,10 +41,12 @@ public class WaitForCtrPredictState implements ITaskState {
         break;
       case CTR_PREDICT_ERROR:
         task.cancelTimer(EventType.CTR_PREDICT_TIMEOUT);
-        // 本次 bid 不参与
+        task.notifyFailed();
+        task.switchState(waitForRecycleState);
         break;
       case CTR_PREDICT_TIMEOUT:
-        // TODO 重试？
+        task.notifyFailed();
+        task.switchState(waitForCalcPriceState);
         break;
       default:
         log.error("Task can't handle event, type: {}", eventType);

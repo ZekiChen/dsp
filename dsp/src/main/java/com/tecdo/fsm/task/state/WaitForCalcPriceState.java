@@ -20,18 +20,24 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class WaitForCalcPriceState implements ITaskState {
 
+  private final WaitForRecycleState waitForRecycleState;
+
   @Override
   public void handleEvent(EventType eventType, Params params, Task task) {
     switch (eventType) {
       case CALC_CPC_FINISH:
         task.cancelTimer(EventType.CALC_CPC_TIMEOUT);
-        task.filerAdAndNotify(params.get(ParamKey.ADS_CALC_PRICE_RESPONSE));
+        task.filerAdAndNotifySuccess(params.get(ParamKey.ADS_CALC_PRICE_RESPONSE));
+        task.switchState(waitForRecycleState);
         break;
       case CALC_CPC_ERROR:
         task.cancelTimer(EventType.CALC_CPC_TIMEOUT);
+        task.notifyFailed();
+        task.switchState(waitForRecycleState);
         break;
       case CALC_CPC_TIMEOUT:
-
+        task.notifyFailed();
+        task.switchState(waitForRecycleState);
         break;
       default:
         log.error("Task can't handle event, type: {}", eventType);
