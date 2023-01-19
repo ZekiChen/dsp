@@ -30,4 +30,5 @@ public interface ParamKey {
     String ADS_IMP_KEY = "ads-imp-key";
     String ADS_RECALL_RESPONSE = "ads-recall-response";
     String ADS_P_CTR_RESPONSE = "ads-predict-ctr-response";
+    String ADS_CALC_PRICE_RESPONSE = "ads-calc-price-response";
 }

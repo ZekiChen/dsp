@@ -62,7 +62,7 @@ public class CtrRequest implements Serializable {
     private String bundle;
 
     /**
-     * 国家三子码
+     * 国家三字码
      */
     private String country;
 

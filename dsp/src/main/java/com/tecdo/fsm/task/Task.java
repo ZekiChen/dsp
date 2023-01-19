@@ -50,7 +50,7 @@ public class Task {
   private Imp imp;
   private BidRequest bidRequest;
   private Affiliate affiliate;
-  private long requestId;
+  private Long requestId;
   private String taskId;
 
   private String ctrPredictUrl = SpringUtil.getProperty("pac.ctr-predict.url");
@@ -78,7 +78,13 @@ public class Task {
   }
 
   public void reset() {
-
+    this.bidRequest = null;
+    this.imp = null;
+    this.affiliate = null;
+    this.requestId = null;
+    this.taskId = null;
+    eventTimerMap.clear();
+    currentState = SpringUtil.getBean(InitState.class);
   }
 
   public void switchState(ITaskState newState) {
@@ -234,6 +240,38 @@ public class Task {
         return ad.getVideo();
     }
     return null;
+  }
+
+  public void calcPrice(Map<Integer, AdDTOWrapper> adDTOMap) {
+    Params params = assignParams();
+    try {
+      ThreadPool.getInstance().execute(() -> {
+        adDTOMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e.getAdDTO())));
+        params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, adDTOMap);
+        messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
+      });
+    } catch (Exception e) {
+      log.error("calculate cpc error: {}", e.getMessage());
+      messageQueue.putMessage(EventType.CALC_CPC_ERROR);
+    }
+  }
+
+  private double doCalcPrice(AdDTO adDTO) {
+    // todo 根据策略有不同的计算方式
+    Integer bidStrategy = adDTO.getAdGroup().getBidStrategy();
+    // todo 确认下pctr是0.01还是1表示1%
+    return adDTO.getAdGroup().getOptPrice() * adDTO.getPCtr() * 1000;
+  }
+
+  public void filerAdAndNotify(Map<Integer, AdDTOWrapper> adDTOMap) {
+
+    adDTOMap = adDTOMap.values()
+                       .stream()
+                       .filter(e -> e.getBidPrice() > Optional.of(imp.getBidfloor()).orElse(0f))
+                       .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
+    Params params = assignParams().put(ParamKey.ADS_IMP_KEY, adDTOMap);
+    messageQueue.putMessage(EventType.BID_PRICE_FILTER_FINISH, params);
+
   }
 
   public Params assignParams() {
