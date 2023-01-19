@@ -6,12 +6,19 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
+import com.tecdo.domain.biz.base.R;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
+import com.tecdo.domain.biz.request.CtrRequest;
+import com.tecdo.domain.biz.response.CtrResponse;
 import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Geo;
 import com.tecdo.domain.openrtb.request.Imp;
+import com.tecdo.entity.Ad;
 import com.tecdo.entity.Affiliate;
+import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.TargetCondition;
+import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainUtil;
@@ -23,11 +30,16 @@ import com.tecdo.service.init.RtaInfoManager;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.zhxu.okhttps.HttpResult;
+import cn.zhxu.okhttps.OkHttps;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,6 +52,8 @@ public class Task {
   private Affiliate affiliate;
   private long requestId;
   private String taskId;
+
+  private String ctrPredictUrl = SpringUtil.getProperty("pac.ctr-predict.url");
 
   private final AdManager adManager = SpringUtil.getBean(AdManager.class);
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
@@ -92,7 +106,7 @@ public class Task {
     Params params = assignParams();
     ThreadPool.getInstance().execute(() -> {
       try {
-        params.put(ParamKey.ADS_IMP_KEY, doListRecallAd());
+        params.put(ParamKey.ADS_RECALL_RESPONSE, doListRecallAd());
         messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
       } catch (Exception e) {
         log.error(
@@ -150,6 +164,76 @@ public class Task {
       filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
     }
     return filterFlag;
+  }
+
+  public void callCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap) {
+    Params params = assignParams();
+    ThreadPool.getInstance().execute(() -> {
+      HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, affiliate.getId());
+      if (httpResult.isSuccessful()) {
+        R<List<CtrResponse>> result = httpResult.getBody().toBean(R.class);
+        result.getData().forEach(resp -> adDTOMap.get(resp.getAdId()).setPCtr(resp.getPCtr()));
+        params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
+        messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
+      } else {
+        log.error("ctr request error: {}, reason: {}",
+                  httpResult.getStatus(),
+                  httpResult.getError().getMessage());
+        messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
+      }
+    });
+  }
+
+  private HttpResult buildAndCallCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap, Integer affId) {
+    List<CtrRequest> ctrRequests = adDTOMap.values()
+                                           .stream()
+                                           .map(adDTOWrapper -> buildCtrRequest(bidRequest,
+                                                                                imp,
+                                                                                affId,
+                                                                                adDTOWrapper.getAdDTO()))
+                                           .collect(Collectors.toList());
+    Map<String, Object> paramMap =
+      MapUtil.<String, Object>builder().put("data", ctrRequests).build();
+    return OkHttps.sync(ctrPredictUrl).addBodyPara(paramMap).get();
+  }
+
+  private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
+    return CtrRequest.builder()
+                     .adId(adDTO.getAd().getId())
+                     .day(DateUtil.today())
+                     .affiliateId(affId)
+                     .adType(adDTO.getAd().getType().toString())
+                     .adHeight(adDTO.getCreativeMap()
+                                    .get(getCreativeIdByAd(adDTO.getAd()))
+                                    .getHeight())
+                     .adWidth(adDTO.getCreativeMap()
+                                   .get(getCreativeIdByAd(adDTO.getAd()))
+                                   .getWidth())
+                     .os(bidRequest.getDevice().getOs())
+                     .deviceMake(bidRequest.getDevice().getMake())
+                     .bundle(bidRequest.getApp().getBundle())
+                     .country(Optional.ofNullable(bidRequest.getDevice().getGeo())
+                                      .map(Geo::getCountry)
+                                      .orElse(null))
+                     .creativeId(getCreativeIdByAd(adDTO.getAd()))
+                     .bidFloor(Double.valueOf(imp.getBidfloor()))
+                     .rtaFeature(Optional.ofNullable(adDTO.getCampaignRtaInfo())
+                                         .map(CampaignRtaInfo::getRtaFeature)
+                                         .orElse(null))
+                     .packageName(adDTO.getCampaign().getPackageName())
+                     .category(adDTO.getCampaign().getCategory())
+                     .build();
+  }
+
+  private Integer getCreativeIdByAd(Ad ad) {
+    switch (AdTypeEnum.of(ad.getType())) {
+      case BANNER:
+      case NATIVE:
+        return ad.getImage();
+      case VIDEO:
+        return ad.getVideo();
+    }
+    return null;
   }
 
   public Params assignParams() {
