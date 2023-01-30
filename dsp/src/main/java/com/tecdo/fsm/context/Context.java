@@ -305,10 +305,10 @@ public class Context {
       NativeResponse nativeResponse = //
         AdmGenerator.nativeAdm(imp.getNative1().getNativeRequest(),
                                adDTO,
-                               adDTO.getAdGroup().getClickUrl(),
-                               adDTO.getAdGroup().getDeeplink(),
-                               Arrays.asList(adDTO.getAdGroup().getImpTrackUrls().split(",")),
-                               Arrays.asList(adDTO.getAdGroup().getClickTrackUrls().split(",")));
+                               urlFormat(adDTO.getAdGroup().getClickUrl()),
+                               urlFormat(adDTO.getAdGroup().getDeeplink()),
+                               impTrackList,
+                               clickTrackList);
       adm = JsonHelper.toJSONString(nativeResponse);
     }
     return adm;
@@ -336,11 +336,11 @@ public class Context {
   }
 
   // todo 系统通知链接
-  private String getWinNoticeUrl(){
+  private String getWinNoticeUrl() {
     return "";
   }
 
-  private String getBidNoticeUrl(){
+  private String getBidNoticeUrl() {
     return "";
   }
 
