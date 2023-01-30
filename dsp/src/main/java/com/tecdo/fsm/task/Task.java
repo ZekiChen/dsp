@@ -19,6 +19,7 @@ import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.enums.biz.BidStrategyEnum;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainUtil;
@@ -257,11 +258,21 @@ public class Task {
   }
 
   private double doCalcPrice(AdDTOWrapper adDTOWrapper) {
-    // todo 根据策略有不同的计算方式
     AdDTO adDTO = adDTOWrapper.getAdDTO();
-    Integer bidStrategy = adDTO.getAdGroup().getBidStrategy();
-    // todo 确认下pctr是0.01还是1表示1%
-    return adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
+    BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTO.getAdGroup().getBidStrategy());
+    double bidPrice;
+    switch (bidStrategy) {
+      case CPM:
+        bidPrice = adDTO.getAdGroup().getOptPrice();
+        break;
+      case CPC:
+        // todo 确认下pctr是0.01还是1表示1%
+        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
+        break;
+      default:
+        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
+    }
+    return bidPrice;
   }
 
   public void filerAdAndNotifySuccess(Map<Integer, AdDTOWrapper> adDTOMap) {
