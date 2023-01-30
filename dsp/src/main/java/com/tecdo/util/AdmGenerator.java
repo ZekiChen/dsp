@@ -1,5 +1,6 @@
 package com.tecdo.util;
 
+import com.tecdo.common.FormatKey;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.n.NativeRequest;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
@@ -13,23 +14,38 @@ import com.tecdo.entity.Creative;
 import com.tecdo.enums.openrtb.DataAssetTypeEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class AdmGenerator {
 
-
   public static String bannerAdm(String clickUrl,
                                  String deepLink,
                                  String imgUrl,
                                  List<String> impTrackUrl,
                                  List<String> clickTrackUrl) {
-
-    String adm = "";
-
-    //todo adm format
-
+    String finalClickUrl = deepLink;
+    if (StringUtils.isEmpty(deepLink)) {
+      finalClickUrl = clickUrl;
+    }
+    StringBuilder impDivListBuilder = new StringBuilder();
+    String impDivTemplate = "<img src=\"{impTrack}\" style=\"display:none\"/>";
+    for (String s : impTrackUrl) {
+      impDivListBuilder.append(impDivTemplate.replace("{impTrack}", s));
+    }
+    StringBuilder clickTrackBuilder = new StringBuilder();
+    for (String s : clickTrackUrl) {
+      clickTrackBuilder.append("\"").append(s).append("\"").append(",");
+    }
+    clickTrackBuilder.delete(clickTrackBuilder.length() - 1, clickTrackBuilder.length());
+    String admTemplate = StringConfigUtil.getBannerTemplate();
+    String adm = admTemplate.replace(FormatKey.clickUrl, finalClickUrl)
+                            .replace(FormatKey.imgUrl, imgUrl)
+                            .replace(FormatKey.impDivList, impDivListBuilder.toString())
+                            .replace(FormatKey.clickTrackUrlList, clickTrackBuilder.toString());
     return adm;
   }
 

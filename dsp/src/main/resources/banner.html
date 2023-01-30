@@ -1,0 +1,47 @@
+<div id="fc_dsp_banner_wrap" style="width: 100%;height: 100%;overflow: hidden;"><a target="_blank"
+                                                                                   href="${clickUrl}">
+  <img
+    src="${imgUrl}"
+    border="0"
+    style="max-width:100%;max-height:100%;position:absolute;top:0;left:0;right:0;bottom:0;margin:auto;"
+    onclick="fireClickTracker()"> </a>
+  <div id="fc_dsp_banner_imp"></div>
+</div>
+<script
+  type="text/javascript">document.getElementById("fc_dsp_banner_imp").innerHTML = '${impDivList}';
+var clickTrackers = [${clickTrackUrlList}];
+
+function createXmlHttp() {
+    var a;
+    try {
+        a = new XMLHttpRequest()
+    } catch (b) {
+        try {
+            a = new ActiveXObject("Msxml2.XMLHTTP")
+        } catch (b) {
+            try {
+                a = new ActiveXObject("Microsoft.XMLHTTP")
+            } catch (b) {
+                a = false
+            }
+        }
+    }
+    return a
+}
+
+function fireClickTracker() {
+    for (var a in clickTrackers) {
+        var c = createXmlHttp();
+        if (!c) {
+            var b = document.createElement("iframe");
+            b.height = 1;
+            b.width = 1;
+            b.style.display = "none";
+            b.src = clickTrackers[a];
+            document.getElementById("fc_dsp_banner_wrap").appendChild(b)
+        } else {
+            c.open("GET", clickTrackers[a], true);
+            c.send()
+        }
+    }
+};</script>

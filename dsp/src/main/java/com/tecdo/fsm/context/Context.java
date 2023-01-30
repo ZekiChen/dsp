@@ -1,5 +1,6 @@
 package com.tecdo.fsm.context;
 
+import com.tecdo.common.FormatKey;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
@@ -27,6 +28,7 @@ import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
 import com.tecdo.util.AdmGenerator;
 import com.tecdo.util.JsonHelper;
+import com.tecdo.util.StringConfigUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -148,8 +150,9 @@ public class Context {
   }
 
   public Map<Integer, Target> doRequestRta() {
-    // todo 协议中的是国家三字码，需要转为对应的二字码
+    // 协议中的是国家三字码，需要转为对应的二字码
     String country = bidRequest.getDevice().getGeo().getCountry();
+    String countryCode = StringConfigUtil.getCountryCode(country);
     String deviceId = bidRequest.getDevice().getIfa();
     Map<Integer, Target> rtaResMap = new HashMap<>();
 
@@ -163,7 +166,7 @@ public class Context {
     // 分广告主进行rta匹配
     advToAdList.forEach((advId, adList) -> {
       RtaInfo rtaInfo = rtaInfoManager.getRtaInfo(advId);
-      RtaHelper.requestRta(rtaInfo, adList, country, deviceId, rtaResMap);
+      RtaHelper.requestRta(rtaInfo, adList, countryCode, deviceId, rtaResMap);
     });
     return rtaResMap;
   }
@@ -234,9 +237,8 @@ public class Context {
     bid.setId(bidId);
     bid.setImpid(wrapper.getImpId());
     bid.setPrice(wrapper.getBidPrice().floatValue());
-    // todo 曝光链接等
-    bid.setNurl("");
-    bid.setBurl("");
+    bid.setNurl(urlFormat(getWinNoticeUrl()));
+    bid.setBurl(urlFormat(getBidNoticeUrl()));
     bid.setAdm(buildAdm(wrapper));
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
@@ -266,15 +268,33 @@ public class Context {
   private String buildAdm(AdDTOWrapper wrapper) {
     AdDTO adDTO = wrapper.getAdDTO();
     String adm = null;
+    String impTrackUrls = adDTO.getAdGroup().getImpTrackUrls();
+    List<String> impTrackList = new ArrayList<>();
+    String systemImpTrack = getSystemImpTrack();
+    impTrackList.add(systemImpTrack);
+    if (impTrackUrls != null) {
+      String[] split = impTrackUrls.split(",");
+      impTrackList.addAll(Arrays.asList(split));
+    }
+    impTrackList = impTrackList.stream().map(this::urlFormat).collect(Collectors.toList());
+
+    String clickTrackUrls = adDTO.getAdGroup().getClickTrackUrls();
+    List<String> clickTrackList = new ArrayList<>();
+    String systemClickTrack = getSystemClickTrack();
+    clickTrackList.add(systemClickTrack);
+    if (clickTrackUrls != null) {
+      String[] split = clickTrackUrls.split(",");
+      clickTrackList.addAll(Arrays.asList(split));
+    }
+    clickTrackList = clickTrackList.stream().map(this::urlFormat).collect(Collectors.toList());
+
+
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
-      // todo clickurl deeplink 都需要做format
-      adm = AdmGenerator.bannerAdm(adDTO.getAdGroup().getClickUrl(),
-                                   adDTO.getAdGroup().getDeeplink(),
+      adm = AdmGenerator.bannerAdm(urlFormat(adDTO.getAdGroup().getClickUrl()),
+                                   urlFormat(adDTO.getAdGroup().getDeeplink()),
                                    adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
-                                   Arrays.asList(adDTO.getAdGroup().getImpTrackUrls().split(",")),
-                                   Arrays.asList(adDTO.getAdGroup()
-                                                      .getClickTrackUrls()
-                                                      .split(",")));
+                                   impTrackList,
+                                   clickTrackList);
     }
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
       List<Imp> impList = bidRequest.getImp();
@@ -292,6 +312,44 @@ public class Context {
       adm = JsonHelper.toJSONString(nativeResponse);
     }
     return adm;
+  }
+
+  private String urlFormat(String url) {
+    if (url == null) {
+      return null;
+    }
+    url = url.replace(FormatKey.bidId, bidRequest.getId())
+             .replace(FormatKey.impId, response.getImpId())
+             .replace(FormatKey.campaignId, response.getAdDTO().getCampaign().getId().toString())
+             .replace(FormatKey.adGroupId, response.getAdDTO().getAdGroup().getId().toString())
+             .replace(FormatKey.adId, response.getAdDTO().getAd().getId().toString())
+             .replace(FormatKey.creativeId,
+                      getCreativeIdByAd(response.getAdDTO().getAd()).toString())
+             .replace(FormatKey.deviceId, bidRequest.getDevice().getIfa())
+             .replace(FormatKey.ip, bidRequest.getDevice().getIp())
+             .replace(FormatKey.country, bidRequest.getDevice().getGeo().getCountry())
+             .replace(FormatKey.os, bidRequest.getDevice().getOs())
+             .replace(FormatKey.deviceMake, bidRequest.getDevice().getMake())
+             .replace(FormatKey.adFormat,
+                      AdTypeEnum.of(response.getAdDTO().getAd().getType()).getDesc());
+    return url;
+  }
+
+  // todo 系统通知链接
+  private String getWinNoticeUrl(){
+    return "";
+  }
+
+  private String getBidNoticeUrl(){
+    return "";
+  }
+
+  private String getSystemImpTrack() {
+    return "";
+  }
+
+  private String getSystemClickTrack() {
+    return "";
   }
 
   private String generateBidId() {
