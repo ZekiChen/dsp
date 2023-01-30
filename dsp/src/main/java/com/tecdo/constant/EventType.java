@@ -30,19 +30,20 @@ public enum EventType {
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 
+  RECEIVE_PING(3000, "receive ping"),
   VALIDATE_BID_REQUEST(3001, "validate bid request"),
   RECEIVE_BID_REQUEST(3002, "receive bid request"),
 
-  BID_TASK_FINISH(4301, "bid task finish"),
-  BID_TASK_FAILED(4302, "bid task failed"),
-  WAIT_TASK_RESPONSE_TIMEOUT(3003, "wait task response timeout"),
+  BID_TASK_FINISH(3101, "bid task finish"),
+  BID_TASK_FAILED(3102, "bid task failed"),
+  WAIT_TASK_RESPONSE_TIMEOUT(3103, "wait task response timeout"),
 
-  WAIT_REQUEST_RTA_RESPONSE_TIMEOUT(3005, "wait request rta response timeout"),
-  REQUEST_RTA_RESPONSE(3006, "request rta response"),
-  WAIT_REQUEST_RTA_RESPONSE_ERROR(3006, "wait request rta response error"),
+  WAIT_REQUEST_RTA_RESPONSE_TIMEOUT(3201, "wait request rta response timeout"),
+  REQUEST_RTA_RESPONSE(3202, "request rta response"),
+  WAIT_REQUEST_RTA_RESPONSE_ERROR(3203, "wait request rta response error"),
 
-  WAIT_SORT_AD_TIMEOUT(3007, "wait sort ad timeout"),
-  SORT_AD_RESPONSE(3008, "sort ad response"),
+  WAIT_SORT_AD_TIMEOUT(3301, "wait sort ad timeout"),
+  SORT_AD_RESPONSE(3302, "sort ad response"),
 
   BID_REQUEST_COMPLETE(3100, "bid request complete"),
 

@@ -46,6 +46,7 @@ public class Controller implements MessageObserver {
       case RTA_INFOS_LOAD_TIMEOUT:
       case ONE_DATA_READY:
       case NETTY_START:
+      case RECEIVE_PING:
         lifeCycleManager.handleEvent(eventType, params);
         break;
       case VALIDATE_BID_REQUEST:

@@ -52,6 +52,10 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
         eventType = EventType.VALIDATE_BID_REQUEST;
         params.put(ParamKey.HTTP_REQUEST, request);
         break;
+      case RequestPath.PING:
+        eventType = EventType.RECEIVE_PING;
+        params.put(ParamKey.HTTP_REQUEST, request);
+        break;
       default:
         eventType = EventType.RESPONSE_RESULT;
         params.put(ParamKey.HTTP_CODE, HttpCode.NOT_FOUND);
