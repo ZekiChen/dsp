@@ -276,7 +276,7 @@ public class Task {
   }
 
   public void filerAdAndNotifySuccess(Map<Integer, AdDTOWrapper> adDTOMap) {
-
+    // 过滤掉出价低于底价的广告
     adDTOMap = adDTOMap.values()
                        .stream()
                        .filter(e -> e.getBidPrice() > Optional.of(imp.getBidfloor()).orElse(0f))

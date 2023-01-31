@@ -54,12 +54,12 @@ public class Context {
 
   private Affiliate affiliate;
 
-  private AdDTOWrapper response;
+  private AdDTOWrapper response = null;
 
   private Long requestId;
 
   private Map<String, Task> taskMap = new HashMap<>();
-
+  // taskId,adId,AdDTOWrapper
   private Map<String, Map<Integer, AdDTOWrapper>> taskResponse = new HashMap<>();
 
   private List<AdDTOWrapper> adDTOWrapperList = new ArrayList<>();
@@ -132,12 +132,16 @@ public class Context {
     return taskResponse.size() == taskMap.size();
   }
 
-  public void requestRta() {
-    Params params = assignParams();
+  public boolean checkTaskResponse(){
     this.adDTOWrapperList = taskResponse.values()
                                         .stream()
                                         .flatMap(value -> value.values().stream())
                                         .collect(Collectors.toList());
+    return adDTOWrapperList.size() > 0;
+  }
+
+  public void requestRta() {
+    Params params = assignParams();
     ThreadPool.getInstance().execute(() -> {
       try {
         Map<Integer, Target> rtaResMap = doRequestRta();
@@ -149,7 +153,7 @@ public class Context {
     });
   }
 
-  public Map<Integer, Target> doRequestRta() {
+  private Map<Integer, Target> doRequestRta() {
     // 协议中的是国家三字码，需要转为对应的二字码
     String country = bidRequest.getDevice().getGeo().getCountry();
     String countryCode = StringConfigUtil.getCountryCode(country);

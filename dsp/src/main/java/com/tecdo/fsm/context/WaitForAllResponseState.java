@@ -26,11 +26,17 @@ public class WaitForAllResponseState implements IContextState {
         boolean receiveAllTaskResponse = context.isReceiveAllTaskResponse();
         if (receiveAllTaskResponse) {
           context.cancelTimer(EventType.WAIT_TASK_RESPONSE_TIMEOUT);
-          context.requestRta();
-          context.startTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT,
-                             context.assignParams(),
-                             Constant.TIMEOUT_WAIT_RTA_RESPONSE);
-          context.switchState(waitForRtaState);
+          if (context.checkTaskResponse()) {
+            context.requestRta();
+            context.startTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT,
+                               context.assignParams(),
+                               Constant.TIMEOUT_WAIT_RTA_RESPONSE);
+            context.switchState(waitForRtaState);
+          } else {
+            context.switchState(waiForRecycleState);
+            context.responseData();
+            context.requestComplete();
+          }
         }
         break;
       // 这里简单处理，对于多个task，要求全部成功，只要超时或者一个task失败，则认为整个请求失败了
