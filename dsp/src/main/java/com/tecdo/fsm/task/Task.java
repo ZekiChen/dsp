@@ -28,6 +28,8 @@ import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -216,8 +218,8 @@ public class Task {
                      .adWidth(adDTO.getCreativeMap()
                                    .get(getCreativeIdByAd(adDTO.getAd()))
                                    .getWidth())
-                     .os(bidRequest.getDevice().getOs())
-                     .deviceMake(bidRequest.getDevice().getMake())
+                     .os(osFormat(bidRequest.getDevice().getOs()))
+                     .deviceMake(StringUtils.toRootUpperCase(bidRequest.getDevice().getMake()))
                      .bundle(bidRequest.getApp().getBundle())
                      .country(Optional.ofNullable(bidRequest.getDevice().getGeo())
                                       .map(Geo::getCountry)
@@ -230,6 +232,16 @@ public class Task {
                      .packageName(adDTO.getCampaign().getPackageName())
                      .category(adDTO.getCampaign().getCategory())
                      .build();
+  }
+
+  private String osFormat(String os) {
+    if ("IOS".equalsIgnoreCase(os)) {
+      return "IOS";
+    }
+    if ("Android".equalsIgnoreCase(os)) {
+      return "Android";
+    }
+    return os;
   }
 
   private Integer getCreativeIdByAd(Ad ad) {
