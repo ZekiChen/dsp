@@ -93,6 +93,23 @@
             </Filters>
         </RollingFile>
 
+        <RollingFile name="RESPONSE_LOG" fileName="${BUSINESS_LOG_HOME}/response.log"
+                     filePattern="${BUSINESS_LOG_HOME}/response-%d{yyyy-MM-dd-HH}.log">
+            <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                    <IfFileName glob="response-*.log"/>
+                    <IfAccumulatedFileSize exceeds="50GB"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+            <Filters>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+
         <CatLog4j2Appender name="CatLog4j2Appender">
             <PatternLayout pattern="${ENCODER_PATTERN}"/>
         </CatLog4j2Appender>
@@ -111,6 +128,10 @@
 
         <Logger name="request_log" level="INFO" additivity="false">
             <AppenderRef ref="REQUEST_LOG"/>
+        </Logger>
+
+        <Logger name="response_log" level="INFO" additivity="false">
+            <AppenderRef ref="RESPONSE_LOG"/>
         </Logger>
 
     </Loggers>

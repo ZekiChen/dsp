@@ -1,5 +1,6 @@
 package com.tecdo.fsm.context;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
@@ -15,31 +16,24 @@ import com.tecdo.domain.openrtb.response.Bid;
 import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.domain.openrtb.response.SeatBid;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
-import com.tecdo.entity.Ad;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.RtaInfo;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
+import com.tecdo.log.RequestLogger;
+import com.tecdo.log.ResponseLogger;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
 import com.tecdo.util.AdmGenerator;
+import com.tecdo.util.CreativeUtil;
 import com.tecdo.util.JsonHelper;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
-import java.util.stream.Collectors;
-
-import cn.hutool.extra.spring.SpringUtil;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Slf4j
 public class Context {
@@ -49,6 +43,7 @@ public class Context {
   private HttpRequest httpRequest;
 
   private BidRequest bidRequest;
+  private BidResponse bidResponse;
 
   private Affiliate affiliate;
 
@@ -71,7 +66,6 @@ public class Context {
   private final TaskPool taskPool = SpringUtil.getBean(TaskPool.class);
 
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
-
 
   public void handleEvent(EventType eventType, Params params) {
     currentState.handleEvent(eventType, params, this);
@@ -216,7 +210,7 @@ public class Context {
       params.put(ParamKey.HTTP_CODE, HttpCode.NOT_BID);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     } else {
-      BidResponse bidResponse = buildResponse(this.response);
+      this.bidResponse = buildResponse(this.response);
       params.put(ParamKey.RESPONSE_BODY, JsonHelper.toJSONString(bidResponse));
       params.put(ParamKey.HTTP_CODE, HttpCode.OK);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
@@ -241,26 +235,15 @@ public class Context {
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
     bid.setBundle(adDTO.getCampaign().getPackageName());
-    bid.setIurl(adDTO.getCreativeMap().get(getCreativeIdByAd(adDTO.getAd())).getUrl());
+    bid.setIurl(adDTO.getCreativeMap().get(CreativeUtil.getCreativeId(adDTO.getAd())).getUrl());
     bid.setCid(String.valueOf(adDTO.getCampaign().getId()));
-    bid.setCrid(String.valueOf(getCreativeIdByAd(adDTO.getAd())));
+    bid.setCrid(String.valueOf(CreativeUtil.getCreativeId(adDTO.getAd())));
 
     SeatBid seatBid = new SeatBid();
     seatBid.setBid(Collections.singletonList(bid));
     bidResponse.setSeatbid(Collections.singletonList(seatBid));
 
     return bidResponse;
-  }
-
-  private Integer getCreativeIdByAd(Ad ad) {
-    switch (AdTypeEnum.of(ad.getType())) {
-      case BANNER:
-      case NATIVE:
-        return ad.getImage();
-      case VIDEO:
-        return ad.getVideo();
-    }
-    return null;
   }
 
   private String buildAdm(AdDTOWrapper wrapper) {
@@ -324,4 +307,11 @@ public class Context {
 
   }
 
+  public void logBidRequest() {
+    RequestLogger.log(bidRequest, affiliate);
+  }
+
+  public void logBidResponse() {
+    ResponseLogger.log(bidResponse, response);
+  }
 }

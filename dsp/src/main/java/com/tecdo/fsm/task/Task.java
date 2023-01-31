@@ -1,5 +1,12 @@
 package com.tecdo.fsm.task;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.zhxu.okhttps.HttpResult;
+import cn.zhxu.okhttps.OkHttps;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
@@ -14,11 +21,9 @@ import com.tecdo.domain.biz.response.CtrResponse;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Geo;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.Ad;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.TargetCondition;
-import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainUtil;
@@ -26,22 +31,15 @@ import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
+import com.tecdo.util.CreativeUtil;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import cn.zhxu.okhttps.HttpResult;
-import cn.zhxu.okhttps.OkHttps;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
@@ -178,7 +176,11 @@ public class Task {
       HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, affiliate.getId());
       if (httpResult.isSuccessful()) {
         R<List<CtrResponse>> result = httpResult.getBody().toBean(R.class);
-        result.getData().forEach(resp -> adDTOMap.get(resp.getAdId()).setPCtr(resp.getPCtr()));
+        result.getData().forEach(resp -> {
+          AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
+          wrapper.setPCtr(resp.getPCtr());
+          wrapper.setPCtrVersion(result.getVersion());
+        });
         params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
         messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
       } else {
@@ -210,10 +212,10 @@ public class Task {
                      .affiliateId(affId)
                      .adType(adDTO.getAd().getType().toString())
                      .adHeight(adDTO.getCreativeMap()
-                                    .get(getCreativeIdByAd(adDTO.getAd()))
+                                    .get(CreativeUtil.getCreativeId(adDTO.getAd()))
                                     .getHeight())
                      .adWidth(adDTO.getCreativeMap()
-                                   .get(getCreativeIdByAd(adDTO.getAd()))
+                                   .get(CreativeUtil.getCreativeId(adDTO.getAd()))
                                    .getWidth())
                      .os(bidRequest.getDevice().getOs())
                      .deviceMake(bidRequest.getDevice().getMake())
@@ -221,7 +223,7 @@ public class Task {
                      .country(Optional.ofNullable(bidRequest.getDevice().getGeo())
                                       .map(Geo::getCountry)
                                       .orElse(null))
-                     .creativeId(getCreativeIdByAd(adDTO.getAd()))
+                     .creativeId(CreativeUtil.getCreativeId(adDTO.getAd()))
                      .bidFloor(Double.valueOf(imp.getBidfloor()))
                      .rtaFeature(Optional.ofNullable(adDTO.getCampaignRtaInfo())
                                          .map(CampaignRtaInfo::getRtaFeature)
@@ -229,17 +231,6 @@ public class Task {
                      .packageName(adDTO.getCampaign().getPackageName())
                      .category(adDTO.getCampaign().getCategory())
                      .build();
-  }
-
-  private Integer getCreativeIdByAd(Ad ad) {
-    switch (AdTypeEnum.of(ad.getType())) {
-      case BANNER:
-      case NATIVE:
-        return ad.getImage();
-      case VIDEO:
-        return ad.getVideo();
-    }
-    return null;
   }
 
   public void calcPrice(Map<Integer, AdDTOWrapper> adDTOMap) {
