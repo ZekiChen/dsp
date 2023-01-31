@@ -23,4 +23,9 @@ public class CtrResponse implements Serializable {
      * 预估的ctr
      */
     private Double pCtr;
+
+    /**
+     * 预估使用的模型版本
+     */
+    private String version;
 }

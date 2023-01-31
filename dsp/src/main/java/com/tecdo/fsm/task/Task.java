@@ -181,7 +181,10 @@ public class Task {
       HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, affiliate.getId());
       if (httpResult.isSuccessful()) {
         R<List<CtrResponse>> result = httpResult.getBody().toBean(R.class);
-        result.getData().forEach(resp -> adDTOMap.get(resp.getAdId()).setPCtr(resp.getPCtr()));
+        result.getData().forEach(resp -> {
+          adDTOMap.get(resp.getAdId()).setPCtr(resp.getPCtr());
+          adDTOMap.get(resp.getAdId()).setVersion(resp.getVersion());
+        });
         params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
         messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
       } else {

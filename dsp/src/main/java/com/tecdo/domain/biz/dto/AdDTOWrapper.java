@@ -23,6 +23,11 @@ public class AdDTOWrapper {
   private Double pCtr;
 
   /**
+   * 预估使用的模型版本
+   */
+  private String version;
+
+  /**
    * 出价cpc
    */
   private Double bidPrice;
