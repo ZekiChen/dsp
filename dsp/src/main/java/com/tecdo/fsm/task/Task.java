@@ -183,7 +183,7 @@ public class Task {
         R<List<CtrResponse>> result = httpResult.getBody().toBean(R.class);
         result.getData().forEach(resp -> {
           adDTOMap.get(resp.getAdId()).setPCtr(resp.getPCtr());
-          adDTOMap.get(resp.getAdId()).setVersion(resp.getVersion());
+          adDTOMap.get(resp.getAdId()).setVersion(result.getVersion());
         });
         params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
         messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
