@@ -238,7 +238,6 @@ public class Context {
     bid.setImpid(wrapper.getImpId());
     bid.setPrice(wrapper.getBidPrice().floatValue());
     bid.setNurl(urlFormat(getWinNoticeUrl()));
-    bid.setBurl(urlFormat(getBidNoticeUrl()));
     bid.setAdm(buildAdm(wrapper));
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
@@ -337,10 +336,6 @@ public class Context {
 
   // todo 系统通知链接
   private String getWinNoticeUrl() {
-    return "";
-  }
-
-  private String getBidNoticeUrl() {
     return "";
   }
 

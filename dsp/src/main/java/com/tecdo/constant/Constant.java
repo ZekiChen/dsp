@@ -5,6 +5,8 @@ public interface Constant {
     String QUESTION_MARK = "?";
     String EQUAL_MARK = "=";
     String AND_MARK = "&";
+    String HEADER_IP_KEY = "X-Forwarded-For";
+    String COMMA = ",";
 
     long TIMEOUT_WAIT_TASK_RESPONSE = 50;
 

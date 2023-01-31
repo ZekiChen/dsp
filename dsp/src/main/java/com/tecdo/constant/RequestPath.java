@@ -6,4 +6,12 @@ public interface RequestPath {
 
   String PING = "/ping";
 
+  String WIN = "/win";
+
+  String IMP = "/imp";
+
+  String CLICK = "/click";
+
+  String PB = "/pb";
+
 }

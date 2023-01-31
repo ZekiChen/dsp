@@ -30,9 +30,13 @@ public enum EventType {
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 
-  RECEIVE_PING(3000, "receive ping"),
+  RECEIVE_PING_REQUEST(3000, "receive ping request"),
   VALIDATE_BID_REQUEST(3001, "validate bid request"),
   RECEIVE_BID_REQUEST(3002, "receive bid request"),
+  RECEIVE_WIN_NOTICE(3002, "receive win notice"),
+  RECEIVE_IMP_NOTICE(3002, "receive imp notice"),
+  RECEIVE_CLICK_NOTICE(3002, "receive click notice"),
+  RECEIVE_PB_NOTICE(3002, "receive pb notice"),
 
   BID_TASK_FINISH(3101, "bid task finish"),
   BID_TASK_FAILED(3102, "bid task failed"),

@@ -1,7 +1,6 @@
 package com.tecdo.server.handler;
 
 import com.tecdo.common.Params;
-import com.tecdo.constant.Constant;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.HttpCode;
 import com.tecdo.constant.ParamKey;
@@ -44,17 +43,28 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
   }
 
   private void router(HttpRequest request) {
-    String path = getPath(request.getUri());
+    String path = request.getPath();
     EventType eventType;
     Params params = Params.create();
+    params.put(ParamKey.HTTP_REQUEST, request);
     switch (path) {
       case RequestPath.BID_REQUEST:
         eventType = EventType.VALIDATE_BID_REQUEST;
-        params.put(ParamKey.HTTP_REQUEST, request);
+        break;
+      case RequestPath.WIN:
+        eventType = EventType.RECEIVE_WIN_NOTICE;
+        break;
+      case RequestPath.IMP:
+        eventType = EventType.RECEIVE_IMP_NOTICE;
+        break;
+      case RequestPath.CLICK:
+        eventType = EventType.RECEIVE_CLICK_NOTICE;
+        break;
+      case RequestPath.PB:
+        eventType = EventType.RECEIVE_PB_NOTICE;
         break;
       case RequestPath.PING:
-        eventType = EventType.RECEIVE_PING;
-        params.put(ParamKey.HTTP_REQUEST, request);
+        eventType = EventType.RECEIVE_PING_REQUEST;
         break;
       default:
         eventType = EventType.RESPONSE_RESULT;
@@ -62,14 +72,6 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
         params.put(ParamKey.CHANNEL_CONTEXT, request.getChannelContext());
     }
     messageQueue.putMessage(eventType, params);
-  }
-
-  private String getPath(String uri) {
-    int index = uri.indexOf(Constant.QUESTION_MARK);
-    if (0 < index) {
-      uri = uri.substring(0, index);
-    }
-    return uri;
   }
 
 

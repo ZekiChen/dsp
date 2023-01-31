@@ -93,6 +93,74 @@
             </Filters>
         </RollingFile>
 
+        <RollingFile name="WIN_LOG" fileName="${BUSINESS_LOG_HOME}/win.log"
+                     filePattern="${BUSINESS_LOG_HOME}/win-%d{yyyy-MM-dd-HH}.log">
+            <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                    <IfFileName glob="win-*.log"/>
+                    <IfLastModified age="360H"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+            <Filters>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+
+        <RollingFile name="IMP_LOG" fileName="${BUSINESS_LOG_HOME}/imp.log"
+                     filePattern="${BUSINESS_LOG_HOME}/imp-%d{yyyy-MM-dd-HH}.log">
+            <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                    <IfFileName glob="imp-*.log"/>
+                    <IfLastModified age="360H"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+            <Filters>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+
+        <RollingFile name="CLICK_LOG" fileName="${BUSINESS_LOG_HOME}/click.log"
+                     filePattern="${BUSINESS_LOG_HOME}/click-%d{yyyy-MM-dd-HH}.log">
+            <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                    <IfFileName glob="click-*.log"/>
+                    <IfLastModified age="360H"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+            <Filters>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+
+        <RollingFile name="PB_LOG" fileName="${BUSINESS_LOG_HOME}/pb.log"
+                     filePattern="${BUSINESS_LOG_HOME}/pb-%d{yyyy-MM-dd-HH}.log">
+            <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy/>
+            </Policies>
+            <DefaultRolloverStrategy>
+                <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                    <IfFileName glob="pb-*.log"/>
+                    <IfLastModified age="360H"/>
+                </Delete>
+            </DefaultRolloverStrategy>
+            <Filters>
+                <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+            </Filters>
+        </RollingFile>
+
         <CatLog4j2Appender name="CatLog4j2Appender">
             <PatternLayout pattern="${ENCODER_PATTERN}"/>
         </CatLog4j2Appender>
@@ -111,6 +179,22 @@
 
         <Logger name="request_log" level="INFO" additivity="false">
             <AppenderRef ref="REQUEST_LOG"/>
+        </Logger>
+
+        <Logger name="win_log" level="INFO" additivity="false">
+            <AppenderRef ref="WIN_LOG"/>
+        </Logger>
+
+        <Logger name="imp_log" level="INFO" additivity="false">
+            <AppenderRef ref="IMP_LOG"/>
+        </Logger>
+
+        <Logger name="click_log" level="INFO" additivity="false">
+            <AppenderRef ref="CLICK_LOG"/>
+        </Logger>
+
+        <Logger name="pb_log" level="INFO" additivity="false">
+            <AppenderRef ref="PB_LOG"/>
         </Logger>
 
     </Loggers>

@@ -89,8 +89,8 @@ public class LifeCycleManager {
       case NETTY_START:
         handleNettyStart();
         break;
-      case RECEIVE_PING:
-        handlePing(params);
+      case RECEIVE_PING_REQUEST:
+        handlePingRequest(params);
         break;
       default:
         log.error("Can't handle event, type: {}", eventType);
@@ -130,7 +130,7 @@ public class LifeCycleManager {
     server.startup(serverPort, new SimpleHttpChannelInboundHandler(messageQueue));
   }
 
-  private void handlePing(Params params) {
+  private void handlePingRequest(Params params) {
     switch (currentState) {
       case RUNNING:
         HttpRequest httpRequest = params.get(ParamKey.HTTP_REQUEST);

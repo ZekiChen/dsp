@@ -14,10 +14,10 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum AdTypeEnum {
 
-    BANNER(1, "banner"),
-    VIDEO(2, "video"),
-    AUDIO(3, "audio"),
-    NATIVE(4, "native");
+    BANNER(1, "BANNER"),
+    VIDEO(2, "VIDEO"),
+    AUDIO(3, "AUDIO"),
+    NATIVE(4, "NATIVE");
 
     private final int type;
     private final String desc;

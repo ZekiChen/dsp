@@ -208,8 +208,8 @@ public class Task {
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
                      .day(DateUtil.today())
-                     .affiliateId(affId)
-                     .adType(adDTO.getAd().getType().toString())
+                     .supplyId(affId)
+                     .adFormat(AdTypeEnum.of(adDTO.getAd().getType()).getDesc())
                      .adHeight(adDTO.getCreativeMap()
                                     .get(getCreativeIdByAd(adDTO.getAd()))
                                     .getHeight())
@@ -266,11 +266,11 @@ public class Task {
         bidPrice = adDTO.getAdGroup().getOptPrice();
         break;
       case CPC:
-        // todo 确认下pctr是0.01还是1表示1%
-        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
+        // 这里的pctr为百分之几
+        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 10;
         break;
       default:
-        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
+        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 10;
     }
     return bidPrice;
   }
