@@ -1,12 +1,21 @@
 package com.tecdo.filter.util;
 
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.exception.ConditionException;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-import static com.tecdo.filter.AbstractRecallFilter.Constant.*;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
+
+import static com.tecdo.filter.AbstractRecallFilter.Constant.BETWEEN;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.EQ;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.EXCLUDE;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.GT;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.GTE;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.INCLUDE;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.LT;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.LTE;
 
 /**
  * 定投条件 工具
@@ -31,26 +40,27 @@ public class ConditionUtil {
 
         switch (operation) {
             case EQ:
-                return Objects.equals(source, target);
+                return Objects.equals(source, target) ||
+                       (NumberUtil.isNumber(source) && NumberUtil.isNumber(target) &&
+                        Double.parseDouble(source) == Double.parseDouble(target));
             case GT:
-                // todo 目前的数字比较还只有整形，但是后续可能会有小数的比较，比如osv就需要做处理
-                return Integer.parseInt(source) > Integer.parseInt(target);
+                return Double.parseDouble(source) > Double.parseDouble(target);
             case LT:
-                return Integer.parseInt(source) < Integer.parseInt(target);
+                return Double.parseDouble(source) < Double.parseDouble(target);
             case GTE:
-                return Integer.parseInt(source) >= Integer.parseInt(target);
+                return Double.parseDouble(source) >= Double.parseDouble(target);
             case LTE:
-                return Integer.parseInt(source) <= Integer.parseInt(target);
+                return Double.parseDouble(source) <= Double.parseDouble(target);
             case BETWEEN:
                 String[] targetArr = target.split(",");
                 if (targetArr.length != 2) {
                     throw new ConditionException("The value of the 'between' must be two numbers");
                 }
-                int sourceNum = Integer.parseInt(source);
-                int num1 = Integer.parseInt(targetArr[0]);
-                int num2 = Integer.parseInt(targetArr[1]);
-                int small = Math.min(num1, num2);
-                int big = small == num1 ? num2 : num1;
+                double sourceNum = Double.parseDouble(source);
+                double num1 = Double.parseDouble(targetArr[0]);
+                double num2 = Double.parseDouble(targetArr[1]);
+                double small = Math.min(num1, num2);
+                double big = small == num1 ? num2 : num1;
                 return small <= sourceNum && sourceNum <= big;
             case INCLUDE:
                 return Arrays.asList(target.split(",")).contains(source);
