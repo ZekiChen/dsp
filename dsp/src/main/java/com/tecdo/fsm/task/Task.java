@@ -140,7 +140,7 @@ public class Task {
         continue;
       }
       // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
-      if (executeFilter(filters.get(0), adDTO)) {
+      if (FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate)) {
         resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), adDTO));
       }
     }
@@ -156,18 +156,6 @@ public class Task {
                                                                      e.getOperation(),
                                                                      e.getValue()))
                      .collect(Collectors.toList());
-  }
-
-  /**
-   * 每个 AD 都需要被所有 filter 判断一遍
-   */
-  private boolean executeFilter(AbstractRecallFilter curFilter, AdDTO adDTO) {
-    boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
-    while (filterFlag && curFilter.hasNext()) {
-      curFilter = curFilter.getNextFilter();
-      filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
-    }
-    return filterFlag;
   }
 
   public void callCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap) {
