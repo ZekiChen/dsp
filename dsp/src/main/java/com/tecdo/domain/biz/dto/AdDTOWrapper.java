@@ -24,9 +24,9 @@ public class AdDTOWrapper {
   private Double pCtr;
 
   /**
-   * 预估使用的模型版本
+   * 英语预估ctr的模型版本
    */
-  private String version;
+  private String pCtrVersion;
 
   /**
    * 出价cpc

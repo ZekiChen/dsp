@@ -22,7 +22,7 @@ import static com.tecdo.filter.AbstractRecallFilter.Constant.LTE;
  *
  * Created by Zeki on 2023/1/5
  **/
-public class ConditionUtil {
+public class ConditionHelper {
 
     /**
      * 基于操作符进行值比较

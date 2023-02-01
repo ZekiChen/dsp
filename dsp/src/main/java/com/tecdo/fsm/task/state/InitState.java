@@ -16,7 +16,7 @@ import lombok.extern.slf4j.Slf4j;
  * Created by Zeki on 2023/1/4
  **/
 @Slf4j
-@Component
+@Component("TaskInitState")
 @RequiredArgsConstructor
 public class InitState implements ITaskState {
 

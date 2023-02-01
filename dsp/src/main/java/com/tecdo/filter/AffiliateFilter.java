@@ -1,11 +1,10 @@
 package com.tecdo.filter;
 
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.*;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.TargetCondition;
-import com.tecdo.filter.util.ConditionUtil;
+import com.tecdo.filter.util.ConditionHelper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -26,6 +25,6 @@ public class AffiliateFilter extends AbstractRecallFilter {
             return true;
         }
         // 该 AD 对目标渠道有要求
-        return ConditionUtil.compare(affiliate.getId().toString(), condition.getOperation(), condition.getValue());
+        return ConditionHelper.compare(affiliate.getId().toString(), condition.getOperation(), condition.getValue());
     }
 }

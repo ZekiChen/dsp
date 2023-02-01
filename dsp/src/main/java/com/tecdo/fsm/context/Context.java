@@ -1,6 +1,5 @@
 package com.tecdo.fsm.context;
 
-import com.tecdo.common.FormatKey;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
@@ -28,7 +27,6 @@ import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
 import com.tecdo.util.AdmGenerator;
 import com.tecdo.util.JsonHelper;
-import com.tecdo.util.StringConfigUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -51,6 +49,7 @@ public class Context {
   private HttpRequest httpRequest;
 
   private BidRequest bidRequest;
+  private BidResponse bidResponse;
 
   private Affiliate affiliate;
 
@@ -73,7 +72,6 @@ public class Context {
   private final TaskPool taskPool = SpringUtil.getBean(TaskPool.class);
 
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
-
 
   public void handleEvent(EventType eventType, Params params) {
     currentState.handleEvent(eventType, params, this);
@@ -224,7 +222,7 @@ public class Context {
       params.put(ParamKey.HTTP_CODE, HttpCode.NOT_BID);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     } else {
-      BidResponse bidResponse = buildResponse(this.response);
+      this.bidResponse = buildResponse(this.response);
       params.put(ParamKey.RESPONSE_BODY, JsonHelper.toJSONString(bidResponse));
       params.put(ParamKey.HTTP_CODE, HttpCode.OK);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
@@ -247,26 +245,15 @@ public class Context {
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
     bid.setBundle(adDTO.getCampaign().getPackageName());
-    bid.setIurl(adDTO.getCreativeMap().get(getCreativeIdByAd(adDTO.getAd())).getUrl());
+    bid.setIurl(adDTO.getCreativeMap().get(CreativeHelper.getCreativeId(adDTO.getAd())).getUrl());
     bid.setCid(String.valueOf(adDTO.getCampaign().getId()));
-    bid.setCrid(String.valueOf(getCreativeIdByAd(adDTO.getAd())));
+    bid.setCrid(String.valueOf(CreativeHelper.getCreativeId(adDTO.getAd())));
 
     SeatBid seatBid = new SeatBid();
     seatBid.setBid(Collections.singletonList(bid));
     bidResponse.setSeatbid(Collections.singletonList(seatBid));
 
     return bidResponse;
-  }
-
-  private Integer getCreativeIdByAd(Ad ad) {
-    switch (AdTypeEnum.of(ad.getType())) {
-      case BANNER:
-      case NATIVE:
-        return ad.getImage();
-      case VIDEO:
-        return ad.getVideo();
-    }
-    return null;
   }
 
   private String buildAdm(AdDTOWrapper wrapper) {
@@ -382,4 +369,11 @@ public class Context {
 
   }
 
+  public void logBidRequest() {
+    RequestLogger.log(bidRequest, affiliate);
+  }
+
+  public void logBidResponse() {
+    ResponseLogger.log(bidResponse, response);
+  }
 }

@@ -6,7 +6,7 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.TargetCondition;
-import com.tecdo.filter.util.ConditionUtil;
+import com.tecdo.filter.util.ConditionHelper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,6 +28,6 @@ public class AppBundleFilter extends AbstractRecallFilter {
         if (StrUtil.isBlank(bidRequest.getApp().getBundle())) {
             return false;
         }
-        return ConditionUtil.compare(bidRequest.getApp().getBundle(), condition.getOperation(), condition.getValue());
+        return ConditionHelper.compare(bidRequest.getApp().getBundle(), condition.getOperation(), condition.getValue());
     }
 }

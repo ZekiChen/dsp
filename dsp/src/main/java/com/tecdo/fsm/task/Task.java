@@ -19,7 +19,6 @@ import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.enums.biz.AdTypeEnum;
-import com.tecdo.enums.biz.BidStrategyEnum;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainUtil;
@@ -27,8 +26,6 @@ import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
-
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -133,7 +130,7 @@ public class Task {
    */
   private Map<Integer, AdDTOWrapper> doListRecallAd() {
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
-    FilterChainUtil.assemble(filters);
+    FilterChainHelper.assemble(filters);
 
     Map<Integer, AdDTOWrapper> resMap = new HashMap<>();
     for (AdDTO adDTO : adManager.getAdDTOMap().values()) {
@@ -146,7 +143,7 @@ public class Task {
         continue;
       }
       // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
-      if (executeFilter(filters.get(0), adDTO)) {
+      if (FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate)) {
         resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), taskId, adDTO));
       }
     }
@@ -164,18 +161,6 @@ public class Task {
                      .collect(Collectors.toList());
   }
 
-  /**
-   * 每个 AD 都需要被所有 filter 判断一遍
-   */
-  private boolean executeFilter(AbstractRecallFilter curFilter, AdDTO adDTO) {
-    boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
-    while (filterFlag && curFilter.hasNext()) {
-      curFilter = curFilter.getNextFilter();
-      filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
-    }
-    return filterFlag;
-  }
-
   public void callCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap) {
     Params params = assignParams();
     ThreadPool.getInstance().execute(() -> {
@@ -183,8 +168,9 @@ public class Task {
       if (httpResult.isSuccessful()) {
         R<List<CtrResponse>> result = httpResult.getBody().toBean(R.class);
         result.getData().forEach(resp -> {
-          adDTOMap.get(resp.getAdId()).setPCtr(resp.getPCtr());
-          adDTOMap.get(resp.getAdId()).setVersion(result.getVersion());
+          AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
+          wrapper.setPCtr(resp.getPCtr());
+          wrapper.setPCtrVersion(result.getVersion());
         });
         params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
         messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
@@ -211,24 +197,21 @@ public class Task {
   }
 
   private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
+    Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
                      .day(DateUtil.today())
                      .supplyId(affId)
                      .adFormat(AdTypeEnum.of(adDTO.getAd().getType()).getDesc())
-                     .adHeight(adDTO.getCreativeMap()
-                                    .get(getCreativeIdByAd(adDTO.getAd()))
-                                    .getHeight())
-                     .adWidth(adDTO.getCreativeMap()
-                                   .get(getCreativeIdByAd(adDTO.getAd()))
-                                   .getWidth())
+                     .adHeight(adDTO.getCreativeMap().get(creativeId).getHeight())
+                     .adWidth(adDTO.getCreativeMap().get(creativeId).getWidth())
                      .os(osFormat(bidRequest.getDevice().getOs()))
                      .deviceMake(StringUtils.toRootUpperCase(bidRequest.getDevice().getMake()))
                      .bundle(bidRequest.getApp().getBundle())
                      .country(Optional.ofNullable(bidRequest.getDevice().getGeo())
                                       .map(Geo::getCountry)
                                       .orElse(null))
-                     .creativeId(getCreativeIdByAd(adDTO.getAd()))
+                     .creativeId(creativeId)
                      .bidFloor(Double.valueOf(imp.getBidfloor()))
                      .rtaFeature(Optional.ofNullable(adDTO.getCampaignRtaInfo())
                                          .map(CampaignRtaInfo::getRtaFeature)
