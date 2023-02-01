@@ -14,8 +14,11 @@ import java.util.Map;
 
 /**
  * 该状态内会计算出价
- * TODO cpc cpm
- * 受限点击成本：出价cpc = mcpc * pctr * 1000
+ *
+ * 受限点击成本：
+ * cpc = mcpc（即AdGroup::optPrice）* pctr（百分比）* 10
+ * cpm = 即 AdGroup::optPrice
+ *
  * <p>
  * Created by Zeki on 2023/1/4
  **/

@@ -2,6 +2,7 @@ package com.tecdo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tecdo.entity.base.BaseEntity;
+import com.tecdo.enums.biz.BidStrategyEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -52,11 +53,12 @@ public class AdGroup extends BaseEntity {
 
     /**
      * 竞价策略
+     * @see BidStrategyEnum
      */
     private Integer bidStrategy;
 
     /**
-     * 操作价格 mcpc
+     * 操作价格
      */
     private Double optPrice;
 
