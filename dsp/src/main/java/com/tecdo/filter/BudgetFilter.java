@@ -6,6 +6,9 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.filter.util.ConditionHelper;
 
+import org.springframework.stereotype.Component;
+
+@Component
 public class BudgetFilter extends AbstractRecallFilter {
 
   @Override

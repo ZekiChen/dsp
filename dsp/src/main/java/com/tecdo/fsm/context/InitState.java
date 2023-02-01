@@ -4,8 +4,6 @@ import com.tecdo.common.Params;
 import com.tecdo.constant.Constant;
 import com.tecdo.constant.EventType;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
 import lombok.RequiredArgsConstructor;
@@ -16,7 +14,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class InitState implements IContextState {
 
-  private WaitForAllResponseState waitForAllResponseState;
+  private final WaitForAllResponseState waitForAllResponseState;
 
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {

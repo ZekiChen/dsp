@@ -24,7 +24,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class NoticeService {
 
-  private MessageQueue messageQueue;
+  private final MessageQueue messageQueue;
 
   private final Logger winLog = LoggerFactory.getLogger("WIN_LOG");
   private final Logger impLog = LoggerFactory.getLogger("IMP_LOG");
@@ -102,7 +102,10 @@ public class NoticeService {
     String eventType = httpRequest.getParamAsStr(RequestKey.EVENT_TYPE);
     Map<String, Object> map = new HashMap<>();
     map.put("bid_id", bidId);
-    map.put(eventType, 1);
+
+    if (eventType != null) {
+      map.put(eventType, 1);
+    }
     pbLog.info(JsonHelper.toJSONString(map));
 
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)

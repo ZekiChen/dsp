@@ -14,9 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class WaitForAllResponseState implements IContextState {
 
-  private WaitForRtaState waitForRtaState;
+  private final WaitForRtaState waitForRtaState;
 
-  private WaitForRecycleState waiForRecycleState;
+  private final WaitForRecycleState waiForRecycleState;
 
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {

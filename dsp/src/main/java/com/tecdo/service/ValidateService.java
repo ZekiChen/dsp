@@ -13,17 +13,17 @@ import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import lombok.RequiredArgsConstructor;
+
 @Service
+@RequiredArgsConstructor
 public class ValidateService {
 
-  @Autowired
-  private AffiliateManager affiliateManager;
+  private final AffiliateManager affiliateManager;
 
-  @Autowired
-  private MessageQueue messageQueue;
+  private final MessageQueue messageQueue;
 
   public void validateBidRequest(HttpRequest httpRequest) {
     String token = httpRequest.getParamAsStr(RequestKey.TOKEN);

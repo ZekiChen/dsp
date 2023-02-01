@@ -5,6 +5,7 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.fsm.ContextManager;
 import com.tecdo.service.LifeCycleManager;
+import com.tecdo.service.NoticeService;
 import com.tecdo.service.ValidateService;
 import com.tecdo.util.HttpResponseHelper;
 
@@ -26,6 +27,8 @@ public class Controller implements MessageObserver {
   private ContextManager contextManager;
   @Autowired
   private ValidateService validateService;
+  @Autowired
+  private NoticeService noticeService;
 
 
   @Override
@@ -51,6 +54,12 @@ public class Controller implements MessageObserver {
         break;
       case VALIDATE_BID_REQUEST:
         validateService.validateBidRequest(params.get(ParamKey.HTTP_REQUEST));
+        break;
+      case RECEIVE_WIN_NOTICE:
+      case RECEIVE_IMP_NOTICE:
+      case RECEIVE_CLICK_NOTICE:
+      case RECEIVE_PB_NOTICE:
+        noticeService.handleEvent(eventType,params);
         break;
       case RECEIVE_BID_REQUEST:
       case BID_TASK_FINISH:

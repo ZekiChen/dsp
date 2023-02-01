@@ -14,9 +14,9 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class WaitForRtaState implements IContextState {
 
-  private WaitForSortState waitForSortState;
+  private final WaitForSortState waitForSortState;
 
-  private WaitForRecycleState waiForRecycleState;
+  private final WaitForRecycleState waiForRecycleState;
 
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {

@@ -8,8 +8,11 @@ import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.filter.util.ConditionHelper;
 
+import org.springframework.stereotype.Component;
+
 import java.util.Optional;
 
+@Component
 public class ClickFrequencyFilter extends AbstractRecallFilter {
 
   private static final String CLICK_FREQUENCY_ATTR = "click_frequency";

@@ -13,7 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class WaitForSortState implements IContextState {
 
-  private WaitForRecycleState waiForRecycleState;
+  private final WaitForRecycleState waiForRecycleState;
 
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {

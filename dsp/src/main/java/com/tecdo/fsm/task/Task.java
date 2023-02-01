@@ -143,7 +143,7 @@ public class Task {
       adDTO.setConditions(conditions);
       // 该 AD 没有定投需求，过滤掉
       if (CollUtil.isEmpty(conditions)) {
-        log.warn("ad: {} doesn't have condition, direct recall", adDTO.getAd().getId());
+        log.warn("ad: {} doesn't have condition, filter", adDTO.getAd().getId());
         continue;
       }
       // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
