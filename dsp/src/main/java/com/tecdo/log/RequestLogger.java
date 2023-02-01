@@ -2,9 +2,12 @@ package com.tecdo.log;
 
 import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson2.JSON;
+import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.log.RequestLog;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.entity.Affiliate;
+import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.util.CreativeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -26,15 +29,15 @@ public class RequestLogger {
     }
 
     private static RequestLog buildRequestLog(BidRequest bidRequest, Affiliate affiliate) {
+        BidCreative bidCreative = CreativeHelper.getAdFormat(bidRequest.getImp().get(0));
         return RequestLog.builder()
                 .createTime(DateUtil.format(new Date(), "yyyy-MM-dd_HH"))
                 .bidId(bidRequest.getId())
                 .affiliateId(affiliate.getId())
                 .affiliateName(affiliate.getName())
-                // TODO
-                .adFormat()
-                .adWidth()
-                .adHeight()
+                .adFormat(Optional.ofNullable(bidCreative.getType()).map(e -> AdTypeEnum.of(e).getDesc()).orElse(null))
+                .adWidth(bidCreative.getWidth())
+                .adHeight(bidCreative.getHeight())
                 .os(bidRequest.getDevice().getOs())
                 .deviceMake(bidRequest.getDevice().getMake())
                 .bundleId(bidRequest.getApp().getBundle())
@@ -43,7 +46,7 @@ public class RequestLogger {
                 .deviceModel(bidRequest.getDevice().getModel())
                 .osv(bidRequest.getDevice().getOsv())
                 .carrier(bidRequest.getDevice().getCarrier())
-                .pos()
+                .pos(bidCreative.getPos())
                 .instl(bidRequest.getImp().get(0).getInstl())
                 .domain(bidRequest.getApp().getDomain())
                 .cat(bidRequest.getApp().getCat())
