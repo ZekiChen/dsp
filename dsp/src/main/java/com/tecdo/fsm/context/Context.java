@@ -53,7 +53,6 @@ public class Context {
   private HttpRequest httpRequest;
 
   private BidRequest bidRequest;
-  private BidResponse bidResponse;
 
   private Affiliate affiliate;
 
@@ -111,6 +110,7 @@ public class Context {
       String taskId = generateBidId();
       task.init(bidRequest, imp, affiliate, requestId, taskId);
       taskMap.put(taskId, task);
+      RequestLogger.log(taskId, imp, bidRequest, affiliate);
       messageQueue.putMessage(EventType.TASK_START, assignParams().put(ParamKey.TASK_ID, taskId));
     });
   }
@@ -226,7 +226,7 @@ public class Context {
       params.put(ParamKey.HTTP_CODE, HttpCode.NOT_BID);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     } else {
-      this.bidResponse = buildResponse(this.response);
+      BidResponse bidResponse = buildResponse(this.response);
       params.put(ParamKey.RESPONSE_BODY, JsonHelper.toJSONString(bidResponse));
       params.put(ParamKey.HTTP_CODE, HttpCode.OK);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
@@ -236,7 +236,7 @@ public class Context {
 
   private BidResponse buildResponse(AdDTOWrapper wrapper) {
     AdDTO adDTO = wrapper.getAdDTO();
-    String bidId = wrapper.getTaskId();
+    String bidId = wrapper.getBidId();
     BidResponse bidResponse = new BidResponse();
     bidResponse.setId(bidRequest.getId());
     bidResponse.setBidid(bidId);
@@ -374,11 +374,7 @@ public class Context {
 
   }
 
-  public void logBidRequest() {
-    RequestLogger.log(bidRequest, affiliate);
-  }
-
   public void logBidResponse() {
-    ResponseLogger.log(bidResponse, response);
+    ResponseLogger.log(response);
   }
 }

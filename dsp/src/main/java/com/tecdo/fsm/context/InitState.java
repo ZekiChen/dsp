@@ -18,13 +18,10 @@ public class InitState implements IContextState {
 
   private WaitForAllResponseState waitForAllResponseState;
 
-  private static Logger requestLog = LoggerFactory.getLogger("request_log");
-
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {
     switch (eventType) {
       case RECEIVE_BID_REQUEST:
-        context.logBidRequest();
         context.handleBidRequest();
         context.startTimer(EventType.WAIT_TASK_RESPONSE_TIMEOUT,
                            context.assignParams(),
