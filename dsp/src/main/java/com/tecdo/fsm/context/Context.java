@@ -1,5 +1,6 @@
 package com.tecdo.fsm.context;
 
+import com.tecdo.common.FormatKey;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
@@ -15,18 +16,21 @@ import com.tecdo.domain.openrtb.response.Bid;
 import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.domain.openrtb.response.SeatBid;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
-import com.tecdo.entity.Ad;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.RtaInfo;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
+import com.tecdo.log.RequestLogger;
+import com.tecdo.log.ResponseLogger;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
 import com.tecdo.util.AdmGenerator;
+import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
+import com.tecdo.util.StringConfigUtil;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -131,7 +135,7 @@ public class Context {
     return taskResponse.size() == taskMap.size();
   }
 
-  public boolean checkTaskResponse(){
+  public boolean checkTaskResponse() {
     this.adDTOWrapperList = taskResponse.values()
                                         .stream()
                                         .flatMap(value -> value.values().stream())
@@ -311,11 +315,12 @@ public class Context {
     }
     url = url.replace(FormatKey.bidId, bidRequest.getId())
              .replace(FormatKey.impId, response.getImpId())
-             .replace(FormatKey.campaignId, response.getAdDTO().getCampaign().getId().toString())
-             .replace(FormatKey.adGroupId, response.getAdDTO().getAdGroup().getId().toString())
-             .replace(FormatKey.adId, response.getAdDTO().getAd().getId().toString())
+             .replace(FormatKey.campaignId,
+                      String.valueOf(response.getAdDTO().getCampaign().getId()))
+             .replace(FormatKey.adGroupId, String.valueOf(response.getAdDTO().getAdGroup().getId()))
+             .replace(FormatKey.adId, String.valueOf(response.getAdDTO().getAd().getId()))
              .replace(FormatKey.creativeId,
-                      getCreativeIdByAd(response.getAdDTO().getAd()).toString())
+                      String.valueOf(CreativeHelper.getCreativeId(response.getAdDTO().getAd())))
              .replace(FormatKey.deviceId, bidRequest.getDevice().getIfa())
              .replace(FormatKey.ip, bidRequest.getDevice().getIp())
              .replace(FormatKey.country, bidRequest.getDevice().getGeo().getCountry())

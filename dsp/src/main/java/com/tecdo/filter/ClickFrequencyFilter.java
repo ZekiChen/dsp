@@ -6,7 +6,7 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.TargetCondition;
-import com.tecdo.filter.util.ConditionUtil;
+import com.tecdo.filter.util.ConditionHelper;
 
 import java.util.Optional;
 
@@ -29,8 +29,8 @@ public class ClickFrequencyFilter extends AbstractRecallFilter {
     // todo get realtime frequency
     Integer frequency = 0;
 
-    return ConditionUtil.compare(String.valueOf(frequency),
-                                 condition.getOperation(),
-                                 condition.getValue());
+    return ConditionHelper.compare(String.valueOf(frequency),
+                                   condition.getOperation(),
+                                   condition.getValue());
   }
 }

@@ -19,13 +19,17 @@ import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.enums.biz.BidStrategyEnum;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
-import com.tecdo.filter.util.FilterChainUtil;
+import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
+import com.tecdo.util.CreativeHelper;
+
+import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -229,17 +233,6 @@ public class Task {
       return "Android";
     }
     return os;
-  }
-
-  private Integer getCreativeIdByAd(Ad ad) {
-    switch (AdTypeEnum.of(ad.getType())) {
-      case BANNER:
-      case NATIVE:
-        return ad.getImage();
-      case VIDEO:
-        return ad.getVideo();
-    }
-    return null;
   }
 
   public void calcPrice(Map<Integer, AdDTOWrapper> adDTOMap) {
