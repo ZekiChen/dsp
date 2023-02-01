@@ -105,7 +105,8 @@ public class Context {
     List<Imp> impList = bidRequest.getImp();
     impList.forEach(imp -> {
       Task task = taskPool.get();
-      String taskId = imp.getId();
+      // taskId = bidId
+      String taskId = generateBidId();
       task.init(bidRequest, imp, affiliate, requestId, taskId);
       taskMap.put(taskId, task);
       messageQueue.putMessage(EventType.TASK_START, assignParams().put(ParamKey.TASK_ID, taskId));
@@ -233,7 +234,7 @@ public class Context {
 
   private BidResponse buildResponse(AdDTOWrapper wrapper) {
     AdDTO adDTO = wrapper.getAdDTO();
-    String bidId = generateBidId();
+    String bidId = wrapper.getTaskId();
     BidResponse bidResponse = new BidResponse();
     bidResponse.setId(bidRequest.getId());
     bidResponse.setBidid(bidId);

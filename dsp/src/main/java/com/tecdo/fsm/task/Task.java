@@ -54,6 +54,7 @@ public class Task {
   private BidRequest bidRequest;
   private Affiliate affiliate;
   private Long requestId;
+  // taskId = bidId
   private String taskId;
 
   private String ctrPredictUrl = SpringUtil.getProperty("pac.ctr-predict.url");
@@ -146,7 +147,7 @@ public class Task {
       }
       // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
       if (executeFilter(filters.get(0), adDTO)) {
-        resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), adDTO));
+        resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), taskId, adDTO));
       }
     }
     return resMap;

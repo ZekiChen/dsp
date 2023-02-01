@@ -7,8 +7,9 @@ import lombok.Setter;
 @Getter
 public class AdDTOWrapper {
 
-  public AdDTOWrapper(String impId, AdDTO adDTO) {
+  public AdDTOWrapper(String impId, String taskId, AdDTO adDTO) {
     this.impId = impId;
+    this.taskId = taskId;
     this.adDTO = adDTO;
   }
 
@@ -41,5 +42,10 @@ public class AdDTOWrapper {
    * imp的id
    */
   private String impId;
+
+  /**
+   * task的id
+   */
+  private String taskId;
 
 }
