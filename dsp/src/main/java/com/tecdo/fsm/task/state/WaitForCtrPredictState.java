@@ -6,16 +6,15 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.fsm.task.Task;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 /**
  * 该状态内会计算出价
+ * TODO cpc cpm
  * 受限点击成本：出价cpc = mcpc * pctr * 1000
  * <p>
  * Created by Zeki on 2023/1/4
