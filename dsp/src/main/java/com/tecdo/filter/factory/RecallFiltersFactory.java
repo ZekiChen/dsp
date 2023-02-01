@@ -4,6 +4,7 @@ import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.AffiliateFilter;
 import com.tecdo.filter.AppBundleFilter;
 import com.tecdo.filter.BudgetFilter;
+import com.tecdo.filter.ClickFrequencyFilter;
 import com.tecdo.filter.ConnectTypeFilter;
 import com.tecdo.filter.CreativeFormatFilter;
 import com.tecdo.filter.DeviceCountryFilter;
@@ -11,6 +12,7 @@ import com.tecdo.filter.DeviceLangFilter;
 import com.tecdo.filter.DeviceMakeFilter;
 import com.tecdo.filter.DeviceOSFilter;
 import com.tecdo.filter.DeviceOSVFilter;
+import com.tecdo.filter.ImpFrequencyFilter;
 import com.tecdo.filter.TimePeriodFilter;
 
 import org.springframework.stereotype.Component;
@@ -40,6 +42,8 @@ public class RecallFiltersFactory {
     private final DeviceOSVFilter deviceOSVFilter;
     private final TimePeriodFilter timePeriodFilter;
     private final BudgetFilter budgetFilter;
+    private final ImpFrequencyFilter impFrequencyFilter;
+    private final ClickFrequencyFilter clickFrequencyFilter;
 
     /**
      * 获取广告召回流程所需的全部过滤器集
@@ -55,6 +59,8 @@ public class RecallFiltersFactory {
                                      deviceOSFilter,
                                      deviceOSVFilter,
                                      timePeriodFilter,
-                                     budgetFilter);
+                                     budgetFilter,
+                                     impFrequencyFilter,
+                                     clickFrequencyFilter);
     }
 }
