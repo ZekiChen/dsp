@@ -206,24 +206,21 @@ public class Task {
   }
 
   private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
+    Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
                      .day(DateUtil.today())
                      .affiliateId(affId)
                      .adType(adDTO.getAd().getType().toString())
-                     .adHeight(adDTO.getCreativeMap()
-                                    .get(CreativeHelper.getCreativeId(adDTO.getAd()))
-                                    .getHeight())
-                     .adWidth(adDTO.getCreativeMap()
-                                   .get(CreativeHelper.getCreativeId(adDTO.getAd()))
-                                   .getWidth())
+                     .adHeight(adDTO.getCreativeMap().get(creativeId).getHeight())
+                     .adWidth(adDTO.getCreativeMap().get(creativeId).getWidth())
                      .os(bidRequest.getDevice().getOs())
                      .deviceMake(bidRequest.getDevice().getMake())
                      .bundle(bidRequest.getApp().getBundle())
                      .country(Optional.ofNullable(bidRequest.getDevice().getGeo())
                                       .map(Geo::getCountry)
                                       .orElse(null))
-                     .creativeId(CreativeHelper.getCreativeId(adDTO.getAd()))
+                     .creativeId(creativeId)
                      .bidFloor(Double.valueOf(imp.getBidfloor()))
                      .rtaFeature(Optional.ofNullable(adDTO.getCampaignRtaInfo())
                                          .map(CampaignRtaInfo::getRtaFeature)
