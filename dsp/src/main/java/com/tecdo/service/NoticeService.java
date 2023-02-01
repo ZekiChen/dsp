@@ -26,10 +26,10 @@ public class NoticeService {
 
   private final MessageQueue messageQueue;
 
-  private final Logger winLog = LoggerFactory.getLogger("WIN_LOG");
-  private final Logger impLog = LoggerFactory.getLogger("IMP_LOG");
-  private final Logger clickLog = LoggerFactory.getLogger("CLICK_LOG");
-  private final Logger pbLog = LoggerFactory.getLogger("PB_LOG");
+  private final Logger winLog = LoggerFactory.getLogger("win_log");
+  private final Logger impLog = LoggerFactory.getLogger("imp_log");
+  private final Logger clickLog = LoggerFactory.getLogger("click_log");
+  private final Logger pbLog = LoggerFactory.getLogger("pb_log");
 
   public void handleEvent(EventType eventType, Params params) {
     switch (eventType) {
