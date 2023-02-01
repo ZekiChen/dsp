@@ -3,11 +3,10 @@ package com.tecdo.filter;
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
-import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.TargetCondition;
-import com.tecdo.filter.util.ConditionUtil;
+import com.tecdo.filter.util.ConditionHelper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -29,6 +28,6 @@ public class DeviceLangFilter extends AbstractRecallFilter {
         if ( StrUtil.isBlank(bidRequest.getDevice().getLanguage())) {
             return false;
         }
-        return ConditionUtil.compare(bidRequest.getDevice().getLanguage(), condition.getOperation(), condition.getValue());
+        return ConditionHelper.compare(bidRequest.getDevice().getLanguage(), condition.getOperation(), condition.getValue());
     }
 }

@@ -9,7 +9,7 @@ import java.util.List;
  *
  * Created by Zeki on 2023/1/3
  **/
-public class FilterChainUtil {
+public class FilterChainHelper {
 
     /**
      * 过滤处理器组装成链

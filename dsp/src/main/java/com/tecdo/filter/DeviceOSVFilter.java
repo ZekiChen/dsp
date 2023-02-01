@@ -6,7 +6,7 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.TargetCondition;
-import com.tecdo.filter.util.ConditionUtil;
+import com.tecdo.filter.util.ConditionHelper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -28,6 +28,6 @@ public class DeviceOSVFilter extends AbstractRecallFilter {
         if (StrUtil.isBlank(bidRequest.getDevice().getOsv())) {
             return false;
         }
-        return ConditionUtil.compare(bidRequest.getDevice().getOsv(), condition.getOperation(), condition.getValue());
+        return ConditionHelper.compare(bidRequest.getDevice().getOsv(), condition.getOperation(), condition.getValue());
     }
 }

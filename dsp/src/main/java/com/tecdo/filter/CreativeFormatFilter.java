@@ -7,7 +7,7 @@ import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.Creative;
 import com.tecdo.enums.biz.AdTypeEnum;
-import com.tecdo.filter.util.ConditionUtil;
+import com.tecdo.filter.util.ConditionHelper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -33,8 +33,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 }
                 Creative creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
                 if (banner.getW() != null && banner.getH() != null) {
-                    if (!ConditionUtil.compare(banner.getW().toString(), Constant.EQ, creative.getWidth().toString())
-                            || !ConditionUtil.compare(banner.getH().toString(), Constant.EQ, creative.getHeight().toString())) {
+                    if (!ConditionHelper.compare(banner.getW().toString(), Constant.EQ, creative.getWidth().toString())
+                            || !ConditionHelper.compare(banner.getH().toString(), Constant.EQ, creative.getHeight().toString())) {
                         return false;
                     }
                 } else {
@@ -44,8 +44,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     boolean hitFlag = false;
                     for (Format format : banner.getFormat()) {
                         if (format.getW() != null && format.getH() != null) {
-                            if (ConditionUtil.compare(format.getW().toString(), Constant.EQ, creative.getWidth().toString())
-                                    && ConditionUtil.compare(format.getH().toString(), Constant.EQ, creative.getHeight().toString())) {
+                            if (ConditionHelper.compare(format.getW().toString(), Constant.EQ, creative.getWidth().toString())
+                                    && ConditionHelper.compare(format.getH().toString(), Constant.EQ, creative.getHeight().toString())) {
                                 hitFlag = true;
                             }
                         }
@@ -58,8 +58,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     return false;
                 }
                 creative = adDTO.getCreativeMap().get(adDTO.getAd().getVideo());
-                return ConditionUtil.compare(video.getW().toString(), Constant.EQ, creative.getWidth().toString())
-                        && ConditionUtil.compare(video.getH().toString(), Constant.EQ, creative.getHeight().toString());
+                return ConditionHelper.compare(video.getW().toString(), Constant.EQ, creative.getWidth().toString())
+                        && ConditionHelper.compare(video.getH().toString(), Constant.EQ, creative.getHeight().toString());
             case NATIVE:
                 Native native1 = imp.getNative1();
                 creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
@@ -73,13 +73,13 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     }
                     // 以下就是img的判断
                     if(nativeRequestAsset.getImg().getW() != null && nativeRequestAsset.getImg().getH() != null){
-                        if (ConditionUtil.compare(nativeRequestAsset.getImg().getW().toString(), Constant.EQ, creative.getWidth().toString())
-                            && ConditionUtil.compare(nativeRequestAsset.getImg().getH().toString(), Constant.EQ, creative.getHeight().toString())) {
+                        if (ConditionHelper.compare(nativeRequestAsset.getImg().getW().toString(), Constant.EQ, creative.getWidth().toString())
+                            && ConditionHelper.compare(nativeRequestAsset.getImg().getH().toString(), Constant.EQ, creative.getHeight().toString())) {
                             hitFlag = true;
                         }
                     }else if(nativeRequestAsset.getImg().getWmin() != null && nativeRequestAsset.getImg().getHmin() != null){
-                        if (ConditionUtil.compare(creative.getWidth().toString(), Constant.GTE,nativeRequestAsset.getImg().getWmin().toString() )
-                            && ConditionUtil.compare( creative.getHeight().toString(),Constant.GTE, nativeRequestAsset.getImg().getHmin().toString())) {
+                        if (ConditionHelper.compare(creative.getWidth().toString(), Constant.GTE,nativeRequestAsset.getImg().getWmin().toString() )
+                            && ConditionHelper.compare( creative.getHeight().toString(),Constant.GTE, nativeRequestAsset.getImg().getHmin().toString())) {
                             hitFlag = true;
                         }
                     }

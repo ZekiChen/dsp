@@ -7,7 +7,7 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.TargetCondition;
-import com.tecdo.filter.util.ConditionUtil;
+import com.tecdo.filter.util.ConditionHelper;
 import org.springframework.stereotype.Component;
 
 /**
@@ -30,6 +30,6 @@ public class DeviceCountryFilter extends AbstractRecallFilter {
         if (device.getGeo() == null || StrUtil.isBlank(device.getGeo().getCountry())) {
             return false;
         }
-        return ConditionUtil.compare(device.getGeo().getCountry(), condition.getOperation(), condition.getValue());
+        return ConditionHelper.compare(device.getGeo().getCountry(), condition.getOperation(), condition.getValue());
     }
 }

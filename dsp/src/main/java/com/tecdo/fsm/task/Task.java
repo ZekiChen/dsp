@@ -26,7 +26,7 @@ import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
-import com.tecdo.filter.util.FilterChainUtil;
+import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
@@ -127,7 +127,7 @@ public class Task {
    */
   private Map<Integer, AdDTOWrapper> doListRecallAd() {
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
-    FilterChainUtil.assemble(filters);
+    FilterChainHelper.assemble(filters);
 
     Map<Integer, AdDTOWrapper> resMap = new HashMap<>();
     for (AdDTO adDTO : adManager.getAdDTOMap().values()) {
