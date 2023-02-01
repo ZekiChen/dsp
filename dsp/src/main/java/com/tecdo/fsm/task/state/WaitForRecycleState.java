@@ -15,7 +15,7 @@ import lombok.extern.slf4j.Slf4j;
  * Created by Zeki on 2023/1/4
  **/
 @Slf4j
-@Component
+@Component("TaskWaitForRecycleState")
 @RequiredArgsConstructor
 public class WaitForRecycleState implements ITaskState {
 
