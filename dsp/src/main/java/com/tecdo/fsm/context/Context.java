@@ -28,7 +28,7 @@ import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
 import com.tecdo.util.AdmGenerator;
-import com.tecdo.util.CreativeUtil;
+import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import lombok.extern.slf4j.Slf4j;
 
@@ -235,9 +235,9 @@ public class Context {
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
     bid.setBundle(adDTO.getCampaign().getPackageName());
-    bid.setIurl(adDTO.getCreativeMap().get(CreativeUtil.getCreativeId(adDTO.getAd())).getUrl());
+    bid.setIurl(adDTO.getCreativeMap().get(CreativeHelper.getCreativeId(adDTO.getAd())).getUrl());
     bid.setCid(String.valueOf(adDTO.getCampaign().getId()));
-    bid.setCrid(String.valueOf(CreativeUtil.getCreativeId(adDTO.getAd())));
+    bid.setCrid(String.valueOf(CreativeHelper.getCreativeId(adDTO.getAd())));
 
     SeatBid seatBid = new SeatBid();
     seatBid.setBid(Collections.singletonList(bid));

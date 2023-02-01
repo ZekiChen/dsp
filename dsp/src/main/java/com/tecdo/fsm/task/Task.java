@@ -31,7 +31,7 @@ import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
-import com.tecdo.util.CreativeUtil;
+import com.tecdo.util.CreativeHelper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -212,10 +212,10 @@ public class Task {
                      .affiliateId(affId)
                      .adType(adDTO.getAd().getType().toString())
                      .adHeight(adDTO.getCreativeMap()
-                                    .get(CreativeUtil.getCreativeId(adDTO.getAd()))
+                                    .get(CreativeHelper.getCreativeId(adDTO.getAd()))
                                     .getHeight())
                      .adWidth(adDTO.getCreativeMap()
-                                   .get(CreativeUtil.getCreativeId(adDTO.getAd()))
+                                   .get(CreativeHelper.getCreativeId(adDTO.getAd()))
                                    .getWidth())
                      .os(bidRequest.getDevice().getOs())
                      .deviceMake(bidRequest.getDevice().getMake())
@@ -223,7 +223,7 @@ public class Task {
                      .country(Optional.ofNullable(bidRequest.getDevice().getGeo())
                                       .map(Geo::getCountry)
                                       .orElse(null))
-                     .creativeId(CreativeUtil.getCreativeId(adDTO.getAd()))
+                     .creativeId(CreativeHelper.getCreativeId(adDTO.getAd()))
                      .bidFloor(Double.valueOf(imp.getBidfloor()))
                      .rtaFeature(Optional.ofNullable(adDTO.getCampaignRtaInfo())
                                          .map(CampaignRtaInfo::getRtaFeature)

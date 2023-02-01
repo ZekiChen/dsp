@@ -8,7 +8,7 @@ import com.tecdo.enums.biz.AdTypeEnum;
  * <p>
  * Created by Zeki on 2023/1/31
  */
-public class CreativeUtil {
+public class CreativeHelper {
 
     public static Integer getCreativeId(Ad ad) {
         switch (AdTypeEnum.of(ad.getType())) {
