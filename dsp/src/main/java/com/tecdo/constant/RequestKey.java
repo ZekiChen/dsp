@@ -9,10 +9,10 @@ public interface RequestKey {
 
   String BID_ID = "bid_id";
   String BID_SUCCESS_PRICE = "bid_success_price";
-  String IP = "ip";
   String CAMPAIGN_ID = "campaign_id";
   String AD_GROUP_ID = "ad_group_id";
   String CREATE_TIME = "create_time";
+  String DEVICE_ID = "device_id";
   String EVENT_TYPE = "event_type";
 
 

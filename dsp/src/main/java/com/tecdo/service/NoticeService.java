@@ -70,6 +70,7 @@ public class NoticeService {
     int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
     int adGroupId = httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID);
     String createTime = httpRequest.getParamAsStr(RequestKey.CREATE_TIME);
+    String deviceId = httpRequest.getParamAsStr(RequestKey.DEVICE_ID);
     Map<String, Object> map = new HashMap<>();
     map.put("bid_id", bidId);
     map.put("bid_success_price", bidSuccessPrice);
@@ -77,6 +78,7 @@ public class NoticeService {
     map.put("campaign_id", campaignId);
     map.put("ad_group_id", adGroupId);
     map.put("create_time", createTime);
+    map.put("device_id", deviceId);
     impLog.info(JsonHelper.toJSONString(map));
 
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
@@ -87,10 +89,12 @@ public class NoticeService {
   private void handleClickNotice(HttpRequest httpRequest) {
     String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
     int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
+    String deviceId = httpRequest.getParamAsStr(RequestKey.DEVICE_ID);
     String ipFromClick = httpRequest.getIp();
     Map<String, Object> map = new HashMap<>();
     map.put("bid_id", bidId);
     map.put("campaign_id", campaignId);
+    map.put("device_id", deviceId);
     map.put("ip_from_click", ipFromClick);
     clickLog.info(JsonHelper.toJSONString(map));
 
