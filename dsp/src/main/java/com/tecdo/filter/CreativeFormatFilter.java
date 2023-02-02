@@ -1,14 +1,22 @@
 package com.tecdo.filter;
 
-import cn.hutool.core.collection.CollUtil;
 import com.tecdo.domain.biz.dto.AdDTO;
-import com.tecdo.domain.openrtb.request.*;
+import com.tecdo.domain.openrtb.request.Banner;
+import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Format;
+import com.tecdo.domain.openrtb.request.Imp;
+import com.tecdo.domain.openrtb.request.Native;
+import com.tecdo.domain.openrtb.request.Video;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.Creative;
 import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
 import com.tecdo.filter.util.ConditionHelper;
+
 import org.springframework.stereotype.Component;
+
+import cn.hutool.core.collection.CollUtil;
 
 /**
  * 物料格式 过滤
@@ -64,7 +72,6 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                         && ConditionHelper.compare(video.getH().toString(), Constant.EQ, creative.getHeight().toString());
             case NATIVE:
                 Native native1 = imp.getNative1();
-                creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
                 if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getNativeRequestAssets())) {
                     return false;
                 }
@@ -72,6 +79,13 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getNativeRequestAssets()) {
                     if (nativeRequestAsset.getImg() == null) {
                         continue;
+                    }
+                    if (nativeRequestAsset.getImg()
+                                          .getType()
+                                          .equals(ImageAssetTypeEnum.MAIN.getValue())) {
+                        creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
+                    } else {
+                        creative = adDTO.getCreativeMap().get(adDTO.getAd().getIcon());
                     }
                     // 以下就是img的判断
                     if(nativeRequestAsset.getImg().getW() != null && nativeRequestAsset.getImg().getH() != null){
