@@ -29,7 +29,7 @@ public class CtrRequest implements Serializable {
     /**
      * adx的id
      */
-    private Integer supplyId;
+    private Integer affiliateId;
 
     /**
      * 广告类型

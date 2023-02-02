@@ -34,13 +34,13 @@ public class RequestLog implements Serializable {
     /**
      * 交易所id，也是渠道id
      */
-    @JsonProperty("supply_id")
+    @JsonProperty("affiliate_id")
     private Integer affiliateId;
 
     /**
      * 交易所名字
      */
-    @JsonProperty("supply_name")
+    @JsonProperty("affiliate_name")
     private String affiliateName;
 
     /**

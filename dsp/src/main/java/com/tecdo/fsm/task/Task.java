@@ -14,7 +14,6 @@ import com.tecdo.domain.biz.response.CtrResponse;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Geo;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.Ad;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.TargetCondition;
@@ -205,7 +204,7 @@ public class Task {
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
                      .day(DateUtil.today())
-                     .supplyId(affId)
+                     .affiliateId(affId)
                      .adFormat(AdTypeEnum.of(adDTO.getAd().getType()).getDesc())
                      .adHeight(adDTO.getCreativeMap().get(creativeId).getHeight())
                      .adWidth(adDTO.getCreativeMap().get(creativeId).getWidth())
