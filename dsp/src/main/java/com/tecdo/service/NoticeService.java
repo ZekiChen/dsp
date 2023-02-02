@@ -86,9 +86,11 @@ public class NoticeService {
 
   private void handleClickNotice(HttpRequest httpRequest) {
     String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
+    int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
     String ipFromClick = httpRequest.getIp();
     Map<String, Object> map = new HashMap<>();
     map.put("bid_id", bidId);
+    map.put("campaign_id", campaignId);
     map.put("ip_from_click", ipFromClick);
     clickLog.info(JsonHelper.toJSONString(map));
 
