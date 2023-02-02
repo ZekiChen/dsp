@@ -32,6 +32,7 @@ import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.StringConfigUtil;
 
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -313,22 +314,35 @@ public class Context {
     if (url == null) {
       return null;
     }
-    url = url.replace(FormatKey.bidId, bidRequest.getId())
-             .replace(FormatKey.impId, response.getImpId())
-             .replace(FormatKey.campaignId,
+    url = url.replace(FormatKey.BID_ID, bidRequest.getId())
+             .replace(FormatKey.IMP_ID, response.getImpId())
+             .replace(FormatKey.CAMPAIGN_ID,
                       String.valueOf(response.getAdDTO().getCampaign().getId()))
-             .replace(FormatKey.adGroupId, String.valueOf(response.getAdDTO().getAdGroup().getId()))
-             .replace(FormatKey.adId, String.valueOf(response.getAdDTO().getAd().getId()))
-             .replace(FormatKey.creativeId,
+             .replace(FormatKey.AFFILIATE_ID, String.valueOf(affiliate.getId()))
+             .replace(FormatKey.AD_GROUP_ID,
+                      String.valueOf(response.getAdDTO().getAdGroup().getId()))
+             .replace(FormatKey.AD_ID, String.valueOf(response.getAdDTO().getAd().getId()))
+             .replace(FormatKey.CREATIVE_ID,
                       String.valueOf(CreativeHelper.getCreativeId(response.getAdDTO().getAd())))
-             .replace(FormatKey.deviceId, bidRequest.getDevice().getIfa())
-             .replace(FormatKey.ip, bidRequest.getDevice().getIp())
-             .replace(FormatKey.country, bidRequest.getDevice().getGeo().getCountry())
-             .replace(FormatKey.os, bidRequest.getDevice().getOs())
-             .replace(FormatKey.deviceMake, bidRequest.getDevice().getMake())
-             .replace(FormatKey.adFormat,
+             .replace(FormatKey.DEVICE_ID, bidRequest.getDevice().getIfa())
+             .replace(FormatKey.IP, encode(bidRequest.getDevice().getIp()))
+             .replace(FormatKey.COUNTRY, bidRequest.getDevice().getGeo().getCountry())
+             .replace(FormatKey.OS, bidRequest.getDevice().getOs())
+             .replace(FormatKey.DEVICE_MAKE, encode(bidRequest.getDevice().getMake()))
+             .replace(FormatKey.AD_FORMAT,
                       AdTypeEnum.of(response.getAdDTO().getAd().getType()).getDesc());
     return url;
+  }
+
+  private String encode(Object content) {
+    if (content == null) {
+      return "";
+    }
+    try {
+      return URLEncoder.encode(content.toString(), "utf-8");
+    } catch (Exception e) {
+      return "";
+    }
   }
 
   // todo 系统通知链接

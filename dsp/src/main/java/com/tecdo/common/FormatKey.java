@@ -2,22 +2,23 @@ package com.tecdo.common;
 
 public interface FormatKey {
 
-  String bidId = "${bidId}";
-  String impId = "${impId}";
-  String campaignId = "{campaignId}";
-  String adGroupId = "{adGroupId}";
-  String adId = "${adId}";
-  String creativeId = "{creativeId}";
-  String deviceId = "${deviceId}";
-  String ip = "${ip}";
-  String country = "{country}";
-  String os = "{os}";
-  String deviceMake = "{deviceMake}";
-  String adFormat = "{adFormat}";
+  String BID_ID = "${bidId}";
+  String IMP_ID = "${impId}";
+  String AFFILIATE_ID = "${affiliateId}";
+  String CAMPAIGN_ID = "${campaignId}";
+  String AD_GROUP_ID = "${adGroupId}";
+  String AD_ID = "${adId}";
+  String CREATIVE_ID = "${creativeId}";
+  String DEVICE_ID = "${deviceId}";
+  String IP = "${ip}";
+  String COUNTRY = "${country}";
+  String OS = "${os}";
+  String DEVICE_MAKE = "${deviceMake}";
+  String AD_FORMAT = "${adFormat}";
 
-  String clickUrl = "${clickUrl}";
-  String imgUrl = "${imgUrl}";
-  String impDivList = "${impDivList}";
-  String clickTrackUrlList = "${clickTrackUrlList}";
+  String CLICK_URL = "${clickUrl}";
+  String IMG_URL = "${imgUrl}";
+  String IMP_DIV_LIST = "${impDivList}";
+  String CLICK_TRACK_URL_LIST = "${clickTrackUrlList}";
 
 }

@@ -42,10 +42,10 @@ public class AdmGenerator {
     }
     clickTrackBuilder.delete(clickTrackBuilder.length() - 1, clickTrackBuilder.length());
     String admTemplate = StringConfigUtil.getBannerTemplate();
-    String adm = admTemplate.replace(FormatKey.clickUrl, finalClickUrl)
-                            .replace(FormatKey.imgUrl, imgUrl)
-                            .replace(FormatKey.impDivList, impDivListBuilder.toString())
-                            .replace(FormatKey.clickTrackUrlList, clickTrackBuilder.toString());
+    String adm = admTemplate.replace(FormatKey.CLICK_URL, finalClickUrl)
+                            .replace(FormatKey.IMG_URL, imgUrl)
+                            .replace(FormatKey.IMP_DIV_LIST, impDivListBuilder.toString())
+                            .replace(FormatKey.CLICK_TRACK_URL_LIST, clickTrackBuilder.toString());
     return adm;
   }
 
