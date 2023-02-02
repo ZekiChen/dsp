@@ -59,9 +59,12 @@ public class ConditionHelper {
                 double sourceNum = Double.parseDouble(source);
                 double num1 = Double.parseDouble(targetArr[0]);
                 double num2 = Double.parseDouble(targetArr[1]);
-                double small = Math.min(num1, num2);
-                double big = small == num1 ? num2 : num1;
-                return small <= sourceNum && sourceNum <= big;
+                if (num2 >= num1) {
+                    return num1 <= sourceNum && sourceNum <= num2;
+                } else {
+                    // 比如控制小时投放，20点到8点可投放
+                    return num1 <= sourceNum || sourceNum <= num2;
+                }
             case INCLUDE:
                 return Arrays.asList(target.split(",")).contains(source);
             case EXCLUDE:
