@@ -33,6 +33,15 @@ public class ResponseLog implements Serializable {
     @JsonProperty("creative_id")
     private Integer creativeId;
 
+    @JsonProperty("package")
+    private String packageName;
+
+    @JsonProperty("category")
+    private String category;
+
+    @JsonProperty("feature_1")
+    private Integer feature;
+
     /**
      * 竞价价格
      */
