@@ -61,6 +61,12 @@ public class Context {
 
   private Long requestId;
 
+  private String winUrl = StringConfigUtil.get("win-url");
+
+  private String impUrl = StringConfigUtil.get("imp-url");
+
+  private String clickUrl = StringConfigUtil.get("click-url");
+
   private Map<String, Task> taskMap = new HashMap<>();
   // taskId,adId,AdDTOWrapper
   private Map<String, Map<Integer, AdDTOWrapper>> taskResponse = new HashMap<>();
@@ -347,15 +353,15 @@ public class Context {
 
   // todo 系统通知链接
   private String getWinNoticeUrl() {
-    return "";
+    return winUrl;
   }
 
   private String getSystemImpTrack() {
-    return "";
+    return impUrl;
   }
 
   private String getSystemClickTrack() {
-    return "";
+    return clickUrl;
   }
 
   private String generateBidId() {
