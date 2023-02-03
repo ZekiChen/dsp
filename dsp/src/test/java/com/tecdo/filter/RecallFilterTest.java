@@ -143,8 +143,7 @@ public class RecallFilterTest {
 
     private Map<Integer, Creative> buildCreativeMap(String resourcePath) {
         String json = ResourceUtil.readUtf8Str(resourcePath);
-        return JSON.parseObject(json, new TypeReference<Map<Integer, Creative>>() {
-        });
+        return JSON.parseObject(json, new TypeReference<Map<Integer, Creative>>() {});
     }
 
     private AdGroup buildAdGroup() {
