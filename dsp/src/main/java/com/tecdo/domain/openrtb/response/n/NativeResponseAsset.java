@@ -7,8 +7,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * @see NativeRequestAsset 的响应
- * title,img,video,data 这4个字段只能有一个存在，其他字段应该不存在或者为null
+ * native广告的响应，title,img,video,data 这4个字段只能有一个存在，其他字段应该不存在或者为null
+ *
+ * @see NativeRequestAsset
  */
 @Getter
 @Setter

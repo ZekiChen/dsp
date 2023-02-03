@@ -1,10 +1,10 @@
 package com.tecdo.domain.openrtb.response.n;
 
 import com.tecdo.domain.openrtb.base.Extension;
+import com.tecdo.domain.openrtb.response.Bid;
 
 import java.util.List;
 
-import com.tecdo.domain.openrtb.response.Bid;
 import lombok.Getter;
 import lombok.Setter;
 

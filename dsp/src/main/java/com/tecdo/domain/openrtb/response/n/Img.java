@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * @see com.tecdo.domain.openrtb.request.n.Img 的响应
+ * native广告中img的响应
+ *
+ * @see com.tecdo.domain.openrtb.request.n.Img
  */
 @Getter
 @Setter

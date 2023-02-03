@@ -6,8 +6,9 @@ import lombok.Getter;
 import lombok.Setter;
 
 /**
- * @see com.tecdo.domain.openrtb.request.n.Video 的响应
- * video响应是VAST协议的xml
+ * native广告中video素材的响应，video响应是VAST协议的xml
+ *
+ * @see com.tecdo.domain.openrtb.request.n.Video
  */
 @Getter
 @Setter

@@ -1,8 +1,8 @@
 package com.tecdo.domain.openrtb.response.n;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
-
 import com.tecdo.domain.openrtb.response.Bid;
+
 import lombok.Getter;
 import lombok.Setter;
 
