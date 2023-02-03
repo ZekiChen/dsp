@@ -72,11 +72,11 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                         && ConditionHelper.compare(video.getH().toString(), Constant.EQ, creative.getHeight().toString());
             case NATIVE:
                 Native native1 = imp.getNative1();
-                if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getNativeRequestAssets())) {
+                if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
                     return false;
                 }
                 boolean hitFlag = false;
-                for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getNativeRequestAssets()) {
+                for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getAssets()) {
                     if (nativeRequestAsset.getImg() == null) {
                         continue;
                     }

@@ -67,8 +67,8 @@ public class CreativeHelper {
             bidCreative.setType(AdTypeEnum.AUDIO.getType());
         } else if (native1 != null) {
             bidCreative.setType(AdTypeEnum.NATIVE.getType());
-            if (native1.getNativeRequest() != null && CollUtil.isNotEmpty(native1.getNativeRequest().getNativeRequestAssets())) {
-                for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getNativeRequestAssets()) {
+            if (native1.getNativeRequest() != null && CollUtil.isNotEmpty(native1.getNativeRequest().getAssets())) {
+                for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getAssets()) {
                     if (nativeRequestAsset.getImg() == null) {
                         continue;
                     }

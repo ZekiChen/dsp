@@ -28,7 +28,7 @@ public class NativeResponse extends Extension {
   /**
    * 原生广告的资产列表
    */
-  private List<NativeResponseAsset> nativeResponseAssets;
+  private List<NativeResponseAsset> assets;
 
   /**
    * 广告的默认点击链接，Asset也可以有自己的link，如果Asset没有自己的link对象，则采用这个link

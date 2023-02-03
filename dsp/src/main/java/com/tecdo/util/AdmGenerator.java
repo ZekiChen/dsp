@@ -55,7 +55,7 @@ public class AdmGenerator {
                                          String deepLink,
                                          List<String> impTrackUrl,
                                          List<String> clickTrackUrl) {
-    List<NativeRequestAsset> nativeRequestAssets = nativeRequest.getNativeRequestAssets();
+    List<NativeRequestAsset> nativeRequestAssets = nativeRequest.getAssets();
 
     List<NativeResponseAsset> responseAssetList = new ArrayList<>();
     for (NativeRequestAsset asset : nativeRequestAssets) {
@@ -116,7 +116,7 @@ public class AdmGenerator {
     }
     NativeResponse nativeResponse = new NativeResponse();
     nativeResponse.setVer(nativeRequest.getVer());
-    nativeResponse.setNativeResponseAssets(responseAssetList);
+    nativeResponse.setAssets(responseAssetList);
     nativeResponse.setImptrackers(impTrackUrl);
     Link link = new Link();
     link.setUrl(deepLink);
