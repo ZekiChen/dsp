@@ -57,21 +57,19 @@ public class RecallFilterTest {
     @Test
     public void test_CreativeFormatFilter_by_banner_request_which_is_use_format() {
         this.bidRequest = initBidRequest("example-bid-request/banner-format.json");
-        List<Imp> imps = bidRequest.getImp();
         adDTO.setCreativeMap(buildCreativeMap("example-creative/creatives-format.json"));
         CreativeFormatFilter filter = filtersFactory.getCreativeFormatFilter();
-        imps.forEach(imp -> filter.doFilter(bidRequest, imp, adDTO, affiliate));
+        bidRequest.getImp().forEach(imp -> filter.doFilter(bidRequest, imp, adDTO, affiliate));
     }
 
     @Test
     public void test_CreativeFormatFilter_by_native_request() {
         this.bidRequest = initBidRequest("example-bid-request/native.json");
-        List<Imp> imps = bidRequest.getImp();
         adDTO.getAd().setType(AdTypeEnum.NATIVE.getType());
         adDTO.setCreativeMap(buildCreativeMap("example-creative/creatives-format.json"));
         CreativeFormatFilter filter = filtersFactory.getCreativeFormatFilter();
         NativeRequest nativeRequest = buildNativeRequest("example-bid-request/native-nativeRequest.json");
-        imps.forEach(imp -> {
+        bidRequest.getImp().forEach(imp -> {
             imp.getNative1().setNativeRequest(nativeRequest);
             filter.doFilter(bidRequest, imp, adDTO, affiliate);
         });
