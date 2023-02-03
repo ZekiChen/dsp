@@ -92,11 +92,15 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                         if (ConditionHelper.compare(nativeRequestAsset.getImg().getW().toString(), Constant.EQ, creative.getWidth().toString())
                             && ConditionHelper.compare(nativeRequestAsset.getImg().getH().toString(), Constant.EQ, creative.getHeight().toString())) {
                             hitFlag = true;
+                        } else {
+                            return false;
                         }
                     }else if(nativeRequestAsset.getImg().getWmin() != null && nativeRequestAsset.getImg().getHmin() != null){
                         if (ConditionHelper.compare(creative.getWidth().toString(), Constant.GTE,nativeRequestAsset.getImg().getWmin().toString() )
                             && ConditionHelper.compare( creative.getHeight().toString(),Constant.GTE, nativeRequestAsset.getImg().getHmin().toString())) {
                             hitFlag = true;
+                        } else {
+                            return false;
                         }
                     }
                 }
