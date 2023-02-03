@@ -1,0 +1,83 @@
+[
+  {
+    "id": 1,
+    "adGroupId": 1,
+    "attribute": "device_os",
+    "operation": "exclude",
+    "value": "塞班",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  },
+  {
+    "id": 2,
+    "adGroupId": 1,
+    "attribute": "affiliate",
+    "operation": "eq",
+    "value": "1",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  },
+  {
+    "id": 3,
+    "adGroupId": 1,
+    "attribute": "connection_type",
+    "operation": "lt",
+    "value": "4",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  },
+  {
+    "id": 4,
+    "adGroupId": 1,
+    "attribute": "bundle",
+    "operation": "include",
+    "value": "628677149,5,8",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  },
+  {
+    "id": 5,
+    "adGroupId": 1,
+    "attribute": "device_lang",
+    "operation": "exclude",
+    "value": "zh",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  },
+  {
+    "id": 6,
+    "adGroupId": 1,
+    "attribute": "device_country",
+    "operation": "include",
+    "value": "USA,ABC",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  },
+  {
+    "id": 7,
+    "adGroupId": 1,
+    "attribute": "device_make",
+    "operation": "eq",
+    "value": "Apple",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  },
+  {
+    "id": 8,
+    "adGroupId": 1,
+    "attribute": "hour",
+    "operation": "between",
+    "value": "8,20",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  },
+  {
+    "id": 9,
+    "adGroupId": 1,
+    "attribute": "device_osv",
+    "operation": "gte",
+    "value": "6.1",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  }
+]

@@ -11,13 +11,13 @@ import org.springframework.stereotype.Component;
 
 /**
  * 语言 过滤
- *
+ * <p>
  * Created by Zeki on 2023/1/3
  **/
 @Component
 public class DeviceLangFilter extends AbstractRecallFilter {
 
-    private static final String LANGUAGE_ATTR = "device_language";
+    private static final String LANGUAGE_ATTR = "device_lang";
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
@@ -25,7 +25,7 @@ public class DeviceLangFilter extends AbstractRecallFilter {
         if (condition == null) {
             return true;
         }
-        if ( StrUtil.isBlank(bidRequest.getDevice().getLanguage())) {
+        if (StrUtil.isBlank(bidRequest.getDevice().getLanguage())) {
             return false;
         }
         return ConditionHelper.compare(bidRequest.getDevice().getLanguage(), condition.getOperation(), condition.getValue());

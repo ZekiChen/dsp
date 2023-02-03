@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppBundleFilter extends AbstractRecallFilter {
 
-    private static final String BUNDLE_ATTR = "app_bundle";
+    private static final String BUNDLE_ATTR = "bundle";
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {

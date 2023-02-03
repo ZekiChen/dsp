@@ -28,14 +28,14 @@ public class Creative extends BaseEntity {
     private Integer type;
 
     /**
-     * 物料高度
-     */
-    private Integer height;
-
-    /**
      * 物料宽度
      */
     private Integer width;
+
+    /**
+     * 物料高度
+     */
+    private Integer height;
 
     /**
      * 物料URL

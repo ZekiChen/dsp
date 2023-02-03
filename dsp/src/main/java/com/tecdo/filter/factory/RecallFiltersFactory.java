@@ -1,32 +1,19 @@
 package com.tecdo.filter.factory;
 
-import com.tecdo.filter.AbstractRecallFilter;
-import com.tecdo.filter.AffiliateFilter;
-import com.tecdo.filter.AppBundleFilter;
-import com.tecdo.filter.BudgetFilter;
-import com.tecdo.filter.ClickFrequencyFilter;
-import com.tecdo.filter.ConnectTypeFilter;
-import com.tecdo.filter.CreativeFormatFilter;
-import com.tecdo.filter.DeviceCountryFilter;
-import com.tecdo.filter.DeviceLangFilter;
-import com.tecdo.filter.DeviceMakeFilter;
-import com.tecdo.filter.DeviceOSFilter;
-import com.tecdo.filter.DeviceOSVFilter;
-import com.tecdo.filter.ImpFrequencyFilter;
-import com.tecdo.filter.TimePeriodFilter;
-
+import cn.hutool.core.collection.CollUtil;
+import com.tecdo.filter.*;
+import lombok.Getter;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
-
-import cn.hutool.core.collection.CollUtil;
-import lombok.RequiredArgsConstructor;
 
 /**
  * 广告召回 对象工厂
  *
  * Created by Zeki on 2023/1/3
  **/
+@Getter
 @Component
 @RequiredArgsConstructor
 public class RecallFiltersFactory {

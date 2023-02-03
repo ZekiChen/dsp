@@ -70,16 +70,16 @@ public class AdManager {
         messageQueue.putMessage(EventType.ADS_LOAD, params);
     }
 
-    private void startReloadTimeoutTimer() {
-        timerId = softTimer.startTimer(EventType.ADS_LOAD_TIMEOUT, null, Constant.TIMEOUT_LOAD_DB_CACHE_AD_DTO);
+    private void startReloadTimeoutTimer(Params params) {
+        timerId = softTimer.startTimer(EventType.ADS_LOAD_TIMEOUT, params, Constant.TIMEOUT_LOAD_DB_CACHE_AD_DTO);
     }
 
     private void cancelReloadTimeoutTimer() {
         softTimer.cancel(timerId);
     }
 
-    private void startNextReloadTimer() {
-        softTimer.startTimer(EventType.ADS_LOAD, null, Constant.INTERVAL_RELOAD_DB_CACHE);
+    private void startNextReloadTimer(Params params) {
+        softTimer.startTimer(EventType.ADS_LOAD, params, Constant.INTERVAL_RELOAD_DB_CACHE);
     }
 
     public void switchState(State state) {
@@ -95,10 +95,10 @@ public class AdManager {
                 handleAdsResponse(params);
                 break;
             case ADS_LOAD_ERROR:
-                handleAdsError();
+                handleAdsError(params);
                 break;
             case ADS_LOAD_TIMEOUT:
-                handleAdsTimeout();
+                handleAdsTimeout(params);
                 break;
             default:
                 log.error("Can't handle event, type: {}", eventType);
@@ -118,7 +118,7 @@ public class AdManager {
                         messageQueue.putMessage(EventType.ADS_LOAD_ERROR);
                     }
                 });
-                startReloadTimeoutTimer();
+                startReloadTimeoutTimer(params);
                 switchState(currentState == State.INIT ? State.WAIT_INIT_RESPONSE : State.UPDATING);
                 break;
             default:
@@ -199,7 +199,7 @@ public class AdManager {
                 cancelReloadTimeoutTimer();
                 this.adDTOMap = params.get(ParamKey.ADS_CACHE_KEY);
                 log.info("ad dto list load success, size: {}", adDTOMap.size());
-                startNextReloadTimer();
+                startNextReloadTimer(params);
                 switchState(State.RUNNING);
                 break;
             default:
@@ -207,12 +207,12 @@ public class AdManager {
         }
     }
 
-    private void handleAdsError() {
+    private void handleAdsError(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
                 cancelReloadTimeoutTimer();
-                startNextReloadTimer();
+                startNextReloadTimer(params);
                 switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
                 break;
             default:
@@ -220,11 +220,11 @@ public class AdManager {
         }
     }
 
-    private void handleAdsTimeout() {
+    private void handleAdsTimeout(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
-                startNextReloadTimer();
+                startNextReloadTimer(params);
                 switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
                 break;
             default:

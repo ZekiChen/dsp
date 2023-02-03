@@ -65,16 +65,16 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         messageQueue.putMessage(EventType.AFFILIATES_LOAD, params);
     }
 
-    private void startReloadTimeoutTimer() {
-        timerId = softTimer.startTimer(EventType.AFFILIATES_LOAD_TIMEOUT, null, Constant.TIMEOUT_LOAD_DB_CACHE_GENERAL);
+    private void startReloadTimeoutTimer(Params params) {
+        timerId = softTimer.startTimer(EventType.AFFILIATES_LOAD_TIMEOUT, params, Constant.TIMEOUT_LOAD_DB_CACHE_GENERAL);
     }
 
     private void cancelReloadTimeoutTimer() {
         softTimer.cancel(timerId);
     }
 
-    private void startNextReloadTimer() {
-        softTimer.startTimer(EventType.AFFILIATES_LOAD, null, Constant.INTERVAL_RELOAD_DB_CACHE);
+    private void startNextReloadTimer(Params params) {
+        softTimer.startTimer(EventType.AFFILIATES_LOAD, params, Constant.INTERVAL_RELOAD_DB_CACHE);
     }
 
     public void switchState(State state) {
@@ -90,10 +90,10 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
                 handleAffiliatesResponse(params);
                 break;
             case AFFILIATES_LOAD_ERROR:
-                handleAffiliatesError();
+                handleAffiliatesError(params);
                 break;
             case AFFILIATES_LOAD_TIMEOUT:
-                handleAffiliatesTimeout();
+                handleAffiliatesTimeout(params);
                 break;
             default:
                 log.error("Can't handle event, type: {}", eventType);
@@ -114,7 +114,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_ERROR);
                     }
                 });
-                startReloadTimeoutTimer();
+                startReloadTimeoutTimer(params);
                 switchState(currentState == State.INIT ? State.WAIT_INIT_RESPONSE : State.UPDATING);
                 break;
             default:
@@ -130,7 +130,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
                 cancelReloadTimeoutTimer();
                 this.affiliateMap = params.get(ParamKey.AFFILIATES_CACHE_KEY);
                 log.info("affiliates load success, size: {}", affiliateMap.size());
-                startNextReloadTimer();
+                startNextReloadTimer(params);
                 switchState(State.RUNNING);
                 break;
             default:
@@ -138,12 +138,12 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         }
     }
 
-    private void handleAffiliatesError() {
+    private void handleAffiliatesError(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
                 cancelReloadTimeoutTimer();
-                startNextReloadTimer();
+                startNextReloadTimer(params);
                 switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
                 break;
             default:
@@ -151,11 +151,11 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         }
     }
 
-    private void handleAffiliatesTimeout() {
+    private void handleAffiliatesTimeout(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
-                startNextReloadTimer();
+                startNextReloadTimer(params);
                 switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
                 break;
             default:

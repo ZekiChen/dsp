@@ -56,10 +56,14 @@ subprojects {
         options.encoding = "UTF-8"
     }
 
-    tasks.withType(Test) {
-        // avoid "> superClassName is empty!" error
-        scanForTestClasses = false
-        include "**/*Test.class"
-        exclude "**/Abstract*.class"
+//    tasks.withType(Test) {
+//        // avoid "> superClassName is empty!" error
+//        scanForTestClasses = false
+//        include "**/*Test.class"
+//        exclude "**/Abstract*.class"
+//    }
+    test {
+        enabled true
+        useJUnitPlatform()
     }
 }

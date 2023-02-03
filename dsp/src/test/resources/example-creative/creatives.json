@@ -1,0 +1,35 @@
+{
+  "1": {
+    "id": 1,
+    "name": "icon物料",
+    "type": 1,
+    "url": "icon.url",
+    "width": 1000,
+    "height": 720,
+    "status": 1,
+    "createTime": "2023-02-03 11:46:01.924",
+    "updateTime": "2023-02-03 11:46:01.924"
+  },
+  "2": {
+    "id": 2,
+    "name": "image物料",
+    "type": 2,
+    "url": "image.url",
+    "width": 728,
+    "height": 90,
+    "status": 1,
+    "createTime": "2023-02-03 11:46:01.924",
+    "updateTime": "2023-02-03 11:46:01.924"
+  },
+  "3": {
+    "id": 3,
+    "name": "video物料",
+    "type": 3,
+    "url": "video.url",
+    "width": 4,
+    "height": 2,
+    "status": 1,
+    "createTime": "2023-02-03 11:46:01.924",
+    "updateTime": "2023-02-03 11:46:01.924"
+  }
+}
