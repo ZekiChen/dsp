@@ -11,7 +11,6 @@ import com.tecdo.entity.*;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainHelper;
-import lombok.extern.slf4j.Slf4j;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
@@ -28,7 +27,6 @@ import java.util.Map;
  * <p>
  * Created by Zeki on 2023/2/2
  */
-@Slf4j
 @SpringBootTest
 public class RecallFilterTest {
 
