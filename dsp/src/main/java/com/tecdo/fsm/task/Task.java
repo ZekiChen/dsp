@@ -27,6 +27,7 @@ import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.JsonHelper;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -41,6 +42,7 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import cn.zhxu.data.TypeRef;
 import cn.zhxu.okhttps.HttpResult;
 import cn.zhxu.okhttps.OkHttps;
 import lombok.Getter;
@@ -167,20 +169,27 @@ public class Task {
   public void callCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap) {
     Params params = assignParams();
     ThreadPool.getInstance().execute(() -> {
-      HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, affiliate.getId());
-      if (httpResult.isSuccessful()) {
-        R<List<CtrResponse>> result = httpResult.getBody().toBean(R.class);
-        result.getData().forEach(resp -> {
-          AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
-          wrapper.setPCtr(resp.getPCtr());
-          wrapper.setPCtrVersion(result.getVersion());
-        });
-        params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
-        messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
-      } else {
-        log.error("ctr request error: {}, reason: {}",
-                  httpResult.getStatus(),
-                  httpResult.getError().getMessage());
+      try {
+        HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, affiliate.getId());
+        if (httpResult.isSuccessful()) {
+          R<List<CtrResponse>> result =
+            httpResult.getBody().toBean(new TypeRef<R<List<CtrResponse>>>() {
+            });
+          for (CtrResponse resp : result.getData()) {
+            AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
+            wrapper.setPCtr(resp.getPCtr());
+            wrapper.setPCtrVersion(result.getVersion());
+          }
+          params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
+          messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
+        } else {
+          log.error("ctr request error: {}, reason: {}",
+                    httpResult.getStatus(),
+                    httpResult.getError().getMessage());
+          messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
+        }
+      } catch (Exception e) {
+        log.error("ctr request,taskId:{}, reason: {}", taskId, e.getMessage());
         messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
       }
     });
@@ -196,7 +205,7 @@ public class Task {
                                            .collect(Collectors.toList());
     Map<String, Object> paramMap =
       MapUtil.<String, Object>builder().put("data", ctrRequests).build();
-    return OkHttps.sync(ctrPredictUrl).addBodyPara(paramMap).get();
+    return OkHttps.sync(ctrPredictUrl).setBodyPara(JsonHelper.toJSONString(paramMap)).post();
   }
 
   private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {

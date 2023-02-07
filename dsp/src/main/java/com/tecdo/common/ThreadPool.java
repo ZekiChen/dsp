@@ -25,7 +25,14 @@ public class ThreadPool {
     return threadPool;
   }
 
-  public Future<?> execute(Runnable runnable) {
+  public void execute(Runnable runnable) {
+     executorService.execute(runnable);
+  }
+
+  /**
+   * this will not throw exception,until you call {@link Future#get()}
+   */
+  public Future<?> submit(Runnable runnable) {
     return executorService.submit(runnable);
   }
 
