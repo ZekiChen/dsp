@@ -142,11 +142,15 @@ public class Context {
     return taskResponse.size() == taskMap.size();
   }
 
-  public boolean checkResponse() {
+  public boolean checkTaskResponse() {
     this.adDTOWrapperList = taskResponse.values()
                                         .stream()
                                         .flatMap(value -> value.values().stream())
                                         .collect(Collectors.toList());
+    return adDTOWrapperList.size() > 0;
+  }
+
+  public boolean checkResponse() {
     return adDTOWrapperList.size() > 0;
   }
 

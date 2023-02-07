@@ -26,7 +26,7 @@ public class WaitForAllResponseState implements IContextState {
         boolean receiveAllTaskResponse = context.isReceiveAllTaskResponse();
         if (receiveAllTaskResponse) {
           context.cancelTimer(EventType.WAIT_TASK_RESPONSE_TIMEOUT);
-          if (context.checkResponse()) {
+          if (context.checkTaskResponse()) {
             context.requestRta();
             context.startTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT,
                                context.assignParams(),
