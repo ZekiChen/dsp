@@ -43,11 +43,11 @@ public class RecallFilterTest {
         this.firstFilter = initAllRecallFilter().get(0);
         this.affiliate = initDefaultAffiliate();
         this.adDTO = initDefaultAdDTO();
+        this.bidRequest = initDefaultBidRequest();
     }
 
     @Test
     public void test_all_filter_by_banner_request() {
-        this.bidRequest = initBidRequest("example-bid-request/banner.json");
         List<Imp> imps = bidRequest.getImp();
         imps.forEach(imp -> FilterChainHelper.executeFilter(firstFilter, adDTO, bidRequest, imp, affiliate));
     }
@@ -73,6 +73,15 @@ public class RecallFilterTest {
         });
     }
 
+    @Test
+    public void test_ImpFrequencyFilter_and_ClickFrequencyFilter() {
+        adDTO.setConditions(buildConditions("example-condition/conditions-frequency.json"));
+        ImpFrequencyFilter impFilter = filtersFactory.getImpFrequencyFilter();
+        ClickFrequencyFilter clickFilter = filtersFactory.getClickFrequencyFilter();
+        bidRequest.getImp().forEach(imp -> impFilter.doFilter(bidRequest, imp, adDTO, affiliate));
+        bidRequest.getImp().forEach(imp -> clickFilter.doFilter(bidRequest, imp, adDTO, affiliate));
+    }
+
     // ====================================================================================================
 
     @NotNull
@@ -85,6 +94,11 @@ public class RecallFilterTest {
     /**
      * 目前只支持 banner 和 native 广告
      */
+    private BidRequest initDefaultBidRequest() {
+        String json = ResourceUtil.readUtf8Str("example-bid-request/banner.json");
+        return JSON.parseObject(json, BidRequest.class);
+    }
+
     @Nullable
     private BidRequest initBidRequest(String resourcePath) {
         return JSON.parseObject(ResourceUtil.readUtf8Str(resourcePath), BidRequest.class);

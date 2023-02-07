@@ -1,0 +1,20 @@
+[
+  {
+    "id": 1,
+    "adGroupId": 1,
+    "attribute": "imp_frequency",
+    "operation": "lte",
+    "value": "3",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  },
+  {
+    "id": 2,
+    "adGroupId": 1,
+    "attribute": "click_frequency",
+    "operation": "lte",
+    "value": "5",
+    "createTime": "2023-02-03 11:34:01.775",
+    "updateTime": "2023-02-03 11:34:01.775"
+  }
+]

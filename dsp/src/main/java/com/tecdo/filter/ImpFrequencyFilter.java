@@ -8,14 +8,19 @@ import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.filter.util.ConditionHelper;
 
+import com.tecdo.service.CacheService;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Optional;
 
 @Component
+@RequiredArgsConstructor
 public class ImpFrequencyFilter extends AbstractRecallFilter {
 
   private static final String IMP_FREQUENCY_ATTR = "imp_frequency";
+
+  private final CacheService cacheService;
 
   @Override
   public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
@@ -29,10 +34,9 @@ public class ImpFrequencyFilter extends AbstractRecallFilter {
     }
     Integer campaignId = adDTO.getCampaign().getId();
     String deviceId = Optional.ofNullable(bidRequest.getDevice()).map(Device::getIfa).orElse(null);
-    // todo get realtime frequency
-    Integer frequency = 0;
+    Integer countToday = cacheService.getImpCountToday(campaignId.toString(), deviceId);
 
-    return ConditionHelper.compare(String.valueOf(frequency),
+    return ConditionHelper.compare(String.valueOf(countToday),
                                    condition.getOperation(),
                                    condition.getValue());
   }

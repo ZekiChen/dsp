@@ -62,7 +62,8 @@
     "osv": "6.1",
     "js": 1,
     "connectiontype": 3,
-    "devicetype": 1
+    "devicetype": 1,
+    "ifa": "10086"
   },
   "user": {
     "id": "ffffffd5135596709273b3a1a07e466ea2bf4fff",

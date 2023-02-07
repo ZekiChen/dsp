@@ -8,7 +8,8 @@ import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.util.JsonHelper;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -16,15 +17,13 @@ import org.springframework.stereotype.Component;
 import java.util.HashMap;
 import java.util.Map;
 
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Component
 @RequiredArgsConstructor
 public class NoticeService {
 
   private final MessageQueue messageQueue;
+  private final CacheService cacheService;
 
   private final Logger winLog = LoggerFactory.getLogger("win_log");
   private final Logger impLog = LoggerFactory.getLogger("imp_log");
@@ -81,6 +80,8 @@ public class NoticeService {
     map.put("device_id", deviceId);
     impLog.info(JsonHelper.toJSONString(map));
 
+    cacheService.incrImpCount(String.valueOf(campaignId), deviceId);
+
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
                           .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
@@ -97,6 +98,8 @@ public class NoticeService {
     map.put("device_id", deviceId);
     map.put("ip_from_click", ipFromClick);
     clickLog.info(JsonHelper.toJSONString(map));
+
+    cacheService.incrClickCount(String.valueOf(campaignId), deviceId);
 
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
                           .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
