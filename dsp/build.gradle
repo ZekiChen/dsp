@@ -10,6 +10,7 @@ dependencies {
     implementation libraries.disruptor
     annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     testImplementation 'org.springframework.boot:spring-boot-starter-test'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     implementation libraries.netty
 

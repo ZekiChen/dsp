@@ -3,6 +3,10 @@ spring:
     url: jdbc:mysql://172.24.2.26:3306/eric?characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull
     username: mobi
     password: mobisummer2112
+  redis:
+    database: 2
+    host: 10.205.0.208
+    password: wJgJWoVftpxjFPBV
 
 pac:
   ctr-predict:

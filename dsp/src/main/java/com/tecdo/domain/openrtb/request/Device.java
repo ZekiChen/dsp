@@ -139,7 +139,8 @@ public class Device extends Extension {
     private Integer connectiontype;
 
     /**
-     * 广告主标识， 明文表示
+     * 广告识别码（ID for Advertisers）：即广告目标设备唯一标识符。
+     * 该标识符通常由移动操作系统生成，用于跟踪广告效果并将它们针对特定用户进行定位。
      */
     private String ifa;
 

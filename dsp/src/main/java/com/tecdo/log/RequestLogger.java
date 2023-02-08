@@ -1,5 +1,6 @@
 package com.tecdo.log;
 
+import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson2.JSON;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.log.RequestLog;
@@ -8,14 +9,11 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.util.CreativeHelper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Optional;
-
-import cn.hutool.core.date.DateUtil;
 
 /**
  * 构建 RequestLog 并持久化至本地文件中
@@ -35,7 +33,7 @@ public class RequestLogger {
                                             Imp imp,
                                             BidRequest bidRequest,
                                             Affiliate affiliate) {
-    BidCreative bidCreative = CreativeHelper.getAdFormat(bidRequest.getImp().get(0));
+    BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
     return RequestLog.builder()
                      .createTime(DateUtil.format(new Date(), "yyyy-MM-dd_HH"))
                      .bidId(bidId)
@@ -56,7 +54,7 @@ public class RequestLogger {
                      .osv(bidRequest.getDevice().getOsv())
                      .carrier(bidRequest.getDevice().getCarrier())
                      .pos(bidCreative.getPos())
-                     .instl(bidRequest.getImp().get(0).getInstl())
+                     .instl(imp.getInstl())
                      .domain(bidRequest.getApp().getDomain())
                      .cat(bidRequest.getApp().getCat())
                      .ip(Optional.ofNullable(bidRequest.getDevice().getIp())
