@@ -9,7 +9,6 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.entity.RtaInfo;
-import com.tecdo.entity.base.IdEntity;
 import com.tecdo.mapper.RtaInfoMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -66,16 +65,16 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
         messageQueue.putMessage(EventType.RTA_INFOS_LOAD, params);
     }
 
-    private void startReloadTimeoutTimer() {
-        timerId = softTimer.startTimer(EventType.RTA_INFOS_LOAD_TIMEOUT, null, Constant.TIMEOUT_LOAD_DB_CACHE_GENERAL);
+    private void startReloadTimeoutTimer(Params params) {
+        timerId = softTimer.startTimer(EventType.RTA_INFOS_LOAD_TIMEOUT, params, Constant.TIMEOUT_LOAD_DB_CACHE_GENERAL);
     }
 
     private void cancelReloadTimeoutTimer() {
         softTimer.cancel(timerId);
     }
 
-    private void startNextReloadTimer() {
-        softTimer.startTimer(EventType.RTA_INFOS_LOAD, null, Constant.INTERVAL_RELOAD_DB_CACHE);
+    private void startNextReloadTimer(Params params) {
+        softTimer.startTimer(EventType.RTA_INFOS_LOAD, params, Constant.INTERVAL_RELOAD_DB_CACHE);
     }
 
     public void switchState(State state) {
@@ -91,10 +90,10 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
                 handleRtaInfosResponse(params);
                 break;
             case RTA_INFOS_LOAD_ERROR:
-                handleRtaInfosError();
+                handleRtaInfosError(params);
                 break;
             case RTA_INFOS_LOAD_TIMEOUT:
-                handleRtaInfosTimeout();
+                handleRtaInfosTimeout(params);
                 break;
             default:
                 log.error("Can't handle event, type: {}", eventType);
@@ -115,7 +114,7 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
                         messageQueue.putMessage(EventType.RTA_INFOS_LOAD_ERROR);
                     }
                 });
-                startReloadTimeoutTimer();
+                startReloadTimeoutTimer(params);
                 switchState(currentState == State.INIT ? State.WAIT_INIT_RESPONSE : State.UPDATING);
                 break;
             default:
@@ -131,7 +130,7 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
                 cancelReloadTimeoutTimer();
                 this.rtaInfoMap = params.get(ParamKey.RTA_INFOS_CACHE_KEY);
                 log.info("rta infos load success, size: {}", rtaInfoMap.size());
-                startNextReloadTimer();
+                startNextReloadTimer(params);
                 switchState(State.RUNNING);
                 break;
             default:
@@ -139,12 +138,12 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
         }
     }
 
-    private void handleRtaInfosError() {
+    private void handleRtaInfosError(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
                 cancelReloadTimeoutTimer();
-                startNextReloadTimer();
+                startNextReloadTimer(params);
                 switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
                 break;
             default:
@@ -152,11 +151,11 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
         }
     }
 
-    private void handleRtaInfosTimeout() {
+    private void handleRtaInfosTimeout(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
-                startNextReloadTimer();
+                startNextReloadTimer(params);
                 switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
                 break;
             default:
