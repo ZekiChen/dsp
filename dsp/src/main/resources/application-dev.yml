@@ -9,5 +9,7 @@ spring:
     password: wJgJWoVftpxjFPBV
 
 pac:
+  thread-pool:
+    core-size: 128
   ctr-predict:
     url: xxx

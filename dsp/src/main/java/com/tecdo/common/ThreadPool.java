@@ -1,19 +1,23 @@
 package com.tecdo.common;
 
-import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import cn.hutool.extra.spring.SpringUtil;
+
 public class ThreadPool {
 
+  private static String coreSize = SpringUtil.getProperty("pac.thread-pool.core-size");
+
   private ExecutorService executorService = //
-    new ThreadPoolExecutor(16,
-                           Integer.MAX_VALUE,
-                           60L,
+    new ThreadPoolExecutor(Integer.parseInt(coreSize),
+                           Integer.parseInt(coreSize),
+                           0L,
                            TimeUnit.SECONDS,
-                           new ArrayBlockingQueue<>(32),
+                           new LinkedBlockingQueue<>(),
                            ThreadFactoryHelper.create("async-worker", Thread.NORM_PRIORITY, false));
 
   private ThreadPool() {
@@ -26,7 +30,7 @@ public class ThreadPool {
   }
 
   public void execute(Runnable runnable) {
-     executorService.execute(runnable);
+    executorService.execute(runnable);
   }
 
   /**
