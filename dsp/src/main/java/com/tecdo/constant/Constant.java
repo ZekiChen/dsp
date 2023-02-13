@@ -21,5 +21,4 @@ public interface Constant {
     long TIMEOUT_ADS_RECALL = 50L;
     long TIMEOUT_PRE_DICT = 50L;
     long TIMEOUT_CALC_PRICE = 50L;
-    long TIMEOUT_PRICE_FILTER = 10L;
 }
