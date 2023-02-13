@@ -16,6 +16,8 @@ import com.tecdo.filter.util.ConditionHelper;
 
 import org.springframework.stereotype.Component;
 
+import java.util.Objects;
+
 import cn.hutool.core.collection.CollUtil;
 
 /**
@@ -80,9 +82,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     if (nativeRequestAsset.getImg() == null) {
                         continue;
                     }
-                    if (nativeRequestAsset.getImg()
-                                          .getType()
-                                          .equals(ImageAssetTypeEnum.MAIN.getValue())) {
+                    if (Objects.equals(nativeRequestAsset.getImg().getType(),
+                                       ImageAssetTypeEnum.MAIN.getValue())) {
                         creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
                     } else {
                         creative = adDTO.getCreativeMap().get(adDTO.getAd().getIcon());

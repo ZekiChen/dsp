@@ -1,12 +1,21 @@
 package com.tecdo.util;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.domain.biz.BidCreative;
-import com.tecdo.domain.openrtb.request.*;
+import com.tecdo.domain.openrtb.request.Audio;
+import com.tecdo.domain.openrtb.request.Banner;
+import com.tecdo.domain.openrtb.request.Format;
+import com.tecdo.domain.openrtb.request.Imp;
+import com.tecdo.domain.openrtb.request.Native;
+import com.tecdo.domain.openrtb.request.Video;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
 import com.tecdo.entity.Ad;
 import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
+
+import java.util.Objects;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -72,7 +81,11 @@ public class CreativeHelper {
                     if (nativeRequestAsset.getImg() == null) {
                         continue;
                     }
-                    // 以下就是img的判断
+                    if (!Objects.equals(nativeRequestAsset.getImg().getType(),
+                                        ImageAssetTypeEnum.MAIN.getValue())) {
+                        continue;
+                    }
+                    // 以下就是img,并且是主图像的判断
                     if (nativeRequestAsset.getImg().getW() != null && nativeRequestAsset.getImg().getH() != null) {
                         wSb.append(nativeRequestAsset.getImg().getW()).append(StrUtil.COMMA);
                         hSb.append(nativeRequestAsset.getImg().getH()).append(StrUtil.COMMA);
