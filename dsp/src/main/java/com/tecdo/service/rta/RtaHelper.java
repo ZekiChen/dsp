@@ -17,13 +17,14 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
+import cn.hutool.extra.spring.SpringUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RtaHelper {
 
-  private static final String SINGAPORE = "https://api.lazada.sg/rest";
-  private static final String API_NAME = "/marketing/rta/adrequest";
+  private static final String RTA_SERVER_URL = SpringUtil.getProperty("pac.rta.url");
+  private static final String API_NAME = SpringUtil.getProperty("pac.rta.api");
 
   private static final ConcurrentHashMap<String, LazopClient> clientMap = new ConcurrentHashMap<>();
 
@@ -112,6 +113,6 @@ public class RtaHelper {
   private static LazopClient getClient(String advMemberId, String appKey, String appSecret) {
 
     return clientMap.computeIfAbsent(advMemberId,
-                                     key -> new LazopClient(SINGAPORE, appKey, appSecret));
+                                     key -> new LazopClient(RTA_SERVER_URL, appKey, appSecret));
   }
 }

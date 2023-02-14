@@ -13,3 +13,6 @@ pac:
     core-size: 128
   ctr-predict:
     url: xxx
+  rta:
+    url: xxx
+    api: xxx
