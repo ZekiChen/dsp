@@ -15,6 +15,6 @@ import lombok.Setter;
 public class NativeRequestWrapper {
 
   @JsonProperty("native")
-  private NativeRequest nativeWrapper;
+  private NativeRequest nativeRequest;
 
 }

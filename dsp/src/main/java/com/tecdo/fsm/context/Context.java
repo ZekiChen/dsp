@@ -16,6 +16,7 @@ import com.tecdo.domain.openrtb.response.Bid;
 import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.domain.openrtb.response.SeatBid;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
+import com.tecdo.domain.openrtb.response.n.NativeResponseWrapper;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.RtaInfo;
 import com.tecdo.enums.biz.AdTypeEnum;
@@ -315,7 +316,13 @@ public class Context {
                                urlFormat(adDTO.getAdGroup().getDeeplink()),
                                impTrackList,
                                clickTrackList);
-      adm = JsonHelper.toJSONString(nativeResponse);
+      if ("1.0".equalsIgnoreCase(nativeResponse.getVer())) {
+        NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
+        nativeResponseWrapper.setNativeResponse(nativeResponse);
+        adm = JsonHelper.toJSONString(nativeResponseWrapper);
+      } else {
+        adm = JsonHelper.toJSONString(nativeResponse);
+      }
     }
     return adm;
   }
