@@ -11,7 +11,8 @@ public interface RequestKey {
   String BID_SUCCESS_PRICE = "bid_success_price";
   String CAMPAIGN_ID = "campaign_id";
   String AD_GROUP_ID = "ad_group_id";
-  String CREATE_TIME = "create_time";
+  String AD_ID = "ad_id";
+  String CREATIVE_ID = "creative_id";
   String DEVICE_ID = "device_id";
   String EVENT_TYPE = "event_type";
 

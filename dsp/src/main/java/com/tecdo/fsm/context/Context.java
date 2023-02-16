@@ -1,6 +1,6 @@
 package com.tecdo.fsm.context;
 
-import com.tecdo.common.FormatKey;
+import com.tecdo.constant.FormatKey;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
@@ -362,7 +362,6 @@ public class Context {
     }
   }
 
-  // todo 系统通知链接
   private String getWinNoticeUrl() {
     return winUrl;
   }

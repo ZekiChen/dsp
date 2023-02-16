@@ -52,8 +52,16 @@ public class NoticeService {
   private void handleWinNotice(HttpRequest httpRequest) {
     String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
     double bidSuccessPrice = httpRequest.getParamAsDouble(RequestKey.BID_SUCCESS_PRICE);
+    int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
+    int adGroupId = httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID);
+    int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
+    int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
     Map<String, Object> map = new HashMap<>();
     map.put("bid_id", bidId);
+    map.put("campaign_id", campaignId);
+    map.put("ad_group_id", adGroupId);
+    map.put("ad_id", adId);
+    map.put("creative_id", creativeId);
     map.put("bid_success_price", bidSuccessPrice);
     winLog.info(JsonHelper.toJSONString(map));
 
@@ -68,7 +76,8 @@ public class NoticeService {
     String ipFromImp = httpRequest.getIp();
     int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
     int adGroupId = httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID);
-    String createTime = httpRequest.getParamAsStr(RequestKey.CREATE_TIME);
+    int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
+    int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
     String deviceId = httpRequest.getParamAsStr(RequestKey.DEVICE_ID);
     Map<String, Object> map = new HashMap<>();
     map.put("bid_id", bidId);
@@ -76,7 +85,8 @@ public class NoticeService {
     map.put("ip_from_imp", ipFromImp);
     map.put("campaign_id", campaignId);
     map.put("ad_group_id", adGroupId);
-    map.put("create_time", createTime);
+    map.put("ad_id", adId);
+    map.put("creative_id", creativeId);
     map.put("device_id", deviceId);
     impLog.info(JsonHelper.toJSONString(map));
 
@@ -90,11 +100,17 @@ public class NoticeService {
   private void handleClickNotice(HttpRequest httpRequest) {
     String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
     int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
+    int adGroupId = httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID);
+    int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
+    int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
     String deviceId = httpRequest.getParamAsStr(RequestKey.DEVICE_ID);
     String ipFromClick = httpRequest.getIp();
     Map<String, Object> map = new HashMap<>();
     map.put("bid_id", bidId);
     map.put("campaign_id", campaignId);
+    map.put("ad_group_id", adGroupId);
+    map.put("ad_id", adId);
+    map.put("creative_id", creativeId);
     map.put("device_id", deviceId);
     map.put("ip_from_click", ipFromClick);
     clickLog.info(JsonHelper.toJSONString(map));
@@ -109,8 +125,16 @@ public class NoticeService {
   private void handlePbNotice(HttpRequest httpRequest) {
     String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
     String eventType = httpRequest.getParamAsStr(RequestKey.EVENT_TYPE);
+    int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
+    int adGroupId = httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID);
+    int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
+    int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
     Map<String, Object> map = new HashMap<>();
     map.put("bid_id", bidId);
+    map.put("campaign_id", campaignId);
+    map.put("ad_group_id", adGroupId);
+    map.put("ad_id", adId);
+    map.put("creative_id", creativeId);
 
     if (eventType != null) {
       map.put(eventType, 1);

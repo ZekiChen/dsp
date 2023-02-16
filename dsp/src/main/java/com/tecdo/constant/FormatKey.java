@@ -1,4 +1,4 @@
-package com.tecdo.common;
+package com.tecdo.constant;
 
 public interface FormatKey {
 

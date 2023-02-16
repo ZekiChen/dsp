@@ -1,6 +1,6 @@
 package com.tecdo.util;
 
-import com.tecdo.common.FormatKey;
+import com.tecdo.constant.FormatKey;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.n.NativeRequest;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
