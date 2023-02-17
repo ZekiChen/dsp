@@ -128,7 +128,7 @@ public class ValidateService {
                 }
                 long createStamp = Long.parseLong(bidId.substring(32, 45));
                 long expireStamp = createStamp + (noticeExpire * 1000);
-                return System.currentTimeMillis() >= expireStamp;
+                return System.currentTimeMillis() <= expireStamp;
         }
     }
 
@@ -138,6 +138,8 @@ public class ValidateService {
                 return cacheService.hasWin(bidId);
             case RECEIVE_CLICK_NOTICE:
                 return cacheService.hasWin(bidId) && cacheService.hasImp(bidId);
+            case RECEIVE_PB_NOTICE:
+                return cacheService.hasWin(bidId) && cacheService.hasImp(bidId) && cacheService.hasClick(bidId);
             default:
                 return true;
         }
