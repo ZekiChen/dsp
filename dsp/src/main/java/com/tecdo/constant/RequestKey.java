@@ -27,4 +27,6 @@ public interface RequestKey {
   String EVENT_8 = "event8";
   String EVENT_9 = "event9";
   String EVENT_10 = "event10";
+
+  String SIGN = "sign";
 }

@@ -10,8 +10,10 @@ public interface CacheConstant {
 	// =================================== cache key ===========================================
 	String SERVICE = "pac:dsp:";
 
+	String WIN_CACHE = SERVICE + "win:";
 	String IMP_CACHE = SERVICE + "imp:";
 	String CLICK_CACHE = SERVICE + "click:";
+
 
 	// =================================== key expire ===========================================
 

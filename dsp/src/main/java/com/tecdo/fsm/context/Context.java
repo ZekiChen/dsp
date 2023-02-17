@@ -1,11 +1,10 @@
 package com.tecdo.fsm.context;
 
-import com.tecdo.constant.FormatKey;
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
-import com.tecdo.constant.EventType;
-import com.tecdo.constant.HttpCode;
-import com.tecdo.constant.ParamKey;
+import com.tecdo.constant.*;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.domain.biz.dto.AdDTO;
@@ -28,24 +27,12 @@ import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
-import com.tecdo.util.AdmGenerator;
-import com.tecdo.util.CreativeHelper;
-import com.tecdo.util.JsonHelper;
-import com.tecdo.util.StringConfigUtil;
+import com.tecdo.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import cn.hutool.extra.spring.SpringUtil;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Context {
@@ -256,7 +243,8 @@ public class Context {
     bid.setId(bidId);
     bid.setImpid(wrapper.getImpId());
     bid.setPrice(wrapper.getBidPrice().floatValue());
-    bid.setNurl(urlFormat(getWinNoticeUrl()));
+    String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
+    bid.setNurl(SignHelper.urlAddSign(urlFormat(getWinNoticeUrl()), sign));
     bid.setAdm(buildAdm(wrapper));
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
@@ -278,7 +266,8 @@ public class Context {
     String impTrackUrls = adDTO.getAdGroup().getImpTrackUrls();
     List<String> impTrackList = new ArrayList<>();
     String systemImpTrack = getSystemImpTrack();
-    impTrackList.add(systemImpTrack);
+    String sign = SignHelper.digest(wrapper.getBidId(), adDTO.getCampaign().getId().toString());
+    impTrackList.add(SignHelper.urlAddSign(systemImpTrack, sign));
     if (impTrackUrls != null) {
       String[] split = impTrackUrls.split(",");
       impTrackList.addAll(Arrays.asList(split));
@@ -288,7 +277,7 @@ public class Context {
     String clickTrackUrls = adDTO.getAdGroup().getClickTrackUrls();
     List<String> clickTrackList = new ArrayList<>();
     String systemClickTrack = getSystemClickTrack();
-    clickTrackList.add(systemClickTrack);
+    clickTrackList.add(SignHelper.urlAddSign(systemClickTrack, sign));
     if (clickTrackUrls != null) {
       String[] split = clickTrackUrls.split(",");
       clickTrackList.addAll(Arrays.asList(split));
@@ -374,8 +363,9 @@ public class Context {
     return clickUrl;
   }
 
+  // 32位UUID + 13位时间戳
   private String generateBidId() {
-    return UUID.randomUUID().toString() + System.currentTimeMillis();
+    return IdUtil.fastSimpleUUID() + System.currentTimeMillis();
   }
 
   public void requestComplete() {

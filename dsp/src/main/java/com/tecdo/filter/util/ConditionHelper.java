@@ -1,21 +1,13 @@
 package com.tecdo.filter.util;
 
-import com.tecdo.exception.ConditionException;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
+import com.tecdo.exception.ServiceException;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.StrUtil;
-
-import static com.tecdo.filter.AbstractRecallFilter.Constant.BETWEEN;
-import static com.tecdo.filter.AbstractRecallFilter.Constant.EQ;
-import static com.tecdo.filter.AbstractRecallFilter.Constant.EXCLUDE;
-import static com.tecdo.filter.AbstractRecallFilter.Constant.GT;
-import static com.tecdo.filter.AbstractRecallFilter.Constant.GTE;
-import static com.tecdo.filter.AbstractRecallFilter.Constant.INCLUDE;
-import static com.tecdo.filter.AbstractRecallFilter.Constant.LT;
-import static com.tecdo.filter.AbstractRecallFilter.Constant.LTE;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.*;
 
 /**
  * 定投条件 工具
@@ -54,7 +46,7 @@ public class ConditionHelper {
             case BETWEEN:
                 String[] targetArr = target.split(",");
                 if (targetArr.length != 2) {
-                    throw new ConditionException("The value of the 'between' must be two numbers");
+                    throw new ServiceException("The value of the 'between' must be two numbers");
                 }
                 double sourceNum = Double.parseDouble(source);
                 double num1 = Double.parseDouble(targetArr[0]);

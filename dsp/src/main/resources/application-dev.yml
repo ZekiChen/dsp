@@ -16,3 +16,6 @@ pac:
   rta:
     url: xxx
     api: xxx
+  notice:
+    # 归因窗口（即回调通知有效期），单位 秒
+    expire: 3600

@@ -24,6 +24,7 @@ public class NoticeService {
 
   private final MessageQueue messageQueue;
   private final CacheService cacheService;
+  private final ValidateService validateService;
 
   private final Logger winLog = LoggerFactory.getLogger("win_log");
   private final Logger impLog = LoggerFactory.getLogger("imp_log");
@@ -31,18 +32,21 @@ public class NoticeService {
   private final Logger pbLog = LoggerFactory.getLogger("pb_log");
 
   public void handleEvent(EventType eventType, Params params) {
+    HttpRequest httpRequest = params.get(ParamKey.HTTP_REQUEST);
+    if (!validateService.validateNoticeRequest(httpRequest, eventType)) return;
+
     switch (eventType) {
       case RECEIVE_WIN_NOTICE:
-        handleWinNotice(params.get(ParamKey.HTTP_REQUEST));
+        handleWinNotice(httpRequest);
         break;
       case RECEIVE_IMP_NOTICE:
-        handleImpNotice(params.get(ParamKey.HTTP_REQUEST));
+        handleImpNotice(httpRequest);
         break;
       case RECEIVE_CLICK_NOTICE:
-        handleClickNotice(params.get(ParamKey.HTTP_REQUEST));
+        handleClickNotice(httpRequest);
         break;
       case RECEIVE_PB_NOTICE:
-        handlePbNotice(params.get(ParamKey.HTTP_REQUEST));
+        handlePbNotice(httpRequest);
         break;
       default:
         log.error("Can't handle event, type: {}", eventType);
@@ -64,6 +68,8 @@ public class NoticeService {
     map.put("creative_id", creativeId);
     map.put("bid_success_price", bidSuccessPrice);
     winLog.info(JsonHelper.toJSONString(map));
+
+    cacheService.winMark(bidId);
 
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
                           .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
@@ -91,6 +97,7 @@ public class NoticeService {
     impLog.info(JsonHelper.toJSONString(map));
 
     cacheService.incrImpCount(String.valueOf(campaignId), deviceId);
+    cacheService.impMark(bidId);
 
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
                           .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
@@ -116,6 +123,7 @@ public class NoticeService {
     clickLog.info(JsonHelper.toJSONString(map));
 
     cacheService.incrClickCount(String.valueOf(campaignId), deviceId);
+    cacheService.clickMark(bidId);
 
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
                           .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());

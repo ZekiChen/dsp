@@ -26,12 +26,17 @@ public class ResponseLogger {
   }
 
   private static ResponseLog buildResponseLog(AdDTOWrapper wrapper) {
+    Integer creativeId = CreativeHelper.getCreativeId(wrapper.getAdDTO().getAd());
     return ResponseLog.builder()
                       .bidId(wrapper.getBidId())
                       .campaignId(wrapper.getAdDTO().getCampaign().getId())
+                      .campaignName(wrapper.getAdDTO().getCampaign().getName())
                       .adGroupId(wrapper.getAdDTO().getAdGroup().getId())
+                      .adGroupName(wrapper.getAdDTO().getAdGroup().getName())
                       .adId(wrapper.getAdDTO().getAd().getId())
-                      .creativeId(CreativeHelper.getCreativeId(wrapper.getAdDTO().getAd()))
+                      .adName(wrapper.getAdDTO().getAd().getName())
+                      .creativeId(creativeId)
+                      .creativeName(wrapper.getAdDTO().getCreativeMap().get(creativeId).getName())
                       .packageName(wrapper.getAdDTO().getCampaign().getPackageName())
                       .category(wrapper.getAdDTO().getCampaign().getCategory())
                       .feature(Optional.ofNullable(wrapper.getAdDTO().getCampaignRtaInfo())

@@ -23,15 +23,23 @@ public class ResponseLog implements Serializable {
 
     @JsonProperty("campaign_id")
     private Integer campaignId;
+    @JsonProperty("campaign_name")
+    private String campaignName;
 
     @JsonProperty("ad_group_id")
     private Integer adGroupId;
+    @JsonProperty("ad_group_name")
+    private String adGroupName;
 
     @JsonProperty("ad_id")
     private Integer adId;
+    @JsonProperty("ad_name")
+    private String adName;
 
     @JsonProperty("creative_id")
     private Integer creativeId;
+    @JsonProperty("creative_name")
+    private String creativeName;
 
     @JsonProperty("package")
     private String packageName;
@@ -59,5 +67,4 @@ public class ResponseLog implements Serializable {
      */
     @JsonProperty("p_ctr_version")
     private String pCtrVersion;
-
 }
