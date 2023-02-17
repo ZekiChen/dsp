@@ -33,7 +33,13 @@ public class NoticeService {
 
   public void handleEvent(EventType eventType, Params params) {
     HttpRequest httpRequest = params.get(ParamKey.HTTP_REQUEST);
-    if (!validateService.validateNoticeRequest(httpRequest, eventType)) return;
+    if (!validateService.validateNoticeRequest(httpRequest, eventType)) {
+      params = Params.create()
+              .put(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
+              .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
+      messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
+      return;
+    }
 
     switch (eventType) {
       case RECEIVE_WIN_NOTICE:

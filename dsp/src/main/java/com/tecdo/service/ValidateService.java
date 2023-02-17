@@ -106,17 +106,10 @@ public class ValidateService {
         if (StrUtil.hasBlank(bidId, sign, campaignId)) {
             return false;
         }
-        if (bidIdValid(bidId, sign, campaignId)
+        return bidIdValid(bidId, sign, campaignId)
                 && windowValid(bidId, eventType)
                 && funnelValid(bidId, eventType)
-                && duplicateValid(bidId, eventType)) {
-            return true;
-        }
-        Params params = Params.create()
-                .put(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
-                .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
-        messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
-        return false;
+                && duplicateValid(bidId, eventType);
     }
 
     private boolean bidIdValid(String bidId, String sign, String campaignId) {
