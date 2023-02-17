@@ -22,7 +22,7 @@ public class SignHelper {
      *
      * @param source 源数据
      * @param assist 辅助数据（增加安全性）
-     * @return 摘要指纹
+     * @return 16位摘要指纹
      */
     public static String digest(String source, String assist) {
         if (StrUtil.hasBlank(source, assist)) {
