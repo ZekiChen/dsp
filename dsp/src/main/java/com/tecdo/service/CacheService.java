@@ -4,11 +4,11 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.common.cache.PacRedis;
 import com.tecdo.constant.CacheConstant;
+import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 /**
  * 协助缓存读写
@@ -26,8 +26,11 @@ public class CacheService {
     private final static String HAS_IMP_CACHE = "has-imp";
     private final static String HAS_CLICK_CACHE = "has-click";
 
-    @Value("${pac.notice.expire}")
-    private long noticeExpire;
+    @Value("${pac.notice.expire.click}")
+    private long clickExpire;
+
+    @Value("${pac.notice.expire.pb}")
+    private long pbExpire;
 
     /**
      * 展示次数统计：在每次 imp notice 中写入缓存，value 从 1 开始单调递增。24h 后自动过期
@@ -69,22 +72,25 @@ public class CacheService {
         return (Integer) Optional.ofNullable(pacRedis.get(key)).orElse(0);
     }
 
-    public void winMark(String bidId) {
+    /**
+     * 竞价成功和曝光的记录时间为点击的归因窗口
+     */
+    public boolean winMark(String bidId) {
         String key = CacheConstant.WIN_CACHE.concat(HAS_WIN_CACHE).concat(StrUtil.COLON).concat(bidId);
-        pacRedis.set(key, 1);
-        pacRedis.expire(key, noticeExpire);
+        return pacRedis.setIfAbsent(key, 1, clickExpire, TimeUnit.SECONDS);
     }
 
-    public void impMark(String bidId) {
+    public boolean impMark(String bidId) {
         String key = CacheConstant.IMP_CACHE.concat(HAS_IMP_CACHE).concat(StrUtil.COLON).concat(bidId);
-        pacRedis.set(key, 1);
-        pacRedis.expire(key, noticeExpire);
+        return pacRedis.setIfAbsent(key, 1, clickExpire, TimeUnit.SECONDS);
     }
 
-    public void clickMark(String bidId) {
+    /**
+     * 点击的记录时间为pb的归因窗口
+     */
+    public boolean clickMark(String bidId) {
         String key = CacheConstant.CLICK_CACHE.concat(HAS_CLICK_CACHE).concat(StrUtil.COLON).concat(bidId);
-        pacRedis.set(key, 1);
-        pacRedis.expire(key, noticeExpire);
+        return pacRedis.setIfAbsent(key, 1, pbExpire, TimeUnit.SECONDS);
     }
 
     public Boolean hasWin(String bidId) {

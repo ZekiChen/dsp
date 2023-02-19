@@ -75,7 +75,6 @@ public class NoticeService {
     map.put("bid_success_price", bidSuccessPrice);
     winLog.info(JsonHelper.toJSONString(map));
 
-    cacheService.winMark(bidId);
 
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
                           .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
@@ -103,7 +102,6 @@ public class NoticeService {
     impLog.info(JsonHelper.toJSONString(map));
 
     cacheService.incrImpCount(String.valueOf(campaignId), deviceId);
-    cacheService.impMark(bidId);
 
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
                           .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());

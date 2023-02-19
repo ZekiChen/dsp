@@ -1,14 +1,27 @@
 package com.tecdo.common.cache;
 
-import lombok.Getter;
-import org.springframework.data.redis.core.*;
-import org.springframework.lang.Nullable;
-import org.springframework.util.Assert;
-
 import java.time.Duration;
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.TimeUnit;
 import java.util.function.Supplier;
+import lombok.Getter;
+import org.springframework.data.redis.core.DefaultTypedTuple;
+import org.springframework.data.redis.core.HashOperations;
+import org.springframework.data.redis.core.ListOperations;
+import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.SetOperations;
+import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.data.redis.core.ValueOperations;
+import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.lang.Nullable;
+import org.springframework.util.Assert;
 
 /**
  * redis 工具
@@ -84,6 +97,15 @@ public class PacRedis {
 	 */
 	public Boolean setIfAbsent(String key, Object value, Duration timeout) {
 		return valueOps.setIfAbsent(key, value, timeout);
+	}
+
+	/**
+	 * 存放 key value 对到 redis，并将 key 的生存时间设为 timeout
+	 * 如果 key 已经存在， 返回false。
+	 * 如果 key 未存在， 则设置过期超时
+	 */
+	public Boolean setIfAbsent(String key, Object value, Long timeout, TimeUnit timeUnit) {
+		return valueOps.setIfAbsent(key, value, timeout, timeUnit);
 	}
 
 	/**

@@ -16,12 +16,11 @@ import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.SignHelper;
+import java.util.List;
+import java.util.Objects;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-
-import java.util.List;
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -32,8 +31,17 @@ public class ValidateService {
   private final MessageQueue messageQueue;
   private final CacheService cacheService;
 
-  @Value("${pac.notice.expire}")
-  private long noticeExpire;
+  @Value("${pac.notice.expire.win}")
+  private long winExpire;
+
+  @Value("${pac.notice.expire.imp}")
+  private long impExpire;
+
+  @Value("${pac.notice.expire.click}")
+  private long clickExpire;
+
+  @Value("${pac.notice.expire.pb}")
+  private long pbExpire;
 
   public void validateBidRequest(HttpRequest httpRequest) {
     String token = httpRequest.getParamAsStr(RequestKey.TOKEN);
@@ -117,29 +125,35 @@ public class ValidateService {
     }
 
     private boolean windowValid(String bidId, EventType eventType) {
+      long expire = winExpire;
         switch (eventType) {
-            case RECEIVE_WIN_NOTICE:
-                // 何时收到 win 通知都有效
-                return true;
-            default:
-                // bidId 由 32位UUID + 13位时间戳 构成
-                if (bidId.length() != 45) {
-                    return false;
-                }
-                long createStamp = Long.parseLong(bidId.substring(32, 45));
-                long expireStamp = createStamp + (noticeExpire * 1000);
-                return System.currentTimeMillis() <= expireStamp;
+          case RECEIVE_WIN_NOTICE:
+                expire = winExpire;
+                break;
+          case RECEIVE_IMP_NOTICE:
+                expire = impExpire;
+                break;
+          case RECEIVE_CLICK_NOTICE:
+                expire = clickExpire;
+                break;
+          case RECEIVE_PB_NOTICE:
+                expire = pbExpire;
         }
+      // bidId 由 32位UUID + 13位时间戳 构成
+      if (bidId.length() != 45) {
+        return false;
+      }
+      long createStamp = Long.parseLong(bidId.substring(32, 45));
+      long expireStamp = createStamp + (expire * 1000);
+      return System.currentTimeMillis() <= expireStamp;
     }
 
     private boolean funnelValid(String bidId, EventType eventType) {
         switch (eventType) {
-            case RECEIVE_IMP_NOTICE:
-                return cacheService.hasWin(bidId);
             case RECEIVE_CLICK_NOTICE:
-                return cacheService.hasWin(bidId) && cacheService.hasImp(bidId);
+                return cacheService.hasWin(bidId) || cacheService.hasImp(bidId);
             case RECEIVE_PB_NOTICE:
-                return cacheService.hasWin(bidId) && cacheService.hasImp(bidId) && cacheService.hasClick(bidId);
+                return cacheService.hasClick(bidId);
             default:
                 return true;
         }
@@ -148,9 +162,9 @@ public class ValidateService {
     private boolean duplicateValid(String bidId, EventType eventType) {
         switch (eventType) {
             case RECEIVE_WIN_NOTICE:
-                return !cacheService.hasWin(bidId);
+                return cacheService.winMark(bidId);
             case RECEIVE_IMP_NOTICE:
-                return !cacheService.hasImp(bidId);
+                return cacheService.impMark(bidId);
             default:
                 return true;
         }

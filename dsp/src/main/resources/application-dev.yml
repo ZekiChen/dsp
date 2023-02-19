@@ -18,4 +18,8 @@ pac:
     api: xxx
   notice:
     # 归因窗口（即回调通知有效期），单位 秒
-    expire: 3600
+    expire:
+      win: 3600
+      imp: 3600
+      click: 3600
+      pb: 3600
