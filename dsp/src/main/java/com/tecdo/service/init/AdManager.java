@@ -114,7 +114,7 @@ public class AdManager {
                         params.put(ParamKey.ADS_CACHE_KEY, listAndConvertAds());
                         messageQueue.putMessage(EventType.ADS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
-                        log.error("ad list load failure from db: {}", e.getMessage());
+                        log.error("ad list load failure from db", e);
                         messageQueue.putMessage(EventType.ADS_LOAD_ERROR);
                     }
                 });

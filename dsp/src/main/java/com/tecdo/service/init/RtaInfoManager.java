@@ -110,7 +110,7 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
                         params.put(ParamKey.RTA_INFOS_CACHE_KEY, rtaInfoMap);
                         messageQueue.putMessage(EventType.RTA_INFOS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
-                        log.error("rta infos load failure from db: {}", e.getMessage());
+                        log.error("rta infos load failure from db", e);
                         messageQueue.putMessage(EventType.RTA_INFOS_LOAD_ERROR);
                     }
                 });

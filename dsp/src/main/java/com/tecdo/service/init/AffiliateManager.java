@@ -110,7 +110,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
                         params.put(ParamKey.AFFILIATES_CACHE_KEY, affiliateMap);
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
                     } catch (Exception e) {
-                        log.error("affiliates load failure from db: {}", e.getMessage());
+                        log.error("affiliates load failure from db", e);
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_ERROR);
                     }
                 });

@@ -122,9 +122,9 @@ public class Task {
         messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
       } catch (Exception e) {
         log.error(
-          "list recall ad error, task id: {}, so this request will not participate in bidding, reason: {}",
+          "list recall ad error, task id: {}, so this request will not participate in bidding",
           taskId,
-          e.getMessage());
+          e);
         messageQueue.putMessage(EventType.ADS_RECALL_ERROR, params);
       }
     });
@@ -189,7 +189,7 @@ public class Task {
           messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
         }
       } catch (Exception e) {
-        log.error("ctr request,taskId:{}, reason: {}", taskId, e.getMessage());
+        log.error("ctr request cause a exception,taskId:{}", taskId, e);
         messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
       }
     });
@@ -252,7 +252,7 @@ public class Task {
         messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
       });
     } catch (Exception e) {
-      log.error("calculate cpc error: {}", e.getMessage());
+      log.error("calculate cpc cause a exception", e);
       messageQueue.putMessage(EventType.CALC_CPC_ERROR);
     }
   }
