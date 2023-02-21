@@ -27,7 +27,7 @@ public class BudgetFilter extends AbstractRecallFilter {
     // 每个 campaign + adGroup 一天的消耗控制
     Double cost = budgetManager.getBudget(adDTO.getCampaign().getId().toString(), adDTO.getAdGroup().getId().toString());
     return cost != null
-            && ConditionHelper.compare(cost.toString(), Constant.LT, campaignBudget.toString())
-            && ConditionHelper.compare(cost.toString(), Constant.LT, adGroupBudget.toString());
+            && ConditionHelper.compare(cost.toString(), Constant.LTE, campaignBudget.toString())
+            && ConditionHelper.compare(cost.toString(), Constant.LTE, adGroupBudget.toString());
   }
 }

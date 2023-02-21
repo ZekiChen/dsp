@@ -82,6 +82,12 @@ public class RecallFilterTest {
         bidRequest.getImp().forEach(imp -> clickFilter.doFilter(bidRequest, imp, adDTO, affiliate));
     }
 
+    @Test
+    public void test_BudgetFilter() {
+        BudgetFilter filter = filtersFactory.getBudgetFilter();
+        bidRequest.getImp().forEach(imp -> filter.doFilter(bidRequest, imp, adDTO, affiliate));
+    }
+
     // ====================================================================================================
 
     @NotNull
@@ -167,7 +173,7 @@ public class RecallFilterTest {
         adGroup.setDeeplink(null);
         adGroup.setImpTrackUrls("imp_track_url_A,imp_track_url_B");
         adGroup.setClickTrackUrls("click_track_url_A,click_track_url_B");
-        adGroup.setDailyBudget(200.55D);
+        adGroup.setDailyBudget(100.55D);
         adGroup.setBidStrategy(1);
         adGroup.setOptPrice(10.05D);
         adGroup.setStatus(1);
