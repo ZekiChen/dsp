@@ -1,8 +1,16 @@
 spring:
   datasource:
-    url: jdbc:mysql://172.24.2.26:3306/eric?characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull
-    username: mobi
-    password: mobisummer2112
+    dynamic:
+      primary: mysql
+      datasource:
+        mysql:
+          url: jdbc:mysql://172.24.2.26:3306/eric?characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull
+          username: mobi
+          password: mobisummer2112
+        doris:
+          url: jdbc:mysql://10.205.0.15:9030/ods_mb_mm?characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull
+          username: root
+          password:
   redis:
     database: 2
     host: 10.205.0.208

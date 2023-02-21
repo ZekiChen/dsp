@@ -25,6 +25,7 @@ public interface ParamKey {
   String AFFILIATES_CACHE_KEY = "affiliates-cache-key";
   String ADS_CACHE_KEY = "ads-cache-key";
   String RTA_INFOS_CACHE_KEY = "rta-infos-cache-key";
+  String BUDGETS_CACHE_KEY = "budgets-cache-key";
 
   // task-imp
   String ADS_TASK_RESPONSE = "ads-imp-key";

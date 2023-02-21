@@ -10,6 +10,7 @@ import com.tecdo.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.AffiliateManager;
+import com.tecdo.service.init.BudgetManager;
 import com.tecdo.service.init.RtaInfoManager;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -30,13 +31,14 @@ public class LifeCycleManager {
   private final AffiliateManager affManager;
   private final AdManager adManager;
   private final RtaInfoManager rtaManager;
+  private final BudgetManager budgetManager;
 
   private final MessageQueue messageQueue;
 
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 3;
+  private final int needInitCount = 4;
 
   @Value("${server.port}")
   private int serverPort;
@@ -83,6 +85,12 @@ public class LifeCycleManager {
       case RTA_INFOS_LOAD_TIMEOUT:
         rtaManager.handleEvent(eventType, params);
         break;
+      case BUDGETS_LOAD:
+      case BUDGETS_LOAD_RESPONSE:
+      case BUDGETS_LOAD_ERROR:
+      case BUDGETS_LOAD_TIMEOUT:
+        budgetManager.handleEvent(eventType, params);
+        break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -104,6 +112,7 @@ public class LifeCycleManager {
         affManager.init(params);
         adManager.init(params);
         rtaManager.init(params);
+        budgetManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:
