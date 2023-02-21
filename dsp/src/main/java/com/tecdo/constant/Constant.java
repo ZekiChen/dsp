@@ -7,6 +7,7 @@ public interface Constant {
     String AND_MARK = "&";
     String HEADER_IP_KEY = "X-Forwarded-For";
     String COMMA = ",";
+    String ERROR_DEVICE_ID = "00000000-0000-0000-0000-000000000000";
 
     long TIMEOUT_WAIT_TASK_RESPONSE = 50;
 

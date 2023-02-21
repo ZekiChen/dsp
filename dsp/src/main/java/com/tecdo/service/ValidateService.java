@@ -1,8 +1,7 @@
 package com.tecdo.service;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.common.Params;
+import com.tecdo.constant.Constant;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.HttpCode;
 import com.tecdo.constant.ParamKey;
@@ -16,11 +15,17 @@ import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.SignHelper;
-import java.util.List;
-import java.util.Objects;
-import lombok.RequiredArgsConstructor;
+
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Objects;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -86,6 +91,13 @@ public class ValidateService {
     }
     // 设备信息都不传，不太合理
     if (bidRequest.getDevice() == null) {
+      return false;
+    }
+    if (bidRequest.getDevice().getIfa() == null ||
+        Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
+      return false;
+    }
+    if (StringUtils.isEmpty(bidRequest.getApp().getBundle())) {
       return false;
     }
     // 展示位必须有
