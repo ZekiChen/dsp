@@ -47,4 +47,13 @@ dependencies {
 
 version "1.0-SNAPSHOT"
 
-
+publishing {
+    publications {
+        RtaAws(MavenPublication) {
+            groupId 'emp'
+            artifactId 'dsp'
+            artifact source: "${buildDir}/libs/${artifactId}-${version}.jar"
+            ext.repo = 'Aws'
+        }
+    }
+}
