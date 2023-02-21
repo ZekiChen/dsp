@@ -105,7 +105,7 @@ public class Task {
     if (eventTimerMap.containsKey(eventType)) {
       softTimer.cancel(eventTimerMap.get(eventType));
     } else {
-      log.warn("context: {}, not exist this timer: {}", bidRequest.getId(), eventType);
+      log.warn("taskId: {}, not exist this timer: {}", taskId, eventType);
     }
   }
 

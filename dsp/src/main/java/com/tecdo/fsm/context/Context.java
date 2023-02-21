@@ -1,10 +1,11 @@
 package com.tecdo.fsm.context;
 
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
-import com.tecdo.constant.*;
+import com.tecdo.constant.EventType;
+import com.tecdo.constant.FormatKey;
+import com.tecdo.constant.HttpCode;
+import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.domain.biz.dto.AdDTO;
@@ -27,12 +28,25 @@ import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
-import com.tecdo.util.*;
-import lombok.extern.slf4j.Slf4j;
+import com.tecdo.util.AdmGenerator;
+import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.JsonHelper;
+import com.tecdo.util.SignHelper;
+import com.tecdo.util.StringConfigUtil;
 
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Context {
@@ -107,6 +121,10 @@ public class Context {
       taskMap.put(taskId, task);
       RequestLogger.log(taskId, imp, bidRequest, affiliate);
       messageQueue.putMessage(EventType.TASK_START, assignParams().put(ParamKey.TASK_ID, taskId));
+      log.info("receive bid request:{},requestId:{},taskId:{}",
+               bidRequest.getId(),
+               requestId,
+               taskId);
     });
   }
 
@@ -124,6 +142,10 @@ public class Context {
     String taskId = params.get(ParamKey.TASK_ID);
     Map<Integer, AdDTOWrapper> adDTOWrapperMap = params.get(ParamKey.ADS_TASK_RESPONSE);
     taskResponse.put(taskId, adDTOWrapperMap);
+    log.info("receive ad from task,contextId:{},taskId:{},size:{}",
+             requestId,
+             taskId,
+             adDTOWrapperMap.size());
   }
 
   public boolean isReceiveAllTaskResponse() {
@@ -153,6 +175,7 @@ public class Context {
         messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
       }
     });
+    log.info("contextId:{},request rta", requestId);
   }
 
   private Map<Integer, Target> doRequestRta() {
@@ -197,6 +220,7 @@ public class Context {
                                                  .filter(i -> i.getAdDTO().getCampaignRtaInfo() ==
                                                               null || i.getRtaToken() != null)
                                                  .collect(Collectors.toList());
+    log.info("contextId:{},after rta filter,size:{}", requestId, adDTOWrapperList.size());
   }
 
   public void sort() {
@@ -216,6 +240,9 @@ public class Context {
   public void saveSortAdResponse(Params params) {
     AdDTOWrapper adDTOWrapper = params.get(ParamKey.SORT_AD_RESPONSE);
     this.response = adDTOWrapper;
+    log.info("contextId:{},after sort response,adId:{}",
+             requestId,
+             response.getAdDTO().getAd().getId());
   }
 
   public void responseData() {
@@ -389,7 +416,7 @@ public class Context {
     if (eventTimerMap.containsKey(eventType)) {
       softTimer.cancel(eventTimerMap.get(eventType));
     } else {
-      log.warn("context:{},not exist this timer：{}", bidRequest.getId(), eventType);
+      log.warn("contextId:{},not exist this timer：{}", requestId, eventType);
     }
 
   }
