@@ -1,6 +1,7 @@
 apply plugin: "io.freefair.lombok"
 apply plugin: 'org.springframework.boot'
 apply plugin: 'io.spring.dependency-management'
+apply from: "${rootDir}/build/dist.gradle"
 
 dependencies {
 
@@ -49,7 +50,7 @@ version "1.0-SNAPSHOT"
 
 publishing {
     publications {
-        RtaAws(MavenPublication) {
+        DspAws(MavenPublication) {
             groupId 'emp'
             artifactId 'dsp'
             artifact source: "${buildDir}/libs/${artifactId}-${version}.jar"
