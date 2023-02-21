@@ -27,7 +27,6 @@ import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
-import com.tecdo.util.JsonHelper;
 
 import org.apache.commons.lang3.StringUtils;
 
@@ -183,9 +182,9 @@ public class Task {
           params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
           messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
         } else {
-          log.error("ctr request error: {}, reason: {}",
+          log.error("ctr request status: {}, error:",
                     httpResult.getStatus(),
-                    httpResult.getError().getMessage());
+                    httpResult.getError());
           messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
         }
       } catch (Exception e) {
@@ -205,7 +204,7 @@ public class Task {
                                            .collect(Collectors.toList());
     Map<String, Object> paramMap =
       MapUtil.<String, Object>builder().put("data", ctrRequests).build();
-    return OkHttps.sync(ctrPredictUrl).setBodyPara(JsonHelper.toJSONString(paramMap)).post();
+    return OkHttps.sync(ctrPredictUrl).bodyType(OkHttps.JSON).setBodyPara(paramMap).post();
   }
 
   private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
@@ -227,7 +226,7 @@ public class Task {
                      .bidFloor(Double.valueOf(imp.getBidfloor()))
                      .rtaFeature(Optional.ofNullable(adDTO.getCampaignRtaInfo())
                                          .map(CampaignRtaInfo::getRtaFeature)
-                                         .orElse(null))
+                                         .orElse(-1))
                      .packageName(adDTO.getCampaign().getPackageName())
                      .category(adDTO.getCampaign().getCategory())
                      .build();
