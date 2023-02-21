@@ -1,6 +1,5 @@
 package com.tecdo.service.init;
 
-import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -13,13 +12,17 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.entity.doris.AdGroupCost;
 import com.tecdo.mapper.doris.AdGroupCostMapper;
+
+import org.springframework.stereotype.Service;
+
+import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
+
+import cn.hutool.core.date.DateUtil;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.stereotype.Service;
-
-import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -35,13 +38,21 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
     private State currentState = State.INIT;
     private long timerId;
 
-    private Map<String, Double> budgetMap;
+    private Map<String, Double> campaignBudgetMap;
+    private Map<String, Double> adGroupBudgetMap;
 
     /**
-     * 从 Doris 加载 当天campaignId-groupId的实时花费 集合，每 5 秒刷新一次缓存
+     * 从 Doris 加载 当天campaign的实时花费 集合，每 5 秒刷新一次缓存
      */
-    public Double getBudget(String campaignId, String adGroupId) {
-        return this.budgetMap.get(campaignId + "-" + adGroupId);
+    public Double getCampaignBudget(String campaignId, Double defaultValue){
+        return campaignBudgetMap.getOrDefault(campaignId, defaultValue);
+    }
+
+    /**
+     * 从 Doris 加载 当天adGroup的实时花费 集合，每 5 秒刷新一次缓存
+     */
+    public Double getAdGroupBudget(String adGroupId, Double defaultValue) {
+        return this.adGroupBudgetMap.getOrDefault(adGroupId, defaultValue);
     }
 
     @AllArgsConstructor
@@ -109,9 +120,16 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
                         LambdaQueryWrapper<AdGroupCost> wrapper = Wrappers.<AdGroupCost>lambdaQuery()
                                 .ge(AdGroupCost::getCreateDate, today + " 00:00:00")
                                 .lt(AdGroupCost::getCreateDate, today + " 23:59:59");
-                        Map<String, Double> budgetMap = list(wrapper).stream().collect(Collectors.toMap(
-                                k -> k.getCampaignId() + "-" + k.getAdGroupId(), AdGroupCost::getSumSuccessPrice));
-                        params.put(ParamKey.BUDGETS_CACHE_KEY, budgetMap);
+                        List<AdGroupCost> costList = list(wrapper);
+                        Map<String, Double> campaignBudgetMap = //
+                          costList.stream()
+                                  .collect(Collectors.groupingBy(AdGroupCost::getCampaignId,
+                                                                 Collectors.summingDouble(
+                                                                   AdGroupCost::getSumSuccessPrice)));
+                        Map<String, Double> adGroupBudgetMap = costList.stream().collect(Collectors.toMap(
+                                AdGroupCost::getAdGroupId, AdGroupCost::getSumSuccessPrice, (o,n)->n));
+                        params.put(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY, campaignBudgetMap);
+                        params.put(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY, adGroupBudgetMap);
                         messageQueue.putMessage(EventType.BUDGETS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("budgets load failure from db", e);
@@ -128,10 +146,13 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
 
     private void handleBudgetsResponse(Params params) {
         cancelReloadTimeoutTimer();
-        this.budgetMap = params.get(ParamKey.BUDGETS_CACHE_KEY);
+        this.campaignBudgetMap = params.get(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY);
+        this.adGroupBudgetMap = params.get(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY);
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
-                log.info("budgets load success, size: {}", budgetMap.size());
+                log.info("budgets load success, campaign size: {}, ad group size: {}",
+                         campaignBudgetMap.size(),
+                         adGroupBudgetMap.size());
                 messageQueue.putMessage(EventType.ONE_DATA_READY);
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);

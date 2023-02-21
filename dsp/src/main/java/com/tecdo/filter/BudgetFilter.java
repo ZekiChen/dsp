@@ -6,12 +6,13 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.filter.util.ConditionHelper;
 import com.tecdo.service.init.BudgetManager;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Component;
+
+import lombok.RequiredArgsConstructor;
 
 /**
  * 日预算控制 过滤
- *
  * Created by Zeki on 2023/2/21
  */
 @Component
@@ -25,9 +26,16 @@ public class BudgetFilter extends AbstractRecallFilter {
     Double campaignBudget = adDTO.getCampaign().getDailyBudget();
     Double adGroupBudget = adDTO.getAdGroup().getDailyBudget();
     // 每个 campaign + adGroup 一天的消耗控制
-    Double cost = budgetManager.getBudget(adDTO.getCampaign().getId().toString(), adDTO.getAdGroup().getId().toString());
-    return cost != null
-            && ConditionHelper.compare(cost.toString(), Constant.LTE, campaignBudget.toString())
-            && ConditionHelper.compare(cost.toString(), Constant.LTE, adGroupBudget.toString());
+    double campaignCost =
+      budgetManager.getCampaignBudget(adDTO.getCampaign().getId().toString(), 0d) / 1000;
+    double adGroupCost =
+      budgetManager.getAdGroupBudget(adDTO.getAdGroup().getId().toString(), 0d) / 1000;
+
+    return ConditionHelper.compare(Double.toString(campaignCost),
+                                   Constant.LT,
+                                   campaignBudget.toString()) &&
+           ConditionHelper.compare(Double.toString(adGroupCost),
+                                   Constant.LT,
+                                   adGroupBudget.toString());
   }
 }
