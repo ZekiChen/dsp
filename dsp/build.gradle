@@ -34,6 +34,9 @@ dependencies {
     implementation 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
     implementation 'com.baomidou:dynamic-datasource-spring-boot-starter:3.5.1'
 
+    // Apollo
+    implementation 'com.ctrip.framework.apollo:apollo-client:1.9.1'
+
     // CAT
     implementation "com.dianping.cat:cat-client:3.1.0"
     implementation 'org.codehaus.plexus:plexus-classworlds:2.5.1'
