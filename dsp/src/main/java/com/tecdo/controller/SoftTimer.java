@@ -2,6 +2,8 @@ package com.tecdo.controller;
 
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
+
+import cn.hutool.extra.spring.SpringUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 
@@ -18,10 +20,9 @@ public class SoftTimer {
 
     private final AtomicLong itemId = new AtomicLong(0);
 
-    private final MessageQueue messageQueue;
+    private final MessageQueue messageQueue = SpringUtil.getBean(MessageQueue.class);
 
-    private SoftTimer(MessageQueue messageQueue) {
-        this.messageQueue = messageQueue;
+    private SoftTimer() {
         startCheckTimer();
     }
 
@@ -51,6 +52,7 @@ public class SoftTimer {
                 check();
             }
         }, this.checkInterval, this.checkInterval);
+        log.info("start soft timer");
     }
 
     private void check() {
