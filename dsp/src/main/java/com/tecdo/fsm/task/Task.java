@@ -266,11 +266,10 @@ public class Task {
         bidPrice = adDTO.getAdGroup().getOptPrice();
         break;
       case CPC:
-        // 这里的pctr为百分之几
-        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 10;
+        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
         break;
       default:
-        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 10;
+        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
     }
     return bidPrice;
   }

@@ -11,7 +11,7 @@ public interface Constant {
 
     long TIMEOUT_WAIT_TASK_RESPONSE = 50;
 
-    long TIMEOUT_WAIT_RTA_RESPONSE = 20;
+    long TIMEOUT_WAIT_RTA_RESPONSE = 50;
 
     long TEN_MILLIS = 10;
 
