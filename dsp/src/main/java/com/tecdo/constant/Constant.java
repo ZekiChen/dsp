@@ -18,6 +18,7 @@ public interface Constant {
     long TIMEOUT_LOAD_DB_CACHE_GENERAL = 5 * 1000L;
     long TIMEOUT_LOAD_DB_CACHE_AD_DTO = 10 * 1000L;
     long INTERVAL_RELOAD_DB_CACHE = 5 * 60 * 1000L;
+    long INTERVAL_RELOAD_BUDGET_CACHE = 5  * 1000L;
 
     long TIMEOUT_ADS_RECALL = 50L;
     long TIMEOUT_PRE_DICT = 50L;

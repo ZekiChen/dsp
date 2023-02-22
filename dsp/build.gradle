@@ -28,9 +28,11 @@ dependencies {
     implementation 'com.squareup.okio:okio:2.8.0'
     implementation 'cn.zhxu:okhttps-fastjson2:4.0.0'
 
+    // MySQL
     implementation 'com.alibaba:druid-spring-boot-starter:1.2.8'
-    implementation 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
     implementation 'mysql:mysql-connector-java:8.0.22'
+    implementation 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
+    implementation 'com.baomidou:dynamic-datasource-spring-boot-starter:3.5.1'
 
     // CAT
     implementation "com.dianping.cat:cat-client:3.1.0"

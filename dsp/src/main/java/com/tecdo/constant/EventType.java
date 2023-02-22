@@ -27,6 +27,11 @@ public enum EventType {
   RTA_INFOS_LOAD_ERROR(1303, "rta infos load failure"),
   RTA_INFOS_LOAD_TIMEOUT(1304, "rta infos load timeout"),
 
+  BUDGETS_LOAD(1401, "budget list load"),
+  BUDGETS_LOAD_RESPONSE(1402, "budget list load response"),
+  BUDGETS_LOAD_ERROR(1403, "budget list load failure"),
+  BUDGETS_LOAD_TIMEOUT(1404, "budget list load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

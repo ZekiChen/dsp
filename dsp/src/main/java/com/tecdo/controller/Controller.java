@@ -47,6 +47,10 @@ public class Controller implements MessageObserver {
       case RTA_INFOS_LOAD_RESPONSE:
       case RTA_INFOS_LOAD_ERROR:
       case RTA_INFOS_LOAD_TIMEOUT:
+      case BUDGETS_LOAD:
+      case BUDGETS_LOAD_RESPONSE:
+      case BUDGETS_LOAD_ERROR:
+      case BUDGETS_LOAD_TIMEOUT:
       case ONE_DATA_READY:
       case NETTY_START:
       case RECEIVE_PING_REQUEST:
@@ -55,12 +59,14 @@ public class Controller implements MessageObserver {
       case VALIDATE_BID_REQUEST:
         validateService.validateBidRequest(params.get(ParamKey.HTTP_REQUEST));
         break;
+      // notice request
       case RECEIVE_WIN_NOTICE:
       case RECEIVE_IMP_NOTICE:
       case RECEIVE_CLICK_NOTICE:
       case RECEIVE_PB_NOTICE:
         noticeService.handleEvent(eventType,params);
         break;
+      // context
       case RECEIVE_BID_REQUEST:
       case BID_TASK_FINISH:
       case BID_TASK_FAILED:
@@ -71,7 +77,7 @@ public class Controller implements MessageObserver {
       case SORT_AD_RESPONSE:
       case WAIT_SORT_AD_TIMEOUT:
       case BID_REQUEST_COMPLETE:
-        // task
+      // task
       case TASK_START:
       case ADS_RECALL_FINISH:
       case ADS_RECALL_ERROR:
