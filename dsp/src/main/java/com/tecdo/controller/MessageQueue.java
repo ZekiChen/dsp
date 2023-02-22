@@ -4,20 +4,19 @@ import com.dianping.cat.Cat;
 import com.dianping.cat.message.Transaction;
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
-
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.LinkedBlockingQueue;
 
-import cn.hutool.extra.spring.SpringUtil;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 @Component
 public class MessageQueue {
 
-    private final MessageObserver observer = SpringUtil.getBean(Controller.class);
+    @Autowired
+    private MessageObserver observer;
 
     private static final long WARN_COST = 2;
 

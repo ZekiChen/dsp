@@ -2,9 +2,8 @@ package com.tecdo.controller;
 
 import com.tecdo.common.Params;
 import com.tecdo.constant.EventType;
-
-import cn.hutool.extra.spring.SpringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.Iterator;
@@ -20,7 +19,8 @@ public class SoftTimer {
 
     private final AtomicLong itemId = new AtomicLong(0);
 
-    private final MessageQueue messageQueue = SpringUtil.getBean(MessageQueue.class);
+    @Autowired
+    private MessageQueue messageQueue;
 
     private SoftTimer() {
         startCheckTimer();
