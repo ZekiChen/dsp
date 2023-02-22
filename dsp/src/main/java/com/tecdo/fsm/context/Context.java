@@ -351,7 +351,7 @@ public class Context {
     if (url == null) {
       return null;
     }
-    url = url.replace(FormatKey.BID_ID, bidRequest.getId())
+    url = url.replace(FormatKey.BID_ID, response.getBidId())
              .replace(FormatKey.IMP_ID, response.getImpId())
              .replace(FormatKey.CAMPAIGN_ID,
                       String.valueOf(response.getAdDTO().getCampaign().getId()))
