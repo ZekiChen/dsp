@@ -103,7 +103,7 @@
             <DefaultRolloverStrategy>
                 <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
                     <IfFileName glob="request-*.log"/>
-                    <IfAccumulatedFileSize exceeds="50GB"/>
+                    <IfAccumulatedFileSize exceeds="20GB"/>
                 </Delete>
             </DefaultRolloverStrategy>
             <Filters>
@@ -120,7 +120,7 @@
             <DefaultRolloverStrategy>
                 <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
                     <IfFileName glob="response-*.log"/>
-                    <IfAccumulatedFileSize exceeds="50GB"/>
+                    <IfAccumulatedFileSize exceeds="20GB"/>
                 </Delete>
             </DefaultRolloverStrategy>
             <Filters>

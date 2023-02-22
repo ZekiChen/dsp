@@ -253,7 +253,9 @@ public class Context {
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     } else {
       BidResponse bidResponse = buildResponse(this.response);
-      params.put(ParamKey.RESPONSE_BODY, JsonHelper.toJSONString(bidResponse));
+      String bidResponseString = JsonHelper.toJSONString(bidResponse);
+      log.info("contextId:{}, bid response is:{}", requestId, bidResponseString);
+      params.put(ParamKey.RESPONSE_BODY, bidResponseString);
       params.put(ParamKey.HTTP_CODE, HttpCode.OK);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     }
