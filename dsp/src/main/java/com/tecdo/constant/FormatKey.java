@@ -14,7 +14,10 @@ public interface FormatKey {
   String COUNTRY = "${COUNTRY}";
   String OS = "${OS}";
   String DEVICE_MAKE = "${DEVICE_MAKE}";
+  String DEVICE_MODEL = "${DEVICE_MODEL}";
   String AD_FORMAT = "${AD_FORMAT}";
+  String BUNDLE = "${BUNDLE}";
+  String RTA_TOKEN = "${RTA_TOKEN}";
 
   String CLICK_URL = "${CLICK_URL}";
   String IMG_URL = "${IMG_URL}";

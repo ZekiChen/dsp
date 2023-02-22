@@ -34,6 +34,8 @@ import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
 import com.tecdo.util.StringConfigUtil;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -364,8 +366,12 @@ public class Context {
              .replace(FormatKey.COUNTRY, bidRequest.getDevice().getGeo().getCountry())
              .replace(FormatKey.OS, bidRequest.getDevice().getOs())
              .replace(FormatKey.DEVICE_MAKE, encode(bidRequest.getDevice().getMake()))
+             .replace(FormatKey.DEVICE_MODEL, encode(bidRequest.getDevice().getModel()))
              .replace(FormatKey.AD_FORMAT,
-                      AdTypeEnum.of(response.getAdDTO().getAd().getType()).getDesc());
+                      AdTypeEnum.of(response.getAdDTO().getAd().getType()).getDesc())
+             .replace(FormatKey.BUNDLE, encode(bidRequest.getApp().getBundle()))
+             .replace(FormatKey.RTA_TOKEN,
+                      encode(StringUtils.firstNonEmpty(response.getRtaToken(), "")));
     return url;
   }
 
