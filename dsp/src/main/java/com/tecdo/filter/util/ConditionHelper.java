@@ -1,13 +1,21 @@
 package com.tecdo.filter.util;
 
-import cn.hutool.core.util.NumberUtil;
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.exception.ServiceException;
 
 import java.util.Arrays;
 import java.util.Objects;
 
-import static com.tecdo.filter.AbstractRecallFilter.Constant.*;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
+
+import static com.tecdo.filter.AbstractRecallFilter.Constant.BETWEEN;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.EQ;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.EXCLUDE;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.GT;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.GTE;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.INCLUDE;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.LT;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.LTE;
 
 /**
  * 定投条件 工具
@@ -33,6 +41,7 @@ public class ConditionHelper {
         switch (operation) {
             case EQ:
                 return Objects.equals(source, target) ||
+                       source.equalsIgnoreCase(target) ||
                        (NumberUtil.isNumber(source) && NumberUtil.isNumber(target) &&
                         Double.parseDouble(source) == Double.parseDouble(target));
             case GT:
