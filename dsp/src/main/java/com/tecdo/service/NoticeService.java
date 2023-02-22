@@ -8,23 +8,28 @@ import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.util.JsonHelper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashMap;
 import java.util.Map;
 
+import lombok.extern.slf4j.Slf4j;
+
 @Slf4j
 @Component
-@RequiredArgsConstructor
+
 public class NoticeService {
 
-  private final MessageQueue messageQueue;
-  private final CacheService cacheService;
-  private final ValidateService validateService;
+  @Autowired
+  private MessageQueue messageQueue;
+  @Autowired
+  private CacheService cacheService;
+  @Autowired
+  private ValidateService validateService;
 
   private final Logger winLog = LoggerFactory.getLogger("win_log");
   private final Logger impLog = LoggerFactory.getLogger("imp_log");
