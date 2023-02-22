@@ -32,6 +32,10 @@ allprojects {
 subprojects {
     apply from: "${rootDir}/build/dependencies.gradle"
 
+    ext.local = [
+      version: "${RELEASE_VERSION}",
+    ]
+
     repositories {
         maven {
             url 'https://maven-local.mobisummer-inc.com/repository/maven-public'
