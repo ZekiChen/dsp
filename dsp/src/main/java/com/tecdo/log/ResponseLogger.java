@@ -9,7 +9,10 @@ import com.tecdo.util.CreativeHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Date;
 import java.util.Optional;
+
+import cn.hutool.core.date.DateUtil;
 
 /**
  * 构建 ResponseLog 并持久化至本地文件中
@@ -28,6 +31,7 @@ public class ResponseLogger {
   private static ResponseLog buildResponseLog(AdDTOWrapper wrapper) {
     Integer creativeId = CreativeHelper.getCreativeId(wrapper.getAdDTO().getAd());
     return ResponseLog.builder()
+                      .createTime(DateUtil.format(new Date(), "yyyy-MM-dd_HH"))
                       .bidId(wrapper.getBidId())
                       .campaignId(wrapper.getAdDTO().getCampaign().getId())
                       .campaignName(wrapper.getAdDTO().getCampaign().getName())

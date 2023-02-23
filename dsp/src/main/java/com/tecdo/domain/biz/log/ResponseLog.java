@@ -18,6 +18,12 @@ import java.io.Serializable;
 @Setter
 public class ResponseLog implements Serializable {
 
+    /**
+     * 日志产生的时间，精确到小时 yyyy-MM-dd_HH
+     */
+    @JsonProperty("create_time")
+    private String createTime;
+
     @JsonProperty("bid_id")
     private String bidId;
 
