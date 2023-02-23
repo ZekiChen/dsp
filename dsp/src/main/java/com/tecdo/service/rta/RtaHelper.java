@@ -22,8 +22,8 @@ import java.util.stream.Collectors;
 @Slf4j
 public class RtaHelper {
 
-  private static final String RTA_SERVER_URL = SpringUtil.getProperty("pac.lazada.rta.url");
-  private static final String API_NAME = SpringUtil.getProperty("pac.lazada.rta.api");
+  private static final String RTA_SERVER_URL = SpringUtil.getProperty("foreign.lazada.rta.url");
+  private static final String API_NAME = SpringUtil.getProperty("foreign.lazada.rta.api");
 
   private static final ConcurrentHashMap<String, LazopClient> clientMap = new ConcurrentHashMap<>();
 
