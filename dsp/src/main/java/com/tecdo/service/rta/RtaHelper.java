@@ -1,5 +1,6 @@
 package com.tecdo.service.rta;
 
+import cn.hutool.extra.spring.SpringUtil;
 import com.lazada.lazop.api.LazopClient;
 import com.lazada.lazop.api.LazopRequest;
 import com.lazada.lazop.api.LazopResponse;
@@ -9,6 +10,7 @@ import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.RtaInfo;
 import com.tecdo.util.JsonHelper;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 import java.util.List;
@@ -17,14 +19,11 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
-import cn.hutool.extra.spring.SpringUtil;
-import lombok.extern.slf4j.Slf4j;
-
 @Slf4j
 public class RtaHelper {
 
-  private static final String RTA_SERVER_URL = SpringUtil.getProperty("pac.rta.url");
-  private static final String API_NAME = SpringUtil.getProperty("pac.rta.api");
+  private static final String RTA_SERVER_URL = SpringUtil.getProperty("pac.lazada.rta.url");
+  private static final String API_NAME = SpringUtil.getProperty("pac.lazada.rta.api");
 
   private static final ConcurrentHashMap<String, LazopClient> clientMap = new ConcurrentHashMap<>();
 

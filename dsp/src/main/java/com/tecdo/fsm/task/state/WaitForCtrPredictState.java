@@ -1,13 +1,13 @@
 package com.tecdo.fsm.task.state;
 
 import com.tecdo.common.Params;
-import com.tecdo.constant.Constant;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.fsm.task.Task;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.Map;
@@ -28,8 +28,10 @@ import java.util.Map;
 public class WaitForCtrPredictState implements ITaskState {
 
   private final WaitForCalcPriceState waitForCalcPriceState;
-
   private final WaitForRecycleState waitForRecycleState;
+
+  @Value("${pac.timeout.task.ad.calc-price}")
+  private long timeoutCalcPrice;
 
   @Override
   public void handleEvent(EventType eventType, Params params, Task task) {
@@ -38,7 +40,7 @@ public class WaitForCtrPredictState implements ITaskState {
         task.cancelTimer(EventType.CTR_PREDICT_TIMEOUT);
         Map<Integer, AdDTOWrapper> adDTOMap = params.get(ParamKey.ADS_P_CTR_RESPONSE);
         task.calcPrice(adDTOMap);
-        task.startTimer(EventType.CALC_CPC_TIMEOUT, params, Constant.TIMEOUT_CALC_PRICE);
+        task.startTimer(EventType.CALC_CPC_TIMEOUT, params, timeoutCalcPrice);
         task.switchState(waitForCalcPriceState);
         break;
       case CTR_PREDICT_ERROR:

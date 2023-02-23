@@ -1,28 +1,26 @@
 package com.tecdo.service.init;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
-import com.tecdo.constant.Constant;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.entity.doris.AdGroupCost;
 import com.tecdo.mapper.doris.AdGroupCostMapper;
-
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.date.DateUtil;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -40,6 +38,11 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
 
     private Map<String, Double> campaignBudgetMap;
     private Map<String, Double> adGroupBudgetMap;
+
+    @Value("${pac.timeout.load.doris.default}")
+    private long loadTimeout;
+    @Value("${pac.interval.reload.doris.default}")
+    private long reloadInterval;
 
     /**
      * 从 Doris 加载 当天campaign的实时花费 集合，每 5 秒刷新一次缓存
@@ -76,7 +79,7 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
     }
 
     private void startReloadTimeoutTimer(Params params) {
-        timerId = softTimer.startTimer(EventType.BUDGETS_LOAD_TIMEOUT, params, Constant.TIMEOUT_LOAD_DB_CACHE_GENERAL);
+        timerId = softTimer.startTimer(EventType.BUDGETS_LOAD_TIMEOUT, params, loadTimeout);
     }
 
     private void cancelReloadTimeoutTimer() {
@@ -84,7 +87,7 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
     }
 
     private void startNextReloadTimer(Params params) {
-        softTimer.startTimer(EventType.BUDGETS_LOAD, params, Constant.INTERVAL_RELOAD_BUDGET_CACHE);
+        softTimer.startTimer(EventType.BUDGETS_LOAD, params, reloadInterval);
     }
 
     public void switchState(State state) {
@@ -133,7 +136,7 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
                         messageQueue.putMessage(EventType.BUDGETS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("budgets load failure from db", e);
-                        messageQueue.putMessage(EventType.BUDGETS_LOAD_ERROR);
+                        messageQueue.putMessage(EventType.BUDGETS_LOAD_ERROR, params);
                     }
                 });
                 startReloadTimeoutTimer(params);
@@ -190,5 +193,4 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
                 log.error("Can't handle event, state: {}", currentState);
         }
     }
-
 }

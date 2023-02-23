@@ -3,7 +3,6 @@ package com.tecdo.service.init;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
-import com.tecdo.constant.Constant;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
@@ -13,6 +12,7 @@ import com.tecdo.mapper.AffiliateMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.Map;
@@ -33,6 +33,11 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     private long timerId;
 
     private Map<String, Affiliate> affiliateMap;
+
+    @Value("${pac.timeout.load.db.default}")
+    private long loadTimeout;
+    @Value("${pac.interval.reload.db.default}")
+    private long reloadInterval;
 
     /**
      * 从 DB 加载 affiliate 集合，每 5 分钟刷新一次缓存
@@ -66,7 +71,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     }
 
     private void startReloadTimeoutTimer(Params params) {
-        timerId = softTimer.startTimer(EventType.AFFILIATES_LOAD_TIMEOUT, params, Constant.TIMEOUT_LOAD_DB_CACHE_GENERAL);
+        timerId = softTimer.startTimer(EventType.AFFILIATES_LOAD_TIMEOUT, params, loadTimeout);
     }
 
     private void cancelReloadTimeoutTimer() {
@@ -74,7 +79,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     }
 
     private void startNextReloadTimer(Params params) {
-        softTimer.startTimer(EventType.AFFILIATES_LOAD, params, Constant.INTERVAL_RELOAD_DB_CACHE);
+        softTimer.startTimer(EventType.AFFILIATES_LOAD, params, reloadInterval);
     }
 
     public void switchState(State state) {
@@ -111,7 +116,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("affiliates load failure from db", e);
-                        messageQueue.putMessage(EventType.AFFILIATES_LOAD_ERROR);
+                        messageQueue.putMessage(EventType.AFFILIATES_LOAD_ERROR, params);
                     }
                 });
                 startReloadTimeoutTimer(params);

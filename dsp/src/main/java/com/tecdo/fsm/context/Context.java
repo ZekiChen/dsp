@@ -1,5 +1,7 @@
 package com.tecdo.fsm.context;
 
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
@@ -28,25 +30,12 @@ import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
-import com.tecdo.util.AdmGenerator;
-import com.tecdo.util.CreativeHelper;
-import com.tecdo.util.JsonHelper;
-import com.tecdo.util.SignHelper;
-import com.tecdo.util.StringConfigUtil;
+import com.tecdo.util.*;
+import lombok.extern.slf4j.Slf4j;
 
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Context {
@@ -63,11 +52,12 @@ public class Context {
 
   private Long requestId;
 
-  private String winUrl = StringConfigUtil.get("win-url");
+  private String winUrl = SpringUtil.getProperty("pac.notice.win-url");
+  private String impUrl = SpringUtil.getProperty("pac.notice.imp-url");
+  private String clickUrl = SpringUtil.getProperty("pac.notice.click-url");
 
-  private String impUrl = StringConfigUtil.get("imp-url");
+  private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
 
-  private String clickUrl = StringConfigUtil.get("click-url");
 
   private Map<String, Task> taskMap = new HashMap<>();
   // taskId,adId,AdDTOWrapper
@@ -273,7 +263,8 @@ public class Context {
     bid.setImpid(wrapper.getImpId());
     bid.setPrice(wrapper.getBidPrice().floatValue());
     String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
-    bid.setNurl(SignHelper.urlAddSign(urlFormat(getWinNoticeUrl()), sign));
+    String winUrl = urlFormat(getWinNoticeUrl()) + AUCTION_PRICE_PARAM;
+    bid.setNurl(SignHelper.urlAddSign(winUrl, sign));
     bid.setAdm(buildAdm(wrapper));
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
@@ -294,7 +285,7 @@ public class Context {
     String adm = null;
     String impTrackUrls = adDTO.getAdGroup().getImpTrackUrls();
     List<String> impTrackList = new ArrayList<>();
-    String systemImpTrack = getSystemImpTrack();
+    String systemImpTrack = getSystemImpTrack() + AUCTION_PRICE_PARAM;
     String sign = SignHelper.digest(wrapper.getBidId(), adDTO.getCampaign().getId().toString());
     impTrackList.add(SignHelper.urlAddSign(systemImpTrack, sign));
     if (impTrackUrls != null) {

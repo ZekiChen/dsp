@@ -1,13 +1,11 @@
 package com.tecdo.fsm.context;
 
 import com.tecdo.common.Params;
-import com.tecdo.constant.Constant;
 import com.tecdo.constant.EventType;
-
-import org.springframework.stereotype.Component;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -15,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 public class WaitForRtaState implements IContextState {
 
   private final WaitForSortState waitForSortState;
-
   private final WaitForRecycleState waiForRecycleState;
+
+  @Value("${pac.timeout.context.bid-price-sort}")
+  private long sortTimeout;
 
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {
@@ -28,7 +28,7 @@ public class WaitForRtaState implements IContextState {
           context.sort();
           context.startTimer(EventType.WAIT_SORT_AD_TIMEOUT,
                              context.assignParams(),
-                             Constant.TEN_MILLIS);
+                             sortTimeout);
           context.switchState(waitForSortState);
         } else {
           context.switchState(waiForRecycleState);
