@@ -111,7 +111,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("affiliates load failure from db", e);
-                        messageQueue.putMessage(EventType.AFFILIATES_LOAD_ERROR);
+                        messageQueue.putMessage(EventType.AFFILIATES_LOAD_ERROR, params);
                     }
                 });
                 startReloadTimeoutTimer(params);

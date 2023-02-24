@@ -133,7 +133,7 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
                         messageQueue.putMessage(EventType.BUDGETS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("budgets load failure from db", e);
-                        messageQueue.putMessage(EventType.BUDGETS_LOAD_ERROR);
+                        messageQueue.putMessage(EventType.BUDGETS_LOAD_ERROR, params);
                     }
                 });
                 startReloadTimeoutTimer(params);

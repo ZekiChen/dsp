@@ -115,7 +115,7 @@ public class AdManager {
                         messageQueue.putMessage(EventType.ADS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("ad list load failure from db", e);
-                        messageQueue.putMessage(EventType.ADS_LOAD_ERROR);
+                        messageQueue.putMessage(EventType.ADS_LOAD_ERROR, params);
                     }
                 });
                 startReloadTimeoutTimer(params);

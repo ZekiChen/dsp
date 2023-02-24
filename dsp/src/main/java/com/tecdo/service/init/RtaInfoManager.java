@@ -111,7 +111,7 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
                         messageQueue.putMessage(EventType.RTA_INFOS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("rta infos load failure from db", e);
-                        messageQueue.putMessage(EventType.RTA_INFOS_LOAD_ERROR);
+                        messageQueue.putMessage(EventType.RTA_INFOS_LOAD_ERROR, params);
                     }
                 });
                 startReloadTimeoutTimer(params);
