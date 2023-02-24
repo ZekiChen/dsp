@@ -49,6 +49,9 @@ dependencies {
     // Lazada
     implementation 'com.lazada:lazop-api-sdk:1.2.0'
 
+    // xxl-job
+    implementation 'com.xuxueli:xxl-job-core:2.3.0';
+
 }
 
 version "${local.version}"
