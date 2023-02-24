@@ -23,7 +23,7 @@ public class CampaignRtaInfo extends BaseEntity {
     /**
      * 广告主 campaign id
      */
-    private Integer advCampaignId;
+    private String advCampaignId;
 
     /**
      * 广告主id
