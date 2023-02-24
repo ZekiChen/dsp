@@ -115,9 +115,10 @@ public class Task {
 
   public void listRecallAd() {
     Params params = assignParams();
+    String impId = imp.getId();
     ThreadPool.getInstance().execute(() -> {
       try {
-        params.put(ParamKey.ADS_RECALL_RESPONSE, doListRecallAd());
+        params.put(ParamKey.ADS_RECALL_RESPONSE, doListRecallAd(impId));
         messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
       } catch (Exception e) {
         log.error(
@@ -132,7 +133,7 @@ public class Task {
   /**
    * 广告召回
    */
-  private Map<Integer, AdDTOWrapper> doListRecallAd() {
+  private Map<Integer, AdDTOWrapper> doListRecallAd(String impId) {
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
     FilterChainHelper.assemble(filters);
 
@@ -148,8 +149,8 @@ public class Task {
       }
       // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
       if (FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate)) {
-        // todo when timeout,imp will set to null,then imp.getId() will cause null point exception
-        resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), taskId, adDTO));
+        // when timeout,imp will set to null,then imp.getId() will cause null point exception
+        resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(impId, taskId, adDTO));
       }
     }
     return resMap;
