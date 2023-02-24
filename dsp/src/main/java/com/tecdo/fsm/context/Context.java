@@ -430,6 +430,6 @@ public class Context {
   }
 
   public void logBidResponse() {
-    ResponseLogger.log(response);
+    ResponseLogger.log(response, bidRequest, affiliate);
   }
 }
