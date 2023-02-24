@@ -28,6 +28,7 @@ import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
@@ -115,10 +116,12 @@ public class Task {
 
   public void listRecallAd() {
     Params params = assignParams();
-    String impId = imp.getId();
+    BidRequest bidRequest = this.bidRequest;
+    Imp imp = this.imp;
+    Affiliate affiliate = this.affiliate;
     ThreadPool.getInstance().execute(() -> {
       try {
-        params.put(ParamKey.ADS_RECALL_RESPONSE, doListRecallAd(impId));
+        params.put(ParamKey.ADS_RECALL_RESPONSE, doListRecallAd(bidRequest, imp, affiliate));
         messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
       } catch (Exception e) {
         log.error(
@@ -133,7 +136,9 @@ public class Task {
   /**
    * 广告召回
    */
-  private Map<Integer, AdDTOWrapper> doListRecallAd(String impId) {
+  private Map<Integer, AdDTOWrapper> doListRecallAd(BidRequest bidRequest,
+                                                    Imp imp,
+                                                    Affiliate affiliate) {
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
     FilterChainHelper.assemble(filters);
 
@@ -150,7 +155,7 @@ public class Task {
       // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
       if (FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate)) {
         // when timeout,imp will set to null,then imp.getId() will cause null point exception
-        resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(impId, taskId, adDTO));
+        resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), taskId, adDTO));
       }
     }
     return resMap;
@@ -169,13 +174,21 @@ public class Task {
 
   public void callCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap) {
     Params params = assignParams();
+    BidRequest bidRequest = this.bidRequest;
+    Imp imp = this.imp;
+    Integer affId = this.affiliate.getId();
     ThreadPool.getInstance().execute(() -> {
       try {
-        HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, affiliate.getId());
+        HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, bidRequest, imp, affId);
         if (httpResult.isSuccessful()) {
           R<List<CtrResponse>> result =
             httpResult.getBody().toBean(new TypeRef<R<List<CtrResponse>>>() {
             });
+          if (result == null || CollectionUtils.isEmpty(result.getData())) {
+            log.error("ctr response unexpected result: {}", result);
+            messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
+            return;
+          }
           for (CtrResponse resp : result.getData()) {
             AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
             wrapper.setPCtr(resp.getPCtr());
@@ -196,14 +209,15 @@ public class Task {
     });
   }
 
-  private HttpResult buildAndCallCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap, Integer affId) {
-    List<CtrRequest> ctrRequests = adDTOMap.values()
-                                           .stream()
-                                           .map(adDTOWrapper -> buildCtrRequest(bidRequest,
-                                                                                imp,
-                                                                                affId,
-                                                                                adDTOWrapper.getAdDTO()))
-                                           .collect(Collectors.toList());
+  private HttpResult buildAndCallCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap,
+                                         BidRequest bidRequest,
+                                         Imp imp,
+                                         Integer affId) {
+    List<CtrRequest> ctrRequests = //
+      adDTOMap.values()
+              .stream()
+              .map(adDTOWrapper -> buildCtrRequest(bidRequest, imp, affId, adDTOWrapper.getAdDTO()))
+              .collect(Collectors.toList());
     Map<String, Object> paramMap =
       MapUtil.<String, Object>builder().put("data", ctrRequests).build();
     return OkHttps.sync(ctrPredictUrl).bodyType(OkHttps.JSON).setBodyPara(paramMap).post();
@@ -247,11 +261,9 @@ public class Task {
   public void calcPrice(Map<Integer, AdDTOWrapper> adDTOMap) {
     Params params = assignParams();
     try {
-      ThreadPool.getInstance().execute(() -> {
-        adDTOMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e)));
-        params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, adDTOMap);
-        messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
-      });
+      adDTOMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e)));
+      params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, adDTOMap);
+      messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
     } catch (Exception e) {
       log.error("calculate cpc cause a exception", e);
       messageQueue.putMessage(EventType.CALC_CPC_ERROR);
