@@ -23,3 +23,9 @@ spring:
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/*.xml
+
+foreign:
+  flat-ads:
+    report-url: http://api.flat-ads.com/api/tracker/reporting/demand_report?id=${foreign.flat-ads.your-id}&apikey=${foreign.flat-ads.apikey}
+    your-id: 2
+    apikey: 2djsdakjeiqnvadi
