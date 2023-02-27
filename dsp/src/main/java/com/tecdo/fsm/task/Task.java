@@ -27,9 +27,9 @@ import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.FieldFormatHelper;
 
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -232,11 +232,13 @@ public class Task {
                      .adFormat(AdTypeEnum.of(adDTO.getAd().getType()).getDesc())
                      .adHeight(adDTO.getCreativeMap().get(creativeId).getHeight())
                      .adWidth(adDTO.getCreativeMap().get(creativeId).getWidth())
-                     .os(osFormat(bidRequest.getDevice().getOs()))
-                     .deviceMake(StringUtils.toRootUpperCase(bidRequest.getDevice().getMake()))
+                     .os(FieldFormatHelper.osFormat(bidRequest.getDevice().getOs()))
+                     .deviceMake(FieldFormatHelper.deviceMakeFormat(bidRequest.getDevice()
+                                                                              .getMake()))
                      .bundle(bidRequest.getApp().getBundle())
                      .country(Optional.ofNullable(bidRequest.getDevice().getGeo())
                                       .map(Geo::getCountry)
+                                      .map(FieldFormatHelper::countryFormat)
                                       .orElse(null))
                      .creativeId(creativeId)
                      .bidFloor(Double.valueOf(imp.getBidfloor()))
@@ -246,16 +248,6 @@ public class Task {
                      .packageName(adDTO.getCampaign().getPackageName())
                      .category(adDTO.getCampaign().getCategory())
                      .build();
-  }
-
-  private String osFormat(String os) {
-    if ("IOS".equalsIgnoreCase(os)) {
-      return "IOS";
-    }
-    if ("Android".equalsIgnoreCase(os)) {
-      return "Android";
-    }
-    return os;
   }
 
   public void calcPrice(Map<Integer, AdDTOWrapper> adDTOMap) {
