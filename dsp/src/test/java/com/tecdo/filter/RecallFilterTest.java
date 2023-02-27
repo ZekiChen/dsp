@@ -200,7 +200,7 @@ public class RecallFilterTest {
         CampaignRtaInfo campaignRtaInfo = new CampaignRtaInfo();
         campaignRtaInfo.setId(1);
         campaignRtaInfo.setCampaignId(1);
-        campaignRtaInfo.setAdvCampaignId(10086);
+        campaignRtaInfo.setAdvCampaignId("10086");
         campaignRtaInfo.setAdvId(10086);
         campaignRtaInfo.setRtaFeature(1);
         campaignRtaInfo.setCreateTime(new Date());

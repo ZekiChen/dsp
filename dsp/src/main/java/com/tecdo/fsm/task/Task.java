@@ -148,6 +148,7 @@ public class Task {
       }
       // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
       if (FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate)) {
+        // todo when timeout,imp will set to null,then imp.getId() will cause null point exception
         resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), taskId, adDTO));
       }
     }
@@ -265,11 +266,10 @@ public class Task {
         bidPrice = adDTO.getAdGroup().getOptPrice();
         break;
       case CPC:
-        // 这里的pctr为百分之几
-        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 10;
+        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
         break;
       default:
-        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 10;
+        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
     }
     return bidPrice;
   }

@@ -33,6 +33,8 @@ import com.tecdo.service.rta.Target;
 import com.tecdo.util.*;
 import lombok.extern.slf4j.Slf4j;
 
+import org.apache.commons.lang3.StringUtils;
+
 import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -340,7 +342,7 @@ public class Context {
     if (url == null) {
       return null;
     }
-    url = url.replace(FormatKey.BID_ID, bidRequest.getId())
+    url = url.replace(FormatKey.BID_ID, response.getBidId())
              .replace(FormatKey.IMP_ID, response.getImpId())
              .replace(FormatKey.CAMPAIGN_ID,
                       String.valueOf(response.getAdDTO().getCampaign().getId()))
@@ -355,8 +357,12 @@ public class Context {
              .replace(FormatKey.COUNTRY, bidRequest.getDevice().getGeo().getCountry())
              .replace(FormatKey.OS, bidRequest.getDevice().getOs())
              .replace(FormatKey.DEVICE_MAKE, encode(bidRequest.getDevice().getMake()))
+             .replace(FormatKey.DEVICE_MODEL, encode(bidRequest.getDevice().getModel()))
              .replace(FormatKey.AD_FORMAT,
-                      AdTypeEnum.of(response.getAdDTO().getAd().getType()).getDesc());
+                      AdTypeEnum.of(response.getAdDTO().getAd().getType()).getDesc())
+             .replace(FormatKey.BUNDLE, encode(bidRequest.getApp().getBundle()))
+             .replace(FormatKey.RTA_TOKEN,
+                      encode(StringUtils.firstNonEmpty(response.getRtaToken(), "")));
     return url;
   }
 
@@ -415,6 +421,6 @@ public class Context {
   }
 
   public void logBidResponse() {
-    ResponseLogger.log(response);
+    ResponseLogger.log(response, bidRequest, affiliate);
   }
 }

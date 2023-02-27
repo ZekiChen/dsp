@@ -14,9 +14,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import cn.hutool.core.date.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -72,6 +74,7 @@ public class NoticeService {
     int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
     int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
     Map<String, Object> map = new HashMap<>();
+    map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
     map.put("bid_id", bidId);
     map.put("campaign_id", campaignId);
     map.put("ad_group_id", adGroupId);
@@ -96,6 +99,7 @@ public class NoticeService {
     int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
     String deviceId = httpRequest.getParamAsStr(RequestKey.DEVICE_ID);
     Map<String, Object> map = new HashMap<>();
+    map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
     map.put("bid_id", bidId);
     map.put("bid_success_price", bidSuccessPrice);
     map.put("ip_from_imp", ipFromImp);
@@ -122,6 +126,7 @@ public class NoticeService {
     String deviceId = httpRequest.getParamAsStr(RequestKey.DEVICE_ID);
     String ipFromClick = httpRequest.getIp();
     Map<String, Object> map = new HashMap<>();
+    map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
     map.put("bid_id", bidId);
     map.put("campaign_id", campaignId);
     map.put("ad_group_id", adGroupId);
@@ -147,6 +152,7 @@ public class NoticeService {
     int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
     int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
     Map<String, Object> map = new HashMap<>();
+    map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
     map.put("bid_id", bidId);
     map.put("campaign_id", campaignId);
     map.put("ad_group_id", adGroupId);

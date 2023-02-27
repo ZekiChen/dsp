@@ -36,8 +36,8 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
     private State currentState = State.INIT;
     private long timerId;
 
-    private Map<String, Double> campaignBudgetMap;
-    private Map<String, Double> adGroupBudgetMap;
+    private Map<String, Double> campaignCostMap;
+    private Map<String, Double> adGroupCostMap;
 
     @Value("${pac.timeout.load.doris.default}")
     private long loadTimeout;
@@ -47,15 +47,15 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
     /**
      * 从 Doris 加载 当天campaign的实时花费 集合，每 5 秒刷新一次缓存
      */
-    public Double getCampaignBudget(String campaignId, Double defaultValue){
-        return campaignBudgetMap.getOrDefault(campaignId, defaultValue);
+    public Double getCampaignCost(String campaignId, Double defaultValue){
+        return campaignCostMap.getOrDefault(campaignId, defaultValue);
     }
 
     /**
      * 从 Doris 加载 当天adGroup的实时花费 集合，每 5 秒刷新一次缓存
      */
-    public Double getAdGroupBudget(String adGroupId, Double defaultValue) {
-        return this.adGroupBudgetMap.getOrDefault(adGroupId, defaultValue);
+    public Double getAdGroupCost(String adGroupId, Double defaultValue) {
+        return this.adGroupCostMap.getOrDefault(adGroupId, defaultValue);
     }
 
     @AllArgsConstructor
@@ -149,13 +149,13 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
 
     private void handleBudgetsResponse(Params params) {
         cancelReloadTimeoutTimer();
-        this.campaignBudgetMap = params.get(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY);
-        this.adGroupBudgetMap = params.get(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY);
+        this.campaignCostMap = params.get(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY);
+        this.adGroupCostMap = params.get(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY);
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
                 log.info("budgets load success, campaign size: {}, ad group size: {}",
-                         campaignBudgetMap.size(),
-                         adGroupBudgetMap.size());
+                         campaignCostMap.size(),
+                         adGroupCostMap.size());
                 messageQueue.putMessage(EventType.ONE_DATA_READY);
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);

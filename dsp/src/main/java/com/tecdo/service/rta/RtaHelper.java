@@ -39,7 +39,7 @@ public class RtaHelper {
     String advAppSecret = rtaInfo.getAppSecret();
 
     // advCampaignId,List<CampaignId>
-    Map<Integer, Set<Integer>> advCampaignId2CampaignIdSet = //
+    Map<String, Set<Integer>> advCampaignId2CampaignIdSet = //
       adList.stream()
             .map(AdDTOWrapper::getAdDTO)
             .map(AdDTO::getCampaignRtaInfo)
@@ -82,7 +82,7 @@ public class RtaHelper {
           }
           String advCampaignId = i.getAdvCampaignId();
           Set<Integer> campaignIdSet =
-            advCampaignId2CampaignIdSet.get(Integer.valueOf(advCampaignId));
+            advCampaignId2CampaignIdSet.get(advCampaignId);
           campaignIdSet.forEach(campaignId -> {
             rtaResMap.put(campaignId, target);
           });
