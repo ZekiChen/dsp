@@ -93,7 +93,7 @@ public class ValidateService {
     if (bidRequest.getDevice() == null) {
       return false;
     }
-    // 没有设备id
+    // 没有设备id或者设备id非法
     if (bidRequest.getDevice().getIfa() == null ||
         Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
       return false;

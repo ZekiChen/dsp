@@ -12,7 +12,6 @@ import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.request.CtrRequest;
 import com.tecdo.domain.biz.response.CtrResponse;
 import com.tecdo.domain.openrtb.request.BidRequest;
-import com.tecdo.domain.openrtb.request.Geo;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
@@ -236,10 +235,9 @@ public class Task {
                      .deviceMake(FieldFormatHelper.deviceMakeFormat(bidRequest.getDevice()
                                                                               .getMake()))
                      .bundle(bidRequest.getApp().getBundle())
-                     .country(Optional.ofNullable(bidRequest.getDevice().getGeo())
-                                      .map(Geo::getCountry)
-                                      .map(FieldFormatHelper::countryFormat)
-                                      .orElse(null))
+                     .country(FieldFormatHelper.countryFormat(bidRequest.getDevice()
+                                                                        .getGeo()
+                                                                        .getCountry()))
                      .creativeId(creativeId)
                      .bidFloor(Double.valueOf(imp.getBidfloor()))
                      .rtaFeature(Optional.ofNullable(adDTO.getCampaignRtaInfo())
