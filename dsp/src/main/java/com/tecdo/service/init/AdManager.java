@@ -1,8 +1,8 @@
 package com.tecdo.service.init;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tecdo.common.thread.ThreadPool;
 import com.tecdo.common.util.Params;
-import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
@@ -30,6 +30,7 @@ public class AdManager {
 
     private final SoftTimer softTimer;
     private final MessageQueue messageQueue;
+    private final ThreadPool threadPool;
 
     private final AdMapper adMapper;
     private final CreativeMapper creativeMapper;
@@ -114,7 +115,7 @@ public class AdManager {
         switch (currentState) {
             case INIT:
             case RUNNING:
-                ThreadPool.getInstance().execute(() -> {
+                threadPool.execute(() -> {
                     try {
                         params.put(ParamKey.ADS_CACHE_KEY, listAndConvertAds());
                         messageQueue.putMessage(EventType.ADS_LOAD_RESPONSE, params);

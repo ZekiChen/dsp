@@ -1,8 +1,8 @@
 package com.tecdo.service.init;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tecdo.common.thread.ThreadPool;
 import com.tecdo.common.util.Params;
-import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
@@ -28,6 +28,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
 
     private final SoftTimer softTimer;
     private final MessageQueue messageQueue;
+    private final ThreadPool threadPool;
 
     private State currentState = State.INIT;
     private long timerId;
@@ -109,7 +110,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         switch (currentState) {
             case INIT:
             case RUNNING:
-                ThreadPool.getInstance().execute(() -> {
+                threadPool.execute(() -> {
                     try {
                         Map<String, Affiliate> affiliateMap = list().stream().collect(Collectors.toMap(Affiliate::getSecret, e -> e));
                         params.put(ParamKey.AFFILIATES_CACHE_KEY, affiliateMap);

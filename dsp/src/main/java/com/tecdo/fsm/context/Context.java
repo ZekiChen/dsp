@@ -2,11 +2,11 @@ package com.tecdo.fsm.context;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.extra.spring.SpringUtil;
+import com.tecdo.common.constant.HttpCode;
+import com.tecdo.common.thread.ThreadPool;
 import com.tecdo.common.util.Params;
-import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.FormatKey;
-import com.tecdo.common.constant.HttpCode;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
@@ -32,7 +32,6 @@ import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
 import com.tecdo.util.*;
 import lombok.extern.slf4j.Slf4j;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
@@ -72,6 +71,8 @@ public class Context {
   private final MessageQueue messageQueue = SpringUtil.getBean(MessageQueue.class);
 
   private final SoftTimer softTimer = SpringUtil.getBean(SoftTimer.class);
+
+  private final ThreadPool threadPool = SpringUtil.getBean(ThreadPool.class);
 
   private final TaskPool taskPool = SpringUtil.getBean(TaskPool.class);
 
@@ -159,7 +160,7 @@ public class Context {
   public void requestRta() {
     Params params = assignParams();
     BidRequest bidRequest = this.bidRequest;
-    ThreadPool.getInstance().execute(() -> {
+    threadPool.execute(() -> {
       try {
         Map<Integer, Target> rtaResMap = doRequestRta(bidRequest);
         messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,

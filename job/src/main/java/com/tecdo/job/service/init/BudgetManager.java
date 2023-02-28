@@ -4,8 +4,8 @@ import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tecdo.common.thread.ThreadPool;
 import com.tecdo.common.util.Params;
-import com.tecdo.job.common.ThreadPool;
 import com.tecdo.job.constant.EventType;
 import com.tecdo.job.constant.ParamKey;
 import com.tecdo.job.controller.MessageQueue;
@@ -32,6 +32,7 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
 
     private final SoftTimer softTimer;
     private final MessageQueue messageQueue;
+    private final ThreadPool threadPool;
 
     private State currentState = State.INIT;
     private long timerId;
@@ -117,7 +118,7 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
         switch (currentState) {
             case INIT:
             case RUNNING:
-                ThreadPool.getInstance().execute(() -> {
+                threadPool.execute(() -> {
                     try {
                         String today = DateUtil.today();
                         LambdaQueryWrapper<AdGroupCost> wrapper = Wrappers.<AdGroupCost>lambdaQuery()

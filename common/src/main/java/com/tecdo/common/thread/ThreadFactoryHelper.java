@@ -1,4 +1,4 @@
-package com.tecdo.common;
+package com.tecdo.common.thread;
 
 import java.util.concurrent.ThreadFactory;
 import java.util.concurrent.atomic.AtomicInteger;
