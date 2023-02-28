@@ -158,9 +158,10 @@ public class Context {
 
   public void requestRta() {
     Params params = assignParams();
+    BidRequest bidRequest = this.bidRequest;
     ThreadPool.getInstance().execute(() -> {
       try {
-        Map<Integer, Target> rtaResMap = doRequestRta();
+        Map<Integer, Target> rtaResMap = doRequestRta(bidRequest);
         messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
                                 params.put(ParamKey.REQUEST_RTA_RESPONSE, rtaResMap));
       } catch (Exception e) {
@@ -170,7 +171,7 @@ public class Context {
     log.info("contextId:{},request rta", requestId);
   }
 
-  private Map<Integer, Target> doRequestRta() {
+  private Map<Integer, Target> doRequestRta(BidRequest bidRequest) {
     // 协议中的是国家三字码，需要转为对应的二字码
     String country = bidRequest.getDevice().getGeo().getCountry();
     String countryCode = StringConfigUtil.getCountryCode(country);
