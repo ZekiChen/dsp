@@ -304,7 +304,7 @@ public class Context {
       String[] split = impTrackUrls.split(",");
       impTrackList.addAll(Arrays.asList(split));
     }
-    impTrackList = impTrackList.stream().map(this::urlFormat).collect(Collectors.toList());
+    impTrackList = impTrackList.stream().map(i -> urlFormat(i, sign)).collect(Collectors.toList());
 
     String clickTrackUrls = adDTO.getAdGroup().getClickTrackUrls();
     List<String> clickTrackList = new ArrayList<>();
@@ -314,12 +314,13 @@ public class Context {
       String[] split = clickTrackUrls.split(",");
       clickTrackList.addAll(Arrays.asList(split));
     }
-    clickTrackList = clickTrackList.stream().map(this::urlFormat).collect(Collectors.toList());
+    clickTrackList =
+      clickTrackList.stream().map(i -> urlFormat(i, sign)).collect(Collectors.toList());
 
 
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
-      adm = AdmGenerator.bannerAdm(urlFormat(adDTO.getAdGroup().getClickUrl()),
-                                   urlFormat(adDTO.getAdGroup().getDeeplink()),
+      adm = AdmGenerator.bannerAdm(urlFormat(adDTO.getAdGroup().getClickUrl(), sign),
+                                   urlFormat(adDTO.getAdGroup().getDeeplink(), sign),
                                    adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
                                    impTrackList,
                                    clickTrackList);
@@ -333,8 +334,8 @@ public class Context {
       NativeResponse nativeResponse = //
         AdmGenerator.nativeAdm(imp.getNative1().getNativeRequest(),
                                adDTO,
-                               urlFormat(adDTO.getAdGroup().getClickUrl()),
-                               urlFormat(adDTO.getAdGroup().getDeeplink()),
+                               urlFormat(adDTO.getAdGroup().getClickUrl(), sign),
+                               urlFormat(adDTO.getAdGroup().getDeeplink(), sign),
                                impTrackList,
                                clickTrackList);
       if ("1.0".equalsIgnoreCase(nativeResponse.getVer())) {
@@ -346,6 +347,17 @@ public class Context {
       }
     }
     return adm;
+  }
+
+  private String urlFormat(String url, String sign) {
+    if (url == null) {
+      return null;
+    }
+    if (sign != null) {
+      url = url.replace(FormatKey.SIGN, sign);
+    }
+    url = urlFormat(url);
+    return url;
   }
 
   private String urlFormat(String url) {
