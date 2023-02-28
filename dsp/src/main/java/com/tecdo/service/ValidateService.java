@@ -67,7 +67,7 @@ public class ValidateService {
     BidRequest bidRequest = protoTransform.requestTransform(httpRequest.getBody());
     if (bidRequest == null || !validateBidRequest(bidRequest)) {
       messageQueue.putMessage(EventType.RESPONSE_RESULT,
-              Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
+              Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
                       .put(ParamKey.CHANNEL_CONTEXT,
                               httpRequest.getChannelContext()));
       return;
