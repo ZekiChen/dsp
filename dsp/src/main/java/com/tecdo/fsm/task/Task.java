@@ -124,7 +124,7 @@ public class Task {
         messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
       } catch (Exception e) {
         log.error(
-          "list recall ad error, task id: {}, so this request will not participate in bidding",
+          "taskId: {},list recall ad error,  so this request will not participate in bidding",
           taskId,
           e);
         messageQueue.putMessage(EventType.ADS_RECALL_ERROR, params);
@@ -184,7 +184,7 @@ public class Task {
             httpResult.getBody().toBean(new TypeRef<R<List<CtrResponse>>>() {
             });
           if (result == null || CollectionUtils.isEmpty(result.getData())) {
-            log.error("ctr response unexpected result: {}", result);
+            log.error("taskId: {},ctr response unexpected result: {}", taskId, result);
             messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
             return;
           }
@@ -196,13 +196,14 @@ public class Task {
           params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
           messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
         } else {
-          log.error("ctr request status: {}, error:",
+          log.error("taskId: {},ctr request status: {}, error:",
+                    taskId,
                     httpResult.getStatus(),
                     httpResult.getError());
           messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
         }
       } catch (Exception e) {
-        log.error("ctr request cause a exception,taskId:{}", taskId, e);
+        log.error("taskId: {},ctr request cause a exception", taskId, e);
         messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
       }
     });
@@ -255,7 +256,7 @@ public class Task {
       params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, adDTOMap);
       messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
     } catch (Exception e) {
-      log.error("calculate cpc cause a exception", e);
+      log.error("taskId: {},calculate cpc cause a exception", taskId, e);
       messageQueue.putMessage(EventType.CALC_CPC_ERROR);
     }
   }
