@@ -19,6 +19,11 @@ ext.global = [
         build_time         : new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone("UTC")),
 ]
 
+ext {
+    jLibProjects = Arrays.asList(project(":common")).toSet()
+    bootProjects = subprojects - jLibProjects
+}
+
 allprojects {
     buildDir = new File(global.root_dir, "out/${project.name}")
 
@@ -51,6 +56,7 @@ allprojects {
 
             // Util
             dependency 'cn.hutool:hutool-all:5.8.10'
+            dependency 'com.google.http-client:google-http-client:1.42.2'
 
             // OkHttp3-FastJson2
             dependency 'com.squareup.okio:okio:2.8.0'
@@ -72,7 +78,6 @@ allprojects {
             dependency 'org.codehaus.plexus:plexus-classworlds:2.5.1'
             dependency 'org.codehaus.plexus:plexus-utils:3.0.24'
             dependency 'org.codehaus.plexus:plexus-container-default:1.6'
-            dependency 'com.google.http-client:google-http-client:1.42.2'
 
             // xxl-job
             dependency 'com.xuxueli:xxl-job-core:2.3.0'
@@ -93,7 +98,6 @@ subprojects {
 
     apply plugin: 'java-library'
     apply plugin: 'io.freefair.lombok'
-    apply plugin: 'org.springframework.boot'
 
     configurations {
         compileOnly {
@@ -115,7 +119,18 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-log4j2'
         implementation libraries.disruptor
         annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+    }
 
+    test {
+        enabled true
+        useJUnitPlatform()
+    }
+}
+
+configure(bootProjects) { project ->
+    apply plugin: 'org.springframework.boot'
+
+    dependencies {
         // Apollo
         implementation 'com.ctrip.framework.apollo:apollo-client'
 
@@ -126,14 +141,7 @@ subprojects {
         implementation('org.codehaus.plexus:plexus-container-default') {
             exclude group: 'com.google.collections', module: 'google-collections'
         }
-        implementation 'com.google.http-client:google-http-client'
 
-        // Test
         testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    }
-
-    test {
-        enabled true
-        useJUnitPlatform()
     }
 }
