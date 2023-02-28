@@ -34,6 +34,8 @@ public class ConditionHelper {
      */
     public static boolean compare(String source, String operation, String target) {
         // 判空在上层已经校验过，调用该方法不会为空，否则就是预期意外的异常
+        // todo task的 listLegalCondition 方法会把 attribute，operation，value任一为空的filter过滤掉
+        //  但是会导致想过滤掉空字符串的filter不生效，需要将value设置为不为空的无意义的值
         if (StrUtil.hasBlank(source, operation, target)) {
             throw new IllegalArgumentException("source/operation/value must not be blank");
         }
