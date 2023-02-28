@@ -1,0 +1,19 @@
+dependencies {
+
+    compileOnly 'net.dreamlu:mica-auto'
+    annotationProcessor 'net.dreamlu:mica-auto'
+
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    api libraries.guava
+    api libraries.common_lang3
+    api libraries.common_collections
+
+    api libraries.fastjson
+    api libraries.jackson_core
+    api libraries.jackson_databinding
+
+    api 'com.squareup.okio:okio'
+    api 'cn.zhxu:okhttps-fastjson2'
+
+}

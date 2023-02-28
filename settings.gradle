@@ -1,3 +1,6 @@
 rootProject.name = 'dsp'
 
+include 'common'
 include 'dsp'
+include 'job'
+

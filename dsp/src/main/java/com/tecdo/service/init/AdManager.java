@@ -1,7 +1,7 @@
 package com.tecdo.service.init;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tecdo.common.Params;
+import com.tecdo.common.util.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;

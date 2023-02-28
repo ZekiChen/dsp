@@ -1,0 +1,28 @@
+dependencies {
+
+    implementation project(':common')
+
+    implementation libraries.netty
+    
+    implementation 'cn.hutool:hutool-all'
+
+    implementation 'com.xuxueli:xxl-job-core'
+
+    implementation 'com.alibaba:druid-spring-boot-starter'
+    implementation 'mysql:mysql-connector-java'
+    implementation 'com.baomidou:mybatis-plus-boot-starter'
+    implementation 'com.baomidou:dynamic-datasource-spring-boot-starter'
+}
+
+version "${local.version}"
+
+publishing {
+    publications {
+        DspAws(MavenPublication) {
+            groupId 'emp'
+            artifactId 'dsp'
+            artifact source: "${buildDir}/libs/${artifactId}-${version}.jar"
+            ext.repo = 'Aws'
+        }
+    }
+}

@@ -2,7 +2,7 @@ package com.tecdo.util;
 
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
-import com.tecdo.constant.Constant;
+import com.tecdo.common.constant.Constant;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.exception.ServiceException;
 

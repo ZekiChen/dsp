@@ -2,11 +2,11 @@ package com.tecdo.fsm.context;
 
 import cn.hutool.core.util.IdUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import com.tecdo.common.Params;
+import com.tecdo.common.util.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.FormatKey;
-import com.tecdo.constant.HttpCode;
+import com.tecdo.common.constant.HttpCode;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;

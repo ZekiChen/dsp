@@ -1,59 +1,19 @@
-apply plugin: "io.freefair.lombok"
-apply plugin: 'org.springframework.boot'
-apply plugin: 'io.spring.dependency-management'
-apply from: "${rootDir}/build/dist.gradle"
-
 dependencies {
 
-    // SpringBoot
-    implementation 'org.springframework.boot:spring-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-log4j2'
-    implementation libraries.disruptor
-    annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-    testImplementation 'org.springframework.boot:spring-boot-starter-test'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    implementation project(':common')
 
     implementation libraries.netty
 
-    implementation 'cn.hutool:hutool-all:5.8.10'
-    implementation libraries.guava
-    implementation libraries.common_lang3
-    implementation libraries.common_collections
+    implementation 'cn.hutool:hutool-all'
 
-    implementation libraries.fastjson
-    implementation libraries.jackson_core
-    implementation libraries.jackson_databinding
+    implementation 'com.alibaba:druid-spring-boot-starter'
+    implementation 'mysql:mysql-connector-java'
+    implementation 'com.baomidou:mybatis-plus-boot-starter'
+    implementation 'com.baomidou:dynamic-datasource-spring-boot-starter'
 
-    // OkHttp3-FastJson2
-    implementation 'com.squareup.okio:okio:2.8.0'
-    implementation 'cn.zhxu:okhttps-fastjson2:4.0.0'
+    implementation 'com.lazada:lazop-api-sdk'
 
-    // MySQL
-    implementation 'com.alibaba:druid-spring-boot-starter:1.2.8'
-    implementation 'mysql:mysql-connector-java:8.0.22'
-    implementation 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
-    implementation 'com.baomidou:dynamic-datasource-spring-boot-starter:3.5.1'
-
-    // Apollo
-    implementation 'com.ctrip.framework.apollo:apollo-client:1.9.1'
-
-    // CAT
-    implementation "com.dianping.cat:cat-client:3.1.0"
-    implementation 'org.codehaus.plexus:plexus-classworlds:2.5.1'
-    implementation 'org.codehaus.plexus:plexus-utils:3.0.24'
-    implementation('org.codehaus.plexus:plexus-container-default:1.6') {
-        exclude group: 'com.google.collections', module: 'google-collections'
-    }
-    implementation 'com.google.http-client:google-http-client:1.42.2'
-
-    // Lazada
-    implementation 'com.lazada:lazop-api-sdk:1.2.0'
-
-    // xxl-job
-    implementation 'com.xuxueli:xxl-job-core:2.3.0'
 }
-
-version "${local.version}"
 
 publishing {
     publications {

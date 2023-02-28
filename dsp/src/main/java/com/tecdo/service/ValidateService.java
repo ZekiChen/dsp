@@ -1,11 +1,11 @@
 package com.tecdo.service;
 
-import com.tecdo.common.Params;
-import com.tecdo.constant.Constant;
-import com.tecdo.constant.EventType;
-import com.tecdo.constant.HttpCode;
-import com.tecdo.constant.ParamKey;
-import com.tecdo.constant.RequestKey;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import com.tecdo.common.constant.Constant;
+import com.tecdo.common.constant.HttpCode;
+import com.tecdo.common.util.Params;
+import com.tecdo.constant.*;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -15,17 +15,13 @@ import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.SignHelper;
-
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
-
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor
@@ -54,7 +50,7 @@ public class ValidateService {
 
     if (affiliate == null) {
       messageQueue.putMessage(EventType.RESPONSE_RESULT,
-              Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_FOUND)
+              Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
                       .put(ParamKey.CHANNEL_CONTEXT,
                               httpRequest.getChannelContext()));
       return;
