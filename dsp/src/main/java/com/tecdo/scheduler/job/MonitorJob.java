@@ -4,9 +4,9 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DatePattern;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.NumberUtil;
 import cn.zhxu.okhttps.HttpResult;
 import cn.zhxu.okhttps.OkHttps;
-import com.alibaba.fastjson2.JSON;
 import com.tecdo.domain.foreign.flatads.FlatAdsReportVO;
 import com.tecdo.domain.foreign.flatads.FlatAdsResponse;
 import com.tecdo.service.init.BudgetManager;
@@ -33,7 +33,7 @@ import java.util.Map;
 public class MonitorJob {
 
     // DSP监控告警通知群
-    private final static String SECRET = "1b914817-45ab-4b7d-9bec-92bc6408a69f";
+    private final static String MONITOR_GROUP = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1b914817-45ab-4b7d-9bec-92bc6408a69f";
 
     @Value("${foreign.flat-ads.report-url}")
     private String flatAdsReportUrl;
@@ -59,42 +59,67 @@ public class MonitorJob {
             conditionMap.put("dt_from", today);
             conditionMap.put("dt_to", today);
             Map<String, Object> paramMap = MapUtil.newHashMap();
-            paramMap.put("condition", JSON.toJSONString(conditionMap));
-            HttpResult result = OkHttps.sync(flatAdsReportUrl).addBodyPara(paramMap).post();
+            paramMap.put("condition", conditionMap);
+            HttpResult result = OkHttps.sync(flatAdsReportUrl).bodyType(OkHttps.JSON).addBodyPara(paramMap).post();
             if (result.isSuccessful()) {
                 FlatAdsResponse response = result.getBody().toBean(FlatAdsResponse.class);
                 List<FlatAdsReportVO> reportVOs = response.getData();
                 if (CollUtil.isEmpty(reportVOs)) {
-                    log.error("call FlatAds report error, data is empty");
+                    logError("call FlatAds report error, data is empty");
                     return;
                 }
                 FlatAdsReportVO reportVO = reportVOs.get(0);
                 Double revenue = reportVO.getGrossRevenue();
-                // TODO  获取 FlatAds 对应的 campaignId
-                String campaignId = "";
-                Double campaignCost = budgetManager.getCampaignCost(campaignId, 0D);
+                if (revenue == null) {
+                    logError("call FlatAds report error, revenue is null");
+                    return;
+                }
+                String revenue2Decimal = NumberUtil.round(revenue, 2).toString();
+
+                Double campaignCost = doGetDailyCostFlatAds();
 
                 String msg = "DSP渠道花费监控\n"
                         + "渠道：FlatAds\n"
-                        + "渠道花费：" + revenue + "\n"
+                        + "渠道花费：" + revenue2Decimal + "\n"
                         + "DSP预算：100$\n"
                         + "DSP花费：" + campaignCost;
 
-                WeChatRobotUtils.sendTextMsg(SECRET, msg);
+                WeChatRobotUtils.sendTextMsg(MONITOR_GROUP, msg);
             } else {
-                log.error("call FlatAds report error, status: {}", result.getStatus());
-                WeChatRobotUtils.sendTextMsg(SECRET, "call FlatAds report url error, status: " + result.getStatus());
+                logError("call FlatAds report error, status: " + result.getStatus(), true);
             }
         } catch (Exception e) {
             log.error("job execute error", e);
         }
     }
 
+    // 目前 flatAds 对应的 campaignId 为 3～15，暂时先写死
+    private Double doGetDailyCostFlatAds() {
+        Double sum = 0d;
+        for (int campaignId = 3; campaignId <= 15; campaignId++) {
+            sum += budgetManager.getCampaignCost(String.valueOf(campaignId), 0d);
+        }
+        return sum;
+    }
+
     /**
-     * 超预算报警：当满足以下条件，立即触发电话告警，通知以下联系人
-     *
-     * a. 条件：渠道花费>2倍DSP预算  或  DSP花费>2倍DSP预算
-     * b. 告警通知对象：Eric、Zeki、Dawin
+     * 超预算报警：当满足 渠道花费/DSP花费 > DSP预算 条件时，立即触发电话告警通知 Eric、Zeki、Dawin
      */
 
+
+    private static void logError(String msg) {
+        logError(msg, false);
+    }
+
+    private static void logError(String msg, boolean send2Wechat) {
+        log.error(msg);
+        XxlJobHelper.handleFail(msg);
+        if (send2Wechat) {
+            try {
+                WeChatRobotUtils.sendTextMsg(MONITOR_GROUP, msg);
+            } catch (Exception e) {
+                logError(msg);
+            }
+        }
+    }
 }

@@ -46,7 +46,7 @@ public class PacApplication {
         Properties props = System.getProperties();
         props.setProperty("spring.profiles.active", activeProfile);
         props.setProperty("env", activeProfile);  // Apollo
-        props.setProperty("xxl.job.executor.appname", appName);
+        props.setProperty("xxl.job.executor.appname", appName + "-service");  // 有长度要求
 
         return builder;
     }
