@@ -18,7 +18,7 @@ public class R<T> implements Serializable {
     private static final long serialVersionUID = 6909760180903328409L;
 
     private int code;
-    private String msg;
+    private String message;
     private T data;
     private String version;
 
@@ -26,21 +26,21 @@ public class R<T> implements Serializable {
         this(rCode, rCode.getMessage(), null);
     }
 
-    private R(RCode rCode, String msg) {
-        this(rCode, msg, null);
+    private R(RCode rCode, String message) {
+        this(rCode, message, null);
     }
 
     private R(RCode rCode, T data) {
         this(rCode, rCode.getMessage(), data);
     }
 
-    private R(RCode rCode, String msg, T data) {
-        this(rCode.getCode(), msg, data);
+    private R(RCode rCode, String message, T data) {
+        this(rCode.getCode(), message, data);
     }
 
-    private R(int code, String msg, T data) {
+    private R(int code, String message, T data) {
         this.code = code;
-        this.msg = msg;
+        this.message = message;
         this.data = data;
     }
 
