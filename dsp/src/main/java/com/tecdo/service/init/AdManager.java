@@ -1,6 +1,7 @@
 package com.tecdo.service.init;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
+import com.tecdo.common.domain.entity.IdEntity;
 import com.tecdo.common.thread.ThreadPool;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
@@ -9,7 +10,6 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.entity.*;
-import com.tecdo.entity.base.IdEntity;
 import com.tecdo.mapper.*;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
