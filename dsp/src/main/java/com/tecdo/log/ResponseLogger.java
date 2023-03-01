@@ -10,6 +10,7 @@ import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.FieldFormatHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -71,11 +72,15 @@ public class ResponseLogger {
                       .adWidth(bidCreative.getWidth())
                       .adHeight(bidCreative.getHeight())
                       .os(bidRequest.getDevice().getOs())
-                      .deviceMake(bidRequest.getDevice().getMake())
+                      .deviceMake(FieldFormatHelper.deviceMakeFormat(bidRequest.getDevice()
+                                                                               .getMake()))
                       .bundleId(bidRequest.getApp().getBundle())
-                      .country(bidRequest.getDevice().getGeo().getCountry())
+                      .country(FieldFormatHelper.countryFormat(bidRequest.getDevice()
+                                                                         .getGeo()
+                                                                         .getCountry()))
                       .connectionType(bidRequest.getDevice().getConnectiontype())
-                      .deviceModel(bidRequest.getDevice().getModel())
+                      .deviceModel(FieldFormatHelper.deviceModelFormat(bidRequest.getDevice()
+                                                                                 .getModel()))
                       .osv(bidRequest.getDevice().getOsv())
                       .carrier(bidRequest.getDevice().getCarrier())
                       .pos(bidCreative.getPos())
@@ -85,7 +90,7 @@ public class ResponseLogger {
                       .ip(Optional.ofNullable(bidRequest.getDevice().getIp())
                                   .orElse(bidRequest.getDevice().getIpv6()))
                       .ua(bidRequest.getDevice().getUa())
-                      .lang(bidRequest.getDevice().getLanguage())
+                      .lang(FieldFormatHelper.languageFormat(bidRequest.getDevice().getLanguage()))
                       .deviceId(bidRequest.getDevice().getIfa())
                       .bidFloor(imp.getBidfloor().doubleValue())
                       .build();

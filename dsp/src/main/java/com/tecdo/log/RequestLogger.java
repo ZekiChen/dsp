@@ -1,6 +1,5 @@
 package com.tecdo.log;
 
-import cn.hutool.core.date.DateUtil;
 import com.alibaba.fastjson2.JSON;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.log.RequestLog;
@@ -9,11 +8,15 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.FieldFormatHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Optional;
+
+import cn.hutool.core.date.DateUtil;
 
 /**
  * 构建 RequestLog 并持久化至本地文件中
@@ -45,12 +48,16 @@ public class RequestLogger {
                                        .orElse(null))
                      .adWidth(bidCreative.getWidth())
                      .adHeight(bidCreative.getHeight())
-                     .os(bidRequest.getDevice().getOs())
-                     .deviceMake(bidRequest.getDevice().getMake())
+                     .os(FieldFormatHelper.osFormat(bidRequest.getDevice().getOs()))
+                     .deviceMake(FieldFormatHelper.deviceMakeFormat(bidRequest.getDevice()
+                                                                              .getMake()))
                      .bundleId(bidRequest.getApp().getBundle())
-                     .country(bidRequest.getDevice().getGeo().getCountry())
+                     .country(FieldFormatHelper.countryFormat(bidRequest.getDevice()
+                                                                        .getGeo()
+                                                                        .getCountry()))
                      .connectionType(bidRequest.getDevice().getConnectiontype())
-                     .deviceModel(bidRequest.getDevice().getModel())
+                     .deviceModel(FieldFormatHelper.deviceModelFormat(bidRequest.getDevice()
+                                                                                .getModel()))
                      .osv(bidRequest.getDevice().getOsv())
                      .carrier(bidRequest.getDevice().getCarrier())
                      .pos(bidCreative.getPos())
@@ -60,7 +67,7 @@ public class RequestLogger {
                      .ip(Optional.ofNullable(bidRequest.getDevice().getIp())
                                  .orElse(bidRequest.getDevice().getIpv6()))
                      .ua(bidRequest.getDevice().getUa())
-                     .lang(bidRequest.getDevice().getLanguage())
+                     .lang(FieldFormatHelper.languageFormat(bidRequest.getDevice().getLanguage()))
                      .deviceId(bidRequest.getDevice().getIfa())
                      .bidFloor(imp.getBidfloor().doubleValue())
                      .build();

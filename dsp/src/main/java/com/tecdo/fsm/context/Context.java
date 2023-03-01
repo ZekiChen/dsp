@@ -114,7 +114,7 @@ public class Context {
       taskMap.put(taskId, task);
       RequestLogger.log(taskId, imp, bidRequest, affiliate);
       messageQueue.putMessage(EventType.TASK_START, assignParams().put(ParamKey.TASK_ID, taskId));
-      log.info("receive bid request:{},requestId:{},taskId:{}",
+      log.info("receive bid request: {},requestId: {},taskId: {}",
                bidRequest.getId(),
                requestId,
                taskId);
@@ -127,7 +127,7 @@ public class Context {
     if (task != null) {
       task.handleEvent(eventType, params);
     } else {
-      log.error("requestId:{},can't find task for taskId:{}", requestId, taskId);
+      log.error("contextId: {},can't find task for taskId: {}", requestId, taskId);
     }
   }
 
@@ -135,7 +135,7 @@ public class Context {
     String taskId = params.get(ParamKey.TASK_ID);
     Map<Integer, AdDTOWrapper> adDTOWrapperMap = params.get(ParamKey.ADS_TASK_RESPONSE);
     taskResponse.put(taskId, adDTOWrapperMap);
-    log.info("receive ad from task,contextId:{},taskId:{},size:{}",
+    log.info("receive ad from task,contextId: {},taskId: {},size:{}",
              requestId,
              taskId,
              adDTOWrapperMap.size());
@@ -169,7 +169,7 @@ public class Context {
         messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
       }
     });
-    log.info("contextId:{},request rta", requestId);
+    log.info("contextId: {},request rta", requestId);
   }
 
   private Map<Integer, Target> doRequestRta(BidRequest bidRequest) {
@@ -214,7 +214,7 @@ public class Context {
                                                  .filter(i -> i.getAdDTO().getCampaignRtaInfo() ==
                                                               null || i.getRtaToken() != null)
                                                  .collect(Collectors.toList());
-    log.info("contextId:{},after rta filter,size:{}", requestId, adDTOWrapperList.size());
+    log.info("contextId: {},after rta filter,size:{}", requestId, adDTOWrapperList.size());
   }
 
   public void sort() {
@@ -234,7 +234,7 @@ public class Context {
   public void saveSortAdResponse(Params params) {
     AdDTOWrapper adDTOWrapper = params.get(ParamKey.SORT_AD_RESPONSE);
     this.response = adDTOWrapper;
-    log.info("contextId:{},after sort response,adId:{}",
+    log.info("contextId: {},after sort response,adId:{}",
              requestId,
              response.getAdDTO().getAd().getId());
   }
@@ -248,7 +248,7 @@ public class Context {
     } else {
       BidResponse bidResponse = buildResponse(this.response);
       String bidResponseString = JsonHelper.toJSONString(bidResponse);
-      log.info("contextId:{}, bid response is:{}", requestId, bidResponseString);
+      log.info("contextId: {}, bid response is:{}", requestId, bidResponseString);
       params.put(ParamKey.RESPONSE_BODY, bidResponseString);
       params.put(ParamKey.HTTP_CODE, HttpCode.OK);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
@@ -296,7 +296,7 @@ public class Context {
       String[] split = impTrackUrls.split(",");
       impTrackList.addAll(Arrays.asList(split));
     }
-    impTrackList = impTrackList.stream().map(this::urlFormat).collect(Collectors.toList());
+    impTrackList = impTrackList.stream().map(i -> urlFormat(i, sign)).collect(Collectors.toList());
 
     String clickTrackUrls = adDTO.getAdGroup().getClickTrackUrls();
     List<String> clickTrackList = new ArrayList<>();
@@ -306,12 +306,13 @@ public class Context {
       String[] split = clickTrackUrls.split(",");
       clickTrackList.addAll(Arrays.asList(split));
     }
-    clickTrackList = clickTrackList.stream().map(this::urlFormat).collect(Collectors.toList());
+    clickTrackList =
+      clickTrackList.stream().map(i -> urlFormat(i, sign)).collect(Collectors.toList());
 
 
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
-      adm = AdmGenerator.bannerAdm(urlFormat(adDTO.getAdGroup().getClickUrl()),
-                                   urlFormat(adDTO.getAdGroup().getDeeplink()),
+      adm = AdmGenerator.bannerAdm(urlFormat(adDTO.getAdGroup().getClickUrl(), sign),
+                                   urlFormat(adDTO.getAdGroup().getDeeplink(), sign),
                                    adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
                                    impTrackList,
                                    clickTrackList);
@@ -325,8 +326,8 @@ public class Context {
       NativeResponse nativeResponse = //
         AdmGenerator.nativeAdm(imp.getNative1().getNativeRequest(),
                                adDTO,
-                               urlFormat(adDTO.getAdGroup().getClickUrl()),
-                               urlFormat(adDTO.getAdGroup().getDeeplink()),
+                               urlFormat(adDTO.getAdGroup().getClickUrl(), sign),
+                               urlFormat(adDTO.getAdGroup().getDeeplink(), sign),
                                impTrackList,
                                clickTrackList);
       if ("1.0".equalsIgnoreCase(nativeResponse.getVer())) {
@@ -338,6 +339,17 @@ public class Context {
       }
     }
     return adm;
+  }
+
+  private String urlFormat(String url, String sign) {
+    if (url == null) {
+      return null;
+    }
+    if (sign != null) {
+      url = url.replace(FormatKey.SIGN, sign);
+    }
+    url = urlFormat(url);
+    return url;
   }
 
   private String urlFormat(String url) {
@@ -417,7 +429,7 @@ public class Context {
     if (eventTimerMap.containsKey(eventType)) {
       softTimer.cancel(eventTimerMap.get(eventType));
     } else {
-      log.warn("contextId:{},not exist this timer：{}", requestId, eventType);
+      log.warn("contextId: {},not exist this timer：{}", requestId, eventType);
     }
 
   }

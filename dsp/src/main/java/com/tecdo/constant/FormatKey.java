@@ -18,6 +18,7 @@ public interface FormatKey {
   String AD_FORMAT = "{AD_FORMAT}";
   String BUNDLE = "{BUNDLE}";
   String RTA_TOKEN = "{RTA_TOKEN}";
+  String SIGN = "{SIGN}";
 
   String CLICK_URL = "{CLICK_URL}";
   String IMG_URL = "{IMG_URL}";

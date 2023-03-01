@@ -95,10 +95,17 @@ public class ValidateService {
     if (bidRequest.getDevice() == null) {
       return false;
     }
+    // 没有设备id或者设备id非法
     if (bidRequest.getDevice().getIfa() == null ||
         Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
       return false;
     }
+    // 没有国家信息
+    if (bidRequest.getDevice().getGeo() == null ||
+        bidRequest.getDevice().getGeo().getCountry() == null) {
+      return false;
+    }
+    // 没有bundle信息
     if (StringUtils.isEmpty(bidRequest.getApp().getBundle())) {
       return false;
     }

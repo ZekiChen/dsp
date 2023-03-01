@@ -20,7 +20,6 @@ import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.request.CtrRequest;
 import com.tecdo.domain.biz.response.CtrResponse;
 import com.tecdo.domain.openrtb.request.BidRequest;
-import com.tecdo.domain.openrtb.request.Geo;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
@@ -35,10 +34,11 @@ import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.FieldFormatHelper;
+
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.StringUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -124,7 +124,7 @@ public class Task {
         messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
       } catch (Exception e) {
         log.error(
-          "list recall ad error, task id: {}, so this request will not participate in bidding",
+          "taskId: {},list recall ad error,  so this request will not participate in bidding",
           taskId,
           e);
         messageQueue.putMessage(EventType.ADS_RECALL_ERROR, params);
@@ -184,7 +184,7 @@ public class Task {
             httpResult.getBody().toBean(new TypeRef<R<List<CtrResponse>>>() {
             });
           if (result == null || CollectionUtils.isEmpty(result.getData())) {
-            log.error("ctr response unexpected result: {}", result);
+            log.error("taskId: {},ctr response unexpected result: {}", taskId, result);
             messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
             return;
           }
@@ -196,13 +196,14 @@ public class Task {
           params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
           messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
         } else {
-          log.error("ctr request status: {}, error:",
+          log.error("taskId: {},ctr request status: {}, error:",
+                    taskId,
                     httpResult.getStatus(),
                     httpResult.getError());
           messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
         }
       } catch (Exception e) {
-        log.error("ctr request cause a exception,taskId:{}", taskId, e);
+        log.error("taskId: {},ctr request cause a exception", taskId, e);
         messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
       }
     });
@@ -231,12 +232,13 @@ public class Task {
                      .adFormat(AdTypeEnum.of(adDTO.getAd().getType()).getDesc())
                      .adHeight(adDTO.getCreativeMap().get(creativeId).getHeight())
                      .adWidth(adDTO.getCreativeMap().get(creativeId).getWidth())
-                     .os(osFormat(bidRequest.getDevice().getOs()))
-                     .deviceMake(StringUtils.toRootUpperCase(bidRequest.getDevice().getMake()))
+                     .os(FieldFormatHelper.osFormat(bidRequest.getDevice().getOs()))
+                     .deviceMake(FieldFormatHelper.deviceMakeFormat(bidRequest.getDevice()
+                                                                              .getMake()))
                      .bundle(bidRequest.getApp().getBundle())
-                     .country(Optional.ofNullable(bidRequest.getDevice().getGeo())
-                                      .map(Geo::getCountry)
-                                      .orElse(null))
+                     .country(FieldFormatHelper.countryFormat(bidRequest.getDevice()
+                                                                        .getGeo()
+                                                                        .getCountry()))
                      .creativeId(creativeId)
                      .bidFloor(Double.valueOf(imp.getBidfloor()))
                      .rtaFeature(Optional.ofNullable(adDTO.getCampaignRtaInfo())
@@ -247,16 +249,6 @@ public class Task {
                      .build();
   }
 
-  private String osFormat(String os) {
-    if ("IOS".equalsIgnoreCase(os)) {
-      return "IOS";
-    }
-    if ("Android".equalsIgnoreCase(os)) {
-      return "Android";
-    }
-    return os;
-  }
-
   public void calcPrice(Map<Integer, AdDTOWrapper> adDTOMap) {
     Params params = assignParams();
     try {
@@ -264,7 +256,7 @@ public class Task {
       params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, adDTOMap);
       messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
     } catch (Exception e) {
-      log.error("calculate cpc cause a exception", e);
+      log.error("taskId: {},calculate cpc cause a exception", taskId, e);
       messageQueue.putMessage(EventType.CALC_CPC_ERROR);
     }
   }
