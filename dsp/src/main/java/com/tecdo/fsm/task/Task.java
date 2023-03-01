@@ -14,7 +14,7 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.domain.biz.base.R;
+import com.tecdo.common.domain.biz.R;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.request.CtrRequest;

@@ -1,4 +1,4 @@
-package com.tecdo.entity.base;
+package com.tecdo.common.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;

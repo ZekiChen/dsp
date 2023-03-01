@@ -1,4 +1,4 @@
-package com.tecdo.domain.biz.base;
+package com.tecdo.common.domain.biz;
 
 
 import io.netty.handler.codec.http.HttpResponseStatus;

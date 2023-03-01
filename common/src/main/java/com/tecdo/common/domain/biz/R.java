@@ -1,4 +1,4 @@
-package com.tecdo.domain.biz.base;
+package com.tecdo.common.domain.biz;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;

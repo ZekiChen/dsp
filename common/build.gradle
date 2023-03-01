@@ -3,6 +3,7 @@ dependencies {
     compileOnly 'net.dreamlu:mica-auto'
     annotationProcessor 'net.dreamlu:mica-auto'
 
+    api 'com.baomidou:mybatis-plus-boot-starter'
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
     api libraries.guava
