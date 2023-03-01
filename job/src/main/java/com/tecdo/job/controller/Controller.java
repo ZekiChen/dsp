@@ -26,6 +26,10 @@ public class Controller implements MessageObserver {
       case BUDGETS_LOAD_RESPONSE:
       case BUDGETS_LOAD_ERROR:
       case BUDGETS_LOAD_TIMEOUT:
+      case CAMPAIGNS_LOAD:
+      case CAMPAIGNS_LOAD_RESPONSE:
+      case CAMPAIGNS_LOAD_ERROR:
+      case CAMPAIGNS_LOAD_TIMEOUT:
       case ONE_DATA_READY:
       case NETTY_START:
       case RECEIVE_PING_REQUEST:
