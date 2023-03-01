@@ -6,7 +6,6 @@ import com.tecdo.domain.openrtb.request.n.NativeRequest;
 import com.tecdo.domain.openrtb.request.n.NativeRequestWrapper;
 import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.util.JsonHelper;
-
 import org.springframework.stereotype.Component;
 
 @Component
@@ -21,10 +20,10 @@ public class O25N11Transform implements IProtoTransform {
     for (Imp imp : bidRequest.getImp()) {
       if (imp.getNative1() != null) {
         String nativeRequestString = imp.getNative1().getRequest();
-        String ver = imp.getNative1().getVer();
-        if ("1.0".equalsIgnoreCase(ver)) {
-          NativeRequestWrapper nativeRequestWrapper =
-            JsonHelper.parseObject(nativeRequestString, NativeRequestWrapper.class);
+        // 有些adx没有按照协议中ver的定义，比如传了1.2，但还是有native的wrapper
+        NativeRequestWrapper nativeRequestWrapper =
+          JsonHelper.parseObject(nativeRequestString, NativeRequestWrapper.class);
+        if (nativeRequestWrapper != null && nativeRequestWrapper.getNativeRequest() != null) {
           imp.getNative1().setNativeRequestWrapper(nativeRequestWrapper);
           imp.getNative1().setNativeRequest(nativeRequestWrapper.getNativeRequest());
         } else {

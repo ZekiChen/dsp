@@ -1,5 +1,7 @@
 package com.tecdo.fsm.context;
 
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.common.Params;
 import com.tecdo.common.ThreadPool;
 import com.tecdo.constant.EventType;
@@ -33,9 +35,6 @@ import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
 import com.tecdo.util.StringConfigUtil;
-
-import org.apache.commons.lang3.StringUtils;
-
 import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -45,10 +44,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 
 @Slf4j
 public class Context {
@@ -340,7 +337,7 @@ public class Context {
                                urlFormat(adDTO.getAdGroup().getDeeplink(), sign),
                                impTrackList,
                                clickTrackList);
-      if ("1.0".equalsIgnoreCase(nativeResponse.getVer())) {
+      if (imp.getNative1().getNativeRequestWrapper() != null) {
         NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
         nativeResponseWrapper.setNativeResponse(nativeResponse);
         adm = JsonHelper.toJSONString(nativeResponseWrapper);
