@@ -29,8 +29,8 @@
             <AppenderRef ref="ERROR" level="ERROR"/>
         </AsyncLogger>
 
-        <Root level="DEBUG">
-            <AppenderRef ref="STDOUT" level="DEBUG"/>
+        <Root level="INFO">
+            <AppenderRef ref="STDOUT" level="INFO"/>
             <AppenderRef ref="CatLog4j2Appender"/>
         </Root>
 
