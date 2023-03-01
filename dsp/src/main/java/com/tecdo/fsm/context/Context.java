@@ -114,6 +114,8 @@ public class Context {
   }
 
   public void handleBidRequest() {
+    String bidRequestString = JsonHelper.toJSONString(bidRequest);
+    log.info("contextId: {}, bid request is:{}", requestId, bidRequestString);
     List<Imp> impList = bidRequest.getImp();
     impList.forEach(imp -> {
       Task task = taskPool.get();
