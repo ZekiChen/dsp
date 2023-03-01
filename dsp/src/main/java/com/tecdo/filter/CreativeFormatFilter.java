@@ -93,8 +93,10 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                         creative = adDTO.getCreativeMap().get(adDTO.getAd().getIcon());
                     }
                     // 以下就是img的判断
-                    // 由于native存在icon和image，所以判断时为true不能直接返回
                     // 先判断是否存在wmin，hmin，如果存在并且大于0，如果大于并且宽高比例一致则为true，如果不大于，也不返回false，接着判断w和h
+                    // 由于native存在icon和image，所以判断时为true不能直接返回
+                    // 每一轮image的判断都将hitFlag重置为false，只有所有image都符合时才通过
+                    hitFlag = false;
                     Integer wmin = nativeRequestAsset.getImg().getWmin();
                     Integer hmin = nativeRequestAsset.getImg().getHmin();
                     Integer w = nativeRequestAsset.getImg().getW();
