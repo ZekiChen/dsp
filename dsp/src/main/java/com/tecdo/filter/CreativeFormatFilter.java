@@ -69,6 +69,10 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 if (video == null || video.getW() == null || video.getH() == null) {
                     return false;
                 }
+                if (adDTO.getAd().getVideo() == null ||
+                    adDTO.getCreativeMap().get(adDTO.getAd().getVideo()) == null) {
+                    return false;
+                }
                 creative = adDTO.getCreativeMap().get(adDTO.getAd().getVideo());
                 return ConditionHelper.compare(video.getW().toString(), Constant.EQ, creative.getWidth().toString())
                         && ConditionHelper.compare(video.getH().toString(), Constant.EQ, creative.getHeight().toString());
@@ -89,16 +93,21 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                         creative = adDTO.getCreativeMap().get(adDTO.getAd().getIcon());
                     }
                     // 以下就是img的判断
-                    if(nativeRequestAsset.getImg().getW() != null && nativeRequestAsset.getImg().getH() != null){
-                        if (ConditionHelper.compare(nativeRequestAsset.getImg().getW().toString(), Constant.EQ, creative.getWidth().toString())
-                            && ConditionHelper.compare(nativeRequestAsset.getImg().getH().toString(), Constant.EQ, creative.getHeight().toString())) {
+                    // 由于native存在icon和image，所以判断时为true不能直接返回
+                    // 先判断是否存在wmin，hmin，如果存在并且大于0，如果大于并且宽高比例一致则为true，如果不大于，也不返回false，接着判断w和h
+                    Integer wmin = nativeRequestAsset.getImg().getWmin();
+                    Integer hmin = nativeRequestAsset.getImg().getHmin();
+                    Integer w = nativeRequestAsset.getImg().getW();
+                    Integer h = nativeRequestAsset.getImg().getH();
+                    if (wmin != null && hmin != null) {
+                        if (wmin > 0 && hmin > 0 && creative.getWidth() >= wmin &&
+                            creative.getHeight() >= hmin &&
+                            creative.getWidth() / creative.getHeight() == wmin / hmin) {
                             hitFlag = true;
-                        } else {
-                            return false;
                         }
-                    }else if(nativeRequestAsset.getImg().getWmin() != null && nativeRequestAsset.getImg().getHmin() != null){
-                        if (ConditionHelper.compare(creative.getWidth().toString(), Constant.GTE,nativeRequestAsset.getImg().getWmin().toString() )
-                            && ConditionHelper.compare( creative.getHeight().toString(),Constant.GTE, nativeRequestAsset.getImg().getHmin().toString())) {
+                        // 不存在wmin和hmin时，判断w和h是否存在，大小符合则为true，否则返回false
+                    } else if (w != null && h != null) {
+                        if (w.equals(creative.getWidth()) && h.equals(creative.getHeight())) {
                             hitFlag = true;
                         } else {
                             return false;
