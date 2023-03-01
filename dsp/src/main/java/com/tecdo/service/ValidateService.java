@@ -51,7 +51,7 @@ public class ValidateService {
     Affiliate affiliate = affiliateManager.getAffiliate(token);
 
     if (affiliate == null) {
-      log.info("validate fail! aff doesn't exist, token: {}", token);
+      log.warn("validate fail! aff doesn't exist, token: {}", token);
       messageQueue.putMessage(EventType.RESPONSE_RESULT,
               Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
                       .put(ParamKey.CHANNEL_CONTEXT,
@@ -61,7 +61,7 @@ public class ValidateService {
     String api = affiliate.getApi();
     IProtoTransform protoTransform = ProtoTransformFactory.getProtoTransform(api);
     if (protoTransform == null) {
-      log.info("validate fail! bid protocol is not supported, api: {}", api);
+      log.warn("validate fail! bid protocol is not supported, api: {}", api);
       messageQueue.putMessage(EventType.RESPONSE_RESULT,
               Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
                       .put(ParamKey.CHANNEL_CONTEXT,
@@ -70,7 +70,7 @@ public class ValidateService {
     }
     BidRequest bidRequest = protoTransform.requestTransform(httpRequest.getBody());
     if (bidRequest == null || !validateBidRequest(bidRequest)) {
-      log.info((bidRequest == null ? "bidRequest is null"
+      log.warn((bidRequest == null ? "bidRequest is null"
               : "validate bidRequest fail") + ", requestId: {}", httpRequest.getRequestId());
       messageQueue.putMessage(EventType.RESPONSE_RESULT,
               Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
