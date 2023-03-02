@@ -1,5 +1,6 @@
 package com.tecdo.domain.openrtb.response;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tecdo.domain.openrtb.base.Extension;
 import lombok.Getter;
 import lombok.Setter;
@@ -14,6 +15,7 @@ import java.util.List;
  **/
 @Setter
 @Getter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SeatBid extends Extension {
 
     /**

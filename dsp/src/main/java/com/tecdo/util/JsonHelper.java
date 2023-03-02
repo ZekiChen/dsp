@@ -1,6 +1,5 @@
 package com.tecdo.util;
 
-import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JavaType;
@@ -21,7 +20,6 @@ public class JsonHelper {
 
   static {
     MAPPER = new ObjectMapper();
-    MAPPER.setSerializationInclusion(JsonInclude.Include.NON_NULL);
     MAPPER.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
   }
 

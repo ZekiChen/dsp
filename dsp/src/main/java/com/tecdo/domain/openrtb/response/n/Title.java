@@ -1,5 +1,6 @@
 package com.tecdo.domain.openrtb.response.n;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tecdo.domain.openrtb.base.Extension;
 
 import lombok.Getter;
@@ -12,6 +13,7 @@ import lombok.Setter;
  */
 @Getter
 @Setter
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class Title extends Extension {
 
   /**

@@ -48,7 +48,7 @@ public class Banner extends Extension {
      * 广告在屏幕上的位置
      * @see AdPositionEnum
      */
-    private Integer pos;
+    private Integer pos = 0;
 
     /**
      * 支持的内容mime-type。常用的 mime-type 包括 application/x-shockwave-flash, image/jpg 以及 image/gif
