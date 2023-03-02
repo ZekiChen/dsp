@@ -23,7 +23,7 @@
     </xi:include>
 
     <Loggers>
-        <AsyncLogger name="com.tecdo" level="INFO">
+        <AsyncLogger name="com.tecdo" level="DEBUG">
             <AppenderRef ref="INFO"/>
             <AppenderRef ref="WARN" level="WARN"/>
             <AppenderRef ref="ERROR" level="ERROR"/>
