@@ -10,6 +10,7 @@ import cn.zhxu.okhttps.OkHttps;
 import com.tecdo.job.domain.flatads.FlatAdsReportVO;
 import com.tecdo.job.domain.flatads.FlatAdsResponse;
 import com.tecdo.job.service.init.BudgetManager;
+import com.tecdo.job.service.init.CampaignManager;
 import com.tecdo.job.util.WeChatRobotUtils;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
@@ -39,6 +40,7 @@ public class MonitorJob {
     private String flatAdsReportUrl;
 
     private final BudgetManager budgetManager;
+    private final CampaignManager campaignManager;
 
     /**
      * 每小时同步 渠道当天花费、DSP当天花费 到企微群
@@ -74,15 +76,20 @@ public class MonitorJob {
                     logError("call FlatAds report error, revenue is null");
                     return;
                 }
-                String revenue2Decimal = NumberUtil.round(revenue, 2).toString();
+                String flatAdsRevenue = NumberUtil.round(revenue, 2).toString();  // 保留2位小数
+                Double dspCampaignCost = doGetDailyCostFlatAds();
+                Double dspDailyBudget = campaignManager.dailyBudget();
 
-                Double campaignCost = doGetDailyCostFlatAds();
+                // 超预算电话报警：当满足 渠道花费/DSP花费 > DSP预算 条件时，立即通知 Eric、Zeki、Dawin
+                if (revenue > dspDailyBudget || dspCampaignCost > dspDailyBudget) {
+                    // TODO
+                }
 
                 String msg = "DSP渠道花费监控\n"
                         + "渠道：FlatAds\n"
-                        + "渠道花费：" + revenue2Decimal + "\n"
-                        + "DSP预算：100$\n"
-                        + "DSP花费：" + campaignCost;
+                        + "渠道花费：" + flatAdsRevenue + "\n"
+                        + "DSP预算：" + dspDailyBudget + "$\n"
+                        + "DSP花费：" + dspCampaignCost;
 
                 WeChatRobotUtils.sendTextMsg(MONITOR_GROUP, msg);
             } else {
@@ -101,11 +108,6 @@ public class MonitorJob {
         }
         return sum;
     }
-
-    /**
-     * 超预算报警：当满足 渠道花费/DSP花费 > DSP预算 条件时，立即触发电话告警通知 Eric、Zeki、Dawin
-     */
-
 
     private static void logError(String msg) {
         logError(msg, false);

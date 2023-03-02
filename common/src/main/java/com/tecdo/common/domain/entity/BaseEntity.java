@@ -1,6 +1,5 @@
-package com.tecdo.entity.base;
+package com.tecdo.common.domain.entity;
 
-import cn.hutool.core.date.DatePattern;
 import com.baomidou.mybatisplus.annotation.FieldFill;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.fasterxml.jackson.annotation.JsonFormat;
@@ -18,11 +17,11 @@ import java.util.Date;
 @EqualsAndHashCode(callSuper = true)
 public class BaseEntity extends IdEntity {
 
-    @JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField(fill = FieldFill.INSERT)
     private Date createTime;
 
-    @JsonFormat(pattern = DatePattern.NORM_DATETIME_PATTERN)
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     @TableField(fill = FieldFill.INSERT_UPDATE)
     private Date updateTime;
 }

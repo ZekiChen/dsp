@@ -9,6 +9,7 @@ import com.tecdo.job.server.NetServer;
 import com.tecdo.job.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.job.server.request.HttpRequest;
 import com.tecdo.job.service.init.BudgetManager;
+import com.tecdo.job.service.init.CampaignManager;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -24,13 +25,14 @@ import org.springframework.stereotype.Component;
 public class LifeCycleManager {
 
   private final BudgetManager budgetManager;
+  private final CampaignManager campaignManager;
 
   private final MessageQueue messageQueue;
 
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 1;
+  private final int needInitCount = 2;
 
   @Value("${server.port}")
   private int serverPort;
@@ -64,6 +66,12 @@ public class LifeCycleManager {
       case BUDGETS_LOAD_ERROR:
       case BUDGETS_LOAD_TIMEOUT:
         budgetManager.handleEvent(eventType, params);
+        break;
+      case CAMPAIGNS_LOAD:
+      case CAMPAIGNS_LOAD_RESPONSE:
+      case CAMPAIGNS_LOAD_ERROR:
+      case CAMPAIGNS_LOAD_TIMEOUT:
+        campaignManager.handleEvent(eventType, params);
         break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
