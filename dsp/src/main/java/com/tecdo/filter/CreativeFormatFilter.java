@@ -95,7 +95,6 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     if (creative == null){
                         return false;
                     }
-                    // 以下就是img的判断
                     // 先判断是否存在wmin，hmin，如果存在并且大于0，如果大于并且宽高比例一致则为true，如果不大于，也不返回false，接着判断w和h
                     // 由于native存在icon和image，所以判断时为true不能直接返回
                     // 每一轮image的判断都将hitFlag重置为false，只有所有image都符合时才通过
@@ -109,14 +108,20 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                             creative.getHeight() >= hmin &&
                             creative.getWidth() / creative.getHeight() == wmin / hmin) {
                             hitFlag = true;
+                            // 这个图像判断通过，跳到下一个图像
+                            continue;
                         }
-                        // 不存在wmin和hmin时，判断w和h是否存在，大小符合则为true，否则返回false
-                    } else if (w != null && h != null) {
+                    }
+                    // 没有wmin，hmin，或者min判断不通过，则进入下面的判断
+                    // 判断w和h是否存在，大小符合则为true
+                    if (w != null && h != null) {
                         if (w.equals(creative.getWidth()) && h.equals(creative.getHeight())) {
                             hitFlag = true;
-                        } else {
-                            return false;
                         }
+                    }
+                    // 如果这一轮图像判断，hitFlag 为false，则返回false
+                    if (!hitFlag) {
+                        return false;
                     }
                 }
                 return hitFlag;
