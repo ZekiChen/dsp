@@ -1,7 +1,5 @@
 package com.tecdo.fsm.context;
 
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.thread.ThreadPool;
 import com.tecdo.common.util.Params;
@@ -30,13 +28,27 @@ import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
-import com.tecdo.util.*;
-import lombok.extern.slf4j.Slf4j;
+import com.tecdo.util.AdmGenerator;
+import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.JsonHelper;
+import com.tecdo.util.SignHelper;
+import com.tecdo.util.StringConfigUtil;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Context {
@@ -105,6 +117,8 @@ public class Context {
   }
 
   public void handleBidRequest() {
+    String bidRequestString = JsonHelper.toJSONString(bidRequest);
+    log.info("contextId: {}, bid request is:{}", requestId, bidRequestString);
     List<Imp> impList = bidRequest.getImp();
     impList.forEach(imp -> {
       Task task = taskPool.get();
@@ -330,7 +344,7 @@ public class Context {
                                urlFormat(adDTO.getAdGroup().getDeeplink(), sign),
                                impTrackList,
                                clickTrackList);
-      if ("1.0".equalsIgnoreCase(nativeResponse.getVer())) {
+      if (imp.getNative1().getNativeRequestWrapper() != null) {
         NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
         nativeResponseWrapper.setNativeResponse(nativeResponse);
         adm = JsonHelper.toJSONString(nativeResponseWrapper);
