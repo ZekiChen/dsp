@@ -1,6 +1,6 @@
 package com.tecdo.controller;
 
-import com.tecdo.common.Params;
+import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.fsm.ContextManager;
@@ -8,11 +8,9 @@ import com.tecdo.service.LifeCycleManager;
 import com.tecdo.service.NoticeService;
 import com.tecdo.service.ValidateService;
 import com.tecdo.util.HttpResponseHelper;
-
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27

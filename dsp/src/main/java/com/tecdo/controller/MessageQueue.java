@@ -2,7 +2,7 @@ package com.tecdo.controller;
 
 import com.dianping.cat.Cat;
 import com.dianping.cat.message.Transaction;
-import com.tecdo.common.Params;
+import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;

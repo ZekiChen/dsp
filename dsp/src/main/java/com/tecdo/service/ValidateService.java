@@ -1,11 +1,11 @@
 package com.tecdo.service;
 
-import com.tecdo.common.Params;
-import com.tecdo.constant.Constant;
-import com.tecdo.constant.EventType;
-import com.tecdo.constant.HttpCode;
-import com.tecdo.constant.ParamKey;
-import com.tecdo.constant.RequestKey;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import com.tecdo.common.constant.Constant;
+import com.tecdo.common.constant.HttpCode;
+import com.tecdo.common.util.Params;
+import com.tecdo.constant.*;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -15,7 +15,8 @@ import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.SignHelper;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -23,10 +24,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Objects;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
-import lombok.RequiredArgsConstructor;
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class ValidateService {
@@ -53,8 +51,9 @@ public class ValidateService {
     Affiliate affiliate = affiliateManager.getAffiliate(token);
 
     if (affiliate == null) {
+      log.warn("validate fail! aff doesn't exist, token: {}", token);
       messageQueue.putMessage(EventType.RESPONSE_RESULT,
-              Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_FOUND)
+              Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
                       .put(ParamKey.CHANNEL_CONTEXT,
                               httpRequest.getChannelContext()));
       return;
@@ -62,6 +61,7 @@ public class ValidateService {
     String api = affiliate.getApi();
     IProtoTransform protoTransform = ProtoTransformFactory.getProtoTransform(api);
     if (protoTransform == null) {
+      log.warn("validate fail! bid protocol is not supported, api: {}", api);
       messageQueue.putMessage(EventType.RESPONSE_RESULT,
               Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
                       .put(ParamKey.CHANNEL_CONTEXT,
@@ -70,8 +70,10 @@ public class ValidateService {
     }
     BidRequest bidRequest = protoTransform.requestTransform(httpRequest.getBody());
     if (bidRequest == null || !validateBidRequest(bidRequest)) {
+      log.warn((bidRequest == null ? "bidRequest is null"
+              : "validate bidRequest fail") + ", requestId: {}", httpRequest.getRequestId());
       messageQueue.putMessage(EventType.RESPONSE_RESULT,
-              Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
+              Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
                       .put(ParamKey.CHANNEL_CONTEXT,
                               httpRequest.getChannelContext()));
       return;

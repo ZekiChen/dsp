@@ -1,0 +1,19 @@
+dependencies {
+
+    api 'com.baomidou:mybatis-plus-boot-starter'
+    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+
+    api libraries.guava
+    api libraries.common_lang3
+    api libraries.common_collections
+
+    api libraries.fastjson
+    api libraries.jackson_core
+    api libraries.jackson_databinding
+
+    implementation 'com.google.http-client:google-http-client'
+
+    api 'com.squareup.okio:okio'
+    api 'cn.zhxu:okhttps-fastjson2'
+
+}

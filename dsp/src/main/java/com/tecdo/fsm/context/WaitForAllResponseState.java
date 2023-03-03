@@ -1,13 +1,11 @@
 package com.tecdo.fsm.context;
 
-import com.tecdo.common.Params;
-import com.tecdo.constant.Constant;
+import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
-
-import org.springframework.stereotype.Component;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 @Slf4j
 @Component
@@ -15,8 +13,10 @@ import lombok.extern.slf4j.Slf4j;
 public class WaitForAllResponseState implements IContextState {
 
   private final WaitForRtaState waitForRtaState;
-
   private final WaitForRecycleState waiForRecycleState;
+
+  @Value("${pac.timeout.context.rta.response}")
+  private long timeoutRtaResponse;
 
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {
@@ -30,7 +30,7 @@ public class WaitForAllResponseState implements IContextState {
             context.requestRta();
             context.startTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT,
                                context.assignParams(),
-                               Constant.TIMEOUT_WAIT_RTA_RESPONSE);
+                               timeoutRtaResponse);
             context.switchState(waitForRtaState);
           } else {
             context.switchState(waiForRecycleState);

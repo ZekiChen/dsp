@@ -3,6 +3,7 @@ buildscript {
     repositories {
         mavenCentral()
         jcenter()
+        maven { url 'https://repo.spring.io/milestone'}
     }
     dependencies {
         classpath gradle_plugins.values()
@@ -18,6 +19,11 @@ ext.global = [
         build_time         : new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone("UTC")),
 ]
 
+ext {
+    jLibProjects = Arrays.asList(project(":common")).toSet()
+    bootProjects = subprojects - jLibProjects
+}
+
 allprojects {
     buildDir = new File(global.root_dir, "out/${project.name}")
 
@@ -27,16 +33,9 @@ allprojects {
             inheritOutputDirs = true
         }
     }
-}
-
-subprojects {
-    apply from: "${rootDir}/build/dependencies.gradle"
-
-    ext.local = [
-      version: "${RELEASE_VERSION}",
-    ]
 
     repositories {
+        mavenLocal()
         maven {
             url 'https://maven-local.mobisummer-inc.com/repository/maven-public'
         }
@@ -44,7 +43,61 @@ subprojects {
         jcenter()
     }
 
-    apply plugin: 'java'
+    apply plugin: 'io.spring.dependency-management'
+
+    // 统一依赖版本管理
+    dependencyManagement {
+        imports {
+            mavenBom 'org.springframework.boot:spring-boot-dependencies:2.7.7'
+        }
+
+        dependencies {
+            dependency 'net.dreamlu:mica-auto:2.3.1'
+
+            // Util
+            dependency 'cn.hutool:hutool-all:5.8.10'
+            dependency 'com.google.http-client:google-http-client:1.42.2'
+
+            // OkHttp3-FastJson2
+            dependency 'com.squareup.okio:okio:2.8.0'
+            dependency 'cn.zhxu:okhttps-fastjson2:4.0.0'
+
+            // MySQL
+            dependency 'mysql:mysql-connector-java:8.0.22'
+            dependency 'com.alibaba:druid-spring-boot-starter:1.2.8'
+            dependencySet(group: 'com.baomidou', version: '3.5.1') {
+                entry 'mybatis-plus-boot-starter'
+                entry 'dynamic-datasource-spring-boot-starter'
+            }
+
+            // Apollo
+            dependency 'com.ctrip.framework.apollo:apollo-client:1.9.1'
+
+            // CAT
+            dependency "com.dianping.cat:cat-client:3.1.0"
+            dependency 'org.codehaus.plexus:plexus-classworlds:2.5.1'
+            dependency 'org.codehaus.plexus:plexus-utils:3.0.24'
+            dependency 'org.codehaus.plexus:plexus-container-default:1.6'
+
+            // xxl-job
+            dependency 'com.xuxueli:xxl-job-core:2.3.0'
+
+            // Lazada
+            dependency 'com.lazada:lazop-api-sdk:1.2.0'
+        }
+    }
+}
+
+subprojects {
+    ext.local = [
+            version: "${RELEASE_VERSION}"
+    ]
+
+    apply from: "${rootDir}/build/dependencies.gradle"
+    apply from: "${rootDir}/build/dist.gradle"
+
+    apply plugin: 'java-library'
+    apply plugin: 'io.freefair.lombok'
 
     configurations {
         compileOnly {
@@ -60,14 +113,38 @@ subprojects {
         options.encoding = "UTF-8"
     }
 
-//    tasks.withType(Test) {
-//        // avoid "> superClassName is empty!" error
-//        scanForTestClasses = false
-//        include "**/*Test.class"
-//        exclude "**/Abstract*.class"
-//    }
+    dependencies {
+        // SpringBoot
+        implementation 'org.springframework.boot:spring-boot-starter'
+        implementation 'org.springframework.boot:spring-boot-starter-log4j2'
+        implementation libraries.disruptor
+        annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+        compileOnly 'net.dreamlu:mica-auto'
+        annotationProcessor 'net.dreamlu:mica-auto'
+    }
+
     test {
         enabled true
         useJUnitPlatform()
+    }
+}
+
+configure(bootProjects) { project ->
+    apply plugin: 'org.springframework.boot'
+
+    dependencies {
+        // Apollo
+        implementation 'com.ctrip.framework.apollo:apollo-client'
+
+        // CAT
+        implementation "com.dianping.cat:cat-client"
+        implementation 'org.codehaus.plexus:plexus-classworlds'
+        implementation 'org.codehaus.plexus:plexus-utils'
+        implementation('org.codehaus.plexus:plexus-container-default') {
+            exclude group: 'com.google.collections', module: 'google-collections'
+        }
+
+        testImplementation 'org.springframework.boot:spring-boot-starter-test'
     }
 }

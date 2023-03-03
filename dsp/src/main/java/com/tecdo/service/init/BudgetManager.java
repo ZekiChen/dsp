@@ -1,28 +1,26 @@
 package com.tecdo.service.init;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tecdo.common.Params;
-import com.tecdo.common.ThreadPool;
-import com.tecdo.constant.Constant;
+import com.tecdo.common.thread.ThreadPool;
+import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.entity.doris.AdGroupCost;
 import com.tecdo.mapper.doris.AdGroupCostMapper;
-
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.date.DateUtil;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -34,25 +32,31 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
 
     private final SoftTimer softTimer;
     private final MessageQueue messageQueue;
+    private final ThreadPool threadPool;
 
     private State currentState = State.INIT;
     private long timerId;
 
-    private Map<String, Double> campaignBudgetMap;
-    private Map<String, Double> adGroupBudgetMap;
+    private Map<String, Double> campaignCostMap;
+    private Map<String, Double> adGroupCostMap;
+
+    @Value("${pac.timeout.load.doris.default}")
+    private long loadTimeout;
+    @Value("${pac.interval.reload.doris.default}")
+    private long reloadInterval;
 
     /**
      * 从 Doris 加载 当天campaign的实时花费 集合，每 5 秒刷新一次缓存
      */
-    public Double getCampaignBudget(String campaignId, Double defaultValue){
-        return campaignBudgetMap.getOrDefault(campaignId, defaultValue);
+    public Double getCampaignCost(String campaignId, Double defaultValue){
+        return campaignCostMap.getOrDefault(campaignId, defaultValue);
     }
 
     /**
      * 从 Doris 加载 当天adGroup的实时花费 集合，每 5 秒刷新一次缓存
      */
-    public Double getAdGroupBudget(String adGroupId, Double defaultValue) {
-        return this.adGroupBudgetMap.getOrDefault(adGroupId, defaultValue);
+    public Double getAdGroupCost(String adGroupId, Double defaultValue) {
+        return this.adGroupCostMap.getOrDefault(adGroupId, defaultValue);
     }
 
     @AllArgsConstructor
@@ -76,7 +80,7 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
     }
 
     private void startReloadTimeoutTimer(Params params) {
-        timerId = softTimer.startTimer(EventType.BUDGETS_LOAD_TIMEOUT, params, Constant.TIMEOUT_LOAD_DB_CACHE_GENERAL);
+        timerId = softTimer.startTimer(EventType.BUDGETS_LOAD_TIMEOUT, params, loadTimeout);
     }
 
     private void cancelReloadTimeoutTimer() {
@@ -84,7 +88,7 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
     }
 
     private void startNextReloadTimer(Params params) {
-        softTimer.startTimer(EventType.BUDGETS_LOAD, params, Constant.INTERVAL_RELOAD_BUDGET_CACHE);
+        softTimer.startTimer(EventType.BUDGETS_LOAD, params, reloadInterval);
     }
 
     public void switchState(State state) {
@@ -114,7 +118,7 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
         switch (currentState) {
             case INIT:
             case RUNNING:
-                ThreadPool.getInstance().execute(() -> {
+                threadPool.execute(() -> {
                     try {
                         String today = DateUtil.today();
                         LambdaQueryWrapper<AdGroupCost> wrapper = Wrappers.<AdGroupCost>lambdaQuery()
@@ -146,13 +150,13 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
 
     private void handleBudgetsResponse(Params params) {
         cancelReloadTimeoutTimer();
-        this.campaignBudgetMap = params.get(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY);
-        this.adGroupBudgetMap = params.get(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY);
+        this.campaignCostMap = params.get(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY);
+        this.adGroupCostMap = params.get(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY);
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
                 log.info("budgets load success, campaign size: {}, ad group size: {}",
-                         campaignBudgetMap.size(),
-                         adGroupBudgetMap.size());
+                         campaignCostMap.size(),
+                         adGroupCostMap.size());
                 messageQueue.putMessage(EventType.ONE_DATA_READY);
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);
@@ -190,5 +194,4 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
                 log.error("Can't handle event, state: {}", currentState);
         }
     }
-
 }

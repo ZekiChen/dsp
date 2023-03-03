@@ -5,6 +5,7 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.filter.AbstractRecallFilter;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.List;
 
@@ -13,6 +14,7 @@ import java.util.List;
  *
  * Created by Zeki on 2023/1/3
  **/
+@Slf4j
 public class FilterChainHelper {
 
     /**
@@ -30,9 +32,15 @@ public class FilterChainHelper {
     public static boolean executeFilter(AbstractRecallFilter curFilter, AdDTO adDTO,
                                   BidRequest bidRequest, Imp imp, Affiliate affiliate) {
         boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
+        if (!filterFlag) {
+            log.debug("ad recall fail, filter: {}", curFilter.getClass().getSimpleName());
+        }
         while (filterFlag && curFilter.hasNext()) {
             curFilter = curFilter.getNextFilter();
             filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
+            if (!filterFlag) {
+                log.debug("ad recall fail, filter: {}", curFilter.getClass().getSimpleName());
+            }
         }
         return filterFlag;
     }

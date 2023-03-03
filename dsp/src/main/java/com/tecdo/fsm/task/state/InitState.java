@@ -1,14 +1,12 @@
 package com.tecdo.fsm.task.state;
 
-import com.tecdo.common.Params;
-import com.tecdo.constant.Constant;
+import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.fsm.task.Task;
-
-import org.springframework.stereotype.Component;
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
 
 /**
  * 该状态内会进行广告召回
@@ -20,8 +18,10 @@ import lombok.extern.slf4j.Slf4j;
 @RequiredArgsConstructor
 public class InitState implements ITaskState {
 
-
   private final WaitForRecallState waitForRecallState;
+
+  @Value("${pac.timeout.task.ad.recall}")
+  private long timeoutRecall;
 
   @Override
   public void handleEvent(EventType eventType, Params params, Task task) {
@@ -30,7 +30,7 @@ public class InitState implements ITaskState {
         task.listRecallAd();
         task.startTimer(EventType.ADS_RECALL_TIMEOUT,
                         task.assignParams(),
-                        Constant.TIMEOUT_ADS_RECALL);
+                        timeoutRecall);
         task.switchState(waitForRecallState);
         break;
       default:

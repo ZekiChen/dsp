@@ -1,6 +1,6 @@
 package com.tecdo.server.handler;
 
-import com.tecdo.constant.HttpCode;
+import com.tecdo.common.constant.HttpCode;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,8 +1,8 @@
 package com.tecdo.service;
 
-import com.tecdo.common.Params;
+import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
-import com.tecdo.constant.HttpCode;
+import com.tecdo.common.constant.HttpCode;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;

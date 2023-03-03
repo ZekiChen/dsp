@@ -1,12 +1,20 @@
 package com.tecdo.fsm.task;
 
-import com.tecdo.common.Params;
-import com.tecdo.common.ThreadPool;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.zhxu.data.TypeRef;
+import cn.zhxu.okhttps.HttpResult;
+import cn.zhxu.okhttps.OkHttps;
+import com.tecdo.common.thread.ThreadPool;
+import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.domain.biz.base.R;
+import com.tecdo.common.domain.biz.R;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.request.CtrRequest;
@@ -28,6 +36,8 @@ import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.HashMap;
@@ -35,17 +45,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import cn.zhxu.data.TypeRef;
-import cn.zhxu.okhttps.HttpResult;
-import cn.zhxu.okhttps.OkHttps;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
@@ -64,6 +63,7 @@ public class Task {
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
   private final RecallFiltersFactory filtersFactory =
     SpringUtil.getBean(RecallFiltersFactory.class);
+  private final ThreadPool threadPool = SpringUtil.getBean(ThreadPool.class);
   private final SoftTimer softTimer = SpringUtil.getBean(SoftTimer.class);
   private final MessageQueue messageQueue = SpringUtil.getBean(MessageQueue.class);
   private final Map<EventType, Long> eventTimerMap = new HashMap<>();
@@ -118,7 +118,7 @@ public class Task {
     BidRequest bidRequest = this.bidRequest;
     Imp imp = this.imp;
     Affiliate affiliate = this.affiliate;
-    ThreadPool.getInstance().execute(() -> {
+    threadPool.execute(() -> {
       try {
         params.put(ParamKey.ADS_RECALL_RESPONSE, doListRecallAd(bidRequest, imp, affiliate));
         messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
@@ -176,7 +176,7 @@ public class Task {
     BidRequest bidRequest = this.bidRequest;
     Imp imp = this.imp;
     Integer affId = this.affiliate.getId();
-    ThreadPool.getInstance().execute(() -> {
+    threadPool.execute(() -> {
       try {
         HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, bidRequest, imp, affId);
         if (httpResult.isSuccessful()) {

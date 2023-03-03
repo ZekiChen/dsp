@@ -1,7 +1,7 @@
 package com.tecdo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tecdo.entity.base.BaseEntity;
+import com.tecdo.common.domain.entity.BaseEntity;
 import com.tecdo.enums.biz.BidStrategyEnum;
 import lombok.Data;
 import lombok.EqualsAndHashCode;

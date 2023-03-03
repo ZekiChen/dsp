@@ -1,8 +1,7 @@
 package com.tecdo.controller;
 
-import com.tecdo.common.Params;
+import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
-
 
 public interface MessageObserver {
 

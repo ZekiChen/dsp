@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="INFO" monitorInterval="30" packages="com.tecdo" xmlns:xi="http://www.w3.org/2001/XInclude">
+
+    <Properties>
+        <Property name="LOG_HOME">${sys:user.home}/logs/dsp</Property>
+        <Property name="BUSINESS_LOG_HOME">${sys:user.home}/business-logs/dsp</Property>
+        <Property name="ENCODER_PATTERN">
+            %d{yyyy-MM-dd HH:mm:ss.SSS}[%thread] %-5level %logger{80} - %msg%n
+        </Property>
+        <Property name="BUSINESS_ENCODER_PATTERN">
+            %msg%n
+        </Property>
+        <!-- 彩色日志格式 -->
+        <Property name="PID">????</Property>
+        <Property name="LOG_EXCEPTION_CONVERSION_WORD">%xwEx</Property>
+        <property name="CONSOLE_LOG_PATTERN">
+            %clr{%d{yyyy-MM-dd HH:mm:ss.SSS}}{faint} %clr{%5p} %clr{${sys:PID}}{magenta} %clr{---}{faint} %clr{[%15.15t]}{faint} %clr{%C{36}.%M:%L}{cyan} %clr{:}{faint} %m%n${sys:LOG_EXCEPTION_CONVERSION_WORD}"
+        </property>
+    </Properties>
+
+    <xi:include href="log4j2_appenders.xml">
+        <xi:fallback/>
+    </xi:include>
+
+    <Loggers>
+        <Root level="INFO">
+            <AppenderRef ref="STDOUT" level="INFO"/>
+            <AppenderRef ref="CatLog4j2Appender"/>
+        </Root>
+
+        <Logger name="request_log" level="INFO" additivity="false">
+            <AppenderRef ref="REQUEST_LOG"/>
+        </Logger>
+
+        <Logger name="response_log" level="INFO" additivity="false">
+            <AppenderRef ref="RESPONSE_LOG"/>
+        </Logger>
+
+        <Logger name="win_log" level="INFO" additivity="false">
+            <AppenderRef ref="WIN_LOG"/>
+        </Logger>
+
+        <Logger name="imp_log" level="INFO" additivity="false">
+            <AppenderRef ref="IMP_LOG"/>
+        </Logger>
+
+        <Logger name="click_log" level="INFO" additivity="false">
+            <AppenderRef ref="CLICK_LOG"/>
+        </Logger>
+
+        <Logger name="pb_log" level="INFO" additivity="false">
+            <AppenderRef ref="PB_LOG"/>
+        </Logger>
+    </Loggers>
+
+</Configuration>

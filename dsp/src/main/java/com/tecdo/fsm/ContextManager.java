@@ -1,6 +1,6 @@
 package com.tecdo.fsm;
 
-import com.tecdo.common.Params;
+import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.domain.openrtb.request.BidRequest;

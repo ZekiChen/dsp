@@ -1,8 +1,12 @@
 package com.tecdo.server.request;
 
-import com.tecdo.constant.Constant;
-import com.tecdo.util.GoogleURIParserAdapter;
-
+import com.tecdo.common.constant.Constant;
+import com.tecdo.common.util.GoogleURIParserAdapter;
+import io.netty.buffer.ByteBuf;
+import io.netty.channel.ChannelHandlerContext;
+import io.netty.handler.codec.http.FullHttpRequest;
+import io.netty.handler.codec.http.HttpHeaders;
+import io.netty.util.CharsetUtil;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -14,12 +18,6 @@ import java.net.UnknownHostException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Pattern;
-
-import io.netty.buffer.ByteBuf;
-import io.netty.channel.ChannelHandlerContext;
-import io.netty.handler.codec.http.FullHttpRequest;
-import io.netty.handler.codec.http.HttpHeaders;
-import io.netty.util.CharsetUtil;
 
 public class HttpRequest {
 

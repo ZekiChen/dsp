@@ -1,20 +1,20 @@
 package com.tecdo.service.init;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tecdo.common.Params;
-import com.tecdo.common.ThreadPool;
-import com.tecdo.constant.Constant;
+import com.tecdo.common.domain.entity.IdEntity;
+import com.tecdo.common.thread.ThreadPool;
+import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.entity.*;
-import com.tecdo.entity.base.IdEntity;
 import com.tecdo.mapper.*;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -30,6 +30,7 @@ public class AdManager {
 
     private final SoftTimer softTimer;
     private final MessageQueue messageQueue;
+    private final ThreadPool threadPool;
 
     private final AdMapper adMapper;
     private final CreativeMapper creativeMapper;
@@ -42,6 +43,11 @@ public class AdManager {
     private long timerId;
 
     private Map<Integer, AdDTO> adDTOMap;
+
+    @Value("${pac.timeout.load.db.ad-dto}")
+    private long loadTimeout;
+    @Value("${pac.interval.reload.db.default}")
+    private long reloadInterval;
 
     /**
      * 从 DB 加载 ad（creative）- group（target_condition）- campaign（campaign_rta_info） 集合，每 5 分钟刷新一次缓存
@@ -71,7 +77,7 @@ public class AdManager {
     }
 
     private void startReloadTimeoutTimer(Params params) {
-        timerId = softTimer.startTimer(EventType.ADS_LOAD_TIMEOUT, params, Constant.TIMEOUT_LOAD_DB_CACHE_AD_DTO);
+        timerId = softTimer.startTimer(EventType.ADS_LOAD_TIMEOUT, params, loadTimeout);
     }
 
     private void cancelReloadTimeoutTimer() {
@@ -79,7 +85,7 @@ public class AdManager {
     }
 
     private void startNextReloadTimer(Params params) {
-        softTimer.startTimer(EventType.ADS_LOAD, params, Constant.INTERVAL_RELOAD_DB_CACHE);
+        softTimer.startTimer(EventType.ADS_LOAD, params, reloadInterval);
     }
 
     public void switchState(State state) {
@@ -109,7 +115,7 @@ public class AdManager {
         switch (currentState) {
             case INIT:
             case RUNNING:
-                ThreadPool.getInstance().execute(() -> {
+                threadPool.execute(() -> {
                     try {
                         params.put(ParamKey.ADS_CACHE_KEY, listAndConvertAds());
                         messageQueue.putMessage(EventType.ADS_LOAD_RESPONSE, params);

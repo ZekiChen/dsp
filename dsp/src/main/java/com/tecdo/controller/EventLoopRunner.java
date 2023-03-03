@@ -1,6 +1,6 @@
 package com.tecdo.controller;
 
-import com.tecdo.common.ThreadPool;
+import com.tecdo.common.thread.ThreadPool;
 import com.tecdo.constant.EventType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,10 +18,11 @@ import org.springframework.stereotype.Component;
 public class EventLoopRunner implements CommandLineRunner {
 
     private final MessageQueue messageQueue;
+    private final ThreadPool threadPool;
 
     @Override
     public void run(String... args) {
-        ThreadPool.getInstance().execute(this::eventLoop);
+        threadPool.execute(this::eventLoop);
     }
 
     private void eventLoop() {
