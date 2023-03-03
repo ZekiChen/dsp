@@ -136,7 +136,7 @@ public class Device extends Extension {
      * 网络连接类型，参考表5.18
      * @see ConnectionTypeEnum
      */
-    private Integer connectiontype;
+    private Integer connectiontype = 0;
 
     /**
      * 广告识别码（ID for Advertisers）：即广告目标设备唯一标识符。
