@@ -2,8 +2,8 @@
 <Configuration status="INFO" monitorInterval="30" packages="com.tecdo" xmlns:xi="http://www.w3.org/2001/XInclude">
 
     <Properties>
-        <Property name="LOG_HOME">${sys:user.home}/logs/dsp</Property>
-        <Property name="BUSINESS_LOG_HOME">${sys:user.home}/business-logs/dsp</Property>
+        <Property name="LOG_HOME">${sys:user.home}/logs/job</Property>
+        <Property name="BUSINESS_LOG_HOME">${sys:user.home}/business-logs/job</Property>
         <Property name="ENCODER_PATTERN">
             %d{yyyy-MM-dd HH:mm:ss.SSS}[%thread] %-5level %logger{80} - %msg%n
         </Property>

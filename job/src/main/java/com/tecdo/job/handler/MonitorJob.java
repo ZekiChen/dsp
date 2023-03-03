@@ -35,6 +35,8 @@ public class MonitorJob {
 
     // DSP监控告警通知群
     private final static String MONITOR_GROUP = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1b914817-45ab-4b7d-9bec-92bc6408a69f";
+    // 电话告警通知
+//    private final static String PHONE_CALL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=667ab4ef-2bf0-404c-af6c-936fd7f795d6";
 
     @Value("${foreign.flat-ads.report-url}")
     private String flatAdsReportUrl;

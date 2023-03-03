@@ -119,6 +119,9 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-log4j2'
         implementation libraries.disruptor
         annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+        compileOnly 'net.dreamlu:mica-auto'
+        annotationProcessor 'net.dreamlu:mica-auto'
     }
 
     test {

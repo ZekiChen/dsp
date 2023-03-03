@@ -23,7 +23,7 @@
     </xi:include>
 
     <Loggers>
-        <AsyncLogger name="com.tecdo" level="INFO">
+        <AsyncLogger name="com.tecdo" level="DEBUG">
             <AppenderRef ref="INFO"/>
             <AppenderRef ref="WARN" level="WARN"/>
             <AppenderRef ref="ERROR" level="ERROR"/>
@@ -67,6 +67,7 @@
         <AsyncLogger name="org.springframework.context" level="WARN"/>
         <AsyncLogger name="org.springframework.beans" level="WARN"/>
         <AsyncLogger name="com.baomidou.mybatisplus" level="INFO"/>
+        <AsyncLogger name="com.baomidou.dynamic.datasource" level="INFO"/>
         <AsyncLogger name="org.apache.ibatis.io" level="INFO"/>
         <AsyncLogger name="net.sf.ehcache" level="INFO"/>
         <AsyncLogger name="org.springframework.cache" level="INFO"/>
