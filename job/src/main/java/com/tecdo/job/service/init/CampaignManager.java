@@ -142,7 +142,7 @@ public class CampaignManager extends ServiceImpl<CampaignMapper, Campaign> {
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.campaignMap = params.get(ParamKey.CAMPAIGNS_CACHE_KEY);
-                log.info("affiliates load success, size: {}", campaignMap.size());
+                log.info("campaign load success, size: {}", campaignMap.size());
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);
                 break;
