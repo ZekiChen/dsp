@@ -15,8 +15,8 @@ import org.springframework.context.annotation.Configuration;
 @Configuration(proxyBeanMethods = false)
 public class XxlJobConfig {
 
-//    @Value("${xxl.job.admin.addresses:}")
-    private String adminAddresses = "http://dev-xxl-job.tec-do.com/xxl-job-admin";
+    @Value("${xxl.job.admin.addresses:}")
+    private String adminAddresses;
     @Value("${xxl.job.accessToken:}")
     private String accessToken;
     @Value("${xxl.job.executor.appname:}")
