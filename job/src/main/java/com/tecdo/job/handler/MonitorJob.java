@@ -78,19 +78,20 @@ public class MonitorJob {
                     logError("call FlatAds report error, revenue is null");
                     return;
                 }
-                String flatAdsRevenue = NumberUtil.round(revenue, 2).toString();  // 保留2位小数
+                String flatAdsRevenueStr = NumberUtil.round(revenue, 2).toString();  // 保留2位小数
                 Double dspCampaignCost = doGetDailyCostFlatAds();
-                Double dspDailyBudget = campaignManager.dailyBudget();
+                Double dspBudget = campaignManager.dailyBudget();
+                String dspBudgetStr = NumberUtil.round(dspBudget, 2).toString();
 
                 // 超预算电话报警：当满足 渠道花费/DSP花费 > DSP预算 条件时，立即通知 Eric、Zeki、Dawin
-                if (revenue > dspDailyBudget || dspCampaignCost > dspDailyBudget) {
+                if (revenue > dspBudget || dspCampaignCost > dspBudget) {
                     // TODO
                 }
 
                 String msg = "DSP渠道花费监控\n"
                         + "渠道：FlatAds\n"
-                        + "渠道花费：" + flatAdsRevenue + "\n"
-                        + "DSP预算：" + dspDailyBudget + "$\n"
+                        + "渠道花费：" + flatAdsRevenueStr + "\n"
+                        + "DSP预算：" + dspBudgetStr + "$\n"
                         + "DSP花费：" + dspCampaignCost;
 
                 WeChatRobotUtils.sendTextMsg(MONITOR_GROUP, msg);
