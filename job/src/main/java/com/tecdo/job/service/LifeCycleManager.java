@@ -92,6 +92,7 @@ public class LifeCycleManager {
       case INIT:
         Params params = Params.create();
         budgetManager.init(params);
+        campaignManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:
