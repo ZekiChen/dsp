@@ -123,7 +123,7 @@ public class CampaignManager extends ServiceImpl<CampaignMapper, Campaign> {
                         params.put(ParamKey.CAMPAIGNS_CACHE_KEY, campaignMap);
                         messageQueue.putMessage(EventType.CAMPAIGNS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
-                        log.error("affiliates load failure from db", e);
+                        log.error("campaigns load failure from db", e);
                         messageQueue.putMessage(EventType.CAMPAIGNS_LOAD_ERROR, params);
                     }
                 });
@@ -142,7 +142,7 @@ public class CampaignManager extends ServiceImpl<CampaignMapper, Campaign> {
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.campaignMap = params.get(ParamKey.CAMPAIGNS_CACHE_KEY);
-                log.info("campaign load success, size: {}", campaignMap.size());
+                log.info("campaigns load success, size: {}", campaignMap.size());
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);
                 break;
