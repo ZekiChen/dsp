@@ -1,9 +1,9 @@
-package com.tecdo.enums.biz;
-
-import java.util.Arrays;
+package com.tecdo.adm.api.delivery.enums;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.Arrays;
 
 /**
  * 竞价策略
@@ -17,8 +17,9 @@ public enum BidStrategyEnum {
   private final int type;
   private final String desc;
 
-  public static BidStrategyEnum of(int type) {
-    return Arrays.stream(BidStrategyEnum.values())
+  public static BidStrategyEnum of(Integer type) {
+    return type == null ? CPC :
+            Arrays.stream(BidStrategyEnum.values())
                  .filter(e -> e.type == type)
                  .findFirst()
                  .orElse(null);
