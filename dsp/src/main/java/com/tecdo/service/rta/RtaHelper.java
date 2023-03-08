@@ -7,8 +7,8 @@ import com.lazada.lazop.api.LazopResponse;
 import com.lazada.lazop.util.ApiException;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
-import com.tecdo.entity.CampaignRtaInfo;
-import com.tecdo.entity.RtaInfo;
+import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
+import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.util.JsonHelper;
 import lombok.extern.slf4j.Slf4j;
 

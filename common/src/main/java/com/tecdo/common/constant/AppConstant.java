@@ -5,8 +5,8 @@ package com.tecdo.common.constant;
  */
 public interface AppConstant {
 
-    String APP_NAME_DSP = "dsp";
-
-    String APP_NAME_JOB = "job";
+    String DSP = "dsp";
+    String JOB = "job";
+    String ADM = "adm";
 
 }

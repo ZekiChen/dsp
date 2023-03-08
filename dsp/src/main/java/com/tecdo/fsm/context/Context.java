@@ -1,7 +1,7 @@
 package com.tecdo.fsm.context;
 
 import com.tecdo.common.constant.HttpCode;
-import com.tecdo.common.thread.ThreadPool;
+import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.FormatKey;
@@ -17,9 +17,9 @@ import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.domain.openrtb.response.SeatBid;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
 import com.tecdo.domain.openrtb.response.n.NativeResponseWrapper;
-import com.tecdo.entity.Affiliate;
-import com.tecdo.entity.RtaInfo;
-import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.RtaInfo;
+import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
 import com.tecdo.log.RequestLogger;

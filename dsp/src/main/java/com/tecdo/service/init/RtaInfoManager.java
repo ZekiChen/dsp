@@ -1,14 +1,14 @@
 package com.tecdo.service.init;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tecdo.common.thread.ThreadPool;
+import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.entity.RtaInfo;
-import com.tecdo.mapper.RtaInfoMapper;
+import com.tecdo.adm.api.delivery.entity.RtaInfo;
+import com.tecdo.adm.api.delivery.mapper.RtaInfoMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

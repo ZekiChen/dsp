@@ -3,4 +3,10 @@ rootProject.name = 'dsp'
 include 'common'
 include 'dsp'
 include 'job'
+include 'adm'
+include 'adm-api'
+
+file("${rootDir}/tool").eachDirMatch(~/.*/) {
+    include "tool:${it.name}"
+}
 

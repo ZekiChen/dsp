@@ -12,20 +12,15 @@ buildscript {
     }
 }
 
-// define global variables
-ext.global = [
-        javac_compatibility: 1.8,
-        root_dir           : "${rootProject.projectDir}",
-        build_time         : new Date().format("yyyyMMddHHmm", TimeZone.getTimeZone("UTC")),
-]
-
 ext {
-    jLibProjects = Arrays.asList(project(":common")).toSet()
-    bootProjects = subprojects - jLibProjects
+    toolProjects = Arrays.asList(project(":tool")).toSet()
+    toolProjects.addAll(project(":tool").subprojects)
+    apiProjects = Arrays.asList(project(":common"), project(":adm-api")).toSet()
+    bootProjects = subprojects - toolProjects - apiProjects
 }
 
-allprojects {
-    buildDir = new File(global.root_dir, "out/${project.name}")
+configure(allprojects - toolProjects) { project ->
+    buildDir = new File("${rootProject.projectDir}", "out/${project.name}")
 
     apply plugin: 'idea'
     idea {
@@ -84,14 +79,16 @@ allprojects {
 
             // Lazada
             dependency 'com.lazada:lazop-api-sdk:1.2.0'
+
+            // Swagger
+            dependency 'com.github.xiaoymin:knife4j-openapi2-spring-boot-starter:4.0.0'
+            dependency 'io.swagger:swagger-annotations:1.6.2'
         }
     }
 }
 
-subprojects {
-    ext.local = [
-            version: "${RELEASE_VERSION}"
-    ]
+configure(subprojects - toolProjects) { project ->
+    version = "${RELEASE_VERSION}"
 
     apply from: "${rootDir}/build/dependencies.gradle"
     apply from: "${rootDir}/build/dist.gradle"
@@ -106,8 +103,8 @@ subprojects {
         all*.exclude group: 'org.springframework.boot', module: 'spring-boot-starter-logging'
     }
 
-    sourceCompatibility = global.javac_compatibility
-    targetCompatibility = global.javac_compatibility
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
 
     tasks.withType(JavaCompile) {
         options.encoding = "UTF-8"
@@ -119,9 +116,6 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter-log4j2'
         implementation libraries.disruptor
         annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
-
-        compileOnly 'net.dreamlu:mica-auto'
-        annotationProcessor 'net.dreamlu:mica-auto'
     }
 
     test {

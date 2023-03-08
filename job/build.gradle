@@ -1,6 +1,9 @@
 dependencies {
 
     implementation project(':common')
+    implementation project(':adm-api')
+    implementation project(':tool:core-launch')
+    implementation project(':tool:starter-mybatis')
 
     implementation libraries.netty
     
@@ -12,8 +15,6 @@ dependencies {
     implementation 'mysql:mysql-connector-java'
     implementation 'com.baomidou:dynamic-datasource-spring-boot-starter'
 }
-
-version "${local.version}"
 
 publishing {
     publications {

@@ -4,7 +4,7 @@ import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.domain.openrtb.request.BidRequest;
-import com.tecdo.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.fsm.context.Context;
 import com.tecdo.server.request.HttpRequest;
 

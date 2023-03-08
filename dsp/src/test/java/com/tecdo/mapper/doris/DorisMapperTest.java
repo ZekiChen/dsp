@@ -2,12 +2,11 @@ package com.tecdo.mapper.doris;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tecdo.entity.CampaignRtaInfo;
-import com.tecdo.entity.RtaInfo;
-import com.tecdo.entity.doris.AdGroupCost;
+import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
+import com.tecdo.adm.api.delivery.entity.RtaInfo;
+import com.tecdo.adm.api.delivery.mapper.CampaignRtaInfoMapper;
+import com.tecdo.adm.api.delivery.mapper.RtaInfoMapper;
 import com.tecdo.entity.doris.AdGroupImpCount;
-import com.tecdo.mapper.CampaignRtaInfoMapper;
-import com.tecdo.mapper.RtaInfoMapper;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -44,7 +43,7 @@ public class DorisMapperTest {
 
     @Test
     public void test_AdGroupCostMapper_availability() {
-        List<AdGroupCost> costs = costMapper.selectList(Wrappers.<AdGroupCost>query().last("limit 1"));
+        List<com.tecdo.adm.api.delivery.entity.doris.AdGroupCost> costs = costMapper.selectList(Wrappers.<com.tecdo.adm.api.delivery.entity.doris.AdGroupCost>query().last("limit 1"));
         System.out.println(costs);
     }
 

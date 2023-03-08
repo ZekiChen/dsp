@@ -1,19 +1,13 @@
 package com.tecdo.domain.biz.dto;
 
-import com.tecdo.entity.Ad;
-import com.tecdo.entity.AdGroup;
-import com.tecdo.entity.Campaign;
-import com.tecdo.entity.CampaignRtaInfo;
-import com.tecdo.entity.Creative;
-import com.tecdo.entity.TargetCondition;
+import com.tecdo.adm.api.delivery.entity.*;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.Setter;
 
 import java.io.Serializable;
 import java.util.List;
 import java.util.Map;
-
-import lombok.Builder;
-import lombok.Getter;
-import lombok.Setter;
 
 /**
  * 将 ad-group-campaign 数据打平，平铺到 AdDTO 中

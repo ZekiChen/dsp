@@ -2,8 +2,8 @@ package com.tecdo.filter;
 
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.*;
-import com.tecdo.entity.Affiliate;
-import com.tecdo.entity.TargetCondition;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.filter.util.ConditionHelper;
 import org.springframework.stereotype.Component;
 

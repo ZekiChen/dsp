@@ -6,9 +6,9 @@ import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.log.ResponseLog;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.Affiliate;
-import com.tecdo.entity.CampaignRtaInfo;
-import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
+import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 

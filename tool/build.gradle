@@ -1,0 +1,44 @@
+subprojects {
+
+    apply plugin: 'java-library'
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+    tasks.withType(JavaCompile) {
+        options.encoding = "UTF-8"
+    }
+
+    repositories {
+        mavenLocal()
+        maven {
+            url 'https://maven-local.mobisummer-inc.com/repository/maven-public'
+        }
+        mavenCentral()
+        jcenter()
+    }
+
+    apply plugin: 'io.freefair.lombok'
+    apply plugin: 'io.spring.dependency-management'
+
+    dependencyManagement {
+        imports {
+            mavenBom 'org.springframework.boot:spring-boot-dependencies:2.7.7'
+        }
+
+        dependencies {
+            dependency 'net.dreamlu:mica-auto:2.3.1'
+
+            dependency 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
+
+            dependency 'io.swagger:swagger-annotations:1.6.2'
+        }
+    }
+
+    dependencies {
+        implementation 'org.springframework.boot:spring-boot-starter'
+        annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
+
+//        compileOnly 'net.dreamlu:mica-auto'
+        annotationProcessor 'net.dreamlu:mica-auto'
+    }
+
+}
