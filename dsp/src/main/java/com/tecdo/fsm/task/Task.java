@@ -1,26 +1,20 @@
 package com.tecdo.fsm.task;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import cn.zhxu.data.TypeRef;
-import cn.zhxu.okhttps.HttpResult;
-import cn.zhxu.okhttps.OkHttps;
+import com.tecdo.ab.util.AbTestConfigHelper;
+import com.tecdo.common.domain.biz.R;
 import com.tecdo.common.thread.ThreadPool;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.common.domain.biz.R;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.request.CtrRequest;
 import com.tecdo.domain.biz.response.CtrResponse;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
+import com.tecdo.entity.AbTestConfig;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.TargetCondition;
@@ -31,13 +25,12 @@ import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
+import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.util.HashMap;
@@ -45,6 +38,17 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import cn.zhxu.data.TypeRef;
+import cn.zhxu.okhttps.HttpResult;
+import cn.zhxu.okhttps.OkHttps;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
@@ -61,6 +65,8 @@ public class Task {
 
   private final AdManager adManager = SpringUtil.getBean(AdManager.class);
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
+  private final AbTestConfigManager abTestConfigManager =
+    SpringUtil.getBean(AbTestConfigManager.class);
   private final RecallFiltersFactory filtersFactory =
     SpringUtil.getBean(RecallFiltersFactory.class);
   private final ThreadPool threadPool = SpringUtil.getBean(ThreadPool.class);
@@ -220,7 +226,18 @@ public class Task {
               .collect(Collectors.toList());
     Map<String, Object> paramMap =
       MapUtil.<String, Object>builder().put("data", ctrRequests).build();
-    return OkHttps.sync(ctrPredictUrl).bodyType(OkHttps.JSON).setBodyPara(paramMap).post();
+
+    Map<String, List<AbTestConfig>> abTestConfigMap = abTestConfigManager.getAbTestConfigMap();
+    String url = ctrPredictUrl;
+    for (Map.Entry<String, List<AbTestConfig>> entry : abTestConfigMap.entrySet()) {
+      String tag = entry.getKey();
+      List<AbTestConfig> configList = entry.getValue();
+      if (AbTestConfigHelper.execute(configList, bidRequest, affId)) {
+        url = ctrPredictUrl + "/" + tag;
+        break;
+      }
+    }
+    return OkHttps.sync(url).bodyType(OkHttps.JSON).setBodyPara(paramMap).post();
   }
 
   private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {

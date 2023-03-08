@@ -8,6 +8,7 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.server.NetServer;
 import com.tecdo.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.server.request.HttpRequest;
+import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.service.init.BudgetManager;
@@ -29,6 +30,7 @@ import lombok.extern.slf4j.Slf4j;
 public class LifeCycleManager {
 
   private final AffiliateManager affManager;
+  private final AbTestConfigManager abTestConfigManager;
   private final AdManager adManager;
   private final RtaInfoManager rtaManager;
   private final BudgetManager budgetManager;
@@ -38,7 +40,7 @@ public class LifeCycleManager {
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 4;
+  private final int needInitCount = 5;
 
   @Value("${server.port}")
   private int serverPort;
@@ -91,6 +93,12 @@ public class LifeCycleManager {
       case BUDGETS_LOAD_TIMEOUT:
         budgetManager.handleEvent(eventType, params);
         break;
+      case AB_TEST_CONFIG_LOAD:
+      case AB_TEST_CONFIG_LOAD_RESPONSE:
+      case AB_TEST_CONFIG_LOAD_ERROR:
+      case AB_TEST_CONFIG_LOAD_TIMEOUT:
+        abTestConfigManager.handleEvent(eventType, params);
+        break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -113,6 +121,7 @@ public class LifeCycleManager {
         adManager.init(params);
         rtaManager.init(params);
         budgetManager.init(params);
+        abTestConfigManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:
