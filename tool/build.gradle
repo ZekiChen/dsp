@@ -25,7 +25,7 @@ subprojects {
         }
 
         dependencies {
-            dependency 'net.dreamlu:mica-auto:2.3.1'
+            dependency 'net.dreamlu:mica-auto:2.3.2'
 
             dependency 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
 
@@ -37,7 +37,6 @@ subprojects {
         implementation 'org.springframework.boot:spring-boot-starter'
         annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
 
-//        compileOnly 'net.dreamlu:mica-auto'
         annotationProcessor 'net.dreamlu:mica-auto'
     }
 

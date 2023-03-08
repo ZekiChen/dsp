@@ -47,8 +47,6 @@ configure(allprojects - toolProjects) { project ->
         }
 
         dependencies {
-            dependency 'net.dreamlu:mica-auto:2.3.1'
-
             // Util
             dependency 'cn.hutool:hutool-all:5.8.10'
             dependency 'com.google.http-client:google-http-client:1.42.2'
