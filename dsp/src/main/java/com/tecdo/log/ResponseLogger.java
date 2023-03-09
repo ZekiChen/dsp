@@ -1,6 +1,5 @@
 package com.tecdo.log;
 
-import com.alibaba.fastjson2.JSON;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.log.ResponseLog;
@@ -11,6 +10,7 @@ import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
+import com.tecdo.util.JsonHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -31,7 +31,7 @@ public class ResponseLogger {
 
   public static void log(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
     ResponseLog responseLog = buildResponseLog(wrapper, bidRequest, affiliate);
-    responseLogger.info(JSON.toJSONString(responseLog));
+    responseLogger.info(JsonHelper.toJSONString(responseLog));
   }
 
   private static ResponseLog buildResponseLog(AdDTOWrapper wrapper,

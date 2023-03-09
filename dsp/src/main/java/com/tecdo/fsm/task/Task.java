@@ -1,5 +1,8 @@
 package com.tecdo.fsm.task;
 
+import com.ejlchina.data.TypeRef;
+import com.ejlchina.okhttps.HttpResult;
+import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.ab.util.AbTestConfigHelper;
 import com.tecdo.common.domain.biz.R;
 import com.tecdo.common.thread.ThreadPool;
@@ -44,9 +47,6 @@ import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
-import cn.zhxu.data.TypeRef;
-import cn.zhxu.okhttps.HttpResult;
-import cn.zhxu.okhttps.OkHttps;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 

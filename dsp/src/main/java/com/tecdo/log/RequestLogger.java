@@ -1,6 +1,5 @@
 package com.tecdo.log;
 
-import com.alibaba.fastjson2.JSON;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.log.RequestLog;
 import com.tecdo.domain.openrtb.request.BidRequest;
@@ -9,6 +8,7 @@ import com.tecdo.entity.Affiliate;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
+import com.tecdo.util.JsonHelper;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,7 +29,7 @@ public class RequestLogger {
 
   public static void log(String bidId, Imp imp, BidRequest bidRequest, Affiliate affiliate) {
     RequestLog requestLog = buildRequestLog(bidId, imp, bidRequest, affiliate);
-    requestLogger.info(JSON.toJSONString(requestLog));
+    requestLogger.info(JsonHelper.toJSONString(requestLog));
   }
 
   private static RequestLog buildRequestLog(String bidId,

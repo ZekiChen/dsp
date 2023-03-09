@@ -1,5 +1,7 @@
 package com.tecdo.service.rta.api;
 
+import com.ejlchina.okhttps.HttpResult;
+import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.service.rta.ResponseDTO;
 
 import java.io.IOException;
@@ -7,9 +9,6 @@ import java.net.URLEncoder;
 import java.util.Date;
 import java.util.Map;
 import java.util.Set;
-
-import cn.zhxu.okhttps.HttpResult;
-import cn.zhxu.okhttps.OkHttps;
 
 
 /**
