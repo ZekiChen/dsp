@@ -1,16 +1,11 @@
 package com.tecdo.service.rta;
 
-import cn.hutool.extra.spring.SpringUtil;
-import com.lazada.lazop.api.LazopClient;
-import com.lazada.lazop.api.LazopRequest;
-import com.lazada.lazop.api.LazopResponse;
-import com.lazada.lazop.util.ApiException;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.RtaInfo;
-import com.tecdo.util.JsonHelper;
-import lombok.extern.slf4j.Slf4j;
+import com.tecdo.service.rta.api.LazopClient;
+import com.tecdo.service.rta.api.LazopRequest;
 
 import java.util.Date;
 import java.util.List;
@@ -18,6 +13,9 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RtaHelper {
@@ -55,7 +53,7 @@ public class RtaHelper {
     sb.delete(sb.length() - 1, sb.length());
     sb.append("]");
     String campaignIdStringList = sb.toString();
-    LazopResponse response = null;
+    ResponseDTO response = null;
     try {
       response = requestRta(country,
                             gaid,
@@ -66,11 +64,9 @@ public class RtaHelper {
     } catch (Exception e) {
       log.error("query rta catch exception", e);
     }
-    if (response != null && LazadaCode.SUCCESS.equalsIgnoreCase(response.getCode())) {
-      ResponseDTO responseDTO = JsonHelper.parseObject(response.getBody(), ResponseDTO.class);
-      String dtoCode = responseDTO.getCode();
-      if (LazadaCode.SUCCESS.equalsIgnoreCase(dtoCode)) {
-        LazadaRtaData data = responseDTO.getData();
+    if (response != null) {
+      if (LazadaCode.SUCCESS.equalsIgnoreCase(response.getCode()) && response.getData() != null) {
+        LazadaRtaData data = response.getData();
         List<LazadaTarget> targetList = data.getTargetList();
         targetList.forEach(i -> {
           Target target = new Target();
@@ -81,23 +77,24 @@ public class RtaHelper {
             target.setTarget(false);
           }
           String advCampaignId = i.getAdvCampaignId();
-          Set<Integer> campaignIdSet =
-            advCampaignId2CampaignIdSet.get(advCampaignId);
+          Set<Integer> campaignIdSet = advCampaignId2CampaignIdSet.get(advCampaignId);
           campaignIdSet.forEach(campaignId -> {
             rtaResMap.put(campaignId, target);
           });
         });
+      } else {
+        log.error("query rta failed,message:{}", response.getMessage());
       }
     }
   }
 
 
-  private static LazopResponse requestRta(String country,
-                                          String gaid,
-                                          String campaignIdList,
-                                          String advMemberId,
-                                          String appKey,
-                                          String appSecret) throws ApiException {
+  private static ResponseDTO requestRta(String country,
+                                        String gaid,
+                                        String campaignIdList,
+                                        String advMemberId,
+                                        String appKey,
+                                        String appSecret) throws Exception {
     LazopClient client = getClient(advMemberId, appKey, appSecret);
     LazopRequest request = new LazopRequest(API_NAME);
     request.setTimestamp(new Date().getTime());
@@ -105,7 +102,7 @@ public class RtaHelper {
     request.addApiParameter("gaid", gaid);
     request.addApiParameter("member_id", advMemberId);
     request.addApiParameter("campaign_id_list", campaignIdList);
-    LazopResponse response = client.execute(request);
+    ResponseDTO response = client.execute(request);
     return response;
   }
 

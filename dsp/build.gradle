@@ -10,7 +10,6 @@ dependencies {
     implementation 'mysql:mysql-connector-java'
     implementation 'com.baomidou:dynamic-datasource-spring-boot-starter'
 
-    implementation 'com.lazada:lazop-api-sdk'
 
 }
 
