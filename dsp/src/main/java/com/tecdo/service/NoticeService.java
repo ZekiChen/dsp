@@ -1,14 +1,15 @@
 package com.tecdo.service;
 
+import cn.hutool.core.date.DateUtil;
+import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
-import com.tecdo.common.constant.HttpCode;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.util.JsonHelper;
-
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +18,6 @@ import org.springframework.stereotype.Component;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
-
-import cn.hutool.core.date.DateUtil;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -137,7 +135,6 @@ public class NoticeService {
     clickLog.info(JsonHelper.toJSONString(map));
 
     cacheService.incrClickCount(String.valueOf(campaignId), deviceId);
-    cacheService.clickMark(bidId);
 
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
                           .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());

@@ -1,8 +1,11 @@
 package com.tecdo.adm.delivery.wrapper;
 
-import cn.hutool.core.bean.BeanUtil;
+import com.tecdo.starter.tool.util.BeanUtil;
 import com.tecdo.adm.api.delivery.entity.Campaign;
+import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
+import com.tecdo.adm.api.delivery.vo.CampaignRtaVO;
 import com.tecdo.adm.api.delivery.vo.CampaignVO;
+import com.tecdo.adm.common.cache.CampaignCache;
 import com.tecdo.starter.mp.support.EntityWrapper;
 
 import java.util.Objects;
@@ -18,8 +21,11 @@ public class CampaignWrapper extends EntityWrapper<Campaign, CampaignVO> {
 
 	@Override
 	public CampaignVO entityVO(Campaign campaign) {
-		CampaignVO campaignVO = Objects.requireNonNull(BeanUtil.copyProperties(campaign, CampaignVO.class));
-		return campaignVO;
+		CampaignVO vo = Objects.requireNonNull(BeanUtil.copy(campaign, CampaignVO.class));
+		CampaignRtaInfo campaignRta = CampaignCache.getCampaignRta(vo.getId());
+		CampaignRtaVO campaignRtaVO = BeanUtil.copy(campaignRta, CampaignRtaVO.class);
+		vo.setCampaignRtaVO(campaignRtaVO);
+		return vo;
 	}
 
 }

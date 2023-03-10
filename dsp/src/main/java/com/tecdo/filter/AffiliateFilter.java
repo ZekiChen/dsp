@@ -1,5 +1,6 @@
 package com.tecdo.filter;
 
+import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.*;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class AffiliateFilter extends AbstractRecallFilter {
 
-    private static final String AFF_ATTR = "affiliate";
+    private static final String AFF_ATTR = ConditionEnum.AFFILIATE.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {

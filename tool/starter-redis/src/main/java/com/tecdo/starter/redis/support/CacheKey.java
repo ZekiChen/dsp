@@ -1,4 +1,4 @@
-package com.tecdo.starter.redis;
+package com.tecdo.starter.redis.support;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

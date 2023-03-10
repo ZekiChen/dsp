@@ -30,6 +30,10 @@ subprojects {
             dependency 'com.baomidou:mybatis-plus-boot-starter:3.5.1'
 
             dependency 'io.swagger:swagger-annotations:1.6.2'
+
+            dependency 'com.google.guava:guava:30.1.1-jre'
+
+            dependency 'com.xuxueli:xxl-job-core:2.3.0'
         }
     }
 

@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @TableName("target_condition")
 @EqualsAndHashCode(callSuper = true)
-@ApiModel(value = "TargetCondition对象", description = "TargetCondition对象")
+@ApiModel("TargetCondition对象")
 public class TargetCondition extends BaseEntity {
 
     @ApiModelProperty("广告组ID")

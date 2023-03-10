@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @TableName("campaign_rta_info")
 @EqualsAndHashCode(callSuper = true)
-@ApiModel(value = "CampaignRtaInfo对象", description = "CampaignRtaInfo对象")
+@ApiModel("CampaignRtaInfo对象")
 public class CampaignRtaInfo extends BaseEntity {
 
     @ApiModelProperty("campaign表id")

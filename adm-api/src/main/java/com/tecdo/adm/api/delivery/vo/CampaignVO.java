@@ -11,7 +11,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ApiModel(value = "CampaignVO对象", description = "CampaignVO对象")
+@ApiModel("CampaignVO对象")
 public class CampaignVO extends Campaign {
 
 	private static final long serialVersionUID = 1L;

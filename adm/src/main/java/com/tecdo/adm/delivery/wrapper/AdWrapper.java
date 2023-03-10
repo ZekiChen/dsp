@@ -1,6 +1,6 @@
 package com.tecdo.adm.delivery.wrapper;
 
-import cn.hutool.core.bean.BeanUtil;
+import com.tecdo.starter.tool.util.BeanUtil;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.vo.AdVO;
 import com.tecdo.starter.mp.support.EntityWrapper;
@@ -20,7 +20,7 @@ public class AdWrapper extends EntityWrapper<Ad, AdVO> {
 
 	@Override
 	public AdVO entityVO(Ad ad) {
-		AdVO adVO = Objects.requireNonNull(BeanUtil.copyProperties(ad, AdVO.class));
+		AdVO adVO = Objects.requireNonNull(BeanUtil.copy(ad, AdVO.class));
 		return adVO;
 	}
 

@@ -1,5 +1,6 @@
 package com.tecdo.core.launch;
 
+import com.tecdo.core.launch.processor.LaunchProcessorFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -46,8 +47,13 @@ public class PacApplication {
         Properties props = System.getProperties();
         props.setProperty("spring.profiles.active", activeProfile);
         props.setProperty("env", activeProfile);  // Apollo
-        props.setProperty("xxl.job.executor.appname", appName + "-service");  // 有长度要求
         props.setProperty("logging.config", String.format("classpath:log/log4j2-%s.xml", activeProfile));
+
+        // 加载集成自定义组件配置
+        LaunchProcessorFactory singleton = LaunchProcessorFactory.getSingleton();
+        while (singleton.hasNextProcessor()) {
+            singleton.getLaunchProcessor().processor(builder, appName, activeProfile);
+        }
 
         return builder;
     }

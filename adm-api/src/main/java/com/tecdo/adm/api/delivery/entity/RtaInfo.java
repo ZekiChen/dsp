@@ -15,7 +15,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @TableName("rta_info")
 @EqualsAndHashCode(callSuper = true)
-@ApiModel(value = "RtaInfo对象", description = "RtaInfo对象")
+@ApiModel("RtaInfo对象")
 public class RtaInfo extends BaseEntity {
 
     @ApiModelProperty("广告主ID")

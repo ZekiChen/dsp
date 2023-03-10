@@ -24,7 +24,7 @@ import javax.validation.Valid;
  */
 @RequestMapping(AppConstant.ADM + "/ad")
 @RestController
-@Api(value = "广告", tags = "广告")
+@Api(tags = "广告")
 @RequiredArgsConstructor
 public class AdController {
 

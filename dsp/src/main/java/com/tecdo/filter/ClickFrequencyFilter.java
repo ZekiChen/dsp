@@ -1,5 +1,6 @@
 package com.tecdo.filter;
 
+import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -15,7 +16,7 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ClickFrequencyFilter extends AbstractRecallFilter {
 
-  private static final String CLICK_FREQUENCY_ATTR = "click_frequency";
+  private static final String CLICK_FREQUENCY_ATTR = ConditionEnum.CLICK_FREQUENCY.getDesc();
 
   private final CacheService cacheService;
 

@@ -10,7 +10,7 @@ import lombok.EqualsAndHashCode;
  */
 @Data
 @EqualsAndHashCode(callSuper = true)
-@ApiModel(value = "AdVO对象", description = "AdVO对象")
+@ApiModel(value = "AdVO对象")
 public class AdVO extends Ad {
 
 	private static final long serialVersionUID = 1L;

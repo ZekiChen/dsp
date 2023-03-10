@@ -1,6 +1,7 @@
 package com.tecdo.filter;
 
 import cn.hutool.core.util.StrUtil;
+import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeviceOSFilter extends AbstractRecallFilter {
 
-    private static final String OS_ATTR = "device_os";
+    private static final String OS_ATTR = ConditionEnum.DEVICE_OS.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {

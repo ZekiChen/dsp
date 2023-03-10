@@ -5,10 +5,10 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
-import com.tecdo.starter.tool.support.Kv;
 import com.tecdo.starter.tool.BigTool;
+import com.tecdo.starter.tool.support.Kv;
+import com.tecdo.starter.tool.util.BeanUtil;
 import com.tecdo.starter.tool.util.StringUtil;
-import org.springframework.beans.BeanUtils;
 
 import java.util.Map;
 
@@ -100,7 +100,7 @@ public class PCondition {
 	private static <T> QueryWrapper<T> getQueryWrapper(Map<String, Object> query, Map<String, Object> exclude, Class<T> clazz) {
 		exclude.forEach((k, v) -> query.remove(k));
 		QueryWrapper<T> qw = new QueryWrapper<>();
-		qw.setEntity(BeanUtils.instantiateClass(clazz));
+		qw.setEntity(BeanUtil.instantiateClass(clazz));
 		SqlKeyword.buildCondition(query, qw);
 		return qw;
 	}

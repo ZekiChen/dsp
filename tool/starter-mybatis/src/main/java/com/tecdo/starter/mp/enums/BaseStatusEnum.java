@@ -12,8 +12,8 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum BaseStatusEnum {
 
-    ACTIVE(1, "active"),
-    PAUSE(2, "pause");
+    PAUSE(0, "pause"),
+    ACTIVE(1, "active");
 
     private final int type;
     private final String desc;

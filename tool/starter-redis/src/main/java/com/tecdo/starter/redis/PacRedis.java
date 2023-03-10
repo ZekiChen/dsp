@@ -1,5 +1,6 @@
 package com.tecdo.starter.redis;
 
+import com.tecdo.starter.redis.support.CacheKey;
 import lombok.Getter;
 import org.springframework.data.redis.core.*;
 import org.springframework.lang.Nullable;

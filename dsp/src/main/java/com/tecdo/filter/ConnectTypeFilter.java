@@ -1,5 +1,6 @@
 package com.tecdo.filter;
 
+import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -16,7 +17,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConnectTypeFilter extends AbstractRecallFilter {
 
-    private static final String CONNECT_ATTR = "connection_type";
+    private static final String CONNECT_ATTR = ConditionEnum.CONNECTION_TYPE.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {

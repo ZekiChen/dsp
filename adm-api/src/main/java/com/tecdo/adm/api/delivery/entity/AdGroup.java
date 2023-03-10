@@ -2,7 +2,6 @@ package com.tecdo.adm.api.delivery.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tecdo.starter.mp.entity.BaseEntity;
-import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -16,7 +15,7 @@ import lombok.EqualsAndHashCode;
 @Data
 @TableName("ad_group")
 @EqualsAndHashCode(callSuper = true)
-@ApiModel(value = "AdGroup对象", description = "AdGroup对象")
+@ApiModel("AdGroup对象")
 public class AdGroup extends BaseEntity {
 
     @ApiModelProperty("广告活动ID")
@@ -38,5 +37,5 @@ public class AdGroup extends BaseEntity {
     @ApiModelProperty("操作价格")
     private Double optPrice;
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
-    private Integer status = BaseStatusEnum.ACTIVE.getType();
+    private Integer status;
 }
