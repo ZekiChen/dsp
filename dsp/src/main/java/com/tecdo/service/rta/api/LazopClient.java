@@ -3,6 +3,7 @@ package com.tecdo.service.rta.api;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.service.rta.ResponseDTO;
+import com.tecdo.util.JsonHelper;
 
 import java.io.IOException;
 import java.net.URLEncoder;
@@ -64,7 +65,7 @@ public class LazopClient {
                                    .addHeader(request.getHeaderParams())
                                    .post();
     if (httpResult.isSuccessful()) {
-      response = httpResult.getBody().toBean(ResponseDTO.class);
+      response = JsonHelper.parseObject(httpResult.getBody().toString(), ResponseDTO.class);
     } else {
       if (httpResult.getError() != null) {
         throw httpResult.getError();

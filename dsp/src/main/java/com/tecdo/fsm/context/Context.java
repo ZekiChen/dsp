@@ -180,6 +180,7 @@ public class Context {
         messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
                                 params.put(ParamKey.REQUEST_RTA_RESPONSE, rtaResMap));
       } catch (Exception e) {
+        log.error("contextId: {},request rta cause a exception:", requestId, e);
         messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
       }
     });
