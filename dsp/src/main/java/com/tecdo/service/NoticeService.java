@@ -135,6 +135,7 @@ public class NoticeService {
     clickLog.info(JsonHelper.toJSONString(map));
 
     cacheService.incrClickCount(String.valueOf(campaignId), deviceId);
+    cacheService.clickMark(bidId);
 
     Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
                           .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
