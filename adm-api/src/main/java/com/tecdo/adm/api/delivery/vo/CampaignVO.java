@@ -19,4 +19,10 @@ public class CampaignVO extends Campaign {
 	@ApiModelProperty("Campaign RTA信息")
 	private CampaignRtaVO campaignRtaVO;
 
+	public CampaignRtaVO getCampaignRtaVO() {
+		if (campaignRtaVO  != null) {
+			campaignRtaVO.setCampaignId(getId());
+		}
+		return campaignRtaVO;
+	}
 }

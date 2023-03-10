@@ -1,6 +1,5 @@
 package com.tecdo.adm.delivery.service.impl;
 
-import com.baomidou.mybatisplus.core.conditions.Wrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
@@ -17,8 +16,12 @@ import java.util.List;
 public class TargetConditionServiceImpl extends ServiceImpl<TargetConditionMapper, TargetCondition> implements ITargetConditionService {
 
     @Override
-    public boolean deleteByAdGroupIds(List<Integer> adGroupId) {
-        Wrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery().in(TargetCondition::getAdGroupId, adGroupId);
-        return baseMapper.delete(wrapper) > 0;
+    public void deleteByAdGroupIds(List<Integer> adGroupIds) {
+        baseMapper.delete(Wrappers.<TargetCondition>lambdaQuery().in(TargetCondition::getAdGroupId, adGroupIds));
+    }
+
+    @Override
+    public List<TargetCondition> listCondition(Integer adGroupId) {
+        return baseMapper.selectList(Wrappers.<TargetCondition>lambdaQuery().in(TargetCondition::getAdGroupId, adGroupId));
     }
 }

@@ -1,12 +1,12 @@
 package com.tecdo.adm.delivery.wrapper;
 
-import com.tecdo.starter.tool.util.BeanUtil;
 import com.tecdo.adm.api.delivery.entity.Campaign;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.vo.CampaignRtaVO;
 import com.tecdo.adm.api.delivery.vo.CampaignVO;
 import com.tecdo.adm.common.cache.CampaignCache;
 import com.tecdo.starter.mp.support.EntityWrapper;
+import com.tecdo.starter.tool.util.BeanUtil;
 
 import java.util.Objects;
 

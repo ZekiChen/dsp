@@ -10,7 +10,6 @@ import lombok.EqualsAndHashCode;
 
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 
 /**
  * Created by Zeki on 2023/3/8
@@ -29,9 +28,5 @@ public class AdGroupVO extends AdGroup {
 		List<TargetCondition> conditions = Objects.requireNonNull(BeanUtil.copy(conditionVOs, TargetCondition.class));
 		conditions.forEach(e -> e.setAdGroupId(getId()));
 		return conditions;
-	}
-
-	public List<Integer> listConditionId() {
-		return conditionVOs.stream().map(TargetCondition::getId).collect(Collectors.toList());
 	}
 }

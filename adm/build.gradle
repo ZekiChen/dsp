@@ -7,6 +7,7 @@ dependencies {
     implementation project(':tool:starter-redis')
     implementation project(':tool:starter-mybatis')
     implementation project(':tool:starter-log')
+    implementation project(':tool:starter-oss')
 
     implementation 'org.springframework.boot:spring-boot-starter-web'
     implementation 'org.springframework.boot:spring-boot-starter-validation'

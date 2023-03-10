@@ -1,5 +1,7 @@
 package com.tecdo.adm.api.delivery.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tecdo.starter.mp.entity.BaseEntity;
 import io.swagger.annotations.ApiModel;
@@ -29,6 +31,7 @@ public class Campaign extends BaseEntity {
     @ApiModelProperty("推广单子的域名")
     private String domain;
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
+    @TableField(fill = FieldFill.INSERT)
     private Integer status;
 
 }

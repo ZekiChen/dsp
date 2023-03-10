@@ -5,6 +5,7 @@ import com.tecdo.adm.api.delivery.entity.Campaign;
 import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
 import com.tecdo.adm.api.delivery.vo.CampaignRtaVO;
 import com.tecdo.adm.api.delivery.vo.CampaignVO;
+import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.ICampaignRtaService;
 import com.tecdo.adm.delivery.service.ICampaignService;
 import lombok.RequiredArgsConstructor;
@@ -21,18 +22,11 @@ import java.util.List;
 public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> implements ICampaignService {
 
     private final ICampaignRtaService campaignRtaService;
+    private final IAdGroupService adGroupService;
 
     @Override
     public boolean add(CampaignVO vo) {
-        if (save(vo)) {
-            CampaignRtaVO campaignRtaVO = vo.getCampaignRtaVO();
-            if (campaignRtaVO == null) {
-                return true;
-            }
-            campaignRtaVO.setCampaignId(vo.getId());
-            return campaignRtaService.save(campaignRtaVO);
-        }
-        return false;
+        return save(vo) && campaignRtaService.save(vo.getCampaignRtaVO());
     }
 
     @Override
@@ -43,7 +37,6 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
                 campaignRtaService.deleteByCampaignIds(Collections.singletonList(vo.getId()));
                 return true;
             }
-            campaignRtaVO.setCampaignId(vo.getId());
             return campaignRtaService.updateById(campaignRtaVO);
         }
         return false;
@@ -51,6 +44,11 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
 
     @Override
     public boolean delete(List<Integer> ids) {
-        return removeByIds(ids) && campaignRtaService.deleteByCampaignIds(ids);
+        if (removeByIds(ids)) {
+            campaignRtaService.deleteByCampaignIds(ids);
+            adGroupService.deleteByCampaignIds(ids);
+            return true;
+        }
+        return false;
     }
 }

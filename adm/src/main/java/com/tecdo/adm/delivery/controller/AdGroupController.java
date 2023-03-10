@@ -20,7 +20,7 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 
-import static com.tecdo.common.constant.CacheConstant.CAMPAIGN_CACHE;
+import static com.tecdo.common.constant.CacheConstant.AD_GROUP_CACHE;
 
 /**
  * Created by Zeki on 2023/3/6
@@ -44,7 +44,7 @@ public class AdGroupController {
     @ApiOperationSupport(order = 2)
     @ApiOperation(value = "修改", notes = "传入AdGroupVO")
     public R update(@Valid @RequestBody AdGroupVO vo) {
-        CacheUtil.clear(CAMPAIGN_CACHE);
+        CacheUtil.clear(AD_GROUP_CACHE);
         return R.status(service.edit(vo));
     }
 
@@ -52,7 +52,7 @@ public class AdGroupController {
     @ApiOperationSupport(order = 3)
     @ApiOperation(value = "删除", notes = "传入ids")
     public R remove(@ApiParam(value = "主键集合", required = true) @RequestParam String ids) {
-        CacheUtil.clear(CAMPAIGN_CACHE);
+        CacheUtil.clear(AD_GROUP_CACHE);
         return R.status(service.delete(BigTool.toIntList(ids)));
     }
 

@@ -15,5 +15,7 @@ public interface IAdGroupService extends IService<AdGroup> {
 
     boolean edit(AdGroupVO vo);
 
-    boolean delete(List<Integer> toIntList);
+    boolean delete(List<Integer> ids);
+    void deleteByCampaignIds(List<Integer> campaignIds);
+
 }

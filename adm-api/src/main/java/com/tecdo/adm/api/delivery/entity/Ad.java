@@ -1,5 +1,7 @@
 package com.tecdo.adm.api.delivery.entity;
 
+import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tecdo.starter.mp.entity.BaseEntity;
 import io.swagger.annotations.ApiModel;
@@ -37,6 +39,7 @@ public class Ad extends BaseEntity {
     @ApiModelProperty("视频 creative id")
     private Integer video;
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
+    @TableField(fill = FieldFill.INSERT)
     private Integer status;
 
 }

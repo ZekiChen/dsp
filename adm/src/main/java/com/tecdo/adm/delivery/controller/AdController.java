@@ -32,14 +32,14 @@ public class AdController {
 
     @PostMapping("/save")
     @ApiOperationSupport(order = 1)
-    @ApiOperation(value = "新增", notes = "传入ad")
+    @ApiOperation(value = "新增", notes = "传入Ad")
     public R save(@Valid @RequestBody Ad ad) {
         return R.status(service.save(ad));
     }
 
     @PutMapping("/update")
     @ApiOperationSupport(order = 2)
-    @ApiOperation(value = "修改", notes = "传入ad")
+    @ApiOperation(value = "修改", notes = "传入Ad")
     public R update(@Valid @RequestBody Ad ad) {
         return R.status(service.updateById(ad));
     }

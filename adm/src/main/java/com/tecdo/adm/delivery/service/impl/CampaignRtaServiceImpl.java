@@ -16,9 +16,8 @@ import java.util.List;
 public class CampaignRtaServiceImpl extends ServiceImpl<CampaignRtaInfoMapper, CampaignRtaInfo> implements ICampaignRtaService {
 
     @Override
-    public boolean deleteByCampaignIds(List<Integer> campaignIds) {
+    public void deleteByCampaignIds(List<Integer> campaignIds) {
         baseMapper.delete(Wrappers.<CampaignRtaInfo>lambdaQuery().in(CampaignRtaInfo::getCampaignId, campaignIds));
-        return true;
     }
 
     @Override

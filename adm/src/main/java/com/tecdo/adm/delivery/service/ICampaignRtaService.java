@@ -10,7 +10,7 @@ import java.util.List;
  */
 public interface ICampaignRtaService extends IService<CampaignRtaInfo> {
 
-    boolean deleteByCampaignIds(List<Integer> campaignIds);
+    void deleteByCampaignIds(List<Integer> campaignIds);
 
     CampaignRtaInfo getByCampaignId(Integer campaignId);
 }

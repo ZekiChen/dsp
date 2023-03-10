@@ -14,8 +14,11 @@ public interface CacheConstant {
 
 	// delivery
 	String CAMPAIGN_CACHE = "pac:adm:campaign";
+	String AD_GROUP_CACHE = "pac:adm:adGroup";
+	String AD_CACHE = "pac:adm:ad";
 	// system
 	String DICT_CACHE = "pac:adm:dict";
+
 
 	// =================================== key expire ===========================================\
 	long DAY_COUNT_EXP = 60 * 60 * 24;  // 24h

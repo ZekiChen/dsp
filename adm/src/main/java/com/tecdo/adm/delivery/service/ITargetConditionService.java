@@ -10,5 +10,7 @@ import java.util.List;
  */
 public interface ITargetConditionService extends IService<TargetCondition> {
 
-    boolean deleteByAdGroupIds(List<Integer> adGroupIds);
+    void deleteByAdGroupIds(List<Integer> adGroupIds);
+
+    List<TargetCondition> listCondition(Integer adGroupId);
 }
