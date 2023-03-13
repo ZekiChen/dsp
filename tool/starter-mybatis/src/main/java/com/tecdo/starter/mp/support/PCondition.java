@@ -29,7 +29,6 @@ public class PCondition {
 	 * @return IPage
 	 */
 	public static <T> IPage<T> getPage(PQuery query) {
-
 		Page<T> page = new Page<>(BigTool.toInt(query.getCurrent(), 1), BigTool.toInt(query.getSize(), 10));
 		setPageQuery(query, page);
 		return page;
