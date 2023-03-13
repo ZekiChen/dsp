@@ -3,8 +3,8 @@ package com.tecdo.xxljob.config;
 import com.xxl.job.core.executor.impl.XxlJobSpringExecutor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
  * xxl-job 初始化配置
@@ -12,7 +12,7 @@ import org.springframework.context.annotation.Configuration;
  * Created by Zeki on 2023/2/24
  */
 @Slf4j
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 public class XxlJobConfig {
 
     @Value("${xxl.job.admin.addresses:}")
