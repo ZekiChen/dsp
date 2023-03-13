@@ -21,6 +21,8 @@ public class AdGroupVO extends AdGroup {
 
 	private static final long serialVersionUID = 1L;
 
+	@ApiModelProperty("广告活动名称")
+	private String campaignName;
 	@ApiModelProperty("定向条件集")
 	List<TargetConditionVO> conditionVOs;
 

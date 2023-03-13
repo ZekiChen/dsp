@@ -16,6 +16,11 @@ public class AdVO extends Ad {
 
 	private static final long serialVersionUID = 1L;
 
+	@ApiModelProperty("广告组名称")
+	private String adGroupName;
+	@ApiModelProperty("广告活动名称")
+	private String campaignName;
+
 	@ApiModelProperty("图标URL")
 	private String iconUrl;
 	@ApiModelProperty("图片URL")
@@ -23,4 +28,6 @@ public class AdVO extends Ad {
 	@ApiModelProperty("视频URL")
 	private String videoUrl;
 
+	@ApiModelProperty("素材大小")
+	private String size;
 }

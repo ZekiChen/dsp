@@ -1,6 +1,7 @@
 package com.tecdo.adm.common.cache;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.tecdo.adm.api.delivery.entity.Campaign;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.delivery.service.ICampaignRtaService;
 import com.tecdo.adm.delivery.service.ICampaignService;
@@ -18,6 +19,10 @@ public class CampaignCache {
 
 	private static final ICampaignService campaignService = SpringUtil.getBean(ICampaignService.class);
 	private static final ICampaignRtaService campaignRtaService = SpringUtil.getBean(ICampaignRtaService.class);
+
+	public static Campaign getCampaign(Integer id) {
+		return CacheUtil.get(CAMPAIGN_CACHE, CAMPAIGN_ID, id, () -> campaignService.getById(id));
+	}
 
 	public static CampaignRtaInfo getCampaignRta(Integer campaignId) {
 		return CacheUtil.get(CAMPAIGN_CACHE, CAMPAIGN_RTA_ID, campaignId, () -> campaignRtaService.getByCampaignId(campaignId));

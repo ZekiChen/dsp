@@ -1,9 +1,13 @@
 package com.tecdo.adm.delivery.wrapper;
 
 import com.tecdo.adm.api.delivery.entity.Ad;
+import com.tecdo.adm.api.delivery.entity.AdGroup;
+import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.adm.api.delivery.vo.AdVO;
 import com.tecdo.adm.common.cache.AdCache;
+import com.tecdo.adm.common.cache.AdGroupCache;
+import com.tecdo.adm.common.cache.CampaignCache;
 import com.tecdo.starter.log.exception.ServiceException;
 import com.tecdo.starter.mp.support.EntityWrapper;
 import com.tecdo.starter.tool.util.BeanUtil;
@@ -24,14 +28,23 @@ public class AdWrapper extends EntityWrapper<Ad, AdVO> {
 	@Override
 	public AdVO entityVO(Ad ad) {
 		AdVO vo = Objects.requireNonNull(BeanUtil.copy(ad, AdVO.class));
+		AdGroup adGroup = AdGroupCache.getAdGroup(vo.getGroupId());
+		vo.setAdGroupName(adGroup.getName());
+		vo.setCampaignName(CampaignCache.getCampaign(adGroup.getCampaignId()).getName());
 		AdTypeEnum adType = AdTypeEnum.of(vo.getType());
+		Creative image;
 		switch (adType) {
 			case BANNER:
-				vo.setImageUrl(AdCache.getCreative(vo.getImage()).getUrl());
+				image = AdCache.getCreative(vo.getImage());
+				vo.setImageUrl(image.getUrl());
+				vo.setSize("w" + image.getWidth() + "h" + image.getHeight());
 				break;
 			case NATIVE:
-				vo.setImageUrl(AdCache.getCreative(vo.getImage()).getUrl());
-				vo.setIconUrl(AdCache.getCreative(vo.getIcon()).getUrl());
+				image = AdCache.getCreative(vo.getImage());
+				Creative icon = AdCache.getCreative(vo.getIcon());
+				vo.setImageUrl(image.getUrl());
+				vo.setSize("w" + image.getWidth() + "h" + image.getHeight());
+				vo.setIconUrl(icon.getUrl());
 				break;
 			case VIDEO:
 				vo.setVideoUrl(AdCache.getCreative(vo.getVideo()).getUrl());
