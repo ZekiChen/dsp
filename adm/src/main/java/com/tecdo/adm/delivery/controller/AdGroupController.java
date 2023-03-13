@@ -1,6 +1,9 @@
 package com.tecdo.adm.delivery.controller;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
@@ -67,8 +70,13 @@ public class AdGroupController {
     @GetMapping("/page")
     @ApiOperationSupport(order = 5)
     @ApiOperation(value = "分页", notes = "传入AdGroup")
-    public R<IPage<AdGroupVO>> page(AdGroup adGroup, PQuery query) {
-        IPage<AdGroup> pages = service.page(PCondition.getPage(query), PCondition.getQueryWrapper(adGroup));
+    public R<IPage<AdGroupVO>> page(@ApiParam("广告活动ID集") @RequestParam(required = false) String campaignIds,
+                                    AdGroup adGroup, PQuery query) {
+        LambdaQueryWrapper<AdGroup> wrapper = Wrappers.lambdaQuery(adGroup);
+        if (StrUtil.isNotBlank(campaignIds)) {
+            wrapper.in(AdGroup::getCampaignId, BigTool.toIntList(campaignIds));
+        }
+        IPage<AdGroup> pages = service.page(PCondition.getPage(query), wrapper);
         return R.data(AdGroupWrapper.build().pageVO(pages));
     }
 }
