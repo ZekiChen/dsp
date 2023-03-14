@@ -6,15 +6,14 @@ import com.ejlchina.okhttps.HTTP;
 import java.util.concurrent.Executors;
 
 import cn.hutool.extra.spring.SpringUtil;
-
 import okhttp3.Dispatcher;
 
 public class OkHttpsConfig implements Config {
 
-  private static String coreSize = "256";
-  private static String maxRequests = "256";
+  private static String coreSize = SpringUtil.getProperty("pac.ok-https.core-size");
+  private static String maxRequests = SpringUtil.getProperty("pac.ok-https.max-requests");
   private static String maxRequestsPerHost =
-    "256";
+    SpringUtil.getProperty("pac.ok-https.max-requests-per-host");
 
   @Override
   public void with(HTTP.Builder builder) {
