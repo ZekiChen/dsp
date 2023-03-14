@@ -48,4 +48,14 @@ public class AdDTOWrapper {
    */
   private String bidId;
 
+  /**
+   * 是否请求了rta
+   */
+  private int rtaRequest;
+
+  /**
+   * 是否为rta匹配
+   */
+  private int rtaRequestTrue;
+
 }

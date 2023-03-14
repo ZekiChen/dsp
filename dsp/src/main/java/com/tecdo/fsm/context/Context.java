@@ -126,7 +126,6 @@ public class Context {
       String taskId = generateBidId();
       task.init(bidRequest, imp, affiliate, requestId, taskId);
       taskMap.put(taskId, task);
-      RequestLogger.log(taskId, imp, bidRequest, affiliate);
       messageQueue.putMessage(EventType.TASK_START, assignParams().put(ParamKey.TASK_ID, taskId));
       log.info("receive bid request: {},requestId: {},taskId: {}",
                bidRequest.getId(),
@@ -204,6 +203,7 @@ public class Context {
     // 分广告主进行rta匹配
     advToAdList.forEach((advId, adList) -> {
       RtaInfo rtaInfo = rtaInfoManager.getRtaInfo(advId);
+      adList.forEach(i -> i.setRtaRequest(1));
       RtaHelper.requestRta(rtaInfo, adList, countryCode, deviceId, rtaResMap);
     });
     return rtaResMap;
@@ -221,7 +221,10 @@ public class Context {
       Target t = entry.getValue();
       if (t.isTarget()) {
         String token = t.getToken();
-        campaignIdToAdList.get(campaignId).forEach(i -> i.setRtaToken(token));
+        campaignIdToAdList.get(campaignId).forEach(i -> {
+          i.setRtaToken(token);
+          i.setRtaRequestTrue(1);
+        });
       }
     }
     // 只保留非rta的单子 和 rta并且匹配的单子
@@ -257,10 +260,12 @@ public class Context {
   public void responseData() {
     Params params = Params.create();
     EventType eventType = EventType.RESPONSE_RESULT;
+    logBidRequest();
     if (this.response == null) {
       params.put(ParamKey.HTTP_CODE, HttpCode.NOT_BID);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     } else {
+      logBidResponse();
       BidResponse bidResponse = buildResponse(this.response);
       String bidResponseString = JsonHelper.toJSONString(bidResponse);
       log.info("contextId: {}, bid response is:{}", requestId, bidResponseString);
@@ -449,7 +454,19 @@ public class Context {
 
   }
 
-  public void logBidResponse() {
+  private void logBidResponse() {
     ResponseLogger.log(response, bidRequest, affiliate);
+  }
+
+  private void logBidRequest() {
+    taskMap.forEach((taskId, task) -> {
+      Map<Integer, AdDTOWrapper> adDTOWrapperMap =
+        taskResponse.getOrDefault(taskId, Collections.emptyMap());
+      int rtaRequest =
+        adDTOWrapperMap.values().stream().anyMatch(i -> i.getRtaRequest() == 1) ? 1 : 0;
+      int rtaRequestTrue =
+        adDTOWrapperMap.values().stream().anyMatch(i -> i.getRtaRequestTrue() == 1) ? 1 : 0;
+      RequestLogger.log(taskId, task.getImp(), bidRequest, affiliate, rtaRequest, rtaRequestTrue);
+    });
   }
 }

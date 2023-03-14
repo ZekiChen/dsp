@@ -162,4 +162,31 @@ public class RequestLog implements Serializable {
      */
     @JsonProperty("bid_floor")
     private Double bidFloor;
+
+    @JsonProperty("city")
+    private String city;
+
+    @JsonProperty("region")
+    private String region;
+
+    @JsonProperty("device_type")
+    private String deviceType;
+
+    @JsonProperty("screen_width")
+    private Integer screenWidth;
+
+    @JsonProperty("screen_height")
+    private Integer screenHeight;
+
+    @JsonProperty("screen_ppi")
+    private Integer screenPpi;
+
+    @JsonProperty("tag_id")
+    private String tagId;
+
+    @JsonProperty("rta_request")
+    private int rtaRequest;
+
+    @JsonProperty("rta_request_true")
+    private int rtaRequestTrue;
 }

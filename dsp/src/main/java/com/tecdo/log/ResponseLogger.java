@@ -4,10 +4,12 @@ import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.log.ResponseLog;
 import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
@@ -44,6 +46,7 @@ public class ResponseLogger {
                         .findFirst()
                         .get();
     BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
+    Device device = bidRequest.getDevice();
     return ResponseLog.builder()
                       .createTime(DateUtil.format(new Date(), "yyyy-MM-dd_HH"))
                       .bidId(wrapper.getBidId())
@@ -59,7 +62,7 @@ public class ResponseLogger {
                       .category(wrapper.getAdDTO().getCampaign().getCategory())
                       .feature(Optional.ofNullable(wrapper.getAdDTO().getCampaignRtaInfo())
                                        .map(CampaignRtaInfo::getRtaFeature)
-                                       .orElse(null))
+                                       .orElse(-1))
                       .bidPrice(wrapper.getBidPrice())
                       .pCtr(wrapper.getPCtr())
                       .pCtrVersion(wrapper.getPCtrVersion())
@@ -71,28 +74,32 @@ public class ResponseLogger {
                                         .orElse(null))
                       .adWidth(bidCreative.getWidth())
                       .adHeight(bidCreative.getHeight())
-                      .os(bidRequest.getDevice().getOs())
-                      .deviceMake(FieldFormatHelper.deviceMakeFormat(bidRequest.getDevice()
-                                                                               .getMake()))
+                      .os(device.getOs())
+                      .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
                       .bundleId(bidRequest.getApp().getBundle())
-                      .country(FieldFormatHelper.countryFormat(bidRequest.getDevice()
-                                                                         .getGeo()
-                                                                         .getCountry()))
-                      .connectionType(bidRequest.getDevice().getConnectiontype())
-                      .deviceModel(FieldFormatHelper.deviceModelFormat(bidRequest.getDevice()
-                                                                                 .getModel()))
-                      .osv(bidRequest.getDevice().getOsv())
-                      .carrier(bidRequest.getDevice().getCarrier())
+                      .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
+                      .connectionType(device.getConnectiontype())
+                      .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
+                      .osv(device.getOsv())
+                      .carrier(device.getCarrier())
                       .pos(bidCreative.getPos())
                       .instl(imp.getInstl())
                       .domain(bidRequest.getApp().getDomain())
                       .cat(bidRequest.getApp().getCat())
-                      .ip(Optional.ofNullable(bidRequest.getDevice().getIp())
-                                  .orElse(bidRequest.getDevice().getIpv6()))
-                      .ua(bidRequest.getDevice().getUa())
-                      .lang(FieldFormatHelper.languageFormat(bidRequest.getDevice().getLanguage()))
-                      .deviceId(bidRequest.getDevice().getIfa())
+                      .ip(Optional.ofNullable(device.getIp()).orElse(device.getIpv6()))
+                      .ua(device.getUa())
+                      .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
+                      .deviceId(device.getIfa())
                       .bidFloor(imp.getBidfloor().doubleValue())
+                      .city(FieldFormatHelper.cityFormat(device.getGeo().getCity()))
+                      .region(FieldFormatHelper.regionFormat(device.getGeo().getRegion()))
+                      .deviceType(DeviceTypeEnum.of(device.getDevicetype()).name())
+                      .screenWidth(device.getW())
+                      .screenHeight(device.getH())
+                      .screenPpi(device.getPpi())
+                      .tagId(imp.getTagid())
+                      .rtaRequest(wrapper.getRtaRequest())
+                      .rtaRequestTrue(wrapper.getRtaRequestTrue())
                       .build();
   }
 }
