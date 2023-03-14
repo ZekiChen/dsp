@@ -58,9 +58,10 @@ allprojects {
             dependency 'cn.hutool:hutool-all:5.8.10'
             dependency 'com.google.http-client:google-http-client:1.42.2'
 
-            // OkHttp3-FastJson2
-            dependency 'com.squareup.okio:okio:2.8.0'
-            dependency 'cn.zhxu:okhttps-fastjson2:4.0.0'
+            // OkHttp3-FastJson
+            dependency 'com.squareup.okio:okio:1.17.5'
+            dependency 'com.ejlchina:okhttps-fastjson:3.5.3'
+            dependency 'com.squareup.okhttp3:okhttp:3.14.9'
 
             // MySQL
             dependency 'mysql:mysql-connector-java:8.0.22'
@@ -82,8 +83,6 @@ allprojects {
             // xxl-job
             dependency 'com.xuxueli:xxl-job-core:2.3.0'
 
-            // Lazada
-            dependency 'com.lazada:lazop-api-sdk:1.2.0'
         }
     }
 }

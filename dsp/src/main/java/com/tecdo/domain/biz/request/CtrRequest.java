@@ -1,10 +1,13 @@
 package com.tecdo.domain.biz.request;
 
+import com.alibaba.fastjson.annotation.JSONField;
+
+import java.io.Serializable;
+import java.util.List;
+
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
-
-import java.io.Serializable;
 
 /**
  * CTR预估请求 顶层对象模型
@@ -14,6 +17,9 @@ import java.io.Serializable;
 @Setter
 @Getter
 @Builder
+/**
+ * 因为这个对象是okhttps使用的，而okhttps使用的序列化工具为fastjson，所以这里要用fastjson的注解
+ */
 public class CtrRequest implements Serializable {
 
     /**
@@ -24,7 +30,8 @@ public class CtrRequest implements Serializable {
     /**
      * 日期 yyyy-MM-dd
      */
-    private String day;
+    @JSONField(name = "day")
+    private String dayOld;
 
     /**
      * adx的id
@@ -52,6 +59,11 @@ public class CtrRequest implements Serializable {
     private String os;
 
     /**
+     * 系统版本
+     */
+    private String osv;
+
+    /**
      * 设备制造商
      */
     private String deviceMake;
@@ -59,13 +71,30 @@ public class CtrRequest implements Serializable {
     /**
      * 流量所在的包名
      */
-    private String bundle;
+    private String bundleId;
+
+    @JSONField(name = "bundle")
+    private String bundleOld;
 
     /**
      * 国家三字码
      */
     private String country;
 
+    /**
+     * 网络链接类型
+     */
+    private Integer connectionType;
+
+    /**
+     * 设备型号
+     */
+    private String deviceModel;
+
+    /**
+     * 运营商
+     */
+    private String carrier;
     /**
      * 素材id
      */
@@ -79,16 +108,39 @@ public class CtrRequest implements Serializable {
     /**
      * RTA人群特征
      */
-    private Integer rtaFeature;
+    private Integer feature1;
+
+    @JSONField(name = "rtaFeature")
+    private Integer rtaFeatureOld;
 
     /**
      * 投放的产品的包名
      */
+    @JSONField(name = "package")
     private String packageName;
+
+    @JSONField(name = "packageName")
+    private String packageNameOld;
 
     /**
      * 投放的产品的category
      */
     private String category;
+
+    private Integer pos;
+
+    private String domain;
+
+    private Integer instl;
+
+    private List<String> cat;
+
+    private String ip;
+
+    private String ua;
+
+    private String lang;
+
+    private String deviceId;
 
 }

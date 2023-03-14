@@ -32,6 +32,11 @@ public enum EventType {
   BUDGETS_LOAD_ERROR(1403, "budget list load failure"),
   BUDGETS_LOAD_TIMEOUT(1404, "budget list load timeout"),
 
+  AB_TEST_CONFIG_LOAD(1501, "ab test config load"),
+  AB_TEST_CONFIG_LOAD_RESPONSE(1502, "ab test config load response"),
+  AB_TEST_CONFIG_LOAD_ERROR(1503, "ab test config load failure"),
+  AB_TEST_CONFIG_LOAD_TIMEOUT(1504, "ab test config load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

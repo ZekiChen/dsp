@@ -2,7 +2,8 @@ package com.tecdo.job.util;
 
 import cn.hutool.core.util.BooleanUtil;
 import cn.hutool.json.JSONUtil;
-import com.alibaba.fastjson2.JSONObject;
+
+import com.alibaba.fastjson.JSONObject;
 import okhttp3.*;
 
 import java.io.File;

@@ -11,6 +11,10 @@ public class ResponseDTO {
   @JsonProperty("request_id")
   private String requestId;
 
+  private String type;
+
+  private String message;
+
   public String getCode() {
     return code;
   }
@@ -33,5 +37,21 @@ public class ResponseDTO {
 
   public void setData(LazadaRtaData data) {
     this.data = data;
+  }
+
+  public String getType() {
+    return type;
+  }
+
+  public void setType(String type) {
+    this.type = type;
+  }
+
+  public String getMessage() {
+    return message;
+  }
+
+  public void setMessage(String message) {
+    this.message = message;
   }
 }
