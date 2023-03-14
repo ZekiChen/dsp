@@ -15,7 +15,9 @@ import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.request.CtrRequest;
 import com.tecdo.domain.biz.response.CtrResponse;
+import com.tecdo.domain.openrtb.request.Banner;
 import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.AbTestConfig;
 import com.tecdo.entity.Affiliate;
@@ -242,27 +244,42 @@ public class Task {
 
   private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
     Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
+    Device device = bidRequest.getDevice();
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
-                     .day(DateUtil.today())
+                     .dayOld(DateUtil.today())
                      .affiliateId(affId)
                      .adFormat(AdTypeEnum.of(adDTO.getAd().getType()).getDesc())
                      .adHeight(adDTO.getCreativeMap().get(creativeId).getHeight())
                      .adWidth(adDTO.getCreativeMap().get(creativeId).getWidth())
-                     .os(FieldFormatHelper.osFormat(bidRequest.getDevice().getOs()))
-                     .deviceMake(FieldFormatHelper.deviceMakeFormat(bidRequest.getDevice()
-                                                                              .getMake()))
-                     .bundle(bidRequest.getApp().getBundle())
-                     .country(FieldFormatHelper.countryFormat(bidRequest.getDevice()
-                                                                        .getGeo()
-                                                                        .getCountry()))
+                     .os(FieldFormatHelper.osFormat(device.getOs()))
+                     .osv(device.getOsv())
+                     .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
+                     .bundleId(bidRequest.getApp().getBundle())
+                     .bundleOld(bidRequest.getApp().getBundle())
+                     .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
+                     .connectionType(device.getConnectiontype())
+                     .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
+                     .carrier(device.getCarrier())
                      .creativeId(creativeId)
                      .bidFloor(Double.valueOf(imp.getBidfloor()))
-                     .rtaFeature(Optional.ofNullable(adDTO.getCampaignRtaInfo())
-                                         .map(CampaignRtaInfo::getRtaFeature)
-                                         .orElse(-1))
+                     .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
+                                       .map(CampaignRtaInfo::getRtaFeature)
+                                       .orElse(-1))
+                     .rtaFeatureOld(Optional.ofNullable(adDTO.getCampaignRtaInfo())
+                                            .map(CampaignRtaInfo::getRtaFeature)
+                                            .orElse(-1))
                      .packageName(adDTO.getCampaign().getPackageName())
+                     .packageNameOld(adDTO.getCampaign().getPackageName())
                      .category(adDTO.getCampaign().getCategory())
+                     .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
+                     .domain(bidRequest.getApp().getDomain())
+                     .instl(imp.getInstl())
+                     .cat(bidRequest.getApp().getCat())
+                     .ip(device.getIp())
+                     .ua(device.getUa())
+                     .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
+                     .deviceId(device.getIfa())
                      .build();
   }
 
