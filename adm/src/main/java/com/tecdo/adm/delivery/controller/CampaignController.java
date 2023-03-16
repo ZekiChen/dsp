@@ -10,6 +10,7 @@ import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
 import com.tecdo.starter.mp.support.PCondition;
 import com.tecdo.starter.mp.support.PQuery;
+import com.tecdo.starter.mp.vo.BaseVO;
 import com.tecdo.starter.redis.CacheUtil;
 import com.tecdo.starter.tool.BigTool;
 import io.swagger.annotations.Api;
@@ -19,6 +20,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+
+import java.util.List;
 
 import static com.tecdo.common.constant.CacheConstant.*;
 
@@ -36,8 +39,8 @@ public class CampaignController {
     @PostMapping("/add")
     @ApiOperationSupport(order = 1)
     @ApiOperation(value = "新增", notes = "传入campaignVO")
-    public R save(@Valid @RequestBody CampaignVO vo) {
-        return R.status(service.add(vo));
+    public R<Integer> save(@Valid @RequestBody CampaignVO vo) {
+        return service.add(vo) ? R.data(vo.getId()) : R.failure();
     }
 
     @PutMapping("/update")
@@ -71,5 +74,12 @@ public class CampaignController {
     public R<IPage<CampaignVO>> page(Campaign campaign, PQuery query) {
         IPage<Campaign> pages = service.page(PCondition.getPage(query), PCondition.getQueryWrapper(campaign));
         return R.data(CampaignWrapper.build().pageVO(pages));
+    }
+
+    @GetMapping("/list")
+    @ApiOperationSupport(order = 6)
+    @ApiOperation(value = "列表", notes = "无需传参")
+    public R<List<BaseVO>> list() {
+        return R.data(service.listIdAndName());
     }
 }

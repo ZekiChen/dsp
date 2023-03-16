@@ -3,6 +3,7 @@ package com.tecdo.adm.delivery.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
+import com.tecdo.starter.mp.vo.BaseVO;
 
 import java.util.List;
 
@@ -18,4 +19,5 @@ public interface IAdGroupService extends IService<AdGroup> {
     boolean delete(List<Integer> ids);
     void deleteByCampaignIds(List<Integer> campaignIds);
 
+    List<BaseVO> listIdAndName();
 }

@@ -8,6 +8,7 @@ import com.tecdo.adm.api.delivery.vo.CampaignVO;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.ICampaignRtaService;
 import com.tecdo.adm.delivery.service.ICampaignService;
+import com.tecdo.starter.mp.vo.BaseVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -50,5 +51,10 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
             return true;
         }
         return false;
+    }
+
+    @Override
+    public List<BaseVO> listIdAndName() {
+        return baseMapper.listIdAndName();
     }
 }

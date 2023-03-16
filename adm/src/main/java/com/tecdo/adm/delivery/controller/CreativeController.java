@@ -10,13 +10,17 @@ import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
 import com.tecdo.starter.mp.support.PCondition;
 import com.tecdo.starter.mp.support.PQuery;
+import com.tecdo.starter.oss.OssTemplate;
+import com.tecdo.starter.oss.domain.PacFile;
 import com.tecdo.starter.redis.CacheUtil;
 import com.tecdo.starter.tool.BigTool;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import lombok.SneakyThrows;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
 
@@ -32,8 +36,9 @@ import static com.tecdo.common.constant.CacheConstant.AD_CACHE;
 public class CreativeController {
 
     private final ICreativeService service;
+    private final OssTemplate ossTemplate;
 
-    @PostMapping("/save")
+    @PostMapping("/add")
     @ApiOperationSupport(order = 1)
     @ApiOperation(value = "新增", notes = "传入Creative")
     public R save(@Valid @RequestBody Creative creative) {
@@ -73,12 +78,21 @@ public class CreativeController {
     }
 
 
-//    @SneakyThrows
-//    @PostMapping("/upload-file")
-//    @ApiOperationSupport(order = 6)
-//    @ApiOperation(value = "素材上传", notes = "传入素材")
-//    public R<PacFile> uploadFile(@RequestParam MultipartFile file) {
-//        PacFile pacFile = ossBuilder.template().putFile(file.getOriginalFilename(), file.getInputStream());
-//        return R.data(pacFile);
-//    }
+    @SneakyThrows
+    @PostMapping("/upload-file")
+    @ApiOperationSupport(order = 6)
+    @ApiOperation(value = "素材上传", notes = "传入素材")
+    public R<PacFile> uploadFile(@RequestParam("file") MultipartFile file,
+                                 @RequestParam("type") Integer type,
+                                 @RequestParam("width") Integer width,
+                                 @RequestParam("height") Integer height) {
+        PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
+        Creative creative = new Creative();
+        creative.setUrl(pacFile.getUrl());
+        creative.setName(pacFile.getOriginalName());
+        creative.setType(type);
+        creative.setWidth(width);
+        creative.setHeight(height);
+        return service.save(creative) ? R.data(pacFile) : R.failure();
+    }
 }

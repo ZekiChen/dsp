@@ -34,6 +34,14 @@ subprojects {
             dependency 'com.google.guava:guava:30.1.1-jre'
 
             dependency 'com.xuxueli:xxl-job-core:2.3.0'
+
+            dependency 'com.huaweicloud:esdk-obs-java:3.21.8'
+
+            dependencySet(group: 'io.jsonwebtoken', version: '0.11.2') {
+                entry 'jjwt-impl'
+                entry 'jjwt-jackson'
+            }
+
         }
     }
 

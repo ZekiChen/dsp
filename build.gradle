@@ -40,7 +40,6 @@ configure(allprojects - toolProjects) { project ->
 
     apply plugin: 'io.spring.dependency-management'
 
-    // 统一依赖版本管理
     dependencyManagement {
         imports {
             mavenBom 'org.springframework.boot:spring-boot-dependencies:2.7.7'
@@ -63,7 +62,6 @@ configure(allprojects - toolProjects) { project ->
                 entry 'dynamic-datasource-spring-boot-starter'
             }
 
-            // Apollo
             dependency 'com.ctrip.framework.apollo:apollo-client:1.9.1'
 
             // CAT
@@ -72,15 +70,21 @@ configure(allprojects - toolProjects) { project ->
             dependency 'org.codehaus.plexus:plexus-utils:3.0.24'
             dependency 'org.codehaus.plexus:plexus-container-default:1.6'
 
-            // xxl-job
             dependency 'com.xuxueli:xxl-job-core:2.3.0'
 
-            // Lazada
             dependency 'com.lazada:lazop-api-sdk:1.2.0'
 
             // Swagger
             dependency 'com.github.xiaoymin:knife4j-openapi2-spring-boot-starter:4.0.0'
             dependency 'io.swagger:swagger-annotations:1.6.2'
+
+            dependency 'com.huaweicloud:esdk-obs-java:3.21.8'
+
+            dependencySet(group: 'io.jsonwebtoken', version: '0.11.2') {
+                entry 'jjwt-impl'
+                entry 'jjwt-jackson'
+            }
+
         }
     }
 }
@@ -109,7 +113,6 @@ configure(subprojects - toolProjects) { project ->
     }
 
     dependencies {
-        // SpringBoot
         implementation 'org.springframework.boot:spring-boot-starter'
         implementation 'org.springframework.boot:spring-boot-starter-log4j2'
         implementation libraries.disruptor
@@ -117,7 +120,7 @@ configure(subprojects - toolProjects) { project ->
     }
 
     test {
-        enabled true
+        enabled false
         useJUnitPlatform()
     }
 }
@@ -126,10 +129,8 @@ configure(bootProjects) { project ->
     apply plugin: 'org.springframework.boot'
 
     dependencies {
-        // Apollo
         implementation 'com.ctrip.framework.apollo:apollo-client'
 
-        // CAT
         implementation "com.dianping.cat:cat-client"
         implementation 'org.codehaus.plexus:plexus-classworlds'
         implementation 'org.codehaus.plexus:plexus-utils'

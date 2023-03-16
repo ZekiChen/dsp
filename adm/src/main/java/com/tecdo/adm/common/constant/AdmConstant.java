@@ -8,4 +8,5 @@ public interface AdmConstant {
     Integer TOP_PARENT_ID = 0;
     String TOP_PARENT_NAME = "顶级";
 
+    String DEFAULT_PASSWORD = "123456";
 }

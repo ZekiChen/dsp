@@ -8,6 +8,7 @@ import com.tecdo.adm.api.delivery.vo.AdGroupVO;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.adm.delivery.service.ITargetConditionService;
+import com.tecdo.starter.mp.vo.BaseVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -53,5 +54,10 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         List<AdGroup> adGroups = baseMapper.selectList(Wrappers.<AdGroup>lambdaQuery().in(AdGroup::getCampaignId, campaignIds));
         List<Integer> adGroupIds = adGroups.stream().map(AdGroup::getId).collect(Collectors.toList());
         delete(adGroupIds);
+    }
+
+    @Override
+    public List<BaseVO> listIdAndName() {
+        return baseMapper.listIdAndName();
     }
 }
