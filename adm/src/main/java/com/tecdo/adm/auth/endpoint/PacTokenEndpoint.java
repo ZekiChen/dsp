@@ -1,11 +1,6 @@
 package com.tecdo.adm.auth.endpoint;
 
 import com.github.xiaoymin.knife4j.annotations.ApiSort;
-import com.tecdo.adm.api.system.entity.UserInfo;
-import com.tecdo.adm.auth.provider.ITokenGranter;
-import com.tecdo.adm.auth.provider.TokenGranterBuilder;
-import com.tecdo.adm.auth.provider.TokenParam;
-import com.tecdo.adm.auth.util.TokenUtil;
 import com.tecdo.core.launch.constant.TokenConstant;
 import com.tecdo.starter.auth.AuthUtil;
 import com.tecdo.starter.auth.domain.PacUser;
@@ -18,7 +13,10 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.AllArgsConstructor;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletResponse;
 
@@ -42,24 +40,26 @@ public class PacTokenEndpoint {
         // 临时方案
         if ("admin".equals(username) && "pacdsppacdsp".equals(password)) {
             return Kv.create().set(TokenConstant.ACCESS_TOKEN, "asdfiouw4uw3h6jjklse");
+        } else {
+            return Kv.create().set("error_code", HttpServletResponse.SC_UNAUTHORIZED).set("error_description", "用户名或密码不正确");
         }
 
-        Kv authInfo = Kv.create();
-        String grantType = WebUtil.getRequest().getParameter(TokenConstant.GRANT_TYPE);
-        String refreshToken = WebUtil.getRequest().getParameter(TokenConstant.REFRESH_TOKEN);
-
-        TokenParam tokenParam = new TokenParam();
-        tokenParam.getArgs()
-                .set("account", username)
-                .set("password", password)
-                .set("grantType", grantType)
-                .set("refreshToken", refreshToken);
-
-        ITokenGranter granter = TokenGranterBuilder.getGranter(grantType);
-        UserInfo userInfo = granter.grant(tokenParam);
-
-        return userInfo != null && userInfo.getUser() != null ? TokenUtil.createAuthInfo(userInfo) :
-                authInfo.set("error_code", HttpServletResponse.SC_UNAUTHORIZED).set("error_description", "用户名或密码不正确");
+//        Kv authInfo = Kv.create();
+//        String grantType = WebUtil.getRequest().getParameter(TokenConstant.GRANT_TYPE);
+//        String refreshToken = WebUtil.getRequest().getParameter(TokenConstant.REFRESH_TOKEN);
+//
+//        TokenParam tokenParam = new TokenParam();
+//        tokenParam.getArgs()
+//                .set("account", username)
+//                .set("password", password)
+//                .set("grantType", grantType)
+//                .set("refreshToken", refreshToken);
+//
+//        ITokenGranter granter = TokenGranterBuilder.getGranter(grantType);
+//        UserInfo userInfo = granter.grant(tokenParam);
+//
+//        return userInfo != null && userInfo.getUser() != null ? TokenUtil.createAuthInfo(userInfo) :
+//                authInfo.set("error_code", HttpServletResponse.SC_UNAUTHORIZED).set("error_description", "用户名或密码不正确");
     }
 
 
