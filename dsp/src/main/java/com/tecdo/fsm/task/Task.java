@@ -35,6 +35,7 @@ import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
+import com.tecdo.util.JsonHelper;
 
 import org.apache.commons.collections.CollectionUtils;
 
@@ -239,7 +240,10 @@ public class Task {
         break;
       }
     }
-    return OkHttps.sync(url).bodyType(OkHttps.JSON).setBodyPara(paramMap).post();
+    return OkHttps.sync(url)
+                  .bodyType(OkHttps.JSON)
+                  .setBodyPara(JsonHelper.toJSONString(paramMap))
+                  .post();
   }
 
   private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {

@@ -1,6 +1,7 @@
 package com.tecdo.domain.biz.request;
 
 import com.alibaba.fastjson.annotation.JSONField;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.Serializable;
 import java.util.List;
@@ -31,6 +32,7 @@ public class CtrRequest implements Serializable {
      * 日期 yyyy-MM-dd
      */
     @JSONField(name = "day")
+    @JsonProperty("day")
     private String dayOld;
 
     /**
@@ -74,6 +76,7 @@ public class CtrRequest implements Serializable {
     private String bundleId;
 
     @JSONField(name = "bundle")
+    @JsonProperty("bundle")
     private String bundleOld;
 
     /**
@@ -111,15 +114,18 @@ public class CtrRequest implements Serializable {
     private Integer feature1;
 
     @JSONField(name = "rtaFeature")
+    @JsonProperty("rtaFeature")
     private Integer rtaFeatureOld;
 
     /**
      * 投放的产品的包名
      */
     @JSONField(name = "package")
+    @JsonProperty("package")
     private String packageName;
 
     @JSONField(name = "packageName")
+    @JsonProperty("packageName")
     private String packageNameOld;
 
     /**
