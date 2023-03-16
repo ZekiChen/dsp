@@ -5,7 +5,7 @@ package com.tecdo.core.launch.constant;
  */
 public interface TokenConstant {
 
-	String HEADER = "Auth";
+	String HEADER = "Token";
 	String BEARER = "bearer";
 	String ACCESS_TOKEN = "access_token";
 	String REFRESH_TOKEN = "refresh_token";
