@@ -1,8 +1,8 @@
 package com.tecdo.service;
 
+import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
-import com.tecdo.common.constant.HttpCode;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.server.NetServer;
@@ -14,11 +14,11 @@ import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.service.init.BudgetManager;
 import com.tecdo.service.init.RtaInfoManager;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -26,16 +26,20 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class LifeCycleManager {
 
-  private final AffiliateManager affManager;
-  private final AbTestConfigManager abTestConfigManager;
-  private final AdManager adManager;
-  private final RtaInfoManager rtaManager;
-  private final BudgetManager budgetManager;
-
-  private final MessageQueue messageQueue;
+  @Autowired
+  private AffiliateManager affManager;
+  @Autowired
+  private AbTestConfigManager abTestConfigManager;
+  @Autowired
+  private AdManager adManager;
+  @Autowired
+  private RtaInfoManager rtaManager;
+  @Autowired
+  private BudgetManager budgetManager;
+  @Autowired
+  private MessageQueue messageQueue;
 
   private State currentState = State.INIT;
 
