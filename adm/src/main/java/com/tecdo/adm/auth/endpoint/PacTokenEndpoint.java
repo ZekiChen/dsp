@@ -59,7 +59,7 @@ public class PacTokenEndpoint {
         UserInfo userInfo = granter.grant(tokenParam);
 
         return userInfo != null && userInfo.getUser() != null ? TokenUtil.createAuthInfo(userInfo) :
-                authInfo.set("error_code", HttpServletResponse.SC_BAD_REQUEST).set("error_description", "用户名或密码不正确");
+                authInfo.set("error_code", HttpServletResponse.SC_UNAUTHORIZED).set("error_description", "用户名或密码不正确");
     }
 
 
