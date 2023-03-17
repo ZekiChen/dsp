@@ -37,14 +37,15 @@ public class AdWrapper extends EntityWrapper<Ad, AdVO> {
 			case BANNER:
 				image = AdCache.getCreative(vo.getImage());
 				vo.setImageUrl(image.getUrl());
-				vo.setSize("w" + image.getWidth() + "h" + image.getHeight());
+				vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
 				break;
 			case NATIVE:
 				image = AdCache.getCreative(vo.getImage());
 				Creative icon = AdCache.getCreative(vo.getIcon());
 				vo.setImageUrl(image.getUrl());
-				vo.setSize("w" + image.getWidth() + "h" + image.getHeight());
+				vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
 				vo.setIconUrl(icon.getUrl());
+				vo.setIconSize("w" + icon.getWidth() + "h" + icon.getHeight());
 				break;
 			case VIDEO:
 				vo.setVideoUrl(AdCache.getCreative(vo.getVideo()).getUrl());

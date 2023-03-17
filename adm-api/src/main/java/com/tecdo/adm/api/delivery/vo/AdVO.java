@@ -21,13 +21,15 @@ public class AdVO extends Ad {
 	@ApiModelProperty("广告活动名称")
 	private String campaignName;
 
-	@ApiModelProperty("图标URL")
-	private String iconUrl;
 	@ApiModelProperty("图片URL")
 	private String imageUrl;
+	@ApiModelProperty("图标URL")
+	private String iconUrl;
 	@ApiModelProperty("视频URL")
 	private String videoUrl;
 
-	@ApiModelProperty("素材大小")
-	private String size;
+	@ApiModelProperty("图片大小")
+	private String imageSize;
+	@ApiModelProperty("图标大小")
+	private String iconSize;
 }
