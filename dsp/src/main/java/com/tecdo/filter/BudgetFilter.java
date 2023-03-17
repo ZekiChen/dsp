@@ -7,19 +7,18 @@ import com.tecdo.entity.Affiliate;
 import com.tecdo.filter.util.ConditionHelper;
 import com.tecdo.service.init.BudgetManager;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
-
-import lombok.RequiredArgsConstructor;
 
 /**
  * 日预算控制 过滤
  * Created by Zeki on 2023/2/21
  */
 @Component
-@RequiredArgsConstructor
 public class BudgetFilter extends AbstractRecallFilter {
 
-  private final BudgetManager budgetManager;
+  @Autowired
+  private BudgetManager budgetManager;
 
   @Override
   public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
