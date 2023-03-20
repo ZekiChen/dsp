@@ -20,4 +20,6 @@ public interface IAdGroupService extends IService<AdGroup> {
     void deleteByCampaignIds(List<Integer> campaignIds);
 
     List<BaseVO> listIdAndName();
+
+    List<AdGroup> listByCampaignIds(List<Integer> campaignIds);
 }

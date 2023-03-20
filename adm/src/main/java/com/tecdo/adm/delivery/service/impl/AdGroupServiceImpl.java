@@ -60,4 +60,9 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     public List<BaseVO> listIdAndName() {
         return baseMapper.listIdAndName();
     }
+
+    @Override
+    public List<AdGroup> listByCampaignIds(List<Integer> campaignIds) {
+        return baseMapper.selectList(Wrappers.<AdGroup>lambdaQuery().in(AdGroup::getCampaignId, campaignIds));
+    }
 }

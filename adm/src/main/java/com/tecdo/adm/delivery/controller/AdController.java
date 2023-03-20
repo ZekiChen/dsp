@@ -76,7 +76,7 @@ public class AdController {
                                Ad ad, PQuery query) {
         LambdaQueryWrapper<Ad> wrapper = Wrappers.lambdaQuery(ad);
         if (StrUtil.isNotBlank(campaignIds)) {
-            List<AdGroup> adGroups = adGroupService.listByIds(BigTool.toIntList(campaignIds));
+            List<AdGroup> adGroups = adGroupService.listByCampaignIds(BigTool.toIntList(campaignIds));
             if (CollUtil.isNotEmpty(adGroups)) {
                 List<Integer> adGroupIds = adGroups.stream().map(AdGroup::getId).collect(Collectors.toList());
                 wrapper.in(Ad::getGroupId, adGroupIds);
