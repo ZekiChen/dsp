@@ -75,14 +75,14 @@ public class AdController {
                                @ApiParam("广告组ID集") @RequestParam(required = false) String groupIds,
                                Ad ad, PQuery query) {
         LambdaQueryWrapper<Ad> wrapper = Wrappers.lambdaQuery(ad);
-        if (StrUtil.isNotBlank(campaignIds)) {
+        if (StrUtil.isNotBlank(groupIds)) {
+            wrapper.in(Ad::getGroupId, BigTool.toIntList(groupIds));
+        } else if (StrUtil.isNotBlank(campaignIds)) {
             List<AdGroup> adGroups = adGroupService.listByCampaignIds(BigTool.toIntList(campaignIds));
             if (CollUtil.isNotEmpty(adGroups)) {
                 List<Integer> adGroupIds = adGroups.stream().map(AdGroup::getId).collect(Collectors.toList());
                 wrapper.in(Ad::getGroupId, adGroupIds);
             }
-        } else if (StrUtil.isNotBlank(groupIds)) {
-            wrapper.in(Ad::getGroupId, BigTool.toIntList(groupIds));
         }
         IPage<Ad> pages = service.page(PCondition.getPage(query), wrapper);
         return R.data(AdWrapper.build().pageVO(pages));
