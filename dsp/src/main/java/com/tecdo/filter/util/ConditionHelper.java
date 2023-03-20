@@ -9,6 +9,7 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 
 import static com.tecdo.filter.AbstractRecallFilter.Constant.BETWEEN;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.CONTAINS;
 import static com.tecdo.filter.AbstractRecallFilter.Constant.EQ;
 import static com.tecdo.filter.AbstractRecallFilter.Constant.EXCLUDE;
 import static com.tecdo.filter.AbstractRecallFilter.Constant.GT;
@@ -16,6 +17,7 @@ import static com.tecdo.filter.AbstractRecallFilter.Constant.GTE;
 import static com.tecdo.filter.AbstractRecallFilter.Constant.INCLUDE;
 import static com.tecdo.filter.AbstractRecallFilter.Constant.LT;
 import static com.tecdo.filter.AbstractRecallFilter.Constant.LTE;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.NOT_CONTAINS;
 
 /**
  * 定投条件 工具
@@ -69,9 +71,13 @@ public class ConditionHelper {
                     return num1 <= sourceNum || sourceNum <= num2;
                 }
             case INCLUDE:
-                return Arrays.asList(target.split(",")).contains(source);
+                return Arrays.stream(target.split(",")).anyMatch(i -> i.equalsIgnoreCase(source));
             case EXCLUDE:
-                return !Arrays.asList(target.split(",")).contains(source);
+                return Arrays.stream(target.split(",")).noneMatch(i -> i.equalsIgnoreCase(source));
+            case CONTAINS:
+                return source.toUpperCase().contains(source.toUpperCase());
+            case NOT_CONTAINS:
+                return !source.toUpperCase().contains(source.toUpperCase());
             default:
                 // 调用该方法不会是未被包含的操作符，否则就是预期意外的异常
                 throw new IllegalArgumentException("Invalid operation: " + operation);
