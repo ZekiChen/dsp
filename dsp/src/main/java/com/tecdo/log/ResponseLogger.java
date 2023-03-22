@@ -74,7 +74,7 @@ public class ResponseLogger {
                                         .orElse(null))
                       .adWidth(bidCreative.getWidth())
                       .adHeight(bidCreative.getHeight())
-                      .os(device.getOs())
+                      .os(FieldFormatHelper.osFormat(device.getOs()))
                       .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
                       .bundleId(bidRequest.getApp().getBundle())
                       .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))

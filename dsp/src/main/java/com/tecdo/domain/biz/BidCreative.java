@@ -32,5 +32,5 @@ public class BidCreative {
     /**
      * 广告在屏幕上的位置
      */
-    private Integer pos;
+    private Integer pos = 0;
 }
