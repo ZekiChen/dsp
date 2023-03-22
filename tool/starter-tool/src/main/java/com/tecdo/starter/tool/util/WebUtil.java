@@ -34,8 +34,6 @@ import java.util.function.Predicate;
 @Slf4j
 public class WebUtil extends WebUtils {
 
-	public static final String USER_AGENT_HEADER = "user-agent";
-
 	/**
 	 * 判断是否ajax请求
 	 * spring ajax 返回含有 ResponseBody 或者 RestController注解
