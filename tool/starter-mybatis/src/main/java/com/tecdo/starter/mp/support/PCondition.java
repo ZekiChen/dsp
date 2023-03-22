@@ -5,11 +5,11 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.metadata.OrderItem;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.baomidou.mybatisplus.extension.plugins.pagination.PageDTO;
-import com.tecdo.starter.tool.BigTool;
-import com.tecdo.starter.tool.support.Kv;
-import com.tecdo.starter.tool.util.BeanUtil;
-import com.tecdo.starter.tool.util.StringUtil;
+import com.tecdo.starter.mp.util.MpBigTool;
+import com.tecdo.starter.mp.util.MpStrUtil;
+import org.springframework.beans.BeanUtils;
 
+import java.util.HashMap;
 import java.util.Map;
 
 /**
@@ -29,7 +29,7 @@ public class PCondition {
 	 * @return IPage
 	 */
 	public static <T> IPage<T> getPage(PQuery query) {
-		Page<T> page = new Page<>(BigTool.toInt(query.getCurrent(), 1), BigTool.toInt(query.getSize(), 10));
+		Page<T> page = new Page<>(MpBigTool.toInt(query.getCurrent(), 1), MpBigTool.toInt(query.getSize(), 10));
 		setPageQuery(query, page);
 		return page;
 	}
@@ -40,19 +40,19 @@ public class PCondition {
 	 * @return PageDTO
 	 */
 	public static <T> PageDTO<T> getPageDTO(PQuery query) {
-		PageDTO<T> page =  new PageDTO<>(BigTool.toInt(query.getCurrent(), 1), BigTool.toInt(query.getSize(), 10));
+		PageDTO<T> page =  new PageDTO<>(MpBigTool.toInt(query.getCurrent(), 1), MpBigTool.toInt(query.getSize(), 10));
 		setPageQuery(query, page);
 		return page;
 	}
 
 	private static void setPageQuery(PQuery query, Page page) {
-		String[] ascArr = BigTool.toStrArray(query.getAscs());
+		String[] ascArr = MpBigTool.toStrArray(query.getAscs());
 		for (String asc : ascArr) {
-			page.addOrder(OrderItem.asc(StringUtil.cleanIdentifier(asc)));
+			page.addOrder(OrderItem.asc(MpStrUtil.cleanIdentifier(asc)));
 		}
-		String[] descArr = BigTool.toStrArray(query.getDescs());
+		String[] descArr = MpBigTool.toStrArray(query.getDescs());
 		for (String desc : descArr) {
-			page.addOrder(OrderItem.desc(StringUtil.cleanIdentifier(desc)));
+			page.addOrder(OrderItem.desc(MpStrUtil.cleanIdentifier(desc)));
 		}
 		if (Boolean.FALSE.equals(query.getSearchCount())) {
 			page.setTotal(-1);
@@ -79,11 +79,11 @@ public class PCondition {
 	 * @return QueryWrapper
 	 */
 	public static <T> QueryWrapper<T> getQueryWrapper(Map<String, Object> query, Class<T> clazz) {
-		Kv exclude = Kv.create()
-				.set("current", "current")
-				.set("size", "size")
-				.set("ascs", "ascs")
-				.set("descs", "descs");
+		Map<String, Object> exclude = new HashMap<>();
+		exclude.put("current", "current");
+		exclude.put("size", "size");
+		exclude.put("ascs", "ascs");
+		exclude.put("descs", "descs");
 		return getQueryWrapper(query, exclude, clazz);
 	}
 
@@ -99,7 +99,7 @@ public class PCondition {
 	private static <T> QueryWrapper<T> getQueryWrapper(Map<String, Object> query, Map<String, Object> exclude, Class<T> clazz) {
 		exclude.forEach((k, v) -> query.remove(k));
 		QueryWrapper<T> qw = new QueryWrapper<>();
-		qw.setEntity(BeanUtil.instantiateClass(clazz));
+		qw.setEntity(BeanUtils.instantiateClass(clazz));
 		SqlKeyword.buildCondition(query, qw);
 		return qw;
 	}

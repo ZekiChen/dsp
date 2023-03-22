@@ -1,9 +1,10 @@
 package com.tecdo.starter.mp.support;
 
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
-import com.tecdo.starter.tool.BigTool;
-import com.tecdo.starter.tool.util.DateUtil;
-import com.tecdo.starter.tool.util.StringUtil;
+import com.tecdo.starter.mp.util.MpBigTool;
+import com.tecdo.starter.mp.util.MpDateUtil;
+import com.tecdo.starter.mp.util.MpStrUtil;
+import org.springframework.util.ObjectUtils;
 
 import java.util.Map;
 
@@ -41,11 +42,11 @@ public class SqlKeyword {
      * @param qw    查询包装类
      */
     public static void buildCondition(Map<String, Object> query, QueryWrapper<?> qw) {
-        if (BigTool.isEmpty(query)) {
+        if (ObjectUtils.isEmpty(query)) {
             return;
         }
         query.forEach((k, v) -> {
-            if (BigTool.hasEmpty(k, v) || k.endsWith(IGNORE)) {
+            if (MpBigTool.hasEmpty(k, v) || k.endsWith(IGNORE)) {
                 return;
             }
             if (k.endsWith(EQUAL)) {
@@ -67,15 +68,15 @@ public class SqlKeyword {
             } else if (k.endsWith(LT)) {
                 qw.lt(getColumn(k, LT), v);
             } else if (k.endsWith(DATE_GE)) {
-                qw.ge(getColumn(k, DATE_GE), DateUtil.parse(String.valueOf(v), DateUtil.PATTERN_DATETIME));
+                qw.ge(getColumn(k, DATE_GE), MpDateUtil.parse(String.valueOf(v), MpDateUtil.PATTERN_DATETIME));
             } else if (k.endsWith(DATE_GT)) {
-                qw.gt(getColumn(k, DATE_GT), DateUtil.parse(String.valueOf(v), DateUtil.PATTERN_DATETIME));
+                qw.gt(getColumn(k, DATE_GT), MpDateUtil.parse(String.valueOf(v), MpDateUtil.PATTERN_DATETIME));
             } else if (k.endsWith(DATE_EQUAL)) {
-                qw.eq(getColumn(k, DATE_EQUAL), DateUtil.parse(String.valueOf(v), DateUtil.PATTERN_DATETIME));
+                qw.eq(getColumn(k, DATE_EQUAL), MpDateUtil.parse(String.valueOf(v), MpDateUtil.PATTERN_DATETIME));
             } else if (k.endsWith(DATE_LE)) {
-                qw.le(getColumn(k, DATE_LE), DateUtil.parse(String.valueOf(v), DateUtil.PATTERN_DATETIME));
+                qw.le(getColumn(k, DATE_LE), MpDateUtil.parse(String.valueOf(v), MpDateUtil.PATTERN_DATETIME));
             } else if (k.endsWith(DATE_LT)) {
-                qw.lt(getColumn(k, DATE_LT), DateUtil.parse(String.valueOf(v), DateUtil.PATTERN_DATETIME));
+                qw.lt(getColumn(k, DATE_LT), MpDateUtil.parse(String.valueOf(v), MpDateUtil.PATTERN_DATETIME));
             } else if (k.endsWith(IS_NULL)) {
                 qw.isNull(getColumn(k, IS_NULL));
             } else if (k.endsWith(NOT_NULL)) {
@@ -94,7 +95,7 @@ public class SqlKeyword {
      * @return
      */
     private static String getColumn(String column, String keyword) {
-        return StringUtil.humpToUnderline(StringUtil.removeSuffix(column, keyword));
+        return MpStrUtil.humpToUnderline(MpStrUtil.removeSuffix(column, keyword));
     }
 
     /**

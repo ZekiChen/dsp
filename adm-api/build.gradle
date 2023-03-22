@@ -1,6 +1,5 @@
 dependencies {
 
-    implementation project(':tool:starter-tool')
     implementation project(':tool:starter-mybatis')
 
 }

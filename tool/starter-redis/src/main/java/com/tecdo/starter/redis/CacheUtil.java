@@ -1,7 +1,7 @@
 package com.tecdo.starter.redis;
 
-import com.tecdo.starter.tool.BigTool;
-import com.tecdo.starter.tool.util.ReflectUtil;
+import com.tecdo.starter.redis.util.RdsBigTool;
+import com.tecdo.starter.redis.util.RdsReflectUtil;
 import org.springframework.beans.BeansException;
 import org.springframework.cache.Cache;
 import org.springframework.cache.CacheManager;
@@ -58,11 +58,11 @@ public class CacheUtil implements ApplicationContextAware {
 	 */
 	@Nullable
 	public static Object get(String cacheName, String keyPrefix, Object key) {
-		if (BigTool.hasEmpty(cacheName, keyPrefix, key)) {
+		if (RdsBigTool.hasEmpty(cacheName, keyPrefix, key)) {
 			return null;
 		}
 		Cache.ValueWrapper valueWrapper = getCache(cacheName).get(keyPrefix.concat(String.valueOf(key)));
-		if (BigTool.isEmpty(valueWrapper)) {
+		if (ObjectUtils.isEmpty(valueWrapper)) {
 			return null;
 		}
 		return valueWrapper.get();
@@ -80,7 +80,7 @@ public class CacheUtil implements ApplicationContextAware {
 	 */
 	@Nullable
 	public static <T> T get(String cacheName, String keyPrefix, Object key, @Nullable Class<T> type) {
-		if (BigTool.hasEmpty(cacheName, keyPrefix, key)) {
+		if (RdsBigTool.hasEmpty(cacheName, keyPrefix, key)) {
 			return null;
 		}
 		return getCache(cacheName).get(keyPrefix.concat(String.valueOf(key)), type);
@@ -98,7 +98,7 @@ public class CacheUtil implements ApplicationContextAware {
 	 */
 	@Nullable
 	public static <T> T get(String cacheName, String keyPrefix, Object key, Callable<T> valueLoader) {
-		if (BigTool.hasEmpty(cacheName, keyPrefix, key)) {
+		if (RdsBigTool.hasEmpty(cacheName, keyPrefix, key)) {
 			return null;
 		}
 		try {
@@ -107,7 +107,7 @@ public class CacheUtil implements ApplicationContextAware {
 			if (valueWrapper == null) {
 				T call = valueLoader.call();
 				if (!ObjectUtils.isEmpty(call)) {
-					Field field = ReflectUtil.getField(call.getClass(), "id");
+					Field field = RdsReflectUtil.getField(call.getClass(), "id");
 					if (!ObjectUtils.isEmpty(field) && ObjectUtils.isEmpty(ClassUtils.getMethod(call.getClass(), "getId").invoke(call))) {
 						return null;
 					}
@@ -144,7 +144,7 @@ public class CacheUtil implements ApplicationContextAware {
 	 * @param key        缓存键值
 	 */
 	public static void evict(String cacheName, String keyPrefix, Object key) {
-		if (BigTool.hasEmpty(cacheName, keyPrefix, key)) {
+		if (RdsBigTool.hasEmpty(cacheName, keyPrefix, key)) {
 			return;
 		}
 		getCache(cacheName).evict(keyPrefix.concat(String.valueOf(key)));
@@ -156,7 +156,7 @@ public class CacheUtil implements ApplicationContextAware {
 	 * @param cacheName  缓存名
 	 */
 	public static void clear(String cacheName) {
-		if (BigTool.isEmpty(cacheName)) {
+		if (ObjectUtils.isEmpty(cacheName)) {
 			return;
 		}
 		getCache(cacheName).clear();

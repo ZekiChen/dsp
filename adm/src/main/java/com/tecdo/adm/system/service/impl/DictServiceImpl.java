@@ -17,7 +17,7 @@ import com.tecdo.starter.mp.support.PCondition;
 import com.tecdo.starter.mp.support.PQuery;
 import com.tecdo.starter.redis.CacheUtil;
 import com.tecdo.starter.tool.BigTool;
-import com.tecdo.starter.tool.node.ForestNodeMerger;
+import com.tecdo.starter.mp.node.ForestNodeMerger;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;

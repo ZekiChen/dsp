@@ -1,4 +1,4 @@
-package com.tecdo.starter.tool.node;
+package com.tecdo.starter.mp.node;
 
 import java.io.Serializable;
 import java.util.List;

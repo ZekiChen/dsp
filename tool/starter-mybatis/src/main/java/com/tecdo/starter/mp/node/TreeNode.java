@@ -1,6 +1,5 @@
-package com.tecdo.starter.tool.node;
+package com.tecdo.starter.mp.node;
 
-import com.tecdo.starter.tool.BigTool;
 import lombok.Data;
 
 import java.util.Objects;
@@ -28,7 +27,7 @@ public class TreeNode extends BaseNode<TreeNode> {
 			return false;
 		}
 		TreeNode other = (TreeNode) obj;
-		return BigTool.equals(this.getId(), other.getId());
+		return Objects.equals(this.getId(), other.getId());
 	}
 
 	@Override

@@ -1,4 +1,4 @@
-package com.tecdo.starter.tool.node;
+package com.tecdo.starter.mp.node;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.Data;

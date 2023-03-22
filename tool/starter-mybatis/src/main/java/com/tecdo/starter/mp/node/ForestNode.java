@@ -1,4 +1,4 @@
-package com.tecdo.starter.tool.node;
+package com.tecdo.starter.mp.node;
 
 import lombok.Data;
 import lombok.EqualsAndHashCode;

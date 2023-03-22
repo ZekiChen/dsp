@@ -1,9 +1,8 @@
 dependencies {
 
-    implementation project(':tool:starter-tool')
-
     api 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
     api 'com.baomidou:mybatis-plus-boot-starter'
     api 'io.swagger:swagger-annotations'
+    implementation 'com.google.guava:guava'
 
 }

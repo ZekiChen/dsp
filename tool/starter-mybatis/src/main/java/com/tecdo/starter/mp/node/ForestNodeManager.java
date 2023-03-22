@@ -1,9 +1,7 @@
-package com.tecdo.starter.tool.node;
-
+package com.tecdo.starter.mp.node;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
-import com.tecdo.starter.tool.util.StringPool;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -49,7 +47,7 @@ public class ForestNodeManager<T extends INode<T>> {
 	 * @param parentId 父节点ID
 	 */
 	public void addParentId(Integer parentId) {
-		parentIdMap.put(parentId, StringPool.EMPTY);
+		parentIdMap.put(parentId, "");
 	}
 
 	/**

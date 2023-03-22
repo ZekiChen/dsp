@@ -6,7 +6,7 @@ import com.tecdo.adm.common.cache.DictCache;
 import com.tecdo.adm.common.constant.AdmConstant;
 import com.tecdo.starter.mp.support.EntityWrapper;
 import com.tecdo.starter.tool.BigTool;
-import com.tecdo.starter.tool.node.ForestNodeMerger;
+import com.tecdo.starter.mp.node.ForestNodeMerger;
 import com.tecdo.starter.tool.util.BeanUtil;
 
 import java.util.List;

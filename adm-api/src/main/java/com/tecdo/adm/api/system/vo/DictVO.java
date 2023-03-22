@@ -2,7 +2,7 @@ package com.tecdo.adm.api.system.vo;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tecdo.adm.api.system.entity.Dict;
-import com.tecdo.starter.tool.node.INode;
+import com.tecdo.starter.mp.node.INode;
 import io.swagger.annotations.ApiModel;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
