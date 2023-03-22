@@ -236,4 +236,16 @@ public class ResponseLog implements Serializable {
 
     @JsonProperty("rta_request_true")
     private int rtaRequestTrue;
+
+    /**
+     * 素材宽度
+     */
+    @JsonProperty("creative_width")
+    private String creativeWidth;
+
+    /**
+     * 素材高度
+     */
+    @JsonProperty("creative_height")
+    private String creativeHeight;
 }

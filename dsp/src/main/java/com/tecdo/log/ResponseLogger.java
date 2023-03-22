@@ -8,6 +8,7 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
+import com.tecdo.entity.Creative;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.util.CreativeHelper;
@@ -45,6 +46,7 @@ public class ResponseLogger {
                         .filter(i -> i.getId().equalsIgnoreCase(wrapper.getImpId()))
                         .findFirst()
                         .get();
+    Creative creative = wrapper.getAdDTO().getCreativeMap().get(creativeId);
     BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
     Device device = bidRequest.getDevice();
     return ResponseLog.builder()
@@ -100,6 +102,8 @@ public class ResponseLogger {
                       .tagId(imp.getTagid())
                       .rtaRequest(wrapper.getRtaRequest())
                       .rtaRequestTrue(wrapper.getRtaRequestTrue())
+                      .creativeWidth(String.valueOf(creative.getWidth()))
+                      .creativeHeight(String.valueOf(creative.getHeight()))
                       .build();
   }
 }

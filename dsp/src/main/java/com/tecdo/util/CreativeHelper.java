@@ -57,6 +57,7 @@ public class CreativeHelper {
                         if (format.getW() != null && format.getH() != null) {
                             wSb.append(format.getW()).append(StrUtil.COMMA);
                             hSb.append(format.getH()).append(StrUtil.COMMA);
+                            break;
                         }
                     }
                     if (wSb.length() > 0) {

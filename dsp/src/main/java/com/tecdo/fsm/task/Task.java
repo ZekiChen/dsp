@@ -11,6 +11,7 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
+import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.request.CtrRequest;
@@ -22,6 +23,7 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.AbTestConfig;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
+import com.tecdo.entity.Creative;
 import com.tecdo.entity.TargetCondition;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.enums.biz.BidStrategyEnum;
@@ -248,14 +250,30 @@ public class Task {
 
   private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
     Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
+    // 版位的
+    BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
+    // 素材的
+    Creative creative = adDTO.getCreativeMap().get(creativeId);
+    AdTypeEnum adType = AdTypeEnum.of(adDTO.getAd().getType());
+    Integer adWidth;
+    Integer adHeight;
+    if (adType == AdTypeEnum.BANNER) {
+      // banner广告用素材大小
+      adWidth = creative.getWidth();
+      adHeight = creative.getHeight();
+    } else {
+      // native广告用native大小，因为native有wmin，hmin，所以用版位大小
+      adWidth = Integer.parseInt(bidCreative.getWidth());
+      adHeight = Integer.parseInt(bidCreative.getHeight());
+    }
     Device device = bidRequest.getDevice();
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
                      .dayOld(DateUtil.today())
                      .affiliateId(affId)
-                     .adFormat(AdTypeEnum.of(adDTO.getAd().getType()).getDesc())
-                     .adHeight(adDTO.getCreativeMap().get(creativeId).getHeight())
-                     .adWidth(adDTO.getCreativeMap().get(creativeId).getWidth())
+                     .adFormat(adType.getDesc())
+                     .adWidth(adWidth)
+                     .adHeight(adHeight)
                      .os(FieldFormatHelper.osFormat(device.getOs()))
                      .osv(device.getOsv())
                      .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
