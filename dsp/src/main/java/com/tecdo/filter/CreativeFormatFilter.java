@@ -119,7 +119,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                             hitFlag = true;
                         }
                         // icon 只要大于要求值，并且比例相同就通过
-                        if (Objects.equals(nativeRequestAsset.getImg().getType(),
+                        if (!Objects.equals(nativeRequestAsset.getImg().getType(),
                                            ImageAssetTypeEnum.MAIN.getValue())) {
                             if (creative.getWidth() >= w && creative.getHeight() >= h &&
                                 (float) creative.getWidth() / creative.getHeight() ==
