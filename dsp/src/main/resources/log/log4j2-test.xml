@@ -58,6 +58,10 @@
             <AppenderRef ref="PB_LOG"/>
         </Logger>
 
+        <Logger name="validate_log" level="INFO" additivity="false">
+            <AppenderRef ref="VALIDATE_LOG"/>
+        </Logger>
+
         <!-- 减少部分debug日志 -->
         <AsyncLogger name="io.netty" level="INFO"/>
         <AsyncLogger name="com.ctrip.framework.apollo" level="INFO"/>
