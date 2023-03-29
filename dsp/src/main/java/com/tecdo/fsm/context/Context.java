@@ -239,7 +239,7 @@ public class Context {
     AdDTOWrapper res = null;
     double calc = Double.MIN_VALUE;
     for (AdDTOWrapper adDTOWrapper : adDTOWrapperList) {
-      double temp = adDTOWrapper.getBidPrice();
+      double temp = adDTOWrapper.getBidPrice().doubleValue();
       if (calc < temp) {
         calc = temp;
         res = adDTOWrapper;

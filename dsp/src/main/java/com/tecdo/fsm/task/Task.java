@@ -41,6 +41,7 @@ import com.tecdo.util.JsonHelper;
 
 import org.apache.commons.collections.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -277,8 +278,8 @@ public class Task {
                      .os(FieldFormatHelper.osFormat(device.getOs()))
                      .osv(device.getOsv())
                      .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
-                     .bundleId(bidRequest.getApp().getBundle())
-                     .bundleOld(bidRequest.getApp().getBundle())
+                     .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
+                     .bundleOld(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
                      .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
                      .connectionType(device.getConnectiontype())
                      .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
@@ -317,19 +318,23 @@ public class Task {
     }
   }
 
-  private double doCalcPrice(AdDTOWrapper adDTOWrapper) {
+  private BigDecimal doCalcPrice(AdDTOWrapper adDTOWrapper) {
     AdDTO adDTO = adDTOWrapper.getAdDTO();
     BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTO.getAdGroup().getBidStrategy());
-    double bidPrice;
+    BigDecimal bidPrice;
     switch (bidStrategy) {
       case CPM:
-        bidPrice = adDTO.getAdGroup().getOptPrice();
+        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice());
         break;
       case CPC:
-        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
+        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
+                             .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                             .multiply(BigDecimal.valueOf(1000));
         break;
       default:
-        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
+        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
+                             .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                             .multiply(BigDecimal.valueOf(1000));
     }
     return bidPrice;
   }
@@ -338,7 +343,9 @@ public class Task {
     // 过滤掉出价低于底价的广告
     adDTOMap = adDTOMap.values()
                        .stream()
-                       .filter(e -> e.getBidPrice() > Optional.of(imp.getBidfloor()).orElse(0f))
+                       .filter(e -> e.getBidPrice()
+                                     .compareTo(BigDecimal.valueOf(Optional.of(imp.getBidfloor())
+                                                                           .orElse(0f))) > 0)
                        .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
     Params params = assignParams().put(ParamKey.ADS_TASK_RESPONSE, adDTOMap);
     messageQueue.putMessage(EventType.BID_TASK_FINISH, params);

@@ -38,4 +38,11 @@ public class FieldFormatHelper {
     return StringUtils.toRootUpperCase(language);
   }
 
+  public static String bundleIdFormat(String bundleId) {
+    if (bundleId.contains("&")) {
+      return bundleId.split("&")[0];
+    }
+    return bundleId;
+  }
+
 }

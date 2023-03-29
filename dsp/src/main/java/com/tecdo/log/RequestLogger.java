@@ -61,7 +61,7 @@ public class RequestLogger {
                      .adHeight(bidCreative.getHeight())
                      .os(FieldFormatHelper.osFormat(device.getOs()))
                      .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
-                     .bundleId(bidRequest.getApp().getBundle())
+                     .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
                      .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
                      .connectionType(device.getConnectiontype())
                      .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))

@@ -1,5 +1,7 @@
 package com.tecdo.domain.biz.dto;
 
+import java.math.BigDecimal;
+
 import lombok.Getter;
 import lombok.Setter;
 
@@ -31,7 +33,7 @@ public class AdDTOWrapper {
   /**
    * 出价cpc
    */
-  private Double bidPrice;
+  private BigDecimal bidPrice;
 
   /**
    * 广告主 rta token
