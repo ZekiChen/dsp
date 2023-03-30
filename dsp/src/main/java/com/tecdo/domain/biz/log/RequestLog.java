@@ -189,4 +189,20 @@ public class RequestLog implements Serializable {
 
     @JsonProperty("rta_request_true")
     private int rtaRequestTrue;
+
+
+    @JsonProperty("category_list")
+    private List<String> categoryList;
+
+    @JsonProperty("tag_list")
+    private List<String> tagList;
+
+    @JsonProperty("score")
+    private String score;
+
+    @JsonProperty("downloads")
+    private Long downloads;
+
+    @JsonProperty("reviews")
+    private Long reviews;
 }

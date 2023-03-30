@@ -25,6 +25,7 @@ import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.Creative;
 import com.tecdo.entity.TargetCondition;
+import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.enums.biz.BidStrategyEnum;
 import com.tecdo.filter.AbstractRecallFilter;
@@ -34,6 +35,7 @@ import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.AdManager;
+import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
@@ -73,6 +75,8 @@ public class Task {
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
   private final AbTestConfigManager abTestConfigManager =
     SpringUtil.getBean(AbTestConfigManager.class);
+  private final GooglePlayAppManager googlePlayAppManager =
+    SpringUtil.getBean(GooglePlayAppManager.class);
   private final RecallFiltersFactory filtersFactory =
     SpringUtil.getBean(RecallFiltersFactory.class);
   private final ThreadPool threadPool = SpringUtil.getBean(ThreadPool.class);
@@ -268,6 +272,8 @@ public class Task {
       adHeight = Integer.parseInt(bidCreative.getHeight());
     }
     Device device = bidRequest.getDevice();
+    GooglePlayApp googleApp =
+      googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
                      .dayOld(DateUtil.today())
@@ -303,6 +309,11 @@ public class Task {
                      .ua(device.getUa())
                      .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
                      .deviceId(device.getIfa())
+                     .categoryList(googleApp.getCategoryList())
+                     .tagList(googleApp.getTagList())
+                     .score(googleApp.getScore())
+                     .downloads(googleApp.getDownloads())
+                     .reviews(googleApp.getReviews())
                      .build();
   }
 

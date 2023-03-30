@@ -19,12 +19,14 @@ import com.tecdo.domain.openrtb.response.n.NativeResponse;
 import com.tecdo.domain.openrtb.response.n.NativeResponseWrapper;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.RtaInfo;
+import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
 import com.tecdo.log.RequestLogger;
 import com.tecdo.log.ResponseLogger;
 import com.tecdo.server.request.HttpRequest;
+import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
@@ -89,6 +91,9 @@ public class Context {
   private final TaskPool taskPool = SpringUtil.getBean(TaskPool.class);
 
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
+
+  private final GooglePlayAppManager googlePlayAppManager =
+    SpringUtil.getBean(GooglePlayAppManager.class);
 
   public void handleEvent(EventType eventType, Params params) {
     currentState.handleEvent(eventType, params, this);
@@ -455,10 +460,14 @@ public class Context {
   }
 
   private void logBidResponse() {
-    ResponseLogger.log(response, bidRequest, affiliate);
+    GooglePlayApp googleApp =
+      googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
+    ResponseLogger.log(response, bidRequest, affiliate, googleApp);
   }
 
   private void logBidRequest() {
+    GooglePlayApp googleApp =
+      googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
     taskMap.forEach((taskId, task) -> {
       Map<Integer, AdDTOWrapper> adDTOWrapperMap =
         taskResponse.getOrDefault(taskId, Collections.emptyMap());
@@ -466,7 +475,13 @@ public class Context {
         adDTOWrapperMap.values().stream().anyMatch(i -> i.getRtaRequest() == 1) ? 1 : 0;
       int rtaRequestTrue =
         adDTOWrapperMap.values().stream().anyMatch(i -> i.getRtaRequestTrue() == 1) ? 1 : 0;
-      RequestLogger.log(taskId, task.getImp(), bidRequest, affiliate, rtaRequest, rtaRequestTrue);
+      RequestLogger.log(taskId,
+                        task.getImp(),
+                        bidRequest,
+                        affiliate,
+                        rtaRequest,
+                        rtaRequestTrue,
+                        googleApp);
     });
   }
 }

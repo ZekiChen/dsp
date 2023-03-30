@@ -149,4 +149,15 @@ public class CtrRequest implements Serializable {
 
     private String deviceId;
 
+
+    private List<String> categoryList;
+
+    private List<String> tagList;
+
+    private String score;
+
+    private Long downloads;
+
+    private Long reviews;
+
 }

@@ -248,4 +248,20 @@ public class ResponseLog implements Serializable {
      */
     @JsonProperty("creative_height")
     private String creativeHeight;
+
+    @JsonProperty("category_list")
+    private List<String> categoryList;
+
+    @JsonProperty("tag_list")
+    private List<String> tagList;
+
+    @JsonProperty("score")
+    private String score;
+
+    @JsonProperty("downloads")
+    private Long downloads;
+
+    @JsonProperty("reviews")
+    private Long reviews;
+
 }

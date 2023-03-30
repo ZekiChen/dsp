@@ -6,6 +6,7 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
+import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.util.CreativeHelper;
@@ -34,9 +35,10 @@ public class RequestLogger {
                          BidRequest bidRequest,
                          Affiliate affiliate,
                          int rtaRequest,
-                         int rtaRequestTrue) {
+                         int rtaRequestTrue,
+                         GooglePlayApp googlePlayApp) {
     RequestLog requestLog =
-      buildRequestLog(bidId, imp, bidRequest, affiliate, rtaRequest, rtaRequestTrue);
+      buildRequestLog(bidId, imp, bidRequest, affiliate, rtaRequest, rtaRequestTrue, googlePlayApp);
     requestLogger.info(JsonHelper.toJSONString(requestLog));
   }
 
@@ -45,7 +47,8 @@ public class RequestLogger {
                                             BidRequest bidRequest,
                                             Affiliate affiliate,
                                             int rtaRequest,
-                                            int rtaRequestTrue) {
+                                            int rtaRequestTrue,
+                                            GooglePlayApp googlePlayApp) {
     BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
     Device device = bidRequest.getDevice();
     return RequestLog.builder()
@@ -85,6 +88,11 @@ public class RequestLogger {
                      .tagId(imp.getTagid())
                      .rtaRequest(rtaRequest)
                      .rtaRequestTrue(rtaRequestTrue)
+                     .categoryList(googlePlayApp.getCategoryList())
+                     .tagList(googlePlayApp.getTagList())
+                     .score(googlePlayApp.getScore())
+                     .downloads(googlePlayApp.getDownloads())
+                     .reviews(googlePlayApp.getReviews())
                      .build();
   }
 }

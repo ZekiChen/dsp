@@ -37,6 +37,11 @@ public enum EventType {
   AB_TEST_CONFIG_LOAD_ERROR(1503, "ab test config load failure"),
   AB_TEST_CONFIG_LOAD_TIMEOUT(1504, "ab test config load timeout"),
 
+  GP_APP_LOAD(1601, "gp app list load"),
+  GP_APP_LOAD_RESPONSE(1602, "gp app list load response"),
+  GP_APP_LOAD_ERROR(1603, "ap app list load failure"),
+  GP_APP_LOAD_TIMEOUT(1604, "gp app list load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

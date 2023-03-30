@@ -9,6 +9,7 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.Affiliate;
 import com.tecdo.entity.CampaignRtaInfo;
 import com.tecdo.entity.Creative;
+import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.util.CreativeHelper;
@@ -32,14 +33,18 @@ public class ResponseLogger {
 
   private final static Logger responseLogger = LoggerFactory.getLogger("response_log");
 
-  public static void log(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
-    ResponseLog responseLog = buildResponseLog(wrapper, bidRequest, affiliate);
+  public static void log(AdDTOWrapper wrapper,
+                         BidRequest bidRequest,
+                         Affiliate affiliate,
+                         GooglePlayApp googlePlayApp) {
+    ResponseLog responseLog = buildResponseLog(wrapper, bidRequest, affiliate, googlePlayApp);
     responseLogger.info(JsonHelper.toJSONString(responseLog));
   }
 
   private static ResponseLog buildResponseLog(AdDTOWrapper wrapper,
                                               BidRequest bidRequest,
-                                              Affiliate affiliate) {
+                                              Affiliate affiliate,
+                                              GooglePlayApp googlePlayApp) {
     Integer creativeId = CreativeHelper.getCreativeId(wrapper.getAdDTO().getAd());
     Imp imp = bidRequest.getImp()
                         .stream()
@@ -104,6 +109,11 @@ public class ResponseLogger {
                       .rtaRequestTrue(wrapper.getRtaRequestTrue())
                       .creativeWidth(String.valueOf(creative.getWidth()))
                       .creativeHeight(String.valueOf(creative.getHeight()))
+                      .categoryList(googlePlayApp.getCategoryList())
+                      .tagList(googlePlayApp.getTagList())
+                      .score(googlePlayApp.getScore())
+                      .downloads(googlePlayApp.getDownloads())
+                      .reviews(googlePlayApp.getReviews())
                       .build();
   }
 }

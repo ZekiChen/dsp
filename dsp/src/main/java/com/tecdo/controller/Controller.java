@@ -49,6 +49,10 @@ public class Controller implements MessageObserver {
       case BUDGETS_LOAD_RESPONSE:
       case BUDGETS_LOAD_ERROR:
       case BUDGETS_LOAD_TIMEOUT:
+      case GP_APP_LOAD:
+      case GP_APP_LOAD_RESPONSE:
+      case GP_APP_LOAD_ERROR:
+      case GP_APP_LOAD_TIMEOUT:
       case AB_TEST_CONFIG_LOAD:
       case AB_TEST_CONFIG_LOAD_RESPONSE:
       case AB_TEST_CONFIG_LOAD_ERROR:
