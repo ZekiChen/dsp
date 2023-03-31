@@ -1,11 +1,12 @@
 package com.tecdo.filter;
 
 import cn.hutool.core.util.StrUtil;
+import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.Affiliate;
-import com.tecdo.entity.TargetCondition;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.filter.util.ConditionHelper;
 import org.springframework.stereotype.Component;
 
@@ -17,7 +18,7 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeviceMakeFilter extends AbstractRecallFilter {
 
-    private static final String MAKE_ATTR = "device_make";
+    private static final String MAKE_ATTR = ConditionEnum.DEVICE_MAKE.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {

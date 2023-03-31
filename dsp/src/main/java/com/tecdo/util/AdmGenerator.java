@@ -10,7 +10,7 @@ import com.tecdo.domain.openrtb.response.n.Link;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
 import com.tecdo.domain.openrtb.response.n.NativeResponseAsset;
 import com.tecdo.domain.openrtb.response.n.Title;
-import com.tecdo.entity.Creative;
+import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.enums.openrtb.DataAssetTypeEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
 

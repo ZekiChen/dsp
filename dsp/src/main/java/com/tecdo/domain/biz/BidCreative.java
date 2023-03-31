@@ -1,6 +1,6 @@
 package com.tecdo.domain.biz;
 
-import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 

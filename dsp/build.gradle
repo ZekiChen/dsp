@@ -1,6 +1,11 @@
 dependencies {
 
     implementation project(':common')
+    implementation project(':adm-api')
+    implementation project(':tool:core-launch')
+    implementation project(':tool:starter-redis')
+    implementation project(':tool:starter-mybatis')
+    implementation project(':tool:starter-log')
 
     implementation libraries.netty
 
@@ -12,8 +17,6 @@ dependencies {
 
 
 }
-
-version "${local.version}"
 
 publishing {
     publications {

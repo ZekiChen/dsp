@@ -1,0 +1,33 @@
+dependencies {
+
+    implementation project(':common')
+    implementation project(':adm-api')
+    implementation project(':tool:core-launch')
+    implementation project(':tool:starter-tool')
+    implementation project(':tool:starter-redis')
+    implementation project(':tool:starter-mybatis')
+    implementation project(':tool:starter-log')
+    implementation project(':tool:starter-oss')
+    implementation project(':tool:starter-auth')
+
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-validation'
+
+    implementation 'cn.hutool:hutool-all'
+
+    implementation 'com.alibaba:druid-spring-boot-starter'
+    implementation 'mysql:mysql-connector-java'
+
+    implementation 'com.github.xiaoymin:knife4j-openapi2-spring-boot-starter'
+}
+
+publishing {
+    publications {
+        DspAws(MavenPublication) {
+            groupId 'emp'
+            artifactId 'dsp'
+            artifact source: "${buildDir}/libs/${artifactId}-${version}.jar"
+            ext.repo = 'Aws'
+        }
+    }
+}

@@ -1,6 +1,6 @@
 package com.tecdo.controller;
 
-import com.tecdo.common.thread.ThreadPool;
+import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.constant.EventType;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

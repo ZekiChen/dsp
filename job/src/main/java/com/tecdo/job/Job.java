@@ -1,8 +1,8 @@
 package com.tecdo.job;
 
 import com.ctrip.framework.apollo.spring.annotation.EnableApolloConfig;
-import com.tecdo.common.launch.PacApplication;
 import com.tecdo.common.constant.AppConstant;
+import com.tecdo.core.launch.PacApplication;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -15,10 +15,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 @SpringBootApplication
 @EnableApolloConfig
 @EnableScheduling
-@MapperScan("com.tecdo.job.mapper.**")
+@MapperScan("com.tecdo.**.mapper.**")
 public class Job {
 
     public static void main(String[] args) {
-        PacApplication.run(AppConstant.APP_NAME_JOB, Job.class, args);
+        PacApplication.run(AppConstant.JOB, Job.class, args);
     }
 }

@@ -3,13 +3,13 @@ package com.tecdo.service.init;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tecdo.common.thread.ThreadPool;
+import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.entity.doris.AdGroupCost;
+import com.tecdo.adm.api.delivery.entity.doris.AdGroupCost;
 import com.tecdo.mapper.doris.AdGroupCostMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;

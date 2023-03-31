@@ -1,19 +1,19 @@
 dependencies {
 
     implementation project(':common')
+    implementation project(':adm-api')
+    implementation project(':tool:core-launch')
+    implementation project(':tool:starter-mybatis')
+    implementation project(':tool:starter-xxljob')
 
     implementation libraries.netty
     
     implementation 'cn.hutool:hutool-all'
 
-    implementation 'com.xuxueli:xxl-job-core'
-
     implementation 'com.alibaba:druid-spring-boot-starter'
     implementation 'mysql:mysql-connector-java'
     implementation 'com.baomidou:dynamic-datasource-spring-boot-starter'
 }
-
-version "${local.version}"
 
 publishing {
     publications {

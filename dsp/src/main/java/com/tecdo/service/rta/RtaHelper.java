@@ -2,10 +2,11 @@ package com.tecdo.service.rta;
 
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
-import com.tecdo.entity.CampaignRtaInfo;
-import com.tecdo.entity.RtaInfo;
+import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
+import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.service.rta.api.LazopClient;
 import com.tecdo.service.rta.api.LazopRequest;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Date;
 import java.util.List;
@@ -13,9 +14,7 @@ import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
-
 import cn.hutool.extra.spring.SpringUtil;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class RtaHelper {

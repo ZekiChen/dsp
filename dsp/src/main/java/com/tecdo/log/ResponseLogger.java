@@ -1,28 +1,26 @@
 package com.tecdo.log;
 
+import cn.hutool.core.date.DateUtil;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
+import com.tecdo.adm.api.delivery.entity.Creative;
+import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.log.ResponseLog;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.Affiliate;
-import com.tecdo.entity.CampaignRtaInfo;
-import com.tecdo.entity.Creative;
 import com.tecdo.entity.doris.GooglePlayApp;
-import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Optional;
-
-import cn.hutool.core.date.DateUtil;
 
 /**
  * 构建 ResponseLog 并持久化至本地文件中

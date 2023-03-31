@@ -3,7 +3,7 @@ package com.tecdo.filter.util;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.filter.AbstractRecallFilter;
 import lombok.extern.slf4j.Slf4j;
 

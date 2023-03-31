@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tecdo.adm.api.system.mapper.UserMapper">
+
+    <!-- 通用查询映射结果 -->
+    <resultMap id="userResultMap" type="com.tecdo.adm.api.system.entity.User">
+        <result column="id" property="id"/>
+        <result column="account" property="account"/>
+        <result column="password" property="password"/>
+        <result column="real_name" property="realName"/>
+        <result column="email" property="email"/>
+        <result column="phone" property="phone"/>
+        <result column="sex" property="sex"/>
+        <result column="role_id" property="roleId"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+        <result column="status" property="status"/>
+    </resultMap>
+
+    <select id="selectUserPage" resultMap="userResultMap">
+        select * from user where 1 = 1
+        <if test="user.account!=null and user.account != ''">
+            and account = #{user.account}
+        </if>
+        <if test="user.realName!=null and user.realName != ''">
+            and real_name = #{user.realName}
+        </if>
+        ORDER BY id
+    </select>
+
+    <select id="getUser" resultMap="userResultMap">
+        SELECT * FROM user WHERE account = #{param1} and password = #{param2}
+    </select>
+
+</mapper>

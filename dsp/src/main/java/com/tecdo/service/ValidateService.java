@@ -9,7 +9,7 @@ import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.IProtoTransform;

@@ -1,8 +1,7 @@
 package com.tecdo.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
-import com.tecdo.common.domain.entity.BaseEntity;
-
+import com.tecdo.starter.mp.entity.BaseEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 

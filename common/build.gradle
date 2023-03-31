@@ -1,8 +1,5 @@
 dependencies {
 
-    api 'com.baomidou:mybatis-plus-boot-starter'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
-
     api libraries.guava
     api libraries.common_lang3
     api libraries.common_collections

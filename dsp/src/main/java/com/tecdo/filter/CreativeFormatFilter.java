@@ -8,9 +8,9 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.domain.openrtb.request.Native;
 import com.tecdo.domain.openrtb.request.Video;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
-import com.tecdo.entity.Affiliate;
-import com.tecdo.entity.Creative;
-import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.Creative;
+import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
 import com.tecdo.filter.util.ConditionHelper;
 
