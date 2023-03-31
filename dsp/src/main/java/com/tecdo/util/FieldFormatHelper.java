@@ -22,12 +22,27 @@ public class FieldFormatHelper {
     return StringUtils.toRootUpperCase(country);
   }
 
+  public static String cityFormat(String city) {
+    return StringUtils.toRootUpperCase(city);
+  }
+
+  public static String regionFormat(String region) {
+    return StringUtils.toRootUpperCase(region);
+  }
+
   public static String deviceModelFormat(String deviceModel) {
     return StringUtils.toRootUpperCase(deviceModel);
   }
 
   public static String languageFormat(String language) {
     return StringUtils.toRootUpperCase(language);
+  }
+
+  public static String bundleIdFormat(String bundleId) {
+    if (bundleId.contains("&")) {
+      return bundleId.split("&")[0];
+    }
+    return bundleId;
   }
 
 }

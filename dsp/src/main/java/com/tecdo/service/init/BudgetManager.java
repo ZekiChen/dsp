@@ -1,6 +1,5 @@
 package com.tecdo.service.init;
 
-import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -12,9 +11,8 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.adm.api.delivery.entity.doris.AdGroupCost;
 import com.tecdo.mapper.doris.AdGroupCostMapper;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -22,17 +20,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import cn.hutool.core.date.DateUtil;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
 /**
  * Created by Zeki on 2022/12/27
  **/
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
 
-    private final SoftTimer softTimer;
-    private final MessageQueue messageQueue;
-    private final ThreadPool threadPool;
+    @Autowired
+    private SoftTimer softTimer;
+    @Autowired
+    private MessageQueue messageQueue;
+    @Autowired
+    private ThreadPool threadPool;
 
     private State currentState = State.INIT;
     private long timerId;

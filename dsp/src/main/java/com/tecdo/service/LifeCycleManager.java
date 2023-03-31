@@ -1,23 +1,25 @@
 package com.tecdo.service;
 
+import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
-import com.tecdo.common.constant.HttpCode;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.server.NetServer;
 import com.tecdo.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.server.request.HttpRequest;
+import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.service.init.BudgetManager;
+import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -25,20 +27,27 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class LifeCycleManager {
 
-  private final AffiliateManager affManager;
-  private final AdManager adManager;
-  private final RtaInfoManager rtaManager;
-  private final BudgetManager budgetManager;
-
-  private final MessageQueue messageQueue;
+  @Autowired
+  private AffiliateManager affManager;
+  @Autowired
+  private AbTestConfigManager abTestConfigManager;
+  @Autowired
+  private AdManager adManager;
+  @Autowired
+  private RtaInfoManager rtaManager;
+  @Autowired
+  private BudgetManager budgetManager;
+  @Autowired
+  private GooglePlayAppManager googlePlayAppManager;
+  @Autowired
+  private MessageQueue messageQueue;
 
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 4;
+  private final int needInitCount = 6;
 
   @Value("${server.port}")
   private int serverPort;
@@ -91,6 +100,18 @@ public class LifeCycleManager {
       case BUDGETS_LOAD_TIMEOUT:
         budgetManager.handleEvent(eventType, params);
         break;
+      case GP_APP_LOAD:
+      case GP_APP_LOAD_RESPONSE:
+      case GP_APP_LOAD_ERROR:
+      case GP_APP_LOAD_TIMEOUT:
+        googlePlayAppManager.handleEvent(eventType, params);
+        break;
+      case AB_TEST_CONFIG_LOAD:
+      case AB_TEST_CONFIG_LOAD_RESPONSE:
+      case AB_TEST_CONFIG_LOAD_ERROR:
+      case AB_TEST_CONFIG_LOAD_TIMEOUT:
+        abTestConfigManager.handleEvent(eventType, params);
+        break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -113,6 +134,8 @@ public class LifeCycleManager {
         adManager.init(params);
         rtaManager.init(params);
         budgetManager.init(params);
+        abTestConfigManager.init(params);
+        googlePlayAppManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:

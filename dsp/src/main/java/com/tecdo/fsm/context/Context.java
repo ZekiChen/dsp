@@ -20,11 +20,14 @@ import com.tecdo.domain.openrtb.response.n.NativeResponseWrapper;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
+import com.tecdo.entity.doris.GooglePlayApp;
+import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
 import com.tecdo.log.RequestLogger;
 import com.tecdo.log.ResponseLogger;
 import com.tecdo.server.request.HttpRequest;
+import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
@@ -90,6 +93,9 @@ public class Context {
 
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
 
+  private final GooglePlayAppManager googlePlayAppManager =
+    SpringUtil.getBean(GooglePlayAppManager.class);
+
   public void handleEvent(EventType eventType, Params params) {
     currentState.handleEvent(eventType, params, this);
   }
@@ -126,7 +132,6 @@ public class Context {
       String taskId = generateBidId();
       task.init(bidRequest, imp, affiliate, requestId, taskId);
       taskMap.put(taskId, task);
-      RequestLogger.log(taskId, imp, bidRequest, affiliate);
       messageQueue.putMessage(EventType.TASK_START, assignParams().put(ParamKey.TASK_ID, taskId));
       log.info("receive bid request: {},requestId: {},taskId: {}",
                bidRequest.getId(),
@@ -180,6 +185,7 @@ public class Context {
         messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
                                 params.put(ParamKey.REQUEST_RTA_RESPONSE, rtaResMap));
       } catch (Exception e) {
+        log.error("contextId: {},request rta cause a exception:", requestId, e);
         messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
       }
     });
@@ -203,6 +209,7 @@ public class Context {
     // 分广告主进行rta匹配
     advToAdList.forEach((advId, adList) -> {
       RtaInfo rtaInfo = rtaInfoManager.getRtaInfo(advId);
+      adList.forEach(i -> i.setRtaRequest(1));
       RtaHelper.requestRta(rtaInfo, adList, countryCode, deviceId, rtaResMap);
     });
     return rtaResMap;
@@ -220,7 +227,10 @@ public class Context {
       Target t = entry.getValue();
       if (t.isTarget()) {
         String token = t.getToken();
-        campaignIdToAdList.get(campaignId).forEach(i -> i.setRtaToken(token));
+        campaignIdToAdList.get(campaignId).forEach(i -> {
+          i.setRtaToken(token);
+          i.setRtaRequestTrue(1);
+        });
       }
     }
     // 只保留非rta的单子 和 rta并且匹配的单子
@@ -235,7 +245,7 @@ public class Context {
     AdDTOWrapper res = null;
     double calc = Double.MIN_VALUE;
     for (AdDTOWrapper adDTOWrapper : adDTOWrapperList) {
-      double temp = adDTOWrapper.getBidPrice();
+      double temp = adDTOWrapper.getBidPrice().doubleValue();
       if (calc < temp) {
         calc = temp;
         res = adDTOWrapper;
@@ -256,10 +266,12 @@ public class Context {
   public void responseData() {
     Params params = Params.create();
     EventType eventType = EventType.RESPONSE_RESULT;
+    logBidRequest();
     if (this.response == null) {
       params.put(ParamKey.HTTP_CODE, HttpCode.NOT_BID);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     } else {
+      logBidResponse();
       BidResponse bidResponse = buildResponse(this.response);
       String bidResponseString = JsonHelper.toJSONString(bidResponse);
       log.info("contextId: {}, bid response is:{}", requestId, bidResponseString);
@@ -448,7 +460,29 @@ public class Context {
 
   }
 
-  public void logBidResponse() {
-    ResponseLogger.log(response, bidRequest, affiliate);
+  private void logBidResponse() {
+    GooglePlayApp googleApp =
+      googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
+    ResponseLogger.log(response, bidRequest, affiliate, googleApp);
+  }
+
+  private void logBidRequest() {
+    GooglePlayApp googleApp =
+      googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
+    taskMap.forEach((taskId, task) -> {
+      Map<Integer, AdDTOWrapper> adDTOWrapperMap =
+        taskResponse.getOrDefault(taskId, Collections.emptyMap());
+      int rtaRequest =
+        adDTOWrapperMap.values().stream().anyMatch(i -> i.getRtaRequest() == 1) ? 1 : 0;
+      int rtaRequestTrue =
+        adDTOWrapperMap.values().stream().anyMatch(i -> i.getRtaRequestTrue() == 1) ? 1 : 0;
+      RequestLogger.log(taskId,
+                        task.getImp(),
+                        bidRequest,
+                        affiliate,
+                        rtaRequest,
+                        rtaRequestTrue,
+                        googleApp);
+    });
   }
 }

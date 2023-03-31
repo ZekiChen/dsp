@@ -15,6 +15,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -112,7 +114,14 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
             case RUNNING:
                 threadPool.execute(() -> {
                     try {
-                        Map<String, Affiliate> affiliateMap = list().stream().collect(Collectors.toMap(Affiliate::getSecret, e -> e));
+                        List<Affiliate> affiliateList = list();
+                        Map<String, Affiliate> affiliateMap = new HashMap<>();
+                        for (Affiliate affiliate : affiliateList) {
+                            String[] split = affiliate.getSecret().split(",");
+                            for (String s : split) {
+                                affiliateMap.put(s, affiliate);
+                            }
+                        }
                         params.put(ParamKey.AFFILIATES_CACHE_KEY, affiliateMap);
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
                     } catch (Exception e) {

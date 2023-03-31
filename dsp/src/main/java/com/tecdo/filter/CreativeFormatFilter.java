@@ -106,7 +106,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     if (wmin != null && hmin != null) {
                         if (wmin > 0 && hmin > 0 && creative.getWidth() >= wmin &&
                             creative.getHeight() >= hmin &&
-                            creative.getWidth() / creative.getHeight() == wmin / hmin) {
+                            (float)creative.getWidth() / creative.getHeight() == (float) wmin / hmin) {
                             hitFlag = true;
                             // 这个图像判断通过，跳到下一个图像
                             continue;
@@ -117,6 +117,15 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     if (w != null && h != null) {
                         if (w.equals(creative.getWidth()) && h.equals(creative.getHeight())) {
                             hitFlag = true;
+                        }
+                        // icon 只要大于要求值，并且比例相同就通过
+                        if (!Objects.equals(nativeRequestAsset.getImg().getType(),
+                                           ImageAssetTypeEnum.MAIN.getValue())) {
+                            if (creative.getWidth() >= w && creative.getHeight() >= h &&
+                                (float) creative.getWidth() / creative.getHeight() ==
+                                (float) w / h) {
+                                hitFlag = true;
+                            }
                         }
                     }
                     // 如果这一轮图像判断，hitFlag 为false，则返回false

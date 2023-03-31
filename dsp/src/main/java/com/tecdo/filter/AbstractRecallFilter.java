@@ -29,6 +29,8 @@ public abstract class AbstractRecallFilter {
         String BETWEEN = "between";  // 处于范围中间，value为包含两个数字的数组
         String INCLUDE = "include";  // 包含，value为数组
         String EXCLUDE = "exclude";  // 不包含，value为数组
+        String CONTAINS = "contains";  // 不包含，value为数组
+        String NOT_CONTAINS = "not_contains";  // 不包含，value为数组
     }
 
     private static final Set<String> OPERATION_SET = new HashSet<>();

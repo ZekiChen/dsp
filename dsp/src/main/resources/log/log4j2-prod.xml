@@ -57,6 +57,10 @@
         <Logger name="pb_log" level="INFO" additivity="false">
             <AppenderRef ref="PB_LOG"/>
         </Logger>
+
+        <Logger name="validate_log" level="INFO" additivity="false">
+            <AppenderRef ref="VALIDATE_LOG"/>
+        </Logger>
     </Loggers>
 
 </Configuration>

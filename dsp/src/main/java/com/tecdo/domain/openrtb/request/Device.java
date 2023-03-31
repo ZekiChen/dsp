@@ -52,7 +52,7 @@ public class Device extends Extension {
      * 设备类型，参考被5.17
      * @see DeviceTypeEnum
      */
-    private Integer devicetype;
+    private Integer devicetype = 0;
 
     /**
      * 设备制造商，例如 “Apple”

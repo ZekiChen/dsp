@@ -13,6 +13,10 @@ import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
+import com.ejlchina.data.TypeRef;
+import com.ejlchina.okhttps.HttpResult;
+import com.ejlchina.okhttps.OkHttps;
+import com.tecdo.ab.util.AbTestConfigHelper;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
@@ -20,30 +24,50 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.response.R;
 import com.tecdo.core.launch.thread.ThreadPool;
+import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.request.CtrRequest;
 import com.tecdo.domain.biz.response.CtrResponse;
+import com.tecdo.domain.openrtb.request.Banner;
 import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
+import com.tecdo.entity.AbTestConfig;
+import com.tecdo.entity.doris.GooglePlayApp;
+import com.tecdo.enums.biz.AdTypeEnum;
+import com.tecdo.enums.biz.BidStrategyEnum;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
+import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.AdManager;
+import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
+import com.tecdo.util.JsonHelper;
+
 import org.apache.commons.collections.CollectionUtils;
 
+import java.math.BigDecimal;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
@@ -60,6 +84,10 @@ public class Task {
 
   private final AdManager adManager = SpringUtil.getBean(AdManager.class);
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
+  private final AbTestConfigManager abTestConfigManager =
+    SpringUtil.getBean(AbTestConfigManager.class);
+  private final GooglePlayAppManager googlePlayAppManager =
+    SpringUtil.getBean(GooglePlayAppManager.class);
   private final RecallFiltersFactory filtersFactory =
     SpringUtil.getBean(RecallFiltersFactory.class);
   private final ThreadPool threadPool = SpringUtil.getBean(ThreadPool.class);
@@ -219,32 +247,84 @@ public class Task {
               .collect(Collectors.toList());
     Map<String, Object> paramMap =
       MapUtil.<String, Object>builder().put("data", ctrRequests).build();
-    return OkHttps.sync(ctrPredictUrl).bodyType(OkHttps.JSON).setBodyPara(paramMap).post();
+
+    Map<String, List<AbTestConfig>> abTestConfigMap = abTestConfigManager.getAbTestConfigMap();
+    String url = ctrPredictUrl;
+    for (Map.Entry<String, List<AbTestConfig>> entry : abTestConfigMap.entrySet()) {
+      String tag = entry.getKey();
+      List<AbTestConfig> configList = entry.getValue();
+      if (AbTestConfigHelper.execute(configList, bidRequest, affId)) {
+        url = ctrPredictUrl + "/" + tag;
+        break;
+      }
+    }
+    return OkHttps.sync(url)
+                  .bodyType(OkHttps.JSON)
+                  .setBodyPara(JsonHelper.toJSONString(paramMap))
+                  .post();
   }
 
   private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
     Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
+    // 版位的
+    BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
+    // 素材的
+    Creative creative = adDTO.getCreativeMap().get(creativeId);
+    AdTypeEnum adType = AdTypeEnum.of(adDTO.getAd().getType());
+    Integer adWidth;
+    Integer adHeight;
+    if (adType == AdTypeEnum.BANNER) {
+      // banner广告用素材大小
+      adWidth = creative.getWidth();
+      adHeight = creative.getHeight();
+    } else {
+      // native广告用native大小，因为native有wmin，hmin，所以用版位大小
+      adWidth = Integer.parseInt(bidCreative.getWidth());
+      adHeight = Integer.parseInt(bidCreative.getHeight());
+    }
+    Device device = bidRequest.getDevice();
+    GooglePlayApp googleApp =
+      googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
-                     .day(DateUtil.today())
+                     .dayOld(DateUtil.today())
                      .affiliateId(affId)
-                     .adFormat(AdTypeEnum.of(adDTO.getAd().getType()).getDesc())
-                     .adHeight(adDTO.getCreativeMap().get(creativeId).getHeight())
-                     .adWidth(adDTO.getCreativeMap().get(creativeId).getWidth())
-                     .os(FieldFormatHelper.osFormat(bidRequest.getDevice().getOs()))
-                     .deviceMake(FieldFormatHelper.deviceMakeFormat(bidRequest.getDevice()
-                                                                              .getMake()))
-                     .bundle(bidRequest.getApp().getBundle())
-                     .country(FieldFormatHelper.countryFormat(bidRequest.getDevice()
-                                                                        .getGeo()
-                                                                        .getCountry()))
+                     .adFormat(adType.getDesc())
+                     .adWidth(adWidth)
+                     .adHeight(adHeight)
+                     .os(FieldFormatHelper.osFormat(device.getOs()))
+                     .osv(device.getOsv())
+                     .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
+                     .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
+                     .bundleOld(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
+                     .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
+                     .connectionType(device.getConnectiontype())
+                     .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
+                     .carrier(device.getCarrier())
                      .creativeId(creativeId)
                      .bidFloor(Double.valueOf(imp.getBidfloor()))
-                     .rtaFeature(Optional.ofNullable(adDTO.getCampaignRtaInfo())
-                                         .map(CampaignRtaInfo::getRtaFeature)
-                                         .orElse(-1))
+                     .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
+                                       .map(CampaignRtaInfo::getRtaFeature)
+                                       .orElse(-1))
+                     .rtaFeatureOld(Optional.ofNullable(adDTO.getCampaignRtaInfo())
+                                            .map(CampaignRtaInfo::getRtaFeature)
+                                            .orElse(-1))
                      .packageName(adDTO.getCampaign().getPackageName())
+                     .packageNameOld(adDTO.getCampaign().getPackageName())
                      .category(adDTO.getCampaign().getCategory())
+                     .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
+                     .domain(bidRequest.getApp().getDomain())
+                     .instl(imp.getInstl())
+                     .cat(bidRequest.getApp().getCat())
+                     .ip(device.getIp())
+                     .ua(device.getUa())
+                     .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
+                     .deviceId(device.getIfa())
+                     .categoryList(googleApp.getCategoryList())
+                     .tagList(googleApp.getTagList())
+                     .score(googleApp.getScore())
+                     .downloads(googleApp.getDownloads())
+                     .reviews(googleApp.getReviews())
                      .build();
   }
 
@@ -260,19 +340,23 @@ public class Task {
     }
   }
 
-  private double doCalcPrice(AdDTOWrapper adDTOWrapper) {
+  private BigDecimal doCalcPrice(AdDTOWrapper adDTOWrapper) {
     AdDTO adDTO = adDTOWrapper.getAdDTO();
     BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTO.getAdGroup().getBidStrategy());
-    double bidPrice;
+    BigDecimal bidPrice;
     switch (bidStrategy) {
       case CPM:
-        bidPrice = adDTO.getAdGroup().getOptPrice();
+        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice());
         break;
       case CPC:
-        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
+        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
+                             .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                             .multiply(BigDecimal.valueOf(1000));
         break;
       default:
-        bidPrice = adDTO.getAdGroup().getOptPrice() * adDTOWrapper.getPCtr() * 1000;
+        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
+                             .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                             .multiply(BigDecimal.valueOf(1000));
     }
     return bidPrice;
   }
@@ -281,7 +365,9 @@ public class Task {
     // 过滤掉出价低于底价的广告
     adDTOMap = adDTOMap.values()
                        .stream()
-                       .filter(e -> e.getBidPrice() > Optional.of(imp.getBidfloor()).orElse(0f))
+                       .filter(e -> e.getBidPrice()
+                                     .compareTo(BigDecimal.valueOf(Optional.of(imp.getBidfloor())
+                                                                           .orElse(0f))) > 0)
                        .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
     Params params = assignParams().put(ParamKey.ADS_TASK_RESPONSE, adDTOMap);
     messageQueue.putMessage(EventType.BID_TASK_FINISH, params);

@@ -1,11 +1,11 @@
 package com.tecdo.service;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.common.constant.Constant;
 import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
-import com.tecdo.constant.*;
+import com.tecdo.constant.EventType;
+import com.tecdo.constant.ParamKey;
+import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -15,14 +15,18 @@ import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.SignHelper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Objects;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -126,19 +130,28 @@ public class ValidateService {
      * 4. click / pb 通知是否来源于上层漏斗
      * 5. bid_id 去重校验
      *
-     * @return true: 校验通过，请求放行
+     * @return ValidateCode
      */
-    public boolean validateNoticeRequest(HttpRequest httpRequest, EventType eventType) {
+    public ValidateCode validateNoticeRequest(HttpRequest httpRequest, EventType eventType) {
         String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
         String sign = httpRequest.getParamAsStr(RequestKey.SIGN);
         String campaignId = httpRequest.getParamAsStr(RequestKey.CAMPAIGN_ID);
         if (StrUtil.hasBlank(bidId, sign, campaignId)) {
-            return false;
+            return ValidateCode.BLANK_VALID_FAILED;
         }
-        return bidIdValid(bidId, sign, campaignId)
-                && windowValid(bidId, eventType)
-                && funnelValid(bidId, eventType)
-                && duplicateValid(bidId, eventType);
+        if (!bidIdValid(bidId, sign, campaignId)) {
+            return ValidateCode.BID_ID_VALID_FAILED;
+        }
+        if (!windowValid(bidId, eventType)) {
+            return ValidateCode.WINDOW_VALID_FAILED;
+        }
+        if (!funnelValid(bidId, eventType)) {
+            return ValidateCode.FUNNEL_VALID_FAILED;
+        }
+        if (!duplicateValid(bidId, eventType)) {
+            return ValidateCode.DUPLICATE_VALID_FAILED;
+        }
+        return ValidateCode.SUCCESS;
     }
 
     private boolean bidIdValid(String bidId, String sign, String campaignId) {

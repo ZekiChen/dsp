@@ -21,7 +21,6 @@ public class WaitForSortState implements IContextState {
       case SORT_AD_RESPONSE:
         context.cancelTimer(EventType.WAIT_SORT_AD_TIMEOUT);
         context.saveSortAdResponse(params);
-        context.logBidResponse();
         context.switchState(waiForRecycleState);
         context.responseData();
         context.requestComplete();
