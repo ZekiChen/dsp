@@ -21,7 +21,6 @@ import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.entity.doris.GooglePlayApp;
-import com.tecdo.enums.biz.AdTypeEnum;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
 import com.tecdo.log.RequestLogger;
