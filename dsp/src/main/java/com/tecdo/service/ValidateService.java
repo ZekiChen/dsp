@@ -1,5 +1,6 @@
 package com.tecdo.service;
 
+import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.common.constant.Constant;
 import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
@@ -8,19 +9,27 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.AffiliateManager;
+import com.tecdo.service.init.IpTableManager;
+import com.tecdo.service.init.Pair;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
+import com.tecdo.util.FieldFormatHelper;
+import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
 
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import cn.hutool.core.collection.CollUtil;
@@ -34,6 +43,8 @@ import lombok.extern.slf4j.Slf4j;
 public class ValidateService {
 
   private final AffiliateManager affiliateManager;
+
+  private final IpTableManager ipTableManager;
 
   private final MessageQueue messageQueue;
   private final CacheService cacheService;
@@ -49,6 +60,8 @@ public class ValidateService {
 
   @Value("${pac.notice.expire.pb}")
   private long pbExpire;
+
+  private final Logger requestValidateLog = LoggerFactory.getLogger("validate_request_log");
 
   public void validateBidRequest(HttpRequest httpRequest) {
     String token = httpRequest.getParamAsStr(RequestKey.TOKEN);
@@ -80,6 +93,38 @@ public class ValidateService {
               Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
                       .put(ParamKey.CHANNEL_CONTEXT,
                               httpRequest.getChannelContext()));
+      return;
+    }
+
+    String ip = bidRequest.getDevice().getIp();
+    Pair<Boolean, String> blocked = ipTableManager.ipCheck(ip);
+    if (blocked.left) {
+      Map<String, Object> map = new HashMap<>();
+      Device device = bidRequest.getDevice();
+      map.put("affiliate_id", affiliate.getId());
+      map.put("bundle_id", bidRequest.getApp().getBundle());
+      map.put("os", FieldFormatHelper.osFormat(device.getOs()));
+      map.put("osv", device.getOsv());
+      map.put("ip", ip);
+      map.put("ua", device.getUa());
+      map.put("lang", FieldFormatHelper.languageFormat(device.getLanguage()));
+      map.put("device_id", FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()));
+      map.put("device_make", FieldFormatHelper.deviceMakeFormat(device.getMake()));
+      map.put("device_model", FieldFormatHelper.deviceModelFormat(device.getModel()));
+      map.put("connection_type", device.getConnectiontype());
+      map.put("country", FieldFormatHelper.countryFormat(device.getGeo().getCountry()));
+      map.put("city", FieldFormatHelper.cityFormat(device.getGeo().getCity()));
+      map.put("region", FieldFormatHelper.regionFormat(device.getGeo().getRegion()));
+      map.put("screen_width", device.getW());
+      map.put("screen_height", device.getH());
+      map.put("screen_ppi", device.getPpi());
+      map.put("blocked_type", blocked.right);
+      requestValidateLog.info(JsonHelper.toJSONString(map));
+
+      messageQueue.putMessage(EventType.RESPONSE_RESULT,
+                              Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
+                                    .put(ParamKey.CHANNEL_CONTEXT,
+                                         httpRequest.getChannelContext()));
       return;
     }
 

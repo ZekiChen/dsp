@@ -13,6 +13,7 @@ import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.service.init.BudgetManager;
 import com.tecdo.service.init.GooglePlayAppManager;
+import com.tecdo.service.init.IpTableManager;
 import com.tecdo.service.init.RtaInfoManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,12 +43,14 @@ public class LifeCycleManager {
   @Autowired
   private GooglePlayAppManager googlePlayAppManager;
   @Autowired
+  private IpTableManager ipTableManager;
+  @Autowired
   private MessageQueue messageQueue;
 
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 6;
+  private final int needInitCount = 7;
 
   @Value("${server.port}")
   private int serverPort;
@@ -112,6 +115,12 @@ public class LifeCycleManager {
       case AB_TEST_CONFIG_LOAD_TIMEOUT:
         abTestConfigManager.handleEvent(eventType, params);
         break;
+      case IP_TABLE_LOAD:
+      case IP_TABLE_LOAD_RESPONSE:
+      case IP_TABLE_LOAD_ERROR:
+      case IP_TABLE_LOAD_TIMEOUT:
+        ipTableManager.handleEvent(eventType, params);
+        break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -136,6 +145,7 @@ public class LifeCycleManager {
         budgetManager.init(params);
         abTestConfigManager.init(params);
         googlePlayAppManager.init(params);
+        ipTableManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:

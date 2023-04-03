@@ -42,6 +42,11 @@ public enum EventType {
   GP_APP_LOAD_ERROR(1603, "ap app list load failure"),
   GP_APP_LOAD_TIMEOUT(1604, "gp app list load timeout"),
 
+  IP_TABLE_LOAD(1701, "ip table load"),
+  IP_TABLE_LOAD_RESPONSE(1702, "ip table load response"),
+  IP_TABLE_LOAD_ERROR(1703, "ip table load failure"),
+  IP_TABLE_LOAD_TIMEOUT(1704, "ip table load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

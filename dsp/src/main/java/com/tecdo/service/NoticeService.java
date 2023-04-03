@@ -39,7 +39,7 @@ public class NoticeService {
   private final Logger impLog = LoggerFactory.getLogger("imp_log");
   private final Logger clickLog = LoggerFactory.getLogger("click_log");
   private final Logger pbLog = LoggerFactory.getLogger("pb_log");
-  private final Logger validateLog = LoggerFactory.getLogger("validate_log");
+  private final Logger validateLog = LoggerFactory.getLogger("validate_notice_log");
 
   public void handleEvent(EventType eventType, Params params) {
     HttpRequest httpRequest = params.get(ParamKey.HTTP_REQUEST);

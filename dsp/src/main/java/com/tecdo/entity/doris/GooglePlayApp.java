@@ -9,7 +9,7 @@ import java.util.List;
 import lombok.Data;
 
 @Data
-@TableName("google_play_app")
+@TableName("google_play_appinfo")
 public class GooglePlayApp implements Serializable {
 
 
