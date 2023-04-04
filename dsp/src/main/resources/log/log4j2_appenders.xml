@@ -204,7 +204,7 @@
         <DefaultRolloverStrategy>
             <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
                 <IfFileName glob="validate-request-*.log"/>
-                <IfLastModified age="360H"/>
+                <IfAccumulatedFileSize exceeds="10GB"/>
             </Delete>
         </DefaultRolloverStrategy>
         <Filters>
