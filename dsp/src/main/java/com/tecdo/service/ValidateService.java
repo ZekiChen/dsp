@@ -27,12 +27,14 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -60,6 +62,9 @@ public class ValidateService {
 
   @Value("${pac.notice.expire.pb}")
   private long pbExpire;
+
+  @Value("${pac.request.validate}")
+  private boolean needValidateRequest;
 
   private final Logger requestValidateLog = LoggerFactory.getLogger("validate_request_log");
 
@@ -101,7 +106,10 @@ public class ValidateService {
     if (blocked.left) {
       Map<String, Object> map = new HashMap<>();
       Device device = bidRequest.getDevice();
+      map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
+      map.put("time_millis", System.currentTimeMillis());
       map.put("affiliate_id", affiliate.getId());
+      map.put("affiliate_name", affiliate.getName());
       map.put("bundle_id", bidRequest.getApp().getBundle());
       map.put("os", FieldFormatHelper.osFormat(device.getOs()));
       map.put("osv", device.getOsv());
@@ -121,11 +129,13 @@ public class ValidateService {
       map.put("blocked_type", blocked.right);
       requestValidateLog.info(JsonHelper.toJSONString(map));
 
-      messageQueue.putMessage(EventType.RESPONSE_RESULT,
-                              Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
-                                    .put(ParamKey.CHANNEL_CONTEXT,
-                                         httpRequest.getChannelContext()));
-      return;
+      if (needValidateRequest) {
+        messageQueue.putMessage(EventType.RESPONSE_RESULT,
+                                Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
+                                      .put(ParamKey.CHANNEL_CONTEXT,
+                                           httpRequest.getChannelContext()));
+        return;
+      }
     }
 
     messageQueue.putMessage(EventType.RECEIVE_BID_REQUEST,
