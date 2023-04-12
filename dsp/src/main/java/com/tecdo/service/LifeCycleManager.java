@@ -8,19 +8,13 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.server.NetServer;
 import com.tecdo.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.server.request.HttpRequest;
-import com.tecdo.service.init.AbTestConfigManager;
-import com.tecdo.service.init.AdManager;
-import com.tecdo.service.init.AffiliateManager;
-import com.tecdo.service.init.BudgetManager;
-import com.tecdo.service.init.GooglePlayAppManager;
-import com.tecdo.service.init.RtaInfoManager;
-
+import com.tecdo.service.init.*;
+import com.tecdo.service.init.doris.BudgetManager;
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
-
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -42,12 +36,14 @@ public class LifeCycleManager {
   @Autowired
   private GooglePlayAppManager googlePlayAppManager;
   @Autowired
+  private AdvManager advManager;
+  @Autowired
   private MessageQueue messageQueue;
 
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 6;
+  private final int needInitCount = 7;
 
   @Value("${server.port}")
   private int serverPort;
@@ -112,6 +108,12 @@ public class LifeCycleManager {
       case AB_TEST_CONFIG_LOAD_TIMEOUT:
         abTestConfigManager.handleEvent(eventType, params);
         break;
+      case ADV_LOAD:
+      case ADV_LOAD_RESPONSE:
+      case ADV_LOAD_ERROR:
+      case ADV_LOAD_TIMEOUT:
+        advManager.handleEvent(eventType, params);
+        break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -136,6 +138,7 @@ public class LifeCycleManager {
         budgetManager.init(params);
         abTestConfigManager.init(params);
         googlePlayAppManager.init(params);
+        advManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:

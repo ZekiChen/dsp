@@ -13,5 +13,6 @@ public interface RequestPath {
   String CLICK = "/click";
 
   String PB = "/pb";
+  String PB_AE = "/pb/ae";
 
 }

@@ -57,6 +57,10 @@ public class Controller implements MessageObserver {
       case AB_TEST_CONFIG_LOAD_RESPONSE:
       case AB_TEST_CONFIG_LOAD_ERROR:
       case AB_TEST_CONFIG_LOAD_TIMEOUT:
+      case ADV_LOAD:
+      case ADV_LOAD_RESPONSE:
+      case ADV_LOAD_ERROR:
+      case ADV_LOAD_TIMEOUT:
       case ONE_DATA_READY:
       case NETTY_START:
       case RECEIVE_PING_REQUEST:

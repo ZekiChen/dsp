@@ -59,6 +59,7 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
         eventType = EventType.RECEIVE_CLICK_NOTICE;
         break;
       case RequestPath.PB:
+      case RequestPath.PB_AE:
         eventType = EventType.RECEIVE_PB_NOTICE;
         break;
       case RequestPath.PING:

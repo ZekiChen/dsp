@@ -1,15 +1,24 @@
 package com.tecdo.fsm.context;
 
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import com.tecdo.adm.api.delivery.entity.Ad;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.RtaInfo;
+import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
+import com.tecdo.adm.api.delivery.enums.AdvEnum;
 import com.tecdo.common.constant.HttpCode;
-import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.FormatKey;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
+import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
+import com.tecdo.domain.biz.notice.NoticeInfo;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.domain.openrtb.response.Bid;
@@ -17,40 +26,29 @@ import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.domain.openrtb.response.SeatBid;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
 import com.tecdo.domain.openrtb.response.n.NativeResponseWrapper;
-import com.tecdo.adm.api.delivery.entity.Affiliate;
-import com.tecdo.adm.api.delivery.entity.RtaInfo;
-import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
 import com.tecdo.log.RequestLogger;
 import com.tecdo.log.ResponseLogger;
 import com.tecdo.server.request.HttpRequest;
+import com.tecdo.service.CacheService;
+import com.tecdo.service.init.AdvManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
-import com.tecdo.util.AdmGenerator;
-import com.tecdo.util.CreativeHelper;
-import com.tecdo.util.JsonHelper;
-import com.tecdo.util.SignHelper;
-import com.tecdo.util.StringConfigUtil;
-
+import com.tecdo.service.rta.ae.AeMaterialTypeEnum;
+import com.tecdo.service.rta.ae.AeRtaInfoVO;
+import com.tecdo.util.*;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import lombok.extern.slf4j.Slf4j;
+import java.util.stream.Stream;
 
 @Slf4j
 public class Context {
@@ -94,6 +92,10 @@ public class Context {
 
   private final GooglePlayAppManager googlePlayAppManager =
     SpringUtil.getBean(GooglePlayAppManager.class);
+
+  private final AdvManager advManager = SpringUtil.getBean(AdvManager.class);
+
+  private final CacheService cacheService = SpringUtil.getBean(CacheService.class);
 
   public void handleEvent(EventType eventType, Params params) {
     currentState.handleEvent(eventType, params, this);
@@ -178,66 +180,121 @@ public class Context {
   public void requestRta() {
     Params params = assignParams();
     BidRequest bidRequest = this.bidRequest;
-    threadPool.execute(() -> {
-      try {
-        Map<Integer, Target> rtaResMap = doRequestRta(bidRequest);
-        messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
-                                params.put(ParamKey.REQUEST_RTA_RESPONSE, rtaResMap));
-      } catch (Exception e) {
-        log.error("contextId: {},request rta cause a exception:", requestId, e);
-        messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
-      }
-    });
-    log.info("contextId: {},request rta", requestId);
+
+    CompletableFuture<Map<Integer, Target>> lazadaFuture = CompletableFuture
+            .supplyAsync(() -> doRequestRtaByLazada(bidRequest), threadPool.getExecutor())
+            .handle((rtaResMap, throwable) -> {
+                if (throwable != null) {
+                    log.error("contextId: {}, request lazada rta cause a exception:", requestId, throwable);
+                    messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
+                }
+                return rtaResMap;
+            });
+    CompletableFuture<Map<Integer, Target>> aeFuture = CompletableFuture
+            .supplyAsync(() -> doRequestRtaByAE(bidRequest), threadPool.getExecutor())
+            .handle((rtaResMap, throwable) -> {
+              if (throwable != null) {
+                  log.error("contextId: {}, request ae rta cause a exception:", requestId, throwable);
+                  messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
+              }
+              return rtaResMap;
+            });
+    CompletableFuture.allOf(lazadaFuture, aeFuture).join();
+
+    try {
+        // campaignId-Target
+      Map<Integer, Target> mergedResMap = Stream.of(aeFuture.get(), lazadaFuture.get())
+              .flatMap(map -> map.entrySet().stream())
+              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+      messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
+              params.put(ParamKey.REQUEST_RTA_RESPONSE, mergedResMap));
+      log.info("contextId: {}, request rta", requestId);
+    } catch (Exception e) {
+      log.error("contextId: {}, get future cause a exception:", requestId, e);
+      messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
+    }
   }
 
-  private Map<Integer, Target> doRequestRta(BidRequest bidRequest) {
+  private Map<Integer, Target> doRequestRtaByLazada(BidRequest bidRequest) {
     // 协议中的是国家三字码，需要转为对应的二字码
     String country = bidRequest.getDevice().getGeo().getCountry();
     String countryCode = StringConfigUtil.getCountryCode(country);
     String deviceId = bidRequest.getDevice().getIfa();
     Map<Integer, Target> rtaResMap = new HashMap<>();
 
-    // 只保留rta的单子，并将单子按照广告主分组
+    // 只保留lazada rta的单子，并将单子按照广告主分组
     Map<Integer, List<AdDTOWrapper>> advToAdList = //
       this.adDTOWrapperList.stream()
-                           .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()))
-                           .collect(Collectors.groupingBy(i -> i.getAdDTO()
-                                                                .getCampaignRtaInfo()
-                                                                .getAdvId()));
+           .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo())
+                   && AdvEnum.LAZADA.getDesc().equals(advManager.getAdvName(i.getAdDTO().getCampaign().getAdvId())))
+           .collect(Collectors.groupingBy(i -> i.getAdDTO()
+                                                .getCampaignRtaInfo()
+                                                .getAdvMemId()));
     // 分广告主进行rta匹配
     advToAdList.forEach((advId, adList) -> {
       RtaInfo rtaInfo = rtaInfoManager.getRtaInfo(advId);
-      adList.forEach(i -> i.setRtaRequest(1));
       RtaHelper.requestRta(rtaInfo, adList, countryCode, deviceId, rtaResMap);
     });
     return rtaResMap;
   }
 
-  public void saveRtaResponse(Params params) {
+  private Map<Integer, Target> doRequestRtaByAE(BidRequest bidRequest) {
+    String deviceId = bidRequest.getDevice().getIfa();
+    // 只保留ae rta的单子
+    Map<Integer, String> cid2AdvCid = this.adDTOWrapperList.stream()
+            .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo())
+                    & AdvEnum.AE.getDesc().equals(advManager.getAdvName(i.getAdDTO().getCampaign().getAdvId())))
+            .collect(Collectors.toMap(
+                    ad -> ad.getAdDTO().getCampaign().getId(),
+                    ad -> ad.getAdDTO().getCampaignRtaInfo().getAdvCampaignId(),
+                    (o, n) -> o));
+    Set<String> advCampaignIds = new HashSet<>(cid2AdvCid.values());
+    List<AeRtaInfoVO> aeRtaInfoVOs = cacheService.getRtaCache().getAeRtaResponse(advCampaignIds, deviceId);
+    Map<String, AeRtaInfoVO> advCId2AeRtaVOMap = aeRtaInfoVOs.stream()
+            .collect(Collectors.toMap(AeRtaInfoVO::getAdvCampaignId, e -> e));
 
+    return cid2AdvCid.entrySet().stream().map(entry -> {
+      Integer campaignId = entry.getKey();
+      String advCampaignId = entry.getValue();
+      AeRtaInfoVO vo = advCId2AeRtaVOMap.get(advCampaignId);
+      Target target = new Target();
+      target.setAdvName(AdvEnum.AE.getDesc());
+      target.setTarget(vo.getTarget() && AeMaterialTypeEnum.DPA.getDesc().equals(vo.getMaterialType()));
+      target.setLandingPage(vo.getLandingPage());  // cache sink 已经处理过了，取该层即可
+      return new AbstractMap.SimpleEntry<>(campaignId, target);
+    }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+  }
+
+  public void saveRtaResponse(Params params) {
     Map<Integer, Target> rtaResMap = params.get(ParamKey.REQUEST_RTA_RESPONSE);
     Map<Integer, List<AdDTOWrapper>> campaignIdToAdList = //
-      this.adDTOWrapperList.stream()
-                           .collect(Collectors.groupingBy(i -> i.getAdDTO().getCampaign().getId()));
+            this.adDTOWrapperList.stream()
+                    .collect(Collectors.groupingBy(i -> i.getAdDTO().getCampaign().getId()));
     // 将rta匹配的结果保存到AdDTOWrapper中
     for (Map.Entry<Integer, Target> entry : rtaResMap.entrySet()) {
       Integer campaignId = entry.getKey();
       Target t = entry.getValue();
-      if (t.isTarget()) {
-        String token = t.getToken();
-        campaignIdToAdList.get(campaignId).forEach(i -> {
-          i.setRtaToken(token);
-          i.setRtaRequestTrue(1);
-        });
-      }
+      campaignIdToAdList.get(campaignId).forEach(ad -> {
+        switch (AdvEnum.of(t.getAdvName())) {
+        case LAZADA:
+          ad.setRtaToken(t.isTarget() ? t.getToken() : null);
+          ad.setLazadaRtaRequest(1);
+          ad.setLazadaRtaRequestTrue(t.isTarget() ? 1 : 0);
+          break;
+        case AE:
+          ad.setAeRtaRequest(1);
+          ad.setAeRtaRequestTrue(t.isTarget() ? 1 : 0);
+          ad.setLandingPage(t.getLandingPage());
+          break;
+        }
+      });
     }
     // 只保留非rta的单子 和 rta并且匹配的单子
     this.adDTOWrapperList = this.adDTOWrapperList.stream()
-                                                 .filter(i -> i.getAdDTO().getCampaignRtaInfo() ==
-                                                              null || i.getRtaToken() != null)
-                                                 .collect(Collectors.toList());
-    log.info("contextId: {},after rta filter,size:{}", requestId, adDTOWrapperList.size());
+            .filter(i -> i.getAdDTO().getCampaignRtaInfo() == null
+                        || i.getLazadaRtaRequestTrue() == 1 || i.getAeRtaRequestTrue() == 1)
+            .collect(Collectors.toList());
+    log.info("contextId: {}, after rta filter, size: {}", requestId, adDTOWrapperList.size());
   }
 
   public void sort() {
@@ -270,6 +327,7 @@ public class Context {
       params.put(ParamKey.HTTP_CODE, HttpCode.NOT_BID);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     } else {
+      cacheNoticeInfoByAe(response, bidRequest);
       logBidResponse();
       BidResponse bidResponse = buildResponse(this.response);
       String bidResponseString = JsonHelper.toJSONString(bidResponse);
@@ -334,15 +392,17 @@ public class Context {
     clickTrackList =
       clickTrackList.stream().map(i -> urlFormat(i, sign)).collect(Collectors.toList());
 
-
+    String clickUrl = StrUtil.isNotBlank(wrapper.getLandingPage()) ?
+            wrapper.getLandingPage() :
+            urlFormat(adDTO.getAdGroup().getClickUrl(), sign);
+    String deeplink = urlFormat(adDTO.getAdGroup().getDeeplink(), sign);
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
-      adm = AdmGenerator.bannerAdm(urlFormat(adDTO.getAdGroup().getClickUrl(), sign),
-                                   urlFormat(adDTO.getAdGroup().getDeeplink(), sign),
+      adm = AdmGenerator.bannerAdm(clickUrl,
+                                   deeplink,
                                    adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
                                    impTrackList,
                                    clickTrackList);
-    }
-    if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
+    } else if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
       List<Imp> impList = bidRequest.getImp();
       Imp imp = impList.stream()
                        .filter(i -> Objects.equals(i.getId(), wrapper.getImpId()))
@@ -351,8 +411,8 @@ public class Context {
       NativeResponse nativeResponse = //
         AdmGenerator.nativeAdm(imp.getNative1().getNativeRequest(),
                                adDTO,
-                               urlFormat(adDTO.getAdGroup().getClickUrl(), sign),
-                               urlFormat(adDTO.getAdGroup().getDeeplink(), sign),
+                               clickUrl,
+                               deeplink,
                                impTrackList,
                                clickTrackList);
       if (imp.getNative1().getNativeRequestWrapper() != null) {
@@ -471,17 +531,37 @@ public class Context {
     taskMap.forEach((taskId, task) -> {
       Map<Integer, AdDTOWrapper> adDTOWrapperMap =
         taskResponse.getOrDefault(taskId, Collections.emptyMap());
-      int rtaRequest =
-        adDTOWrapperMap.values().stream().anyMatch(i -> i.getRtaRequest() == 1) ? 1 : 0;
-      int rtaRequestTrue =
-        adDTOWrapperMap.values().stream().anyMatch(i -> i.getRtaRequestTrue() == 1) ? 1 : 0;
+      int lazadaRtaRequest =
+        adDTOWrapperMap.values().stream().anyMatch(i -> i.getLazadaRtaRequest() == 1) ? 1 : 0;
+      int lazadaRtaRequestTrue =
+        adDTOWrapperMap.values().stream().anyMatch(i -> i.getLazadaRtaRequestTrue() == 1) ? 1 : 0;
+      int aeRtaRequest =
+        adDTOWrapperMap.values().stream().anyMatch(i -> i.getAeRtaRequest() == 1) ? 1 : 0;
+      int aeRtaRequestTrue =
+        adDTOWrapperMap.values().stream().anyMatch(i -> i.getAeRtaRequestTrue() == 1) ? 1 : 0;
       RequestLogger.log(taskId,
                         task.getImp(),
                         bidRequest,
                         affiliate,
-                        rtaRequest,
-                        rtaRequestTrue,
+                        lazadaRtaRequest,
+                        lazadaRtaRequestTrue,
+                        aeRtaRequest,
+                        aeRtaRequestTrue,
                         googleApp);
     });
+  }
+
+  private void cacheNoticeInfoByAe(AdDTOWrapper adDTOWrapper, BidRequest bidRequest) {
+    String advName = advManager.getAdvName(adDTOWrapper.getAdDTO().getCampaign().getAdvId());
+    if (AdvEnum.AE.getDesc().equals(advName)) {
+      Ad ad = adDTOWrapper.getAdDTO().getAd();
+      NoticeInfo info = new NoticeInfo();
+      info.setCampaignId(adDTOWrapper.getAdDTO().getCampaign().getId());
+      info.setAdGroupId(adDTOWrapper.getAdDTO().getAdGroup().getId());
+      info.setAdId(ad.getId());
+      info.setCreativeId(CreativeHelper.getCreativeId(ad));
+      info.setDeviceId(bidRequest.getDevice().getIfa());
+      cacheService.getNoticeCache().setNoticeInfo(adDTOWrapper.getBidId(), info);
+    }
   }
 }

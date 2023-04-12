@@ -42,6 +42,11 @@ public enum EventType {
   GP_APP_LOAD_ERROR(1603, "ap app list load failure"),
   GP_APP_LOAD_TIMEOUT(1604, "gp app list load timeout"),
 
+  ADV_LOAD(1701, "adv list load"),
+  ADV_LOAD_RESPONSE(1702, "adv list load response"),
+  ADV_LOAD_ERROR(1703, "adv list load failure"),
+  ADV_LOAD_TIMEOUT(1704, "adv list load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

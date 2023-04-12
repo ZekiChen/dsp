@@ -5,7 +5,7 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.filter.util.ConditionHelper;
-import com.tecdo.service.init.BudgetManager;
+import com.tecdo.service.init.doris.BudgetManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -26,9 +26,9 @@ public class BudgetFilter extends AbstractRecallFilter {
     Double adGroupBudget = adDTO.getAdGroup().getDailyBudget();
     // 每个 campaign + adGroup 一天的消耗控制
     double campaignCost =
-      budgetManager.getCampaignCost(adDTO.getCampaign().getId().toString(), 0d) / 1000;
+      budgetManager.getCampaignCost(adDTO.getCampaign().getId().toString()) / 1000;
     double adGroupCost =
-      budgetManager.getAdGroupCost(adDTO.getAdGroup().getId().toString(), 0d) / 1000;
+      budgetManager.getAdGroupCost(adDTO.getAdGroup().getId().toString()) / 1000;
 
     return ConditionHelper.compare(Double.toString(campaignCost),
                                    Constant.LT,

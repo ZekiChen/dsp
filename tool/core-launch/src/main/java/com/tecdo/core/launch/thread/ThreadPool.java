@@ -15,15 +15,19 @@ public class ThreadPool {
             ThreadFactoryHelper.create("async-worker", Thread.NORM_PRIORITY, false));
   }
 
+  public ExecutorService getExecutor() {
+    return executorService;
+  }
+
   public void execute(Runnable runnable) {
-    executorService.execute(runnable);
+    getExecutor().execute(runnable);
   }
 
   /**
    * this will not throw exception,until you call {@link Future#get()}
    */
   public Future<?> submit(Runnable runnable) {
-    return executorService.submit(runnable);
+    return getExecutor().submit(runnable);
   }
 
 }

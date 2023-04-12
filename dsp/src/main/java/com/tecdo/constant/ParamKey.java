@@ -24,11 +24,13 @@ public interface ParamKey {
   // init db data, add into cache
   String AFFILIATES_CACHE_KEY = "affiliates-cache-key";
   String ADS_CACHE_KEY = "ads-cache-key";
+  String CAMPAIGNS_CACHE_KEY = "campaigns-cache-key";
   String RTA_INFOS_CACHE_KEY = "rta-infos-cache-key";
   String CAMPAIGN_BUDGETS_CACHE_KEY = "campaign-budgets-cache-key";
   String AD_GROUP_BUDGETS_CACHE_KEY = "ad-group-budgets-cache-key";
   String AB_TEST_CONFIG_CACHE_KEY = "ab-test-config-key";
   String GP_APP_CACHE_KEY = "gp-app-cache-key";
+  String ADV_CACHE_KEY = "adv-cache-key";
 
   // task-imp
   String ADS_TASK_RESPONSE = "ads-imp-key";

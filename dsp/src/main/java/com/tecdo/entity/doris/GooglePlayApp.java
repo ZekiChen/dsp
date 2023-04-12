@@ -2,11 +2,10 @@ package com.tecdo.entity.doris;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
+import lombok.Data;
 
 import java.io.Serializable;
 import java.util.List;
-
-import lombok.Data;
 
 @Data
 @TableName("google_play_app")

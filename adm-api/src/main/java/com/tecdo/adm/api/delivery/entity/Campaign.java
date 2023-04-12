@@ -20,6 +20,8 @@ import lombok.EqualsAndHashCode;
 @ApiModel("Campaign对象")
 public class Campaign extends BaseEntity {
 
+    @ApiModelProperty("广告主id")
+    private Integer advId;
     @ApiModelProperty("广告活动名称")
     private String name;
     @ApiModelProperty("日预算")

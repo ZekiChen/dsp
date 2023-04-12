@@ -1,16 +1,20 @@
 package com.tecdo.service.init;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tecdo.starter.mp.entity.IdEntity;
-import com.tecdo.core.launch.thread.ThreadPool;
+import com.tecdo.adm.api.delivery.dto.AdGroupDTO;
+import com.tecdo.adm.api.delivery.dto.CampaignDTO;
+import com.tecdo.adm.api.delivery.entity.*;
+import com.tecdo.adm.api.delivery.mapper.*;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
+import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.dto.AdDTO;
-import com.tecdo.adm.api.delivery.entity.*;
-import com.tecdo.adm.api.delivery.mapper.*;
+import com.tecdo.starter.mp.entity.IdEntity;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -38,11 +42,13 @@ public class AdManager {
     private final TargetConditionMapper conditionMapper;
     private final CampaignMapper campaignMapper;
     private final CampaignRtaInfoMapper campaignRtaMapper;
+    private final AdvMapper advMapper;
 
     private State currentState = State.INIT;
     private long timerId;
 
     private Map<Integer, AdDTO> adDTOMap;
+    private Map<Integer, CampaignDTO> campaignDTOMap;
 
     @Value("${pac.timeout.load.db.ad-dto}")
     private long loadTimeout;
@@ -54,6 +60,13 @@ public class AdManager {
      */
     public Map<Integer, AdDTO> getAdDTOMap() {
         return this.adDTOMap;
+    }
+
+    /**
+     * 聚合 ad 数据至 CampaignDTO 集合，每 5 分钟刷新一次缓存
+     */
+    public Map<Integer, CampaignDTO> getCampaignDTOMap() {
+        return this.campaignDTOMap;
     }
 
     @AllArgsConstructor
@@ -117,7 +130,18 @@ public class AdManager {
             case RUNNING:
                 threadPool.execute(() -> {
                     try {
-                        params.put(ParamKey.ADS_CACHE_KEY, listAndConvertAds());
+                        List<Ad> ads = adMapper.selectList(Wrappers.lambdaQuery());
+                        Map<Integer, Creative> creativeMap = creativeMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        Map<Integer, AdGroup> adGroupMap = adGroupMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        List<TargetCondition> conditions = conditionMapper.selectList(Wrappers.lambdaQuery());
+                        Map<Integer, Campaign> campaignMap = campaignMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        List<CampaignRtaInfo> campaignRtaInfos = campaignRtaMapper.selectList(Wrappers.lambdaQuery());
+
+                        Map<Integer, AdDTO> adDTOMap = listAndConvertAds(ads, creativeMap, adGroupMap, conditions, campaignMap, campaignRtaInfos);
+                        Map<Integer, CampaignDTO> campaignDTOMap = listCampaignDTOMap(ads, creativeMap, adGroupMap, conditions, campaignMap, campaignRtaInfos);
+
+                        params.put(ParamKey.ADS_CACHE_KEY, adDTOMap);
+                        params.put(ParamKey.CAMPAIGNS_CACHE_KEY, campaignDTOMap);
                         messageQueue.putMessage(EventType.ADS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("ad list load failure from db", e);
@@ -135,14 +159,12 @@ public class AdManager {
     /**
      * 将 ad（creative）、ad_group（target_condition）、campaign（campaign_rta_info）数据平铺整合 AdDTO 集
      */
-    private Map<Integer, AdDTO> listAndConvertAds() {
-        List<Ad> ads = adMapper.selectList(Wrappers.lambdaQuery());
-        Map<Integer, Creative> creativeMap = creativeMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
-        Map<Integer, AdGroup> adGroupMap = adGroupMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
-        List<TargetCondition> conditions = conditionMapper.selectList(Wrappers.lambdaQuery());
-        Map<Integer, Campaign> campaignMap = campaignMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
-        List<CampaignRtaInfo> campaignRtaInfos = campaignRtaMapper.selectList(Wrappers.lambdaQuery());
-
+    private Map<Integer, AdDTO> listAndConvertAds(List<Ad> ads,
+                                                  Map<Integer, Creative> creativeMap,
+                                                  Map<Integer, AdGroup> adGroupMap,
+                                                  List<TargetCondition> conditions,
+                                                  Map<Integer, Campaign> campaignMap,
+                                                  List<CampaignRtaInfo> campaignRtaInfos) {
         List<AdDTO> adDTOs = new ArrayList<>();
         for (Ad ad : ads) {
             Map<Integer, Creative> creatives = listCreativesByAd(creativeMap, ad);
@@ -158,6 +180,31 @@ public class AdManager {
             adDTOs.add(adDTO);
         }
         return adDTOs.stream().collect(Collectors.toMap(e -> e.getAd().getId(), e -> e));
+    }
+
+    private Map<Integer, CampaignDTO> listCampaignDTOMap(List<Ad> ads,
+                                                         Map<Integer, Creative> creativeMap,
+                                                         Map<Integer, AdGroup> adGroupMap,
+                                                         List<TargetCondition> conditions,
+                                                         Map<Integer, Campaign> campaignMap,
+                                                         List<CampaignRtaInfo> campaignRtaInfos) {
+        Map<Integer, Adv> advMap = advMapper.selectList(Wrappers.query()).stream().collect(Collectors.toMap(Adv::getId, e -> e));
+        Map<Integer, CampaignDTO> campaignDTOMap = new HashMap<>();
+        for (Campaign campaign : campaignMap.values()) {
+            CampaignDTO campaignDTO = BeanUtil.copyProperties(campaign, CampaignDTO.class);
+            campaignDTO.setAdvName(advMap.get(campaignDTO.getAdvId()).getName());
+            List<AdGroupDTO> adGroupDTOs = adGroupMap.values().stream()
+                    .filter(e -> Objects.equals(campaignDTO.getId(), e.getCampaignId()))
+                    .map(e -> BeanUtil.copyProperties(e, AdGroupDTO.class))
+                    .collect(Collectors.toList());
+            campaignDTO.setAdGroupDTOs(adGroupDTOs);
+            CampaignRtaInfo campaignRtaInfo = campaignRtaInfos.stream()
+                    .filter(e -> Objects.equals(campaignDTO.getId(), e.getCampaignId()))
+                    .findFirst().orElse(null);
+            campaignDTO.setCampaignRtaInfo(campaignRtaInfo);
+            campaignDTOMap.put(campaignDTO.getId(), campaignDTO);
+        }
+        return campaignDTOMap;
     }
 
     private Map<Integer, Creative> listCreativesByAd(Map<Integer, Creative> creativeMap, Ad ad) {
@@ -180,7 +227,9 @@ public class AdManager {
 
     private List<TargetCondition> listConditionByGroup(List<TargetCondition> conditions, AdGroup adGroup) {
         return adGroup == null ? null :
-                conditions.stream().filter(e -> Objects.equals(adGroup.getId(), e.getAdGroupId())).collect(Collectors.toList());
+                conditions.stream().filter(e -> Objects.equals(adGroup.getId(), e.getAdGroupId())
+                        && StrUtil.isAllNotBlank(e.getAttribute(), e.getOperation(), e.getValue())
+                ).collect(Collectors.toList());
     }
 
     private Campaign getCampaignByGroup(Map<Integer, Campaign> campaignMap, AdGroup adGroup) {
@@ -204,7 +253,9 @@ public class AdManager {
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.adDTOMap = params.get(ParamKey.ADS_CACHE_KEY);
-                log.info("ad dto list load success, size: {}", adDTOMap.size());
+                this.campaignDTOMap = params.get(ParamKey.CAMPAIGNS_CACHE_KEY);
+                log.info("ad dto list load success, size: {}, campaign dto list load success, size: {}"
+                        , adDTOMap.size(), campaignDTOMap.size());
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);
                 break;

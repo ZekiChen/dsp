@@ -1,8 +1,8 @@
-package com.tecdo.mapper.doris;
+package com.tecdo.adm.api.doris.mapper;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
-import com.tecdo.adm.api.delivery.entity.doris.AdGroupCost;
+import com.tecdo.adm.api.doris.entity.AdGroupCost;
 
 /**
  * 展示实时数据 Mapper

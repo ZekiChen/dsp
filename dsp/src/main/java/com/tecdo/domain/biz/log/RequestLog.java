@@ -185,10 +185,16 @@ public class RequestLog implements Serializable {
     private String tagId;
 
     @JsonProperty("rta_request")
-    private int rtaRequest;
+    private int lazadaRtaRequest;
 
     @JsonProperty("rta_request_true")
-    private int rtaRequestTrue;
+    private int lazadaRtaRequestTrue;
+
+    @JsonProperty("ae_rta_request")
+    private int aeRtaRequest;
+
+    @JsonProperty("ae_rta_request_true")
+    private int aeRtaRequestTrue;
 
 
     @JsonProperty("category_list")

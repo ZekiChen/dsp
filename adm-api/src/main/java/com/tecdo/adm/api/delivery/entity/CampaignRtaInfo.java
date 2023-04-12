@@ -23,8 +23,10 @@ public class CampaignRtaInfo extends BaseEntity {
     @ApiModelProperty("广告主 campaign id")
     private String advCampaignId;
     @ApiModelProperty("广告主id")
-    private Integer advId;
+    private Integer advMemId;
     @ApiModelProperty("RTA受众特征")
     private Integer rtaFeature;
+    @ApiModelProperty("渠道名称")
+    private String channel;
 
 }

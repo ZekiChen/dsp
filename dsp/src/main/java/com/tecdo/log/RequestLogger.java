@@ -26,71 +26,86 @@ import java.util.Optional;
  */
 public class RequestLogger {
 
-  private final static Logger requestLogger = LoggerFactory.getLogger("request_log");
+    private final static Logger requestLogger = LoggerFactory.getLogger("request_log");
 
-  public static void log(String bidId,
-                         Imp imp,
-                         BidRequest bidRequest,
-                         Affiliate affiliate,
-                         int rtaRequest,
-                         int rtaRequestTrue,
-                         GooglePlayApp googlePlayApp) {
-    RequestLog requestLog =
-      buildRequestLog(bidId, imp, bidRequest, affiliate, rtaRequest, rtaRequestTrue, googlePlayApp);
-    requestLogger.info(JsonHelper.toJSONString(requestLog));
-  }
+    public static void log(String bidId,
+                           Imp imp,
+                           BidRequest bidRequest,
+                           Affiliate affiliate,
+                           int lazadaRtaRequest,
+                           int lazadaRtaRequestTrue,
+                           int aeRtaRequest,
+                           int aeRtaRequestTrue,
+                           GooglePlayApp googlePlayApp) {
+        RequestLog requestLog = buildRequestLog(
+                bidId,
+                imp,
+                bidRequest,
+                affiliate,
+                lazadaRtaRequest,
+                lazadaRtaRequestTrue,
+                aeRtaRequest,
+                aeRtaRequestTrue,
+                googlePlayApp
+        );
+        requestLogger.info(JsonHelper.toJSONString(requestLog));
+    }
 
-  private static RequestLog buildRequestLog(String bidId,
-                                            Imp imp,
-                                            BidRequest bidRequest,
-                                            Affiliate affiliate,
-                                            int rtaRequest,
-                                            int rtaRequestTrue,
-                                            GooglePlayApp googlePlayApp) {
-    BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
-    Device device = bidRequest.getDevice();
-    return RequestLog.builder()
-                     .createTime(DateUtil.format(new Date(), "yyyy-MM-dd_HH"))
-                     .bidId(bidId)
-                     .affiliateId(affiliate.getId())
-                     .affiliateName(affiliate.getName())
-                     .adFormat(Optional.ofNullable(bidCreative.getType())
-                                       .map(AdTypeEnum::of)
-                                       .map(AdTypeEnum::getDesc)
-                                       .orElse(null))
-                     .adWidth(bidCreative.getWidth())
-                     .adHeight(bidCreative.getHeight())
-                     .os(FieldFormatHelper.osFormat(device.getOs()))
-                     .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
-                     .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
-                     .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
-                     .connectionType(device.getConnectiontype())
-                     .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
-                     .osv(device.getOsv())
-                     .carrier(device.getCarrier())
-                     .pos(bidCreative.getPos())
-                     .instl(imp.getInstl())
-                     .domain(bidRequest.getApp().getDomain())
-                     .cat(bidRequest.getApp().getCat())
-                     .ip(Optional.ofNullable(device.getIp()).orElse(device.getIpv6()))
-                     .ua(device.getUa())
-                     .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
-                     .deviceId(device.getIfa())
-                     .bidFloor(imp.getBidfloor().doubleValue())
-                     .city(FieldFormatHelper.cityFormat(device.getGeo().getCity()))
-                     .region(FieldFormatHelper.regionFormat(device.getGeo().getRegion()))
-                     .deviceType(DeviceTypeEnum.of(device.getDevicetype()).name())
-                     .screenWidth(device.getW())
-                     .screenHeight(device.getH())
-                     .screenPpi(device.getPpi())
-                     .tagId(imp.getTagid())
-                     .rtaRequest(rtaRequest)
-                     .rtaRequestTrue(rtaRequestTrue)
-                     .categoryList(googlePlayApp.getCategoryList())
-                     .tagList(googlePlayApp.getTagList())
-                     .score(googlePlayApp.getScore())
-                     .downloads(googlePlayApp.getDownloads())
-                     .reviews(googlePlayApp.getReviews())
-                     .build();
-  }
+    private static RequestLog buildRequestLog(String bidId,
+                                              Imp imp,
+                                              BidRequest bidRequest,
+                                              Affiliate affiliate,
+                                              int lazadaRtaRequest,
+                                              int lazadaRtaRequestTrue,
+                                              int aeRtaRequest,
+                                              int aeRtaRequestTrue,
+                                              GooglePlayApp googlePlayApp) {
+        BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
+        Device device = bidRequest.getDevice();
+        return RequestLog.builder()
+                .createTime(DateUtil.format(new Date(), "yyyy-MM-dd_HH"))
+                .bidId(bidId)
+                .affiliateId(affiliate.getId())
+                .affiliateName(affiliate.getName())
+                .adFormat(Optional.ofNullable(bidCreative.getType())
+                        .map(AdTypeEnum::of)
+                        .map(AdTypeEnum::getDesc)
+                        .orElse(null))
+                .adWidth(bidCreative.getWidth())
+                .adHeight(bidCreative.getHeight())
+                .os(FieldFormatHelper.osFormat(device.getOs()))
+                .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
+                .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
+                .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
+                .connectionType(device.getConnectiontype())
+                .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
+                .osv(device.getOsv())
+                .carrier(device.getCarrier())
+                .pos(bidCreative.getPos())
+                .instl(imp.getInstl())
+                .domain(bidRequest.getApp().getDomain())
+                .cat(bidRequest.getApp().getCat())
+                .ip(Optional.ofNullable(device.getIp()).orElse(device.getIpv6()))
+                .ua(device.getUa())
+                .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
+                .deviceId(device.getIfa())
+                .bidFloor(imp.getBidfloor().doubleValue())
+                .city(FieldFormatHelper.cityFormat(device.getGeo().getCity()))
+                .region(FieldFormatHelper.regionFormat(device.getGeo().getRegion()))
+                .deviceType(DeviceTypeEnum.of(device.getDevicetype()).name())
+                .screenWidth(device.getW())
+                .screenHeight(device.getH())
+                .screenPpi(device.getPpi())
+                .tagId(imp.getTagid())
+                .lazadaRtaRequest(lazadaRtaRequest)
+                .lazadaRtaRequestTrue(lazadaRtaRequestTrue)
+                .aeRtaRequest(aeRtaRequest)
+                .aeRtaRequestTrue(aeRtaRequestTrue)
+                .categoryList(googlePlayApp.getCategoryList())
+                .tagList(googlePlayApp.getTagList())
+                .score(googlePlayApp.getScore())
+                .downloads(googlePlayApp.getDownloads())
+                .reviews(googlePlayApp.getReviews())
+                .build();
+    }
 }
