@@ -1,7 +1,5 @@
 package com.tecdo.adm.auth;
 
-import cn.hutool.core.util.StrUtil;
-
 import javax.servlet.*;
 import javax.servlet.annotation.WebFilter;
 import javax.servlet.http.HttpServletRequest;
@@ -20,7 +18,9 @@ public class AuthFilter implements Filter {
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
         HttpServletRequest req = (HttpServletRequest) request;
         String token = req.getHeader("Token");
-        if (StrUtil.isNotBlank(token) && "asdfiouw4uw3h6jjklse".equals(token)) {
+        String path = req.getServletPath();
+        if ("asdfiouw4uw3h6jjklse".equals(token)
+                || "/adm/ae/rta/daily/report".equals(path)) {
             chain.doFilter(request, response);
         } else {
             response.getWriter().write("auth fail!");

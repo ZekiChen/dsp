@@ -3,7 +3,7 @@ package com.tecdo.adm.api.foreign.ae.vo.request;
 import lombok.Getter;
 import lombok.Setter;
 
-import javax.validation.constraints.NotNull;
+import javax.validation.constraints.NotBlank;
 import java.io.Serializable;
 
 /**
@@ -15,7 +15,7 @@ import java.io.Serializable;
 @Getter
 public class AeBaseVO implements Serializable {
 
-    @NotNull
+    @NotBlank
     private String channel;
     private Long timestamp;
     private String sign;

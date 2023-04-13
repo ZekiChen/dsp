@@ -22,8 +22,6 @@ import com.tecdo.adm.api.foreign.ae.vo.response.AeReportVO;
 import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.common.cache.AdvCache;
 import com.tecdo.adm.common.cache.CampaignCache;
-import com.tecdo.adm.delivery.service.ICampaignRtaService;
-import com.tecdo.adm.delivery.service.ICampaignService;
 import com.tecdo.adm.foreign.ae.service.IAeReportService;
 import com.tecdo.starter.mp.entity.IdEntity;
 import com.tecdo.starter.tool.util.BeanUtil;
@@ -46,28 +44,27 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AeReportServiceImpl implements IAeReportService {
 
-    private final ICampaignService campaignService;
-    private final ICampaignRtaService campaignRtaService;
-
     private final AdGroupCostMapper costMapper;
     private final AdGroupImpCountMapper impCountMapper;
     private final AdGroupClickMapper clickMapper;
 
     @Override
     public AeDataVO<AeReportVO> listAdvCampaignDailyReport(AeDailyCostVO vo) {
-        List<String> advCampaignIds = vo.getAdvCampaignIds();
-        LambdaQueryWrapper<CampaignRtaInfo> wrapper = Wrappers.<CampaignRtaInfo>lambdaQuery()
-                .eq(CampaignRtaInfo::getChannel, vo.getChannel())
-                .in(CampaignRtaInfo::getAdvCampaignId, advCampaignIds);
-        List<CampaignRtaInfo> campaignRtaInfos = campaignRtaService.list(wrapper);
-
+        AeDataVO<AeReportVO> aeDataVO = new AeDataVO<>();
+        String advCampaignIds = String.join(StrUtil.COMMA, vo.getAdvCampaignIds());
+        List<CampaignRtaInfo> campaignRtaInfos = CampaignCache.listCampaignRta(vo.getChannel(), advCampaignIds);
+        if (CollUtil.isEmpty(campaignRtaInfos)) {
+            return aeDataVO;
+        }
         List<Integer> campaignIds = campaignRtaInfos.stream()
                 .map(CampaignRtaInfo::getCampaignId).collect(Collectors.toList());
-        List<Campaign> campaigns = campaignService.listByIds(campaignIds);
+        String campaignIdsStr = campaignIds.stream().map(Object::toString).collect(Collectors.joining(StrUtil.COMMA));
+        List<Campaign> campaigns = CampaignCache.listCampaign(campaignIdsStr);
+
         List<CampaignDTO> campaignDTOs = new ArrayList<>();
         for (Campaign campaign : campaigns) {
             String advName = AdvCache.getAdv(campaign.getAdvId()).getName();
-            if (StrUtil.isNotBlank(advName) && AdvEnum.AE.getDesc().equalsIgnoreCase(advName)) {
+            if (AdvEnum.AE.getDesc().equalsIgnoreCase(advName)) {
                 CampaignDTO campaignDTO = Objects.requireNonNull(BeanUtil.copy(campaign, CampaignDTO.class));
                 campaignDTO.setAdvName(advName);
                 List<AdGroup> adGroups = AdGroupCache.listAdGroup(campaign.getId());
@@ -77,8 +74,7 @@ public class AeReportServiceImpl implements IAeReportService {
             }
         }
 
-        AeDataVO aeDataVO = new AeDataVO();
-        if (!CollUtil.isEmpty(campaignDTOs)) {
+        if (CollUtil.isNotEmpty(campaignDTOs)) {
             campaignIds = campaignDTOs.stream().map(IdEntity::getId).collect(Collectors.toList());
 
             Map<String, Double> campaignCostMap = campaignCost(vo.getBizDate(), campaignIds);
