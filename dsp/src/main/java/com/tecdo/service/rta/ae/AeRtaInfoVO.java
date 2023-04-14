@@ -14,6 +14,11 @@ public class AeRtaInfoVO implements Serializable {
 
     private String advCampaignId;
     private Boolean target;
-    private String materialType;  // DPA、STATIC、INSTALL
+
+    /**
+     * @see AeMaterialTypeEnum
+     */
+    private String materialType;
+
     private String landingPage;
 }
