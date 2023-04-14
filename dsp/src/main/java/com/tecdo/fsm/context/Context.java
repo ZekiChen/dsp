@@ -274,17 +274,17 @@ public class Context {
       Target t = entry.getValue();
       campaignIdToAdList.get(campaignId).forEach(ad -> {
         switch (AdvEnum.of(t.getAdvName())) {
-        case LAZADA:
-          ad.setRtaToken(t.isTarget() ? t.getToken() : null);
-          ad.setLazadaRtaRequest(1);
-          ad.setLazadaRtaRequestTrue(t.isTarget() ? 1 : 0);
-          break;
-        case AE:
-          ad.setAeRtaRequest(1);
-          ad.setAeRtaRequestTrue(t.isTarget() ? 1 : 0);
-          ad.setLandingPage(t.getLandingPage());
-          break;
-        }
+          case LAZADA:
+            ad.setRtaToken(t.isTarget() ? t.getToken() : null);
+            ad.setLazadaRtaRequest(1);
+            ad.setLazadaRtaRequestTrue(t.isTarget() ? 1 : 0);
+            break;
+          case AE:
+            ad.setAeRtaRequest(1);
+            ad.setAeRtaRequestTrue(t.isTarget() ? 1 : 0);
+            ad.setLandingPage(t.getLandingPage());
+            break;
+          }
       });
     }
     // 只保留非rta的单子 和 rta并且匹配的单子
