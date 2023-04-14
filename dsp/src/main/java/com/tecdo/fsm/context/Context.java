@@ -38,7 +38,6 @@ import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
-import com.tecdo.service.rta.ae.AeMaterialTypeEnum;
 import com.tecdo.service.rta.ae.AeRtaInfoVO;
 import com.tecdo.util.*;
 import lombok.extern.slf4j.Slf4j;
@@ -260,7 +259,7 @@ public class Context {
       AeRtaInfoVO vo = advCId2AeRtaVOMap.get(advCampaignId);
       Target target = new Target();
       target.setAdvName(AdvEnum.AE.getDesc());
-      target.setTarget(vo.getTarget() && AeMaterialTypeEnum.DPA.getDesc().equals(vo.getMaterialType()));
+      target.setTarget(vo.getTarget());
       target.setLandingPage(vo.getLandingPage());  // cache sink 已经处理过了，取该层即可
       return new AbstractMap.SimpleEntry<>(campaignId, target);
     }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));

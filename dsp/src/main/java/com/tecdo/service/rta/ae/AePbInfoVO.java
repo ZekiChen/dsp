@@ -22,8 +22,10 @@ public class AePbInfoVO implements Serializable {
     private Double affiRevenue;
     private Integer newRegister;
 
-    private String rtaSubId1;  // bidId
-    private String rtaSubId2;  // sign
+    @JsonProperty("rtaSubId1")
+    private String bidId;
+    @JsonProperty("rtaSubId2")
+    private String sign;
     private String rtaSubId3;
     private String rtaSubId4;
     private String rtaSubId5;

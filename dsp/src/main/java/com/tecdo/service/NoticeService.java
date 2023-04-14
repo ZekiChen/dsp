@@ -64,7 +64,7 @@ public class NoticeService {
             return;
         }
         for (AePbInfoVO aePbInfoVO : aePbDataVO.getData()) {
-            NoticeInfo info = cacheService.getNoticeCache().getNoticeInfo(aePbInfoVO.getRtaSubId1());
+            NoticeInfo info = cacheService.getNoticeCache().getNoticeInfo(aePbInfoVO.getBidId());
             if (info == null) {
                 ResponseHelper.aeParamError(messageQueue, params, httpRequest);
                 return;
@@ -76,20 +76,20 @@ public class NoticeService {
                 ResponseHelper.aeParamError(messageQueue, params, httpRequest);
                 return;
             }
-            info.setBidId(aePbInfoVO.getRtaSubId1());
-            info.setSign(aePbInfoVO.getRtaSubId2());
+            info.setBidId(aePbInfoVO.getBidId());
+            info.setSign(aePbInfoVO.getSign());
             noticeInfos.add(info);
         }
         List<NoticeInfo> infos = new ArrayList<>();
         for (NoticeInfo info : noticeInfos) {
             ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
                     info.getSign(), info.getCampaignId(), eventType);
-            info.setValidateCode(code);
             if (code != ValidateCode.SUCCESS) {
                 logValidateFailed(eventType, httpRequest, code, info);
                 ResponseHelper.aeParamError(messageQueue, params, httpRequest);
                 return;
             }
+            info.setValidateCode(code);
             infos.add(info);
         }
         infos.forEach(info -> logValidateSucceed(eventType, httpRequest, info));
