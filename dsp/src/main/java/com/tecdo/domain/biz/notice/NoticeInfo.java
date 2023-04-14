@@ -1,5 +1,6 @@
 package com.tecdo.domain.biz.notice;
 
+import com.tecdo.service.ValidateCode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -26,4 +27,6 @@ public class NoticeInfo implements Serializable {
 
     private String bidId;
     private String sign;
+
+    private ValidateCode validateCode;
 }

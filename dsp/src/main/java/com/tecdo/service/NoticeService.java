@@ -4,9 +4,6 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import com.google.common.net.HttpHeaders;
 import com.tecdo.adm.api.delivery.dto.CampaignDTO;
-import com.tecdo.adm.api.foreign.ae.enums.AeCode;
-import com.tecdo.adm.api.foreign.ae.vo.response.AeResponse;
-import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
@@ -19,6 +16,7 @@ import com.tecdo.service.init.AdManager;
 import com.tecdo.service.rta.ae.AePbDataVO;
 import com.tecdo.service.rta.ae.AePbInfoVO;
 import com.tecdo.util.JsonHelper;
+import com.tecdo.util.ResponseHelper;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
@@ -51,58 +49,51 @@ public class NoticeService {
 
     public void handleEvent(EventType eventType, Params params) {
         HttpRequest httpRequest = params.get(ParamKey.HTTP_REQUEST);
-        if (RequestPath.PB_AE.equals(httpRequest.getPath()) && !aePbHandle(eventType, params, httpRequest)) {
-            return;
+        if (RequestPath.PB_AE.equals(httpRequest.getPath())) {
+            aePbHandle(eventType, params, httpRequest);
         } else {
             generalHandle(eventType, params, httpRequest);
         }
-        params.put(ParamKey.HTTP_CODE, HttpCode.OK);
-        params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
-        messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
     }
 
-    private boolean aePbHandle(EventType eventType, Params params, HttpRequest httpRequest) {
+    private void aePbHandle(EventType eventType, Params params, HttpRequest httpRequest) {
         List<NoticeInfo> noticeInfos = new ArrayList<>();
         AePbDataVO aePbDataVO = JsonHelper.parseObject(httpRequest.getBody(), AePbDataVO.class);
         if (aePbDataVO == null || CollUtil.isEmpty(aePbDataVO.getData())) {
-            responseAeParamError(params, httpRequest);
-            return false;
+            ResponseHelper.aeParamError(messageQueue, params, httpRequest);
+            return;
         }
         for (AePbInfoVO aePbInfoVO : aePbDataVO.getData()) {
             NoticeInfo info = cacheService.getNoticeCache().getNoticeInfo(aePbInfoVO.getRtaSubId1());
             if (info == null) {
-                responseAeParamError(params, httpRequest);
-                return false;
+                ResponseHelper.aeParamError(messageQueue, params, httpRequest);
+                return;
             }
             CampaignDTO campaignDTO = adManager.getCampaignDTOMap().get(info.getCampaignId());
-            if (campaignDTO == null || campaignDTO.getCampaignRtaInfo() == null
+            if (campaignDTO == null
+                    || campaignDTO.getCampaignRtaInfo() == null
                     || !Objects.equals(campaignDTO.getCampaignRtaInfo().getChannel(), aePbDataVO.getChannel())) {
-                responseAeParamError(params, httpRequest);
-                return false;
+                ResponseHelper.aeParamError(messageQueue, params, httpRequest);
+                return;
             }
             info.setBidId(aePbInfoVO.getRtaSubId1());
             info.setSign(aePbInfoVO.getRtaSubId2());
             noticeInfos.add(info);
         }
+        List<NoticeInfo> infos = new ArrayList<>();
         for (NoticeInfo info : noticeInfos) {
             ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
                     info.getSign(), info.getCampaignId(), eventType);
-            if (code == ValidateCode.SUCCESS) {
-                logValidateSucceed(eventType, httpRequest, info);
-            } else {
+            info.setValidateCode(code);
+            if (code != ValidateCode.SUCCESS) {
                 logValidateFailed(eventType, httpRequest, code, info);
-                responseAeParamError(params, httpRequest);
-                return false;
+                ResponseHelper.aeParamError(messageQueue, params, httpRequest);
+                return;
             }
+            infos.add(info);
         }
-        return true;
-    }
-
-    private void responseAeParamError(Params params, HttpRequest httpRequest) {
-        params.put(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST);
-        params.put(ParamKey.RESPONSE_BODY, JsonHelper.toJSONString(new AeResponse<>(AeCode.PARAM_ERROR)));
-        params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
-        messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
+        infos.forEach(info -> logValidateSucceed(eventType, httpRequest, info));
+        ResponseHelper.aeOK(messageQueue, params, httpRequest);
     }
 
     private void generalHandle(EventType eventType, Params params, HttpRequest httpRequest) {
@@ -111,12 +102,12 @@ public class NoticeService {
                 info.getSign(), info.getCampaignId(), eventType);
         if (code == ValidateCode.SUCCESS) {
             logValidateSucceed(eventType, httpRequest, info);
+            ResponseHelper.ok(messageQueue, params, httpRequest);
         } else {
             logValidateFailed(eventType, httpRequest, code, info);
-            params.put(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST);
+            ResponseHelper.badRequest(messageQueue, params, httpRequest);
         }
     }
-
 
     private static NoticeInfo buildInfoFromRequestParam(HttpRequest httpRequest) {
         NoticeInfo info = new NoticeInfo();
