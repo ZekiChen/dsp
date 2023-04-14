@@ -12,6 +12,7 @@ public interface ParamKey {
   String SORT_AD_RESPONSE = "sortAdResponse";
 
   String REQUEST_RTA_RESPONSE = "requestRtaResponse";
+  String REQUEST_AE_RTA_RESPONSE = "requestAeRtaResponse";
 
   String TASK_ID = "taskId";
 

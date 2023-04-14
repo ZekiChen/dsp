@@ -46,7 +46,6 @@ import org.apache.commons.lang3.StringUtils;
 
 import java.net.URLEncoder;
 import java.util.*;
-import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -89,6 +88,9 @@ public class Context {
   private final TaskPool taskPool = SpringUtil.getBean(TaskPool.class);
 
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
+
+  public int  rtaResponseCount = 0;
+  public final int rtaResponseNeed = 2;
 
   private final GooglePlayAppManager googlePlayAppManager =
     SpringUtil.getBean(GooglePlayAppManager.class);
@@ -181,38 +183,29 @@ public class Context {
     Params params = assignParams();
     BidRequest bidRequest = this.bidRequest;
 
-    CompletableFuture<Map<Integer, Target>> lazadaFuture = CompletableFuture
-            .supplyAsync(() -> doRequestRtaByLazada(bidRequest), threadPool.getExecutor())
-            .handle((rtaResMap, throwable) -> {
-                if (throwable != null) {
-                    log.error("contextId: {}, request lazada rta cause a exception:", requestId, throwable);
-                    messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
-                }
-                return rtaResMap;
-            });
-    CompletableFuture<Map<Integer, Target>> aeFuture = CompletableFuture
-            .supplyAsync(() -> doRequestRtaByAE(bidRequest), threadPool.getExecutor())
-            .handle((rtaResMap, throwable) -> {
-              if (throwable != null) {
-                  log.error("contextId: {}, request ae rta cause a exception:", requestId, throwable);
-                  messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
-              }
-              return rtaResMap;
-            });
-    CompletableFuture.allOf(lazadaFuture, aeFuture).join();
+    threadPool.execute(() -> {
+      try {
+        Map<Integer, Target> rtaResMap = doRequestRtaByLazada(bidRequest);
+        messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
+                params.put(ParamKey.REQUEST_RTA_RESPONSE, rtaResMap));
+      } catch (Exception e) {
+        log.error("contextId: {}, request lazada rta cause a exception:", requestId, e);
+        messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
+      }
+    });
 
-    try {
-        // campaignId-Target
-      Map<Integer, Target> mergedResMap = Stream.of(aeFuture.get(), lazadaFuture.get())
-              .flatMap(map -> map.entrySet().stream())
-              .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-      messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
-              params.put(ParamKey.REQUEST_RTA_RESPONSE, mergedResMap));
-      log.info("contextId: {}, request rta", requestId);
-    } catch (Exception e) {
-      log.error("contextId: {}, get future cause a exception:", requestId, e);
-      messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
-    }
+    threadPool.execute(() -> {
+      try {
+        Map<Integer, Target> rtaResMap = doRequestRtaByAE(bidRequest);
+        messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
+                params.put(ParamKey.REQUEST_AE_RTA_RESPONSE, rtaResMap));
+      } catch (Exception e) {
+        log.error("contextId: {}, request ae rta cause a exception:", requestId, e);
+        messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
+      }
+    });
+
+    log.info("contextId: {}, request rta", requestId);
   }
 
   private Map<Integer, Target> doRequestRtaByLazada(BidRequest bidRequest) {
@@ -266,12 +259,17 @@ public class Context {
   }
 
   public void saveRtaResponse(Params params) {
-    Map<Integer, Target> rtaResMap = params.get(ParamKey.REQUEST_RTA_RESPONSE);
+    Map<Integer, Target> lazadaRtaMap = params.get(ParamKey.REQUEST_RTA_RESPONSE);
+    Map<Integer, Target> aeRtaMap = params.get(ParamKey.REQUEST_AE_RTA_RESPONSE);
+    Map<Integer, Target> mergeRtaMap = Stream.of(lazadaRtaMap, aeRtaMap)
+            .flatMap(map -> map.entrySet().stream())
+            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+
     Map<Integer, List<AdDTOWrapper>> campaignIdToAdList = //
             this.adDTOWrapperList.stream()
                     .collect(Collectors.groupingBy(i -> i.getAdDTO().getCampaign().getId()));
     // 将rta匹配的结果保存到AdDTOWrapper中
-    for (Map.Entry<Integer, Target> entry : rtaResMap.entrySet()) {
+    for (Map.Entry<Integer, Target> entry : mergeRtaMap.entrySet()) {
       Integer campaignId = entry.getKey();
       Target t = entry.getValue();
       campaignIdToAdList.get(campaignId).forEach(ad -> {

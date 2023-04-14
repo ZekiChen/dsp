@@ -29,7 +29,7 @@ public class RtaCache {
             String key = CacheConstant.RTA_CACHE
                     .concat(StrUtil.COLON).concat(AE_CACHE)
                     .concat(StrUtil.COLON).concat(cid)
-                    .concat(StrUtil.DASHED).concat(deviceId);
+                    .concat(StrUtil.COLON).concat(deviceId);
             AeRtaInfoVO vo = pacRedis.get(key);
             if (vo == null) {
                 vo = new AeRtaInfoVO();
