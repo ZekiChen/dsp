@@ -89,8 +89,8 @@ public class Context {
 
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
 
-  public int  rtaResponseCount = 0;
-  public final int rtaResponseNeed = 2;
+  private int  rtaResponseCount = 0;
+  private final int rtaResponseNeed = 2;
 
   private final GooglePlayAppManager googlePlayAppManager =
     SpringUtil.getBean(GooglePlayAppManager.class);
@@ -177,6 +177,14 @@ public class Context {
 
   public boolean checkResponse() {
     return adDTOWrapperList.size() > 0;
+  }
+
+  public boolean rtaResponseFinish() {
+    return ++rtaResponseCount == rtaResponseNeed;
+  }
+
+  public void rtaResponseCountReset() {
+    rtaResponseCount = 0;
   }
 
   public void requestRta() {

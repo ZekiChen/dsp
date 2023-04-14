@@ -22,9 +22,9 @@ public class WaitForRtaState implements IContextState {
   public void handleEvent(EventType eventType, Params params, Context context) {
     switch (eventType) {
       case REQUEST_RTA_RESPONSE:
-        if (++context.rtaResponseCount == context.rtaResponseNeed) {
+        if (context.rtaResponseFinish()) {
           context.cancelTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT);
-          context.rtaResponseCount = 0;
+          context.rtaResponseCountReset();
           context.saveRtaResponse(params);
           if (context.checkResponse()) {
             context.sort();
