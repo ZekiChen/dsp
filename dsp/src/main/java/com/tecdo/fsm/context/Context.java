@@ -187,7 +187,7 @@ public class Context {
       try {
         Map<Integer, Target> rtaResMap = doRequestRtaByLazada(bidRequest);
         messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
-                params.put(ParamKey.REQUEST_RTA_RESPONSE, rtaResMap));
+                params.put(ParamKey.REQUEST_LAZADA_RTA_RESPONSE, rtaResMap));
       } catch (Exception e) {
         log.error("contextId: {}, request lazada rta cause a exception:", requestId, e);
         messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
@@ -259,7 +259,7 @@ public class Context {
   }
 
   public void saveRtaResponse(Params params) {
-    Map<Integer, Target> lazadaRtaMap = params.get(ParamKey.REQUEST_RTA_RESPONSE);
+    Map<Integer, Target> lazadaRtaMap = params.get(ParamKey.REQUEST_LAZADA_RTA_RESPONSE);
     Map<Integer, Target> aeRtaMap = params.get(ParamKey.REQUEST_AE_RTA_RESPONSE);
     Map<Integer, Target> mergeRtaMap = Stream.of(lazadaRtaMap, aeRtaMap)
             .flatMap(map -> map.entrySet().stream())
