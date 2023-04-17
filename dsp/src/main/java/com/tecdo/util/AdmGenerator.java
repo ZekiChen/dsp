@@ -1,5 +1,6 @@
 package com.tecdo.util;
 
+import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.constant.FormatKey;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.n.NativeRequest;
@@ -10,7 +11,6 @@ import com.tecdo.domain.openrtb.response.n.Link;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
 import com.tecdo.domain.openrtb.response.n.NativeResponseAsset;
 import com.tecdo.domain.openrtb.response.n.Title;
-import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.enums.openrtb.DataAssetTypeEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
 
@@ -27,10 +27,7 @@ public class AdmGenerator {
                                  String imgUrl,
                                  List<String> impTrackUrl,
                                  List<String> clickTrackUrl) {
-    String finalClickUrl = deepLink;
-    if (StringUtils.isEmpty(deepLink)) {
-      finalClickUrl = clickUrl;
-    }
+    String finalClickUrl = StringUtils.firstNonBlank(deepLink, clickUrl);
     StringBuilder impDivListBuilder = new StringBuilder();
     String impDivTemplate = "<img src=\"{impTrack}\" style=\"display:none\"/>";
     for (String s : impTrackUrl) {

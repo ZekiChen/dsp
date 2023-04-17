@@ -10,11 +10,12 @@ import com.tecdo.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.*;
 import com.tecdo.service.init.doris.BudgetManager;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -36,6 +37,8 @@ public class LifeCycleManager {
   @Autowired
   private GooglePlayAppManager googlePlayAppManager;
   @Autowired
+  private IpTableManager ipTableManager;
+  @Autowired
   private AdvManager advManager;
   @Autowired
   private MessageQueue messageQueue;
@@ -43,7 +46,7 @@ public class LifeCycleManager {
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 7;
+  private final int needInitCount = 8;
 
   @Value("${server.port}")
   private int serverPort;
@@ -108,6 +111,12 @@ public class LifeCycleManager {
       case AB_TEST_CONFIG_LOAD_TIMEOUT:
         abTestConfigManager.handleEvent(eventType, params);
         break;
+      case IP_TABLE_LOAD:
+      case IP_TABLE_LOAD_RESPONSE:
+      case IP_TABLE_LOAD_ERROR:
+      case IP_TABLE_LOAD_TIMEOUT:
+        ipTableManager.handleEvent(eventType, params);
+        break;
       case ADV_LOAD:
       case ADV_LOAD_RESPONSE:
       case ADV_LOAD_ERROR:
@@ -138,6 +147,7 @@ public class LifeCycleManager {
         budgetManager.init(params);
         abTestConfigManager.init(params);
         googlePlayAppManager.init(params);
+        ipTableManager.init(params);
         advManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;

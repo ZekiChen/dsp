@@ -1,31 +1,23 @@
 package com.tecdo.fsm.context;
 
 import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
-import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.adm.api.delivery.enums.AdvEnum;
 import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
-import com.tecdo.constant.FormatKey;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
-import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.notice.NoticeInfo;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.domain.openrtb.response.Bid;
 import com.tecdo.domain.openrtb.response.BidResponse;
-import com.tecdo.domain.openrtb.response.SeatBid;
-import com.tecdo.domain.openrtb.response.n.NativeResponse;
-import com.tecdo.domain.openrtb.response.n.NativeResponseWrapper;
 import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
@@ -39,11 +31,13 @@ import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
 import com.tecdo.service.rta.ae.AeRtaInfoVO;
-import com.tecdo.util.*;
+import com.tecdo.transform.IProtoTransform;
+import com.tecdo.transform.ProtoTransformFactory;
+import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.JsonHelper;
+import com.tecdo.util.StringConfigUtil;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.lang3.StringUtils;
 
-import java.net.URLEncoder;
 import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -63,13 +57,6 @@ public class Context {
 
   private Long requestId;
 
-  private String winUrl = SpringUtil.getProperty("pac.notice.win-url");
-  private String impUrl = SpringUtil.getProperty("pac.notice.imp-url");
-  private String clickUrl = SpringUtil.getProperty("pac.notice.click-url");
-
-  private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
-
-
   private Map<String, Task> taskMap = new HashMap<>();
   // taskId,adId,AdDTOWrapper
   private Map<String, Map<Integer, AdDTOWrapper>> taskResponse = new HashMap<>();
@@ -77,6 +64,8 @@ public class Context {
   private List<AdDTOWrapper> adDTOWrapperList = new ArrayList<>();
 
   private Map<EventType, Long> eventTimerMap = new HashMap<>();
+
+  private IProtoTransform protoTransform;
 
   private final MessageQueue messageQueue = SpringUtil.getBean(MessageQueue.class);
 
@@ -107,6 +96,7 @@ public class Context {
     this.bidRequest = bidRequest;
     this.affiliate = affiliate;
     this.requestId = httpRequest.getRequestId();
+    this.protoTransform = ProtoTransformFactory.getProtoTransform(affiliate.getApi());
   }
 
   public void reset() {
@@ -121,7 +111,7 @@ public class Context {
     this.taskResponse.clear();
     this.adDTOWrapperList.clear();
     this.eventTimerMap.clear();
-
+    this.protoTransform = null;
   }
 
   public void handleBidRequest() {
@@ -334,7 +324,8 @@ public class Context {
     } else {
       cacheNoticeInfoByAe(response, bidRequest);
       logBidResponse();
-      BidResponse bidResponse = buildResponse(this.response);
+      BidResponse bidResponse =
+        protoTransform.responseTransform(this.response, this.bidRequest, this.affiliate);
       String bidResponseString = JsonHelper.toJSONString(bidResponse);
       log.info("contextId: {}, bid response is:{}", requestId, bidResponseString);
       params.put(ParamKey.RESPONSE_BODY, bidResponseString);
@@ -342,155 +333,6 @@ public class Context {
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     }
     messageQueue.putMessage(eventType, params);
-  }
-
-  private BidResponse buildResponse(AdDTOWrapper wrapper) {
-    AdDTO adDTO = wrapper.getAdDTO();
-    String bidId = wrapper.getBidId();
-    BidResponse bidResponse = new BidResponse();
-    bidResponse.setId(bidRequest.getId());
-    bidResponse.setBidid(bidId);
-    Bid bid = new Bid();
-    bid.setId(bidId);
-    bid.setImpid(wrapper.getImpId());
-    bid.setPrice(wrapper.getBidPrice().floatValue());
-    String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
-    String winUrl = urlFormat(getWinNoticeUrl()) + AUCTION_PRICE_PARAM;
-    bid.setNurl(SignHelper.urlAddSign(winUrl, sign));
-    bid.setAdm(buildAdm(wrapper));
-    bid.setAdid(String.valueOf(adDTO.getAd().getId()));
-    bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
-    bid.setBundle(adDTO.getCampaign().getPackageName());
-    bid.setIurl(adDTO.getCreativeMap().get(CreativeHelper.getCreativeId(adDTO.getAd())).getUrl());
-    bid.setCid(String.valueOf(adDTO.getCampaign().getId()));
-    bid.setCrid(String.valueOf(CreativeHelper.getCreativeId(adDTO.getAd())));
-
-    SeatBid seatBid = new SeatBid();
-    seatBid.setBid(Collections.singletonList(bid));
-    bidResponse.setSeatbid(Collections.singletonList(seatBid));
-
-    return bidResponse;
-  }
-
-  private String buildAdm(AdDTOWrapper wrapper) {
-    AdDTO adDTO = wrapper.getAdDTO();
-    String adm = null;
-    String impTrackUrls = adDTO.getAdGroup().getImpTrackUrls();
-    List<String> impTrackList = new ArrayList<>();
-    String systemImpTrack = getSystemImpTrack() + AUCTION_PRICE_PARAM;
-    String sign = SignHelper.digest(wrapper.getBidId(), adDTO.getCampaign().getId().toString());
-    impTrackList.add(SignHelper.urlAddSign(systemImpTrack, sign));
-    if (impTrackUrls != null) {
-      String[] split = impTrackUrls.split(",");
-      impTrackList.addAll(Arrays.asList(split));
-    }
-    impTrackList = impTrackList.stream().map(i -> urlFormat(i, sign)).collect(Collectors.toList());
-
-    String clickTrackUrls = adDTO.getAdGroup().getClickTrackUrls();
-    List<String> clickTrackList = new ArrayList<>();
-    String systemClickTrack = getSystemClickTrack();
-    clickTrackList.add(SignHelper.urlAddSign(systemClickTrack, sign));
-    if (clickTrackUrls != null) {
-      String[] split = clickTrackUrls.split(",");
-      clickTrackList.addAll(Arrays.asList(split));
-    }
-    clickTrackList =
-      clickTrackList.stream().map(i -> urlFormat(i, sign)).collect(Collectors.toList());
-
-    String clickUrl = StrUtil.isNotBlank(wrapper.getLandingPage()) ?
-            wrapper.getLandingPage() :
-            urlFormat(adDTO.getAdGroup().getClickUrl(), sign);
-    String deeplink = urlFormat(adDTO.getAdGroup().getDeeplink(), sign);
-    if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
-      adm = AdmGenerator.bannerAdm(clickUrl,
-                                   deeplink,
-                                   adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
-                                   impTrackList,
-                                   clickTrackList);
-    } else if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
-      List<Imp> impList = bidRequest.getImp();
-      Imp imp = impList.stream()
-                       .filter(i -> Objects.equals(i.getId(), wrapper.getImpId()))
-                       .findFirst()
-                       .get();
-      NativeResponse nativeResponse = //
-        AdmGenerator.nativeAdm(imp.getNative1().getNativeRequest(),
-                               adDTO,
-                               clickUrl,
-                               deeplink,
-                               impTrackList,
-                               clickTrackList);
-      if (imp.getNative1().getNativeRequestWrapper() != null) {
-        NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
-        nativeResponseWrapper.setNativeResponse(nativeResponse);
-        adm = JsonHelper.toJSONString(nativeResponseWrapper);
-      } else {
-        adm = JsonHelper.toJSONString(nativeResponse);
-      }
-    }
-    return adm;
-  }
-
-  private String urlFormat(String url, String sign) {
-    if (url == null) {
-      return null;
-    }
-    if (sign != null) {
-      url = url.replace(FormatKey.SIGN, sign);
-    }
-    url = urlFormat(url);
-    return url;
-  }
-
-  private String urlFormat(String url) {
-    if (url == null) {
-      return null;
-    }
-    url = url.replace(FormatKey.BID_ID, response.getBidId())
-             .replace(FormatKey.IMP_ID, response.getImpId())
-             .replace(FormatKey.CAMPAIGN_ID,
-                      String.valueOf(response.getAdDTO().getCampaign().getId()))
-             .replace(FormatKey.AFFILIATE_ID, String.valueOf(affiliate.getId()))
-             .replace(FormatKey.AD_GROUP_ID,
-                      String.valueOf(response.getAdDTO().getAdGroup().getId()))
-             .replace(FormatKey.AD_ID, String.valueOf(response.getAdDTO().getAd().getId()))
-             .replace(FormatKey.CREATIVE_ID,
-                      String.valueOf(CreativeHelper.getCreativeId(response.getAdDTO().getAd())))
-             .replace(FormatKey.DEVICE_ID, bidRequest.getDevice().getIfa())
-             .replace(FormatKey.IP, encode(bidRequest.getDevice().getIp()))
-             .replace(FormatKey.COUNTRY, bidRequest.getDevice().getGeo().getCountry())
-             .replace(FormatKey.OS, bidRequest.getDevice().getOs())
-             .replace(FormatKey.DEVICE_MAKE, encode(bidRequest.getDevice().getMake()))
-             .replace(FormatKey.DEVICE_MODEL, encode(bidRequest.getDevice().getModel()))
-             .replace(FormatKey.AD_FORMAT,
-                      AdTypeEnum.of(response.getAdDTO().getAd().getType()).getDesc())
-             .replace(FormatKey.BUNDLE, encode(bidRequest.getApp().getBundle()))
-             .replace(FormatKey.RTA_TOKEN,
-                      encode(StringUtils.firstNonEmpty(response.getRtaToken(), "")));
-    return url;
-  }
-
-  private String encode(Object content) {
-    if (content == null) {
-      return "";
-    }
-    try {
-      return URLEncoder.encode(content.toString(), "utf-8");
-    } catch (Exception e) {
-      return "";
-    }
-  }
-
-  private String getWinNoticeUrl() {
-    return winUrl;
-  }
-
-  private String getSystemImpTrack() {
-    return impUrl;
-  }
-
-  private String getSystemClickTrack() {
-    return clickUrl;
   }
 
   // 32位UUID + 13位时间戳

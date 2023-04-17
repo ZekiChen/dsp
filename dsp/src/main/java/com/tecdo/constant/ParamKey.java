@@ -32,6 +32,7 @@ public interface ParamKey {
   String AB_TEST_CONFIG_CACHE_KEY = "ab-test-config-key";
   String GP_APP_CACHE_KEY = "gp-app-cache-key";
   String ADV_CACHE_KEY = "adv-cache-key";
+  String IP_TABLE_CACHE_KEY = "ip-table-key";
 
   // task-imp
   String ADS_TASK_RESPONSE = "ads-imp-key";

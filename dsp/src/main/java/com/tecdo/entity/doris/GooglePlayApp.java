@@ -8,7 +8,7 @@ import java.io.Serializable;
 import java.util.List;
 
 @Data
-@TableName("google_play_app")
+@TableName("google_play_appinfo")
 public class GooglePlayApp implements Serializable {
 
 

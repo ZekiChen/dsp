@@ -41,11 +41,11 @@ public class NoticeService {
     @Autowired
     private AdManager adManager;
 
-    private final Logger winLog = LoggerFactory.getLogger("win_log");
-    private final Logger impLog = LoggerFactory.getLogger("imp_log");
-    private final Logger clickLog = LoggerFactory.getLogger("click_log");
-    private final Logger pbLog = LoggerFactory.getLogger("pb_log");
-    private final Logger validateLog = LoggerFactory.getLogger("validate_log");
+  private final Logger winLog = LoggerFactory.getLogger("win_log");
+  private final Logger impLog = LoggerFactory.getLogger("imp_log");
+  private final Logger clickLog = LoggerFactory.getLogger("click_log");
+  private final Logger pbLog = LoggerFactory.getLogger("pb_log");
+  private final Logger validateLog = LoggerFactory.getLogger("validate_notice_log");
 
     public void handleEvent(EventType eventType, Params params) {
         HttpRequest httpRequest = params.get(ParamKey.HTTP_REQUEST);

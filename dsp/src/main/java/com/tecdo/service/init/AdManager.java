@@ -172,6 +172,9 @@ public class AdManager {
             List<TargetCondition> targetConditions = listConditionByGroup(conditions, adGroup);
             Campaign campaign = getCampaignByGroup(campaignMap, adGroup);
             CampaignRtaInfo campaignRtaInfo = getCampaignRtaByCampaign(campaignRtaInfos, campaign);
+            if(adGroup == null || campaign == null){
+                continue;
+            }
             AdDTO adDTO = AdDTO.builder()
                     .ad(ad).creativeMap(creatives)
                     .adGroup(adGroup).conditions(targetConditions)

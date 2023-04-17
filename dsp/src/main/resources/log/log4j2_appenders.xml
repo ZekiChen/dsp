@@ -178,16 +178,33 @@
         </Filters>
     </RollingFile>
 
-    <RollingFile name="VALIDATE_LOG" fileName="${BUSINESS_LOG_HOME}/validate.log"
-                 filePattern="${BUSINESS_LOG_HOME}/validate-%d{yyyy-MM-dd-HH}.log">
+    <RollingFile name="VALIDATE_NOTICE_LOG" fileName="${BUSINESS_LOG_HOME}/validate-notice.log"
+                 filePattern="${BUSINESS_LOG_HOME}/validate-notice-%d{yyyy-MM-dd-HH}.log">
         <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
         <Policies>
             <TimeBasedTriggeringPolicy/>
         </Policies>
         <DefaultRolloverStrategy>
             <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
-                <IfFileName glob="validate-*.log"/>
+                <IfFileName glob="validate-notice-*.log"/>
                 <IfLastModified age="360H"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
+    <RollingFile name="VALIDATE_REQUEST_LOG" fileName="${BUSINESS_LOG_HOME}/validate-request.log"
+                 filePattern="${BUSINESS_LOG_HOME}/validate-request-%d{yyyy-MM-dd-HH}.log">
+        <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+        </Policies>
+        <DefaultRolloverStrategy>
+            <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                <IfFileName glob="validate-request-*.log"/>
+                <IfAccumulatedFileSize exceeds="10GB"/>
             </Delete>
         </DefaultRolloverStrategy>
         <Filters>
