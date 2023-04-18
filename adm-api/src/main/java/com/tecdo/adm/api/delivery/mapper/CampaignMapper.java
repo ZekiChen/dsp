@@ -1,6 +1,7 @@
 package com.tecdo.adm.api.delivery.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tecdo.adm.api.delivery.dto.SimpleCampaignDTO;
 import com.tecdo.adm.api.delivery.entity.Campaign;
 import com.tecdo.starter.mp.vo.BaseVO;
 
@@ -15,4 +16,5 @@ public interface CampaignMapper extends BaseMapper<Campaign> {
 
     List<BaseVO> listIdAndName();
 
+    List<SimpleCampaignDTO> listCampaignWithGroupIdName();
 }

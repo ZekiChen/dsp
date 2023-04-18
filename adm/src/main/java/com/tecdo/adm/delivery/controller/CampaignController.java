@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.Campaign;
 import com.tecdo.adm.api.delivery.vo.CampaignVO;
+import com.tecdo.adm.api.delivery.vo.BaseCampaignVO;
 import com.tecdo.adm.delivery.service.ICampaignService;
 import com.tecdo.adm.delivery.wrapper.CampaignWrapper;
 import com.tecdo.common.constant.AppConstant;
@@ -20,10 +21,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
 import java.util.List;
 
-import static com.tecdo.common.constant.CacheConstant.*;
+import static com.tecdo.common.constant.CacheConstant.AD_GROUP_CACHE;
+import static com.tecdo.common.constant.CacheConstant.CAMPAIGN_CACHE;
 
 /**
  * Created by Zeki on 2023/3/6
@@ -81,5 +82,12 @@ public class CampaignController {
     @ApiOperation(value = "列表", notes = "无需传参")
     public R<List<BaseVO>> list() {
         return R.data(service.listIdAndName());
+    }
+
+    @GetMapping("/list-with-group")
+    @ApiOperationSupport(order = 7)
+    @ApiOperation(value = "列表（包含AdGroup)", notes = "无需传参")
+    public R<List<BaseCampaignVO>> listWithGroup() {
+        return R.data(service.listCampaignWithGroupIdName());
     }
 }

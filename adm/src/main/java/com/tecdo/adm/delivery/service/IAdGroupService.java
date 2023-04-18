@@ -22,4 +22,7 @@ public interface IAdGroupService extends IService<AdGroup> {
     List<BaseVO> listIdAndName();
 
     List<AdGroup> listByCampaignIds(List<Integer> campaignIds);
+
+    boolean copy(Integer targetCampaignId, Integer sourceAdGroupId, Integer copyNum,
+                 Integer targetAdGroupStatus, Integer targetAdStatus);
 }

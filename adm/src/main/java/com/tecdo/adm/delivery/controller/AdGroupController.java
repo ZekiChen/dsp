@@ -89,4 +89,16 @@ public class AdGroupController {
     public R<List<BaseVO>> list() {
         return R.data(service.listIdAndName());
     }
+
+    @PostMapping("/copy")
+    @ApiOperationSupport(order = 7)
+    @ApiOperation(value = "批量复制", notes = "传入表单参数")
+    public R copy(@ApiParam("目标campaignId") @RequestParam Integer targetCampaignId,
+                  @ApiParam("源adGroupId") @RequestParam Integer sourceAdGroupId,
+                  @ApiParam("复制数量") @RequestParam Integer copyNum,
+                  @ApiParam("目标adGroup状态") @RequestParam Integer targetAdGroupStatus,
+                  @ApiParam("目标ad状态") @RequestParam Integer targetAdStatus) {
+        return R.status(service.copy(targetCampaignId, sourceAdGroupId, copyNum, targetAdGroupStatus, targetAdStatus));
+    }
+
 }

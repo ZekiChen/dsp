@@ -6,4 +6,16 @@
         select id, name from campaign
     </select>
 
+    <select id="listCampaignWithGroupIdName" resultType="com.tecdo.adm.api.delivery.dto.SimpleCampaignDTO">
+        SELECT
+            c.id AS campaignId,
+            c.NAME AS campaignName,
+            g.id AS adGroupId,
+            g.NAME AS adGroupName
+        FROM
+            campaign c
+            RIGHT JOIN ad_group g ON c.id = g.campaign_id
+
+    </select>
+
 </mapper>
