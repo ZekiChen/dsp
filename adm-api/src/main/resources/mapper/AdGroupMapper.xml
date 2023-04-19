@@ -40,6 +40,9 @@
                 #{item}
             </foreach>
         </if>
+        <if test="affiliateName != null and affiliateName != ''">
+            and bid_strategy = #{affiliateName}
+        </if>
     </select>
 
     <select id="listIdAndName" resultType="com.tecdo.starter.mp.vo.BaseVO">

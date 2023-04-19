@@ -17,5 +17,6 @@ public interface AdGroupMapper extends BaseMapper<AdGroup> {
 
     List<BaseVO> listIdAndName();
 
-    IPage<AdGroup> customPage(IPage<AdGroup> page, @Param("param") AdGroup adGroup, @Param("campaignIds") List<Integer> campaignIds);
+    IPage<AdGroup> customPage(IPage<AdGroup> page, @Param("param") AdGroup adGroup,
+                              @Param("campaignIds") List<Integer> campaignIds, @Param("affiliateName") String affiliateName);
 }
