@@ -2,6 +2,46 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tecdo.adm.api.delivery.mapper.AdGroupMapper">
 
+     <resultMap id="baseRsMap" type="com.tecdo.adm.api.delivery.entity.AdGroup">
+        <result column="id" property="id"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+
+        <result column="campaign_id" property="campaignId"/>
+        <result column="name" property="name"/>
+        <result column="click_url" property="clickUrl"/>
+        <result column="deeplink" property="deeplink"/>
+        <result column="imp_track_urls" property="impTrackUrls"/>
+        <result column="click_track_urls" property="clickTrackUrls"/>
+        <result column="daily_budget" property="dailyBudget"/>
+        <result column="bid_strategy" property="bidStrategy"/>
+        <result column="opt_price" property="optPrice"/>
+    </resultMap>
+
+    <select id="customPage" resultMap="baseRsMap">
+        select * from ad_group
+        where 1=1
+        <if test="param.id != null">
+            and id = #{param.id}
+        </if>
+        <if test="param.status != null">
+            and status = #{param.status}
+        </if>
+        <if test="param.name != null and param.name != ''">
+            and name like concat(concat('%', #{param.name}),'%')
+        </if>
+        <if test="param.bidStrategy != null">
+            and bid_strategy = #{param.bidStrategy}
+        </if>
+        <if test="campaignIds != null and campaignIds.size > 0">
+           and campaign_id IN
+            <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
     <select id="listIdAndName" resultType="com.tecdo.starter.mp.vo.BaseVO">
         select id, name from ad_group
     </select>

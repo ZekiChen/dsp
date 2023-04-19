@@ -2,6 +2,7 @@ package com.tecdo.adm.delivery.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.Ad;
@@ -95,6 +96,22 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             adService.saveBatch(targetAds);
         }
         return true;
+    }
+
+    @Override
+    public boolean editListInfo(Integer id, Double optPrice, Double dailyBudget) {
+        AdGroup adGroup = AdGroupCache.getAdGroup(id);
+        if (adGroup == null) {
+            return false;
+        }
+        adGroup.setOptPrice(optPrice);
+        adGroup.setDailyBudget(dailyBudget);
+        return updateById(adGroup);
+    }
+
+    @Override
+    public IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds) {
+        return baseMapper.customPage(page, adGroup, campaignIds);
     }
 
     private static List<Ad> replaceAndCopyAds(List<AdGroup> targetAdGroups, List<Ad> sourceAds, Integer targetAdStatus) {

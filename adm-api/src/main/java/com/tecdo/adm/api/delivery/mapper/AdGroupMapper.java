@@ -1,8 +1,10 @@
 package com.tecdo.adm.api.delivery.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.starter.mp.vo.BaseVO;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -14,4 +16,6 @@ import java.util.List;
 public interface AdGroupMapper extends BaseMapper<AdGroup> {
 
     List<BaseVO> listIdAndName();
+
+    IPage<AdGroup> customPage(IPage<AdGroup> page, @Param("param") AdGroup adGroup, @Param("campaignIds") List<Integer> campaignIds);
 }

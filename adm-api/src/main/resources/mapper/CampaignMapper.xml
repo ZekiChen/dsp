@@ -2,6 +2,40 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tecdo.adm.api.delivery.mapper.CampaignMapper">
 
+    <resultMap id="baseRsMap" type="com.tecdo.adm.api.delivery.entity.Campaign">
+        <result column="id" property="id"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+
+        <result column="adv_id" property="advId"/>
+        <result column="name" property="name"/>
+        <result column="daily_budget" property="dailyBudget"/>
+        <result column="package_name" property="packageName"/>
+        <result column="category" property="category"/>
+        <result column="domain" property="domain"/>
+    </resultMap>
+
+    <select id="customPage" resultMap="baseRsMap">
+        select * from campaign
+        where 1=1
+        <if test="param.id != null">
+            and id = #{param.id}
+        </if>
+        <if test="param.status != null">
+            and status = #{param.status}
+        </if>
+        <if test="param.advId != null">
+            and adv_id = #{param.advId}
+        </if>
+        <if test="param.name != null and param.name != ''">
+            and name like concat(concat('%', #{param.name}),'%')
+        </if>
+        <if test="param.packageName != null and param.packageName != ''">
+            and package_name like concat(concat('%', #{param.packageName}),'%')
+        </if>
+    </select>
+
     <select id="listIdAndName" resultType="com.tecdo.starter.mp.vo.BaseVO">
         select id, name from campaign
     </select>

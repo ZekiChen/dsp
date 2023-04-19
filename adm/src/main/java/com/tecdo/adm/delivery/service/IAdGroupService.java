@@ -1,5 +1,6 @@
 package com.tecdo.adm.delivery.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
@@ -25,4 +26,8 @@ public interface IAdGroupService extends IService<AdGroup> {
 
     boolean copy(Integer targetCampaignId, Integer sourceAdGroupId, Integer copyNum,
                  Integer targetAdGroupStatus, Integer targetAdStatus);
+
+    boolean editListInfo(Integer id, Double optPrice, Double dailyBudget);
+
+    IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds);
 }

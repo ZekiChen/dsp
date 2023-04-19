@@ -1,12 +1,14 @@
 package com.tecdo.adm.delivery.service.impl;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.dto.SimpleCampaignDTO;
 import com.tecdo.adm.api.delivery.entity.Campaign;
 import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
+import com.tecdo.adm.api.delivery.vo.BaseCampaignVO;
 import com.tecdo.adm.api.delivery.vo.CampaignRtaVO;
 import com.tecdo.adm.api.delivery.vo.CampaignVO;
-import com.tecdo.adm.api.delivery.vo.BaseCampaignVO;
+import com.tecdo.adm.common.cache.CampaignCache;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.ICampaignRtaService;
 import com.tecdo.adm.delivery.service.ICampaignService;
@@ -82,5 +84,20 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
                     return vo;
                 })
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public boolean editListInfo(Integer id, Double dailyBudget) {
+        Campaign campaign = CampaignCache.getCampaign(id);
+        if (campaign == null) {
+            return false;
+        }
+        campaign.setDailyBudget(dailyBudget);
+        return updateById(campaign);
+    }
+
+    @Override
+    public IPage<Campaign> customPage(IPage<Campaign> page, Campaign campaign) {
+        return baseMapper.customPage(page, campaign);
     }
 }
