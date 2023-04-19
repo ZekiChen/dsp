@@ -8,6 +8,7 @@ import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
 import com.tecdo.adm.api.delivery.vo.BaseCampaignVO;
 import com.tecdo.adm.api.delivery.vo.CampaignRtaVO;
 import com.tecdo.adm.api.delivery.vo.CampaignVO;
+import com.tecdo.adm.api.delivery.vo.SimpleCampaignUpdateVO;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.ICampaignRtaService;
 import com.tecdo.adm.delivery.service.ICampaignService;
@@ -32,6 +33,7 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
 
     @Override
     public boolean add(CampaignVO vo) {
+        vo.getCampaignRtaVO().setAdvMemId(vo.getCampaignRtaVO().getAdvId());
         return save(vo) && campaignRtaService.save(vo.getCampaignRtaVO());
     }
 
@@ -43,6 +45,7 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
                 campaignRtaService.deleteByCampaignIds(Collections.singletonList(vo.getId()));
                 return true;
             }
+            campaignRtaVO.setAdvMemId(campaignRtaVO.getAdvId());
             return campaignRtaService.updateById(campaignRtaVO);
         }
         return false;
@@ -87,12 +90,13 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
     }
 
     @Override
-    public boolean editListInfo(Integer id, Double dailyBudget) {
-        Campaign campaign = getById(id);
+    public boolean editListInfo(SimpleCampaignUpdateVO vo) {
+        Campaign campaign = getById(vo.getId());
         if (campaign == null) {
             return false;
         }
-        campaign.setDailyBudget(dailyBudget);
+        campaign.setDailyBudget(vo.getDailyBudget());
+        campaign.setStatus(vo.getStatus());
         campaign.setUpdateTime(new Date());
         return updateById(campaign);
     }

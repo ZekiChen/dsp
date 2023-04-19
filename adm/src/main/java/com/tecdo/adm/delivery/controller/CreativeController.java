@@ -38,11 +38,36 @@ public class CreativeController {
     private final ICreativeService service;
     private final OssTemplate ossTemplate;
 
+//    @PostMapping("/add")
+//    @ApiOperationSupport(order = 1)
+//    @ApiOperation(value = "新增", notes = "传入Creative")
+//    public R save(@Valid @RequestBody Creative creative) {
+//        return R.status(service.save(creative));
+//    }
+
+    @SneakyThrows
     @PostMapping("/add")
     @ApiOperationSupport(order = 1)
-    @ApiOperation(value = "新增", notes = "传入Creative")
-    public R save(@Valid @RequestBody Creative creative) {
+    @ApiOperation(value = "新增", notes = "传入素材")
+    public R uploadFile(@RequestParam("file") MultipartFile file,
+                        @RequestParam("type") Integer type,
+                        @RequestParam("width") Integer width,
+                        @RequestParam("height") Integer height) {
+        PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
+        Creative creative = new Creative();
+        creative.setUrl(pacFile.getUrl());
+        creative.setName(pacFile.getOriginalName());
+        creative.setType(type);
+        creative.setWidth(width);
+        creative.setHeight(height);
         return R.status(service.save(creative));
+//        if (service.save(creative)) {
+//            CreativeFileVO vo = Objects.requireNonNull(BeanUtil.copy(pacFile, CreativeFileVO.class));
+//            vo.setCreativeId(creative.getId());
+//            return R.data(vo);
+//        } else {
+//            return R.failure();
+//        }
     }
 
     @PutMapping("/update")
@@ -75,31 +100,5 @@ public class CreativeController {
     public R<IPage<CreativeVO>> page(Creative creative, PQuery query) {
         IPage<Creative> pages = service.page(PCondition.getPage(query), PCondition.getQueryWrapper(creative));
         return R.data(CreativeWrapper.build().pageVO(pages));
-    }
-
-
-    @SneakyThrows
-    @PostMapping("/upload-file")
-    @ApiOperationSupport(order = 6)
-    @ApiOperation(value = "素材上传", notes = "传入素材")
-    public R uploadFile(@RequestParam("file") MultipartFile file,
-                                        @RequestParam("type") Integer type,
-                                        @RequestParam("width") Integer width,
-                                        @RequestParam("height") Integer height) {
-        PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
-        Creative creative = new Creative();
-        creative.setUrl(pacFile.getUrl());
-        creative.setName(pacFile.getOriginalName());
-        creative.setType(type);
-        creative.setWidth(width);
-        creative.setHeight(height);
-        return R.status(service.save(creative));
-//        if (service.save(creative)) {
-//            CreativeFileVO vo = Objects.requireNonNull(BeanUtil.copy(pacFile, CreativeFileVO.class));
-//            vo.setCreativeId(creative.getId());
-//            return R.data(vo);
-//        } else {
-//            return R.failure();
-//        }
     }
 }

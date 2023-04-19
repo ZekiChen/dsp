@@ -10,6 +10,7 @@ import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
+import com.tecdo.adm.api.delivery.vo.SimpleAdGroupUpdateVO;
 import com.tecdo.adm.common.cache.AdCache;
 import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.delivery.service.IAdGroupService;
@@ -100,13 +101,14 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
-    public boolean editListInfo(Integer id, Double optPrice, Double dailyBudget) {
-        AdGroup adGroup = getById(id);
+    public boolean editListInfo(SimpleAdGroupUpdateVO vo) {
+        AdGroup adGroup = getById(vo.getId());
         if (adGroup == null) {
             return false;
         }
-        adGroup.setOptPrice(optPrice);
-        adGroup.setDailyBudget(dailyBudget);
+        adGroup.setOptPrice(vo.getOptPrice());
+        adGroup.setDailyBudget(vo.getDailyBudget());
+        adGroup.setStatus(vo.getStatus());
         adGroup.setUpdateTime(new Date());
         return updateById(adGroup);
     }

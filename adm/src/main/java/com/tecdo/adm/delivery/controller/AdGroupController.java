@@ -101,7 +101,7 @@ public class AdGroupController {
     @ApiOperation(value = "列表直接修改", notes = "传入SimpleAdGroupUpdateVO")
     public R updateListInfo(@RequestBody SimpleAdGroupUpdateVO vo) {
         CacheUtil.clear(AD_GROUP_CACHE);
-        return R.status(service.editListInfo(vo.getId(), vo.getOptPrice(), vo.getDailyBudget()));
+        return R.status(service.editListInfo(vo));
     }
 
 }

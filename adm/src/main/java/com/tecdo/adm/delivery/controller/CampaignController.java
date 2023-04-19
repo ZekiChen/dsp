@@ -97,7 +97,7 @@ public class CampaignController {
     @ApiOperation(value = "列表直接修改", notes = "传入SimpleCampaignUpdateVO")
     public R updateListInfo(@RequestBody SimpleCampaignUpdateVO vo) {
         CacheUtil.clear(CAMPAIGN_CACHE);
-        return R.status(service.editListInfo(vo.getId(), vo.getDailyBudget()));
+        return R.status(service.editListInfo(vo));
     }
 
 }

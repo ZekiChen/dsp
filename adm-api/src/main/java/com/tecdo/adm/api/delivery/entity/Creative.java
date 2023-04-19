@@ -22,7 +22,7 @@ public class Creative extends BaseEntity {
 
     @ApiModelProperty("素材名称")
     private String name;
-    @ApiModelProperty(value = "素材类型", notes = "AdTypeEnum")
+    @ApiModelProperty(value = "素材类型", notes = "CreativeTypeEnum")
     private Integer type;
     @ApiModelProperty("素材宽度")
     private Integer width;

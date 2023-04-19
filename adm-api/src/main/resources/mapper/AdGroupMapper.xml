@@ -20,7 +20,7 @@
     </resultMap>
 
     <select id="customPage" resultMap="baseRsMap">
-        select g.* from ad_group g LEFT JOIN target_condition c ON g.id = c.ad_group_id
+        select DISTINCT g.* from ad_group g LEFT JOIN target_condition c ON g.id = c.ad_group_id
         where 1=1
         <if test="param.id != null">
             and g.id = #{param.id}
