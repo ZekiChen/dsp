@@ -100,7 +100,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     @Override
     public boolean editListInfo(Integer id, Double optPrice, Double dailyBudget) {
-        AdGroup adGroup = AdGroupCache.getAdGroup(id);
+        AdGroup adGroup = getById(id);
         if (adGroup == null) {
             return false;
         }
@@ -110,8 +110,8 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
-    public IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds) {
-        return baseMapper.customPage(page, adGroup, campaignIds);
+    public IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds, String affiliateName) {
+        return baseMapper.customPage(page, adGroup, campaignIds, affiliateName);
     }
 
     private static List<Ad> replaceAndCopyAds(List<AdGroup> targetAdGroups, List<Ad> sourceAds, Integer targetAdStatus) {

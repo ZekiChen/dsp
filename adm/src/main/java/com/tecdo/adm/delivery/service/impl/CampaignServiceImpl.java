@@ -8,7 +8,6 @@ import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
 import com.tecdo.adm.api.delivery.vo.BaseCampaignVO;
 import com.tecdo.adm.api.delivery.vo.CampaignRtaVO;
 import com.tecdo.adm.api.delivery.vo.CampaignVO;
-import com.tecdo.adm.common.cache.CampaignCache;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.ICampaignRtaService;
 import com.tecdo.adm.delivery.service.ICampaignService;
@@ -88,7 +87,7 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
 
     @Override
     public boolean editListInfo(Integer id, Double dailyBudget) {
-        Campaign campaign = CampaignCache.getCampaign(id);
+        Campaign campaign = getById(id);
         if (campaign == null) {
             return false;
         }
