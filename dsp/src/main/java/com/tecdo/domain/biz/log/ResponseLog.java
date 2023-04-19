@@ -264,4 +264,7 @@ public class ResponseLog implements Serializable {
     @JsonProperty("reviews")
     private Long reviews;
 
+    @JsonProperty("rta_token")
+    private String rtaToken;
+
 }

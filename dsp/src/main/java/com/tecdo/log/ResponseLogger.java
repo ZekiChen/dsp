@@ -112,6 +112,7 @@ public class ResponseLogger {
                       .score(googlePlayApp.getScore())
                       .downloads(googlePlayApp.getDownloads())
                       .reviews(googlePlayApp.getReviews())
+                      .rtaToken(wrapper.getRtaToken())
                       .build();
   }
 }
