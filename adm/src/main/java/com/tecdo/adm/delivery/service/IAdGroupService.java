@@ -29,5 +29,5 @@ public interface IAdGroupService extends IService<AdGroup> {
 
     boolean editListInfo(Integer id, Double optPrice, Double dailyBudget);
 
-    IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds, String affiliateName);
+    IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds, List<String> affiliateIds);
 }

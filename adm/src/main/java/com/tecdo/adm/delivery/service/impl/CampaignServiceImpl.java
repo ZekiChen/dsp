@@ -16,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -92,6 +93,7 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
             return false;
         }
         campaign.setDailyBudget(dailyBudget);
+        campaign.setUpdateTime(new Date());
         return updateById(campaign);
     }
 

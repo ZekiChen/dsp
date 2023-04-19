@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
@@ -106,12 +107,13 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         }
         adGroup.setOptPrice(optPrice);
         adGroup.setDailyBudget(dailyBudget);
+        adGroup.setUpdateTime(new Date());
         return updateById(adGroup);
     }
 
     @Override
-    public IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds, String affiliateName) {
-        return baseMapper.customPage(page, adGroup, campaignIds, affiliateName);
+    public IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds, List<String> affiliateIds) {
+        return baseMapper.customPage(page, adGroup, campaignIds, affiliateIds);
     }
 
     private static List<Ad> replaceAndCopyAds(List<AdGroup> targetAdGroups, List<Ad> sourceAds, Integer targetAdStatus) {

@@ -20,28 +20,42 @@
     </resultMap>
 
     <select id="customPage" resultMap="baseRsMap">
-        select * from ad_group
+        select g.* from ad_group g LEFT JOIN target_condition c ON g.id = c.ad_group_id
         where 1=1
         <if test="param.id != null">
-            and id = #{param.id}
+            and g.id = #{param.id}
         </if>
         <if test="param.status != null">
-            and status = #{param.status}
+            and g.status = #{param.status}
         </if>
         <if test="param.name != null and param.name != ''">
-            and name like concat(concat('%', #{param.name}),'%')
+            and g.name like concat(concat('%', #{param.name}),'%')
         </if>
         <if test="param.bidStrategy != null">
-            and bid_strategy = #{param.bidStrategy}
+            and g.bid_strategy = #{param.bidStrategy}
         </if>
         <if test="campaignIds != null and campaignIds.size > 0">
-           and campaign_id IN
+           and g.campaign_id IN
             <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
         </if>
-        <if test="affiliateName != null and affiliateName != ''">
-            and bid_strategy = #{affiliateName}
+        <if test="affiliateIds != null and affiliateIds.size > 0">
+            and c.attribute = 'affiliate' and
+            CASE c.operation
+                WHEN 'include' THEN
+                    <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
+                        FIND_IN_SET(#{item}, c.`value`)
+                    </foreach>
+                WHEN 'exclude' THEN NOT
+                    <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
+                        FIND_IN_SET(#{item}, c.`value`)
+                    </foreach>
+                WHEN 'eq' THEN
+                    <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
+                        c.`value` = #{item}
+                    </foreach>
+                END
         </if>
     </select>
 

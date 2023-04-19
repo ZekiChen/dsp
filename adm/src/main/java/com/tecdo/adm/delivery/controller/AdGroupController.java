@@ -71,9 +71,10 @@ public class AdGroupController {
     @ApiOperationSupport(order = 5)
     @ApiOperation(value = "分页", notes = "传入AdGroup")
     public R<IPage<AdGroupVO>> page(@ApiParam("广告活动ID集") @RequestParam(required = false) String campaignIds,
-                                    @ApiParam("渠道名称") @RequestParam(required = false) String affiliateName,
+                                    @ApiParam("渠道名称") @RequestParam(required = false) String affiliateIds,
                                     AdGroup adGroup, PQuery query) {
-        IPage<AdGroup> pages = service.customPage(PCondition.getPage(query), adGroup, BigTool.toIntList(campaignIds), affiliateName);
+        IPage<AdGroup> pages = service.customPage(PCondition.getPage(query), adGroup,
+                BigTool.toIntList(campaignIds), BigTool.toStrList(affiliateIds));
         return R.data(AdGroupWrapper.build().pageVO(pages));
     }
 
