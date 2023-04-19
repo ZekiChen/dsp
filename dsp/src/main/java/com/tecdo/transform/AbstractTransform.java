@@ -16,6 +16,7 @@ import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.domain.openrtb.response.SeatBid;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
 import com.tecdo.domain.openrtb.response.n.NativeResponseWrapper;
+import com.tecdo.service.rta.ae.AeHelper;
 import com.tecdo.util.AdmGenerator;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
@@ -118,7 +119,7 @@ public abstract class AbstractTransform implements IProtoTransform {
 
 
     String clickUrl = StrUtil.isNotBlank(wrapper.getLandingPage()) ?
-            wrapper.getLandingPage() :
+            AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper.getBidId(), sign) :
             urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
     String deepLink =
       urlFormat(adDTO.getAdGroup().getDeeplink(), sign, wrapper, bidRequest, affiliate);
