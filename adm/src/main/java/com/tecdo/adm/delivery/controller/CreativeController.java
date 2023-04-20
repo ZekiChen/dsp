@@ -50,13 +50,14 @@ public class CreativeController {
     @ApiOperationSupport(order = 1)
     @ApiOperation(value = "新增", notes = "传入素材")
     public R uploadFile(@RequestParam("file") MultipartFile file,
+                        @RequestParam("name") String name,
                         @RequestParam("type") Integer type,
                         @RequestParam("width") Integer width,
                         @RequestParam("height") Integer height) {
         PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
         Creative creative = new Creative();
         creative.setUrl(pacFile.getUrl());
-        creative.setName(pacFile.getOriginalName());
+        creative.setName(name);
         creative.setType(type);
         creative.setWidth(width);
         creative.setHeight(height);
