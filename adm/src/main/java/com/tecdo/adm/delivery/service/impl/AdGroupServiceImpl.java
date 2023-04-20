@@ -158,7 +158,11 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     private static List<AdGroup> copyAdGroups(AdGroup sourceAdGroup, Integer copyNum) {
         return IntStream.range(0, copyNum)
-                .mapToObj(i -> BeanUtil.copyProperties(sourceAdGroup, AdGroup.class))
+                .mapToObj(i -> {
+                    AdGroup target = BeanUtil.copyProperties(sourceAdGroup, AdGroup.class);
+                    target.setName(target.getName() + "-copy" + i + 1);
+                    return target;
+                })
                 .collect(Collectors.toList());
     }
 }
