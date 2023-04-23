@@ -195,7 +195,9 @@ public class AdManager {
         Map<Integer, CampaignDTO> campaignDTOMap = new HashMap<>();
         for (Campaign campaign : campaignMap.values()) {
             CampaignDTO campaignDTO = BeanUtil.copyProperties(campaign, CampaignDTO.class);
-            campaignDTO.setAdvName(advMap.get(campaignDTO.getAdvId()).getName());
+            if (campaignDTO.getAdvId() != null) {
+                campaignDTO.setAdvName(advMap.get(campaignDTO.getAdvId()).getName());
+            }
             List<AdGroupDTO> adGroupDTOs = adGroupMap.values().stream()
                     .filter(e -> Objects.equals(campaignDTO.getId(), e.getCampaignId()))
                     .map(e -> BeanUtil.copyProperties(e, AdGroupDTO.class))
