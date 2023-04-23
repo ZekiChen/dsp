@@ -7,6 +7,6 @@ import com.tecdo.adm.api.doris.entity.AdGroupClick;
 /**
  * Created by Zeki on 2023/4/3
  */
-@DS("doris")
+@DS("doris-ods")
 public interface AdGroupClickMapper extends BaseMapper<AdGroupClick> {
 }

@@ -9,6 +9,6 @@ import com.tecdo.adm.api.doris.entity.AdGroupCost;
  *
  * Created by Zeki on 2023/2/21
  */
-@DS("doris")
+@DS("doris-ods")
 public interface AdGroupCostMapper extends BaseMapper<AdGroupCost> {
 }

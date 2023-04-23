@@ -17,11 +17,11 @@ public class AeReportVO implements Serializable {
 
     @JsonProperty("campaign_id")
     private String campaignId;
-    private Integer cost;
-    private Integer impressions;
-    private Integer clicks;
-    private Integer cpm;
-    private Integer cpc;
-    private Integer ctr;
+    private Double cost;
+    private Long impressions;
+    private Long clicks;
+    private Double cpm;
+    private Double cpc;
+    private Double ctr;
 
 }

@@ -9,6 +9,6 @@ import com.tecdo.adm.api.doris.entity.AdGroupImpCount;
  * <p>
  * Created by Zeki on 2023/2/21
  */
-@DS("doris")
+@DS("doris-ods")
 public interface AdGroupImpCountMapper extends BaseMapper<AdGroupImpCount> {
 }
