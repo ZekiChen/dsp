@@ -22,6 +22,7 @@ import com.tecdo.starter.mp.entity.IdEntity;
 import com.tecdo.starter.tool.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -67,7 +68,8 @@ public class AeReportServiceImpl implements IAeReportService {
         if (CollUtil.isNotEmpty(campaignDTOs)) {
             campaignIds = campaignDTOs.stream().map(IdEntity::getId).collect(Collectors.toSet());
 
-            List<AdsDi> adsDis = adsDiMapper.getAeDailyReportInUsWest(DateUtil.yesterday().toDateStr(), DateUtil.today(), campaignIds);
+            List<String> dateHours = getUsWestHour(vo.getBizDate());
+            List<AdsDi> adsDis = adsDiMapper.getAeDailyReportInUsWest(dateHours, campaignIds);
             Map<Integer, AdsDi> adsDiMap = adsDis.stream().collect(Collectors.toMap(AdsDi::getCampaignId, Function.identity()));
 
             List<AeReportVO> aeReports = new ArrayList<>();
@@ -84,12 +86,29 @@ public class AeReportServiceImpl implements IAeReportService {
                         .clicks(clicks)
                         .cpm(imps != null && imps != 0L ? (cost / imps * 1000) : null)
                         .cpc(clicks != null && clicks != 0L ? (cost / clicks) : null)
-                        .ctr(clicks != null && imps != null && imps != 0L ? (double) (clicks / imps) : null)
+                        .ctr(clicks != null && imps != null && imps != 0L ? (clicks.doubleValue() / imps.doubleValue()) : null)
                         .build();
                 aeReports.add(aeReport);
             }
             aeDataVO.setDataList(aeReports);
         }
         return aeDataVO;
+    }
+
+    @NonNull
+    private static List<String> getUsWestHour(Date bizDate) {
+        String curDay = DateUtil.format(bizDate, "yyyy-MM-dd");
+        String curDayTomorrow = DateUtil.offsetDay(bizDate, 1).toDateStr();
+        int curMonth = DateUtil.month(new Date()) + 1;
+        List<String> dateHours = new ArrayList<>();
+        // 4-10月夏令时美国西部时间为UTC-8，冬令时为UTC-7
+        int offset = (curMonth >= 4 && curMonth <= 10) ? 8 : 7;
+        for (int i = offset; i < offset + 24; i++) {
+            int hour = i % 24;
+            String date = (hour < offset) ? curDayTomorrow : curDay;
+            String hourStr = String.format("%02d", hour);
+            dateHours.add(date + "_" + hourStr);
+        }
+        return dateHours;
     }
 }

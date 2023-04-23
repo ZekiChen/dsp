@@ -15,12 +15,10 @@
             <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
-            AND CASE create_date
-                WHEN #{yesterday} THEN
-                    create_hour &gt;= 16
-                WHEN #{today} THEN
-                    create_hour &lt;= 15
-            END
+            AND create_time in
+            <foreach collection="dateHours" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
     </select>
 
 </mapper>

@@ -14,7 +14,6 @@ import java.util.Set;
 @DS("doris-ads")
 public interface AdsDiMapper extends BaseMapper<AdsDi> {
 
-    List<AdsDi> getAeDailyReportInUsWest(@Param("yesterday") String yesterday,
-                                          @Param("today") String today,
+    List<AdsDi> getAeDailyReportInUsWest(@Param("dateHours") List<String> dateHours,
                                           @Param("campaignIds") Set<Integer> campaignIds);
 }
