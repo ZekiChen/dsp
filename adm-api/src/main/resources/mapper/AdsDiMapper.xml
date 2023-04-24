@@ -19,6 +19,7 @@
             <foreach collection="dateHours" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
+        GROUP BY campaign_id
     </select>
 
 </mapper>
