@@ -321,17 +321,7 @@ public class Task {
     Map<String, Object> paramMap =
       MapUtil.<String, Object>builder().put("data", ctrRequests).build();
 
-    Map<String, List<AbTestConfig>> abTestConfigMap = abTestConfigManager.getAbTestConfigMap();
-    String url = ctrPredictUrl;
-    for (Map.Entry<String, List<AbTestConfig>> entry : abTestConfigMap.entrySet()) {
-      String tag = entry.getKey();
-      List<AbTestConfig> configList = entry.getValue();
-      if (AbTestConfigHelper.execute(configList, bidRequest, affId)) {
-        url = ctrPredictUrl + "/" + tag;
-        break;
-      }
-    }
-    return OkHttps.sync(url)
+    return OkHttps.sync(ctrPredictUrl)
                   .bodyType(OkHttps.JSON)
                   .setBodyPara(JsonHelper.toJSONString(paramMap))
                   .post();
