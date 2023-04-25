@@ -1,6 +1,7 @@
 package com.tecdo.transform;
 
 import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.constant.FormatKey;
 import com.tecdo.domain.biz.dto.AdDTO;
@@ -19,6 +20,7 @@ import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -45,6 +47,9 @@ public abstract class AbstractTransform implements IProtoTransform {
   @Override
   public BidRequest requestTransform(String req) {
     BidRequest bidRequest = JsonHelper.parseObject(req, BidRequest.class);
+    if (bidRequest == null || CollectionUtils.isEmpty(bidRequest.getImp())) {
+      return bidRequest;
+    }
     for (Imp imp : bidRequest.getImp()) {
       if (imp.getNative1() != null) {
         String nativeRequestString = imp.getNative1().getRequest();
@@ -64,9 +69,13 @@ public abstract class AbstractTransform implements IProtoTransform {
     return bidRequest;
   }
 
-  public BidResponse responseTransform(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
+  public BidResponse responseTransform(AdDTOWrapper wrapper,
+                                       BidRequest bidRequest,
+                                       Affiliate affiliate) {
     AdDTO adDTO = wrapper.getAdDTO();
     String bidId = wrapper.getBidId();
+    Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
+    Creative creative = adDTO.getCreativeMap().get(creativeId);
     BidResponse bidResponse = new BidResponse();
     bidResponse.setId(bidRequest.getId());
     bidResponse.setBidid(bidId);
@@ -82,9 +91,14 @@ public abstract class AbstractTransform implements IProtoTransform {
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
     bid.setBundle(adDTO.getCampaign().getPackageName());
-    bid.setIurl(adDTO.getCreativeMap().get(CreativeHelper.getCreativeId(adDTO.getAd())).getUrl());
+    bid.setIurl(creative.getUrl());
+    if (creative.getCatIab() != null) {
+      bid.setCat(Arrays.asList(StringUtils.split(creative.getCatIab(), ",")));
+    }
+    bid.setW(creative.getWidth());
+    bid.setH(creative.getHeight());
     bid.setCid(String.valueOf(adDTO.getCampaign().getId()));
-    bid.setCrid(String.valueOf(CreativeHelper.getCreativeId(adDTO.getAd())));
+    bid.setCrid(String.valueOf(creativeId));
 
     SeatBid seatBid = new SeatBid();
     seatBid.setBid(Collections.singletonList(bid));

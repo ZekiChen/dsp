@@ -90,6 +90,9 @@ public class ValidateService {
                               httpRequest.getChannelContext()));
       return;
     }
+    if (StringUtils.isEmpty(httpRequest.getBody())) {
+      return;
+    }
     BidRequest bidRequest = protoTransform.requestTransform(httpRequest.getBody());
     if (bidRequest == null || !validateBidRequest(bidRequest)) {
       log.warn((bidRequest == null ? "bidRequest is null"

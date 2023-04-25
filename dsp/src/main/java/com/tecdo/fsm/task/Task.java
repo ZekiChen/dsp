@@ -1,10 +1,5 @@
 package com.tecdo.fsm.task;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
@@ -26,7 +21,9 @@ import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.request.CtrRequest;
+import com.tecdo.domain.biz.request.CvrRequest;
 import com.tecdo.domain.biz.response.CtrResponse;
+import com.tecdo.domain.biz.response.CvrResponse;
 import com.tecdo.domain.openrtb.request.Banner;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
@@ -45,8 +42,7 @@ import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
@@ -55,6 +51,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
@@ -68,6 +72,9 @@ public class Task {
   private String taskId;
 
   private String ctrPredictUrl = SpringUtil.getProperty("pac.ctr-predict.url");
+  private String cvrPredictUrl = SpringUtil.getProperty("pac.cvr-predict.url");
+  private int needReceiveCount = 3;
+  private int predictResCount = 0;
 
   private final AdManager adManager = SpringUtil.getBean(AdManager.class);
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
@@ -81,6 +88,7 @@ public class Task {
   private final SoftTimer softTimer = SpringUtil.getBean(SoftTimer.class);
   private final MessageQueue messageQueue = SpringUtil.getBean(MessageQueue.class);
   private final Map<EventType, Long> eventTimerMap = new HashMap<>();
+  private final Map<Integer, AdDTOWrapper> resMap = new HashMap<>();
 
   private ITaskState currentState = SpringUtil.getBean(InitState.class);
 
@@ -104,6 +112,8 @@ public class Task {
     this.taskId = null;
     eventTimerMap.clear();
     currentState = SpringUtil.getBean(InitState.class);
+    this.predictResCount = 0;
+    this.resMap.clear();
   }
 
   public void switchState(ITaskState newState) {
@@ -185,42 +195,118 @@ public class Task {
                      .collect(Collectors.toList());
   }
 
-  public void callCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap) {
-    Params params = assignParams();
+  public void callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap) {
+
+    Map<Integer, AdDTOWrapper> cpcMap = new HashMap<>();
+    Map<Integer, AdDTOWrapper> cpaMap = new HashMap<>();
+    Map<Integer, AdDTOWrapper> cpmMap = new HashMap<>();
+    adDTOMap.forEach((k, v) -> {
+      BidStrategyEnum strategyEnum = BidStrategyEnum.of(v.getAdDTO().getAdGroup().getBidStrategy());
+      switch (strategyEnum) {
+        case CPC:
+          cpcMap.put(k, v);
+          break;
+        case CPA:
+          cpaMap.put(k, v);
+          break;
+        case CPM:
+        default:
+          cpmMap.put(k, v);
+      }
+    });
+    Params cpcParams = assignParams();
+    Params cpaParams = assignParams();
     BidRequest bidRequest = this.bidRequest;
     Imp imp = this.imp;
     Integer affId = this.affiliate.getId();
-    threadPool.execute(() -> {
-      try {
-        HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, bidRequest, imp, affId);
-        if (httpResult.isSuccessful()) {
-          R<List<CtrResponse>> result =
-            httpResult.getBody().toBean(new TypeRef<R<List<CtrResponse>>>() {
-            });
-          if (result == null || CollectionUtils.isEmpty(result.getData())) {
-            log.error("taskId: {},ctr response unexpected result: {}", taskId, result);
-            messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
-            return;
-          }
-          for (CtrResponse resp : result.getData()) {
-            AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
-            wrapper.setPCtr(resp.getPCtr());
-            wrapper.setPCtrVersion(result.getVersion());
-          }
-          params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
-          messageQueue.putMessage(EventType.CTR_PREDICT_FINISH, params);
-        } else {
-          log.error("taskId: {},ctr request status: {}, error:",
-                    taskId,
-                    httpResult.getStatus(),
-                    httpResult.getError());
-          messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
+    if (cpcMap.isEmpty()) {
+      messageQueue.putMessage(EventType.PREDICT_FINISH,
+                              assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, cpcMap));
+    } else {
+      threadPool.execute(() -> callCtr(cpcMap, cpcParams, bidRequest, imp, affId));
+    }
+
+    if (cpaMap.isEmpty()) {
+      messageQueue.putMessage(EventType.PREDICT_FINISH,
+                              assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, cpaMap));
+    } else {
+      threadPool.execute(() -> callCvr(cpaMap, cpaParams, bidRequest, imp, affId));
+    }
+
+    messageQueue.putMessage(EventType.PREDICT_FINISH,
+                            assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, cpmMap));
+  }
+
+  private void callCtr(Map<Integer, AdDTOWrapper> adDTOMap,
+                       Params params,
+                       BidRequest bidRequest,
+                       Imp imp,
+                       Integer affId) {
+    try {
+      HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, bidRequest, imp, affId);
+      if (httpResult.isSuccessful()) {
+        R<List<CtrResponse>> result =
+          httpResult.getBody().toBean(new TypeRef<R<List<CtrResponse>>>() {
+          });
+        if (result == null || CollectionUtils.isEmpty(result.getData())) {
+          log.error("taskId: {},ctr response unexpected result: {}", taskId, result);
+          messageQueue.putMessage(EventType.PREDICT_ERROR, params);
+          return;
         }
-      } catch (Exception e) {
-        log.error("taskId: {},ctr request cause a exception", taskId, e);
-        messageQueue.putMessage(EventType.CTR_PREDICT_ERROR, params);
+        for (CtrResponse resp : result.getData()) {
+          AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
+          wrapper.setPCtr(resp.getPCtr());
+          wrapper.setPCtrVersion(result.getVersion());
+        }
+        params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
+        messageQueue.putMessage(EventType.PREDICT_FINISH, params);
+      } else {
+        log.error("taskId: {},ctr request status: {}, error:",
+                  taskId,
+                  httpResult.getStatus(),
+                  httpResult.getError());
+        messageQueue.putMessage(EventType.PREDICT_ERROR, params);
       }
-    });
+    } catch (Exception e) {
+      log.error("taskId: {},ctr request cause a exception", taskId, e);
+      messageQueue.putMessage(EventType.PREDICT_ERROR, params);
+    }
+  }
+
+  private void callCvr(Map<Integer, AdDTOWrapper> adDTOMap,
+                       Params params,
+                       BidRequest bidRequest,
+                       Imp imp,
+                       Integer affId) {
+    try {
+      HttpResult httpResult = buildAndCallCvr3Api(adDTOMap, bidRequest, imp, affId);
+      if (httpResult.isSuccessful()) {
+        R<List<CvrResponse>> result =
+          httpResult.getBody().toBean(new TypeRef<R<List<CvrResponse>>>() {
+          });
+        if (result == null || CollectionUtils.isEmpty(result.getData())) {
+          log.error("taskId: {},cvr response unexpected result: {}", taskId, result);
+          messageQueue.putMessage(EventType.PREDICT_ERROR, params);
+          return;
+        }
+        for (CvrResponse resp : result.getData()) {
+          AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
+          wrapper.setPCvr(resp.getPCvr());
+          wrapper.setPCvrVersion(result.getVersion());
+        }
+        params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
+        messageQueue.putMessage(EventType.PREDICT_FINISH, params);
+      } else {
+        log.error("taskId: {},cvr request status: {}, error:",
+                  taskId,
+                  httpResult.getStatus(),
+                  httpResult.getError());
+        messageQueue.putMessage(EventType.PREDICT_ERROR, params);
+      }
+    } catch (Exception e) {
+      log.error("taskId: {},cvr request cause a exception", taskId, e);
+      messageQueue.putMessage(EventType.PREDICT_ERROR, params);
+    }
   }
 
   private HttpResult buildAndCallCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap,
@@ -251,6 +337,24 @@ public class Task {
                   .post();
   }
 
+  private HttpResult buildAndCallCvr3Api(Map<Integer, AdDTOWrapper> adDTOMap,
+                                         BidRequest bidRequest,
+                                         Imp imp,
+                                         Integer affId) {
+    List<CvrRequest> cvrRequests = //
+      adDTOMap.values()
+              .stream()
+              .map(adDTOWrapper -> buildCvrRequest(bidRequest, imp, affId, adDTOWrapper.getAdDTO()))
+              .collect(Collectors.toList());
+    Map<String, Object> paramMap =
+      MapUtil.<String, Object>builder().put("data", cvrRequests).build();
+
+    return OkHttps.sync(cvrPredictUrl)
+                  .bodyType(OkHttps.JSON)
+                  .setBodyPara(JsonHelper.toJSONString(paramMap))
+                  .post();
+  }
+
   private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
     Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
     // 版位的
@@ -261,7 +365,7 @@ public class Task {
     Integer adWidth;
     Integer adHeight;
     if (adType == AdTypeEnum.BANNER) {
-      // banner广告用素材大小
+      // banner广告用素材大小，因为banner广告要大小完全匹配才会出价。banner上有多个format，所以取素材大小，也就是匹配的版位大小
       adWidth = creative.getWidth();
       adHeight = creative.getHeight();
     } else {
@@ -315,11 +419,78 @@ public class Task {
                      .build();
   }
 
-  public void calcPrice(Map<Integer, AdDTOWrapper> adDTOMap) {
+  private CvrRequest buildCvrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
+    Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
+    // 版位的
+    BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
+    // 素材的
+    Creative creative = adDTO.getCreativeMap().get(creativeId);
+    AdTypeEnum adType = AdTypeEnum.of(adDTO.getAd().getType());
+    Integer adWidth;
+    Integer adHeight;
+    if (adType == AdTypeEnum.BANNER) {
+      // banner广告用素材大小，因为banner广告要大小完全匹配才会出价。banner上有多个format，所以取素材大小，也就是匹配的版位大小
+      adWidth = creative.getWidth();
+      adHeight = creative.getHeight();
+    } else {
+      // native广告用native大小，因为native有wmin，hmin，所以用版位大小
+      adWidth = Integer.parseInt(bidCreative.getWidth());
+      adHeight = Integer.parseInt(bidCreative.getHeight());
+    }
+    Device device = bidRequest.getDevice();
+    GooglePlayApp googleApp =
+      googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
+    return CvrRequest.builder()
+                     .adId(adDTO.getAd().getId())
+                     .affiliateId(affId)
+                     .adFormat(adType.getDesc())
+                     .adWidth(adWidth)
+                     .adHeight(adHeight)
+                     .os(FieldFormatHelper.osFormat(device.getOs()))
+                     .osv(device.getOsv())
+                     .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
+                     .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
+                     .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
+                     .connectionType(device.getConnectiontype())
+                     .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
+                     .carrier(device.getCarrier())
+                     .creativeId(creativeId)
+                     .bidFloor(Double.valueOf(imp.getBidfloor()))
+                     .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
+                                       .map(CampaignRtaInfo::getRtaFeature)
+                                       .orElse(-1))
+                     .packageName(adDTO.getCampaign().getPackageName())
+                     .category(adDTO.getCampaign().getCategory())
+                     .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
+                     .domain(bidRequest.getApp().getDomain())
+                     .instl(imp.getInstl())
+                     .cat(bidRequest.getApp().getCat())
+                     .ip(device.getIp())
+                     .ua(device.getUa())
+                     .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
+                     .deviceId(device.getIfa())
+                     .categoryList(googleApp.getCategoryList())
+                     .tagList(googleApp.getTagList())
+                     .score(googleApp.getScore())
+                     .downloads(googleApp.getDownloads())
+                     .reviews(googleApp.getReviews())
+                     .build();
+  }
+
+  public void savePredictResponse(Map<Integer, AdDTOWrapper> adDTOMap) {
+    this.resMap.putAll(adDTOMap);
+    this.predictResCount++;
+  }
+
+  public boolean isReceiveAllPredictResponse() {
+    return predictResCount == needReceiveCount;
+  }
+
+  public void calcPrice() {
     Params params = assignParams();
     try {
-      adDTOMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e)));
-      params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, adDTOMap);
+      this.resMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e)));
+      params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, this.resMap);
       messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
     } catch (Exception e) {
       log.error("taskId: {},calculate cpc cause a exception", taskId, e);
@@ -332,18 +503,19 @@ public class Task {
     BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTO.getAdGroup().getBidStrategy());
     BigDecimal bidPrice;
     switch (bidStrategy) {
-      case CPM:
-        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice());
-        break;
       case CPC:
         bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
                              .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
                              .multiply(BigDecimal.valueOf(1000));
         break;
-      default:
+      case CPA:
         bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
-                             .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                             .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
                              .multiply(BigDecimal.valueOf(1000));
+        break;
+      case CPM:
+      default:
+        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice());
     }
     return bidPrice;
   }

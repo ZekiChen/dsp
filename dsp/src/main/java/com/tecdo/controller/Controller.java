@@ -92,9 +92,9 @@ public class Controller implements MessageObserver {
       case ADS_RECALL_FINISH:
       case ADS_RECALL_ERROR:
       case ADS_RECALL_TIMEOUT:
-      case CTR_PREDICT_FINISH:
-      case CTR_PREDICT_ERROR:
-      case CTR_PREDICT_TIMEOUT:
+      case PREDICT_FINISH:
+      case PREDICT_ERROR:
+      case PREDICT_TIMEOUT:
       case CALC_CPC_FINISH:
       case CALC_CPC_ERROR:
       case CALC_CPC_TIMEOUT:
