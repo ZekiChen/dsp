@@ -112,6 +112,7 @@ public class Context {
     this.adDTOWrapperList.clear();
     this.eventTimerMap.clear();
     this.protoTransform = null;
+    this.rtaResponseCount = 0;
   }
 
   public void handleBidRequest() {
@@ -170,10 +171,6 @@ public class Context {
 
   public boolean rtaResponseFinish() {
     return ++rtaResponseCount == rtaResponseNeed;
-  }
-
-  public void rtaResponseCountReset() {
-    rtaResponseCount = 0;
   }
 
   public void requestRta() {
