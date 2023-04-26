@@ -1,7 +1,5 @@
 package com.tecdo.service;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
 import com.google.common.net.HttpHeaders;
 import com.tecdo.adm.api.delivery.dto.CampaignDTO;
 import com.tecdo.common.util.Params;
@@ -17,7 +15,7 @@ import com.tecdo.service.rta.ae.AePbDataVO;
 import com.tecdo.service.rta.ae.AePbInfoVO;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.ResponseHelper;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -25,7 +23,16 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -78,6 +85,8 @@ public class NoticeService {
             }
             info.setBidId(aePbInfoVO.getBidId());
             info.setSign(aePbInfoVO.getSign());
+            info.setUvCnt(aePbInfoVO.getUvCnt());
+            info.setMbrCnt(aePbInfoVO.getMbrCnt());
             noticeInfos.add(info);
         }
         List<NoticeInfo> infos = new ArrayList<>();
@@ -254,6 +263,12 @@ public class NoticeService {
         map.put("creative_id", info.getCreativeId());
         if (info.getEventType() != null) {
             map.put(info.getEventType(), 1);
+        }
+        if (Objects.equals(info.getUvCnt(), 1)) {
+            map.put(RequestKey.EVENT_4, 1);
+        }
+        if (Objects.equals(info.getMbrCnt(), 1)) {
+            map.put(RequestKey.EVENT_5, 1);
         }
 
         pbLog.info(JsonHelper.toJSONString(map));
