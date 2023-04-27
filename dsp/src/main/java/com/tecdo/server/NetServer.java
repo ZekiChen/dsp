@@ -32,12 +32,12 @@ public class NetServer {
 
         try {
             bootstrap.bind(port);
+            log.info("Netty server startup, listening on: {}", port);
         } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException("The server fail to listen on port " + port);
         }
 
-        log.info("Netty server startup, listening on: {}", port);
     }
 
 }
