@@ -71,6 +71,8 @@ public class ResponseLogger {
                       .bidPrice(wrapper.getBidPrice().doubleValue())
                       .pCtr(wrapper.getPCtr())
                       .pCtrVersion(wrapper.getPCtrVersion())
+                      .pCvr(wrapper.getPCvr())
+                      .pCvrVersion(wrapper.getPCvrVersion())
                       .affiliateId(affiliate.getId())
                       .affiliateName(affiliate.getName())
                       .adFormat(Optional.ofNullable(bidCreative.getType())
