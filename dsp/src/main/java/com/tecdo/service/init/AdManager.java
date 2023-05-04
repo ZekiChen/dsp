@@ -1,24 +1,41 @@
 package com.tecdo.service.init;
 
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.tecdo.starter.mp.entity.IdEntity;
-import com.tecdo.core.launch.thread.ThreadPool;
+import com.tecdo.adm.api.delivery.entity.Ad;
+import com.tecdo.adm.api.delivery.entity.AdGroup;
+import com.tecdo.adm.api.delivery.entity.Campaign;
+import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
+import com.tecdo.adm.api.delivery.entity.Creative;
+import com.tecdo.adm.api.delivery.entity.TargetCondition;
+import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
+import com.tecdo.adm.api.delivery.mapper.AdMapper;
+import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
+import com.tecdo.adm.api.delivery.mapper.CampaignRtaInfoMapper;
+import com.tecdo.adm.api.delivery.mapper.CreativeMapper;
+import com.tecdo.adm.api.delivery.mapper.TargetConditionMapper;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
+import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.dto.AdDTO;
-import com.tecdo.adm.api.delivery.entity.*;
-import com.tecdo.adm.api.delivery.mapper.*;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import com.tecdo.starter.mp.entity.IdEntity;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -136,11 +153,11 @@ public class AdManager {
      * 将 ad（creative）、ad_group（target_condition）、campaign（campaign_rta_info）数据平铺整合 AdDTO 集
      */
     private Map<Integer, AdDTO> listAndConvertAds() {
-        List<Ad> ads = adMapper.selectList(Wrappers.lambdaQuery());
-        Map<Integer, Creative> creativeMap = creativeMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
-        Map<Integer, AdGroup> adGroupMap = adGroupMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+        List<Ad> ads = adMapper.selectList(Wrappers.<Ad>lambdaQuery().eq(Ad::getStatus,1));
+        Map<Integer, Creative> creativeMap = creativeMapper.selectList(Wrappers.<Creative>lambdaQuery().eq(Creative::getStatus,1)).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+        Map<Integer, AdGroup> adGroupMap = adGroupMapper.selectList(Wrappers.<AdGroup>lambdaQuery().eq(AdGroup::getStatus,1)).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
         List<TargetCondition> conditions = conditionMapper.selectList(Wrappers.lambdaQuery());
-        Map<Integer, Campaign> campaignMap = campaignMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+        Map<Integer, Campaign> campaignMap = campaignMapper.selectList(Wrappers.<Campaign>lambdaQuery().eq(Campaign::getStatus,1)).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
         List<CampaignRtaInfo> campaignRtaInfos = campaignRtaMapper.selectList(Wrappers.lambdaQuery());
 
         List<AdDTO> adDTOs = new ArrayList<>();
@@ -165,13 +182,13 @@ public class AdManager {
 
     private Map<Integer, Creative> listCreativesByAd(Map<Integer, Creative> creativeMap, Ad ad) {
         Map<Integer, Creative> resMap = new HashMap<>();
-        if (ad.getIcon() != null) {
+        if (ad.getIcon() != null && creativeMap.get(ad.getIcon()) != null) {
             resMap.put(ad.getIcon(), creativeMap.get(ad.getIcon()));
         }
-        if (ad.getImage() != null) {
+        if (ad.getImage() != null && creativeMap.get(ad.getImage()) != null) {
             resMap.put(ad.getImage(), creativeMap.get(ad.getImage()));
         }
-        if (ad.getVideo() != null) {
+        if (ad.getVideo() != null && creativeMap.get(ad.getVideo()) != null) {
             resMap.put(ad.getVideo(), creativeMap.get(ad.getVideo()));
         }
         return resMap;
