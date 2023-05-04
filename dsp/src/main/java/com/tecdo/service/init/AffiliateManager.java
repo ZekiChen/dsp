@@ -1,5 +1,7 @@
 package com.tecdo.service.init;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.common.util.Params;
@@ -18,7 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -114,7 +115,9 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
             case RUNNING:
                 threadPool.execute(() -> {
                     try {
-                        List<Affiliate> affiliateList = list();
+                        LambdaQueryWrapper<Affiliate> wrapper =
+                          Wrappers.<Affiliate>lambdaQuery().eq(Affiliate::getStatus, 1);
+                        List<Affiliate> affiliateList = list(wrapper);
                         Map<String, Affiliate> affiliateMap = new HashMap<>();
                         for (Affiliate affiliate : affiliateList) {
                             String[] split = affiliate.getSecret().split(",");
