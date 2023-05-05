@@ -20,7 +20,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class RtaCache {
 
-    private final static String AE_CACHE = "ae";
+    private final static String AE_CACHE = "ae:v2";
 
     private final PacRedis pacRedis;
 
