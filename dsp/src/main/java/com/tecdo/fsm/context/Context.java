@@ -117,7 +117,8 @@ public class Context {
 
   public void handleBidRequest() {
     String bidRequestString = JsonHelper.toJSONString(bidRequest);
-    log.info("contextId: {}, bid request is:{}", requestId, bidRequestString);
+//    log.info("contextId: {}, bid request is:{}", requestId, bidRequestString);
+    log.info("contextId: {}, bid request", requestId);
     List<Imp> impList = bidRequest.getImp();
     impList.forEach(imp -> {
       Task task = taskPool.get();
@@ -324,7 +325,8 @@ public class Context {
       BidResponse bidResponse =
         protoTransform.responseTransform(this.response, this.bidRequest, this.affiliate);
       String bidResponseString = JsonHelper.toJSONString(bidResponse);
-      log.info("contextId: {}, bid response is:{}", requestId, bidResponseString);
+//      log.info("contextId: {}, bid response is:{}", requestId, bidResponseString);
+      log.info("contextId: {}, bid response", requestId);
       params.put(ParamKey.RESPONSE_BODY, bidResponseString);
       params.put(ParamKey.HTTP_CODE, HttpCode.OK);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
