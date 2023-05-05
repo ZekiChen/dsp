@@ -25,7 +25,7 @@ public class NoticeCache {
     private final static String HAS_IMP_CACHE = "has-imp";
     private final static String HAS_CLICK_CACHE = "has-click";
 
-    private final static String BID_ID_CACHE = "bidId";
+    private final static String BID_ID_CACHE = "bidId:v2";
 
     @Value("${pac.notice.expire.click}")
     private long clickExpire;
