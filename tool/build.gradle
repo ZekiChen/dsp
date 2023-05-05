@@ -42,6 +42,10 @@ subprojects {
                 entry 'jjwt-jackson'
             }
 
+            dependencySet(group: 'io.protostuff', version: '1.6.0') {
+                entry 'protostuff-core'
+                entry 'protostuff-runtime'
+            }
         }
     }
 
