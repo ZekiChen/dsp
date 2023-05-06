@@ -78,6 +78,7 @@ public class Controller implements MessageObserver {
       case RECEIVE_IMP_NOTICE:
       case RECEIVE_CLICK_NOTICE:
       case RECEIVE_PB_NOTICE:
+      case RECEIVE_IMP_INFO_NOTICE:
         noticeService.handleEvent(eventType,params);
         break;
       // context

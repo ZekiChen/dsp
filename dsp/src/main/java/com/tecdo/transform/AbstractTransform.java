@@ -35,6 +35,7 @@ public abstract class AbstractTransform implements IProtoTransform {
   private final String impUrl = SpringUtil.getProperty("pac.notice.imp-url");
   private final String clickUrl = SpringUtil.getProperty("pac.notice.click-url");
   private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
+  private final String impInfoUrl = SpringUtil.getProperty("pac.notice.imp-info-url");
 
   public abstract String deepLinkFormat(String deepLink);
 
@@ -129,7 +130,8 @@ public abstract class AbstractTransform implements IProtoTransform {
                                    deepLink,
                                    adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
                                    impTrackList,
-                                   clickTrackList);
+                                   clickTrackList,
+                                   urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate));
     }
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
       List<Imp> impList = bidRequest.getImp();

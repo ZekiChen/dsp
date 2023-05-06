@@ -1,5 +1,7 @@
 package com.tecdo.domain.biz.notice;
 
+import com.tecdo.constant.RequestKey;
+import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.ValidateCode;
 import lombok.Getter;
 import lombok.Setter;
@@ -39,4 +41,18 @@ public class NoticeInfo implements Serializable {
      *  近实时事件，会员用户浏览，0/1/null
      */
     private Integer mbrCnt;
+
+    public static NoticeInfo buildInfo(HttpRequest httpRequest) {
+        NoticeInfo info = new NoticeInfo();
+        info.setBidId(httpRequest.getParamAsStr(RequestKey.BID_ID));
+        info.setSign(httpRequest.getParamAsStr(RequestKey.SIGN));
+        info.setCampaignId(httpRequest.getParamAsInteger(RequestKey.CAMPAIGN_ID));
+        info.setAdGroupId(httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID));
+        info.setAdId(httpRequest.getParamAsInt(RequestKey.AD_ID));
+        info.setCreativeId(httpRequest.getParamAsInt(RequestKey.CREATIVE_ID));
+        info.setDeviceId(httpRequest.getParamAsStr(RequestKey.DEVICE_ID));
+        info.setEventType(httpRequest.getParamAsStr(RequestKey.EVENT_TYPE));
+        info.setBidSuccessPrice(httpRequest.getParamAsStr(RequestKey.BID_SUCCESS_PRICE));
+        return info;
+    }
 }

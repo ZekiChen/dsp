@@ -1,5 +1,9 @@
 package com.tecdo.service;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.common.constant.Constant;
 import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
@@ -10,7 +14,6 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.service.init.IpTableManager;
@@ -20,21 +23,15 @@ import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
+import java.util.*;
 
 @Slf4j
 @Service
@@ -214,6 +211,7 @@ public class ValidateService {
                 expire = winExpire;
                 break;
           case RECEIVE_IMP_NOTICE:
+          case RECEIVE_IMP_INFO_NOTICE:
                 expire = impExpire;
                 break;
           case RECEIVE_CLICK_NOTICE:
