@@ -117,8 +117,7 @@ public class Context {
 
   public void handleBidRequest() {
     String bidRequestString = JsonHelper.toJSONString(bidRequest);
-//    log.info("contextId: {}, bid request is:{}", requestId, bidRequestString);
-    log.info("contextId: {}, bid request", requestId);
+    log.info("contextId: {}, bid request is:{}", requestId, bidRequestString);
     List<Imp> impList = bidRequest.getImp();
     impList.forEach(imp -> {
       Task task = taskPool.get();
@@ -268,15 +267,13 @@ public class Context {
       Integer campaignId = entry.getKey();
       Target t = entry.getValue();
       campaignIdToAdList.get(campaignId).forEach(ad -> {
+        ad.setRtaRequest(1);
+        ad.setRtaRequestTrue(t.isTarget() ? 1 : 0);
         switch (AdvEnum.of(t.getAdvName())) {
           case LAZADA:
             ad.setRtaToken(t.isTarget() ? t.getToken() : null);
-            ad.setLazadaRtaRequest(1);
-            ad.setLazadaRtaRequestTrue(t.isTarget() ? 1 : 0);
             break;
           case AE:
-            ad.setAeRtaRequest(1);
-            ad.setAeRtaRequestTrue(t.isTarget() ? 1 : 0);
             ad.setLandingPage(t.getLandingPage());
             break;
           }
@@ -284,8 +281,7 @@ public class Context {
     }
     // 只保留非rta的单子 和 rta并且匹配的单子
     this.adDTOWrapperList = this.adDTOWrapperList.stream()
-            .filter(i -> i.getAdDTO().getCampaignRtaInfo() == null
-                        || i.getLazadaRtaRequestTrue() == 1 || i.getAeRtaRequestTrue() == 1)
+            .filter(i -> i.getAdDTO().getCampaignRtaInfo() == null || i.getRtaRequestTrue() == 1)
             .collect(Collectors.toList());
     log.info("contextId: {}, after rta filter, size: {}", requestId, adDTOWrapperList.size());
   }
@@ -325,8 +321,7 @@ public class Context {
       BidResponse bidResponse =
         protoTransform.responseTransform(this.response, this.bidRequest, this.affiliate);
       String bidResponseString = JsonHelper.toJSONString(bidResponse);
-//      log.info("contextId: {}, bid response is:{}", requestId, bidResponseString);
-      log.info("contextId: {}, bid response", requestId);
+      log.info("contextId: {}, bid response is:{}", requestId, bidResponseString);
       params.put(ParamKey.RESPONSE_BODY, bidResponseString);
       params.put(ParamKey.HTTP_CODE, HttpCode.OK);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
@@ -377,22 +372,16 @@ public class Context {
     taskMap.forEach((taskId, task) -> {
       Map<Integer, AdDTOWrapper> adDTOWrapperMap =
         taskResponse.getOrDefault(taskId, Collections.emptyMap());
-      int lazadaRtaRequest =
-        adDTOWrapperMap.values().stream().anyMatch(i -> i.getLazadaRtaRequest() == 1) ? 1 : 0;
-      int lazadaRtaRequestTrue =
-        adDTOWrapperMap.values().stream().anyMatch(i -> i.getLazadaRtaRequestTrue() == 1) ? 1 : 0;
-      int aeRtaRequest =
-        adDTOWrapperMap.values().stream().anyMatch(i -> i.getAeRtaRequest() == 1) ? 1 : 0;
-      int aeRtaRequestTrue =
-        adDTOWrapperMap.values().stream().anyMatch(i -> i.getAeRtaRequestTrue() == 1) ? 1 : 0;
+      int rtaRequest =
+        adDTOWrapperMap.values().stream().anyMatch(i -> i.getRtaRequest() == 1) ? 1 : 0;
+      int rtaRequestTrue =
+        adDTOWrapperMap.values().stream().anyMatch(i -> i.getRtaRequestTrue() == 1) ? 1 : 0;
       RequestLogger.log(taskId,
                         task.getImp(),
                         bidRequest,
                         affiliate,
-                        lazadaRtaRequest,
-                        lazadaRtaRequestTrue,
-                        aeRtaRequest,
-                        aeRtaRequestTrue,
+                        rtaRequest,
+                        rtaRequestTrue,
                         googleApp);
     });
   }
