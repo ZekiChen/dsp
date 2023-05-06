@@ -51,24 +51,14 @@ public class AdDTOWrapper {
   private String bidId;
 
   /**
-   * 是否请求了lazada rta
+   * 是否请求了 rta
    */
-  private int lazadaRtaRequest;
+  private int rtaRequest;
 
   /**
-   * 是否为lazada rta匹配
+   * 是否为 rta 匹配
    */
-  private int lazadaRtaRequestTrue;
-
-  /**
-   * 是否请求了ae rta
-   */
-  private int aeRtaRequest;
-
-  /**
-   * 是否为ae rta匹配
-   */
-  private int aeRtaRequestTrue;
+  private int rtaRequestTrue;
 
   /**
    * 落地页，目前AE RTA会用到

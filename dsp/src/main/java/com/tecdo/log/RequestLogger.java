@@ -32,20 +32,16 @@ public class RequestLogger {
                            Imp imp,
                            BidRequest bidRequest,
                            Affiliate affiliate,
-                           int lazadaRtaRequest,
-                           int lazadaRtaRequestTrue,
-                           int aeRtaRequest,
-                           int aeRtaRequestTrue,
+                           int rtaRequest,
+                           int rtaRequestTrue,
                            GooglePlayApp googlePlayApp) {
         RequestLog requestLog = buildRequestLog(
                 bidId,
                 imp,
                 bidRequest,
                 affiliate,
-                lazadaRtaRequest,
-                lazadaRtaRequestTrue,
-                aeRtaRequest,
-                aeRtaRequestTrue,
+                rtaRequest,
+                rtaRequestTrue,
                 googlePlayApp
         );
         requestLogger.info(JsonHelper.toJSONString(requestLog));
@@ -55,10 +51,8 @@ public class RequestLogger {
                                               Imp imp,
                                               BidRequest bidRequest,
                                               Affiliate affiliate,
-                                              int lazadaRtaRequest,
-                                              int lazadaRtaRequestTrue,
-                                              int aeRtaRequest,
-                                              int aeRtaRequestTrue,
+                                              int rtaRequest,
+                                              int rtaRequestTrue,
                                               GooglePlayApp googlePlayApp) {
         BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
         Device device = bidRequest.getDevice();
@@ -97,10 +91,8 @@ public class RequestLogger {
                 .screenHeight(device.getH())
                 .screenPpi(device.getPpi())
                 .tagId(imp.getTagid())
-                .lazadaRtaRequest(lazadaRtaRequest)
-                .lazadaRtaRequestTrue(lazadaRtaRequestTrue)
-                .aeRtaRequest(aeRtaRequest)
-                .aeRtaRequestTrue(aeRtaRequestTrue)
+                .rtaRequest(rtaRequest)
+                .rtaRequestTrue(rtaRequestTrue)
                 .categoryList(googlePlayApp.getCategoryList())
                 .tagList(googlePlayApp.getTagList())
                 .score(googlePlayApp.getScore())
