@@ -5,7 +5,7 @@
                 src="{IMG_URL}"
                 border="0"
                 style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"
-                onclick="fireClickTracker()"
+                onClick="fireClickTracker()"
         />
     </a>
     <div id="fc_dsp_banner_imp"></div>
@@ -17,6 +17,7 @@
     var i = 0;
     var timer = setInterval(function () {
         i++;
+        console.log(i);
         var e = document.getElementById('fc_dsp_banner_img');
         var info = getBoundingClientRect(e);
         var sty = window.getComputedStyle(e);
@@ -33,17 +34,17 @@
             img_left: info.left,
             img_right: info.right,
         };
-        if (i > 2 || params.bottom - params.top !== 0 || params.right - params.left !== 0) {
-            console.log(i);
+        if (i > 2 || (params.width > 0 && params.height > 0)) {
             var paramsStr = '';
             for (var key in params) {
                 if (key) {
-                    paramsStr += '&' + key + '=' + (params[key] || '');
+                    paramsStr += '&' + key + '=' + (params[key]);
                 }
             }
             var c = createXmlHttp();
             c.open('GET', impInfoUrl + paramsStr, true);
             c.send();
+            console.log('send success');
             clearInterval(timer);
         }
     }, 1000);
@@ -161,7 +162,7 @@
             }
         });
         var max = 0;
-        console.log(zIndex);
+        // console.log(zIndex);
         if (zIndex.length) {
             max = Math.max(...zIndex);
         }
