@@ -7,8 +7,6 @@ import com.tecdo.starter.redis.PacRedis;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
-
 /**
  * 频率控制 缓存操作
  *
@@ -54,7 +52,7 @@ public class FrequencyCache {
                 .concat(StrUtil.COLON).concat(DateUtil.today())
                 .concat(StrUtil.COLON).concat(campaignId)
                 .concat(StrUtil.COLON).concat(deviceId);
-        return (Integer) Optional.ofNullable(pacRedis.get(key)).orElse(0);
+        return pacRedis.getCounter(key);
     }
 
     public Integer getClickCountToday(String campaignId, String deviceId) {
@@ -63,6 +61,6 @@ public class FrequencyCache {
                 .concat(StrUtil.COLON).concat(DateUtil.today())
                 .concat(StrUtil.COLON).concat(campaignId)
                 .concat(StrUtil.COLON).concat(deviceId);
-        return (Integer) Optional.ofNullable(pacRedis.get(key)).orElse(0);
+        return pacRedis.getCounter(key);
     }
 }
