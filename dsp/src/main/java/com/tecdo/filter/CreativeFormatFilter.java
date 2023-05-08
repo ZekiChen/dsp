@@ -42,6 +42,9 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     return false;
                 }
                 Creative creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
+                if (creative == null){
+                    return false;
+                }
                 if (banner.getW() != null && banner.getH() != null) {
                     return ConditionHelper.compare(banner.getW().toString(),
                                                    Constant.EQ,

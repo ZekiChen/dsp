@@ -130,11 +130,11 @@ public class AdManager {
             case RUNNING:
                 threadPool.execute(() -> {
                     try {
-                        List<Ad> ads = adMapper.selectList(Wrappers.lambdaQuery());
-                        Map<Integer, Creative> creativeMap = creativeMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
-                        Map<Integer, AdGroup> adGroupMap = adGroupMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        List<Ad> ads = adMapper.selectList(Wrappers.<Ad>lambdaQuery().eq(Ad::getStatus,1));
+                        Map<Integer, Creative> creativeMap = creativeMapper.selectList(Wrappers.<Creative>lambdaQuery().eq(Creative::getStatus,1)).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        Map<Integer, AdGroup> adGroupMap = adGroupMapper.selectList(Wrappers.<AdGroup>lambdaQuery().eq(AdGroup::getStatus,1)).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
                         List<TargetCondition> conditions = conditionMapper.selectList(Wrappers.lambdaQuery());
-                        Map<Integer, Campaign> campaignMap = campaignMapper.selectList(Wrappers.lambdaQuery()).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
+                        Map<Integer, Campaign> campaignMap = campaignMapper.selectList(Wrappers.<Campaign>lambdaQuery().eq(Campaign::getStatus,1)).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
                         List<CampaignRtaInfo> campaignRtaInfos = campaignRtaMapper.selectList(Wrappers.lambdaQuery());
 
                         Map<Integer, AdDTO> adDTOMap = listAndConvertAds(ads, creativeMap, adGroupMap, conditions, campaignMap, campaignRtaInfos);
@@ -214,13 +214,13 @@ public class AdManager {
 
     private Map<Integer, Creative> listCreativesByAd(Map<Integer, Creative> creativeMap, Ad ad) {
         Map<Integer, Creative> resMap = new HashMap<>();
-        if (ad.getIcon() != null) {
+        if (ad.getIcon() != null && creativeMap.get(ad.getIcon()) != null) {
             resMap.put(ad.getIcon(), creativeMap.get(ad.getIcon()));
         }
-        if (ad.getImage() != null) {
+        if (ad.getImage() != null && creativeMap.get(ad.getImage()) != null) {
             resMap.put(ad.getImage(), creativeMap.get(ad.getImage()));
         }
-        if (ad.getVideo() != null) {
+        if (ad.getVideo() != null && creativeMap.get(ad.getVideo()) != null) {
             resMap.put(ad.getVideo(), creativeMap.get(ad.getVideo()));
         }
         return resMap;

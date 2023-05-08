@@ -1,5 +1,7 @@
 package com.tecdo.service.init;
 
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
@@ -9,15 +11,17 @@ import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.entity.AbTestConfig;
 import com.tecdo.mapper.AbTestConfigMapper;
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -113,8 +117,10 @@ public class AbTestConfigManager extends ServiceImpl<AbTestConfigMapper, AbTestC
       case RUNNING:
         threadPool.execute(() -> {
           try {
+            LambdaQueryWrapper<AbTestConfig> wrapper =
+              Wrappers.<AbTestConfig>lambdaQuery().eq(AbTestConfig::getStatus, 1);
             Map<String, List<AbTestConfig>> abTestConfig =
-              list().stream().collect(Collectors.groupingBy(AbTestConfig::getTag));
+              list(wrapper).stream().collect(Collectors.groupingBy(AbTestConfig::getTag));
             params.put(ParamKey.AB_TEST_CONFIG_CACHE_KEY, abTestConfig);
             messageQueue.putMessage(EventType.AB_TEST_CONFIG_LOAD_RESPONSE, params);
           } catch (Exception e) {
