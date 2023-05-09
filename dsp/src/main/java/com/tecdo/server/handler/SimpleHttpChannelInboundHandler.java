@@ -64,6 +64,10 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
       case RequestPath.PING:
         eventType = EventType.RECEIVE_PING_REQUEST;
         break;
+        // todo 临时做法
+      case RequestPath.LOSS:
+        eventType = EventType.RECEIVE_PING_REQUEST;
+        break;
       default:
         eventType = EventType.RESPONSE_RESULT;
         params.put(ParamKey.HTTP_CODE, HttpCode.NOT_FOUND);

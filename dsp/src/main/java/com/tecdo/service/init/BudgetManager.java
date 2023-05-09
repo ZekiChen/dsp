@@ -9,7 +9,7 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.adm.api.delivery.entity.doris.AdGroupCost;
+import com.tecdo.entity.doris.AdGroupCost;
 import com.tecdo.mapper.doris.AdGroupCostMapper;
 
 import org.springframework.beans.factory.annotation.Autowired;

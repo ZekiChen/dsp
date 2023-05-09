@@ -40,11 +40,17 @@ public abstract class AbstractTransform implements IProtoTransform {
   private final String winUrl = SpringUtil.getProperty("pac.notice.win-url");
   private final String impUrl = SpringUtil.getProperty("pac.notice.imp-url");
   private final String clickUrl = SpringUtil.getProperty("pac.notice.click-url");
+  private final String lossUrl = SpringUtil.getProperty("pac.notice.loss-url");
   private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
+  private final String AUCTION_LOSS_PARAM = "&loss_code=${AUCTION_LOSS}";
 
   public abstract String deepLinkFormat(String deepLink);
 
   public abstract boolean useBurl();
+
+  public abstract boolean buildAdmObject();
+
+  public abstract boolean useLossUrl();
 
   @Override
   public BidRequest requestTransform(String req) {
@@ -88,12 +94,21 @@ public abstract class AbstractTransform implements IProtoTransform {
     String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
     String winUrl =
       urlFormat(this.winUrl, sign, wrapper, bidRequest, affiliate) + AUCTION_PRICE_PARAM;
+    if (useLossUrl()) {
+      String lossUrl =
+        urlFormat(this.lossUrl, sign, wrapper, bidRequest, affiliate) + AUCTION_LOSS_PARAM;
+      bid.setLurl(lossUrl);
+    }
     if (useBurl()) {
       bid.setBurl(SignHelper.urlAddSign(winUrl, sign));
     } else {
       bid.setNurl(SignHelper.urlAddSign(winUrl, sign));
     }
-    bid.setAdm(buildAdm(wrapper, bidRequest, affiliate));
+    if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType()) && buildAdmObject()) {
+      bid.setAdmobject(buildAdm(wrapper, bidRequest, affiliate));
+    } else {
+      bid.setAdm((String) buildAdm(wrapper, bidRequest, affiliate));
+    }
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
     bid.setBundle(adDTO.getCampaign().getPackageName());
@@ -114,9 +129,9 @@ public abstract class AbstractTransform implements IProtoTransform {
 
   }
 
-  private String buildAdm(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
+  private Object buildAdm(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
     AdDTO adDTO = wrapper.getAdDTO();
-    String adm = null;
+    Object adm = null;
     String impTrackUrls = adDTO.getAdGroup().getImpTrackUrls();
     List<String> impTrackList = new ArrayList<>();
     String systemImpTrack = this.impUrl + AUCTION_PRICE_PARAM;
@@ -168,12 +183,18 @@ public abstract class AbstractTransform implements IProtoTransform {
                                deepLink,
                                impTrackList,
                                clickTrackList);
-      if (imp.getNative1().getNativeRequestWrapper() != null) {
+      if (buildAdmObject()) {
         NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
         nativeResponseWrapper.setNativeResponse(nativeResponse);
-        adm = JsonHelper.toJSONString(nativeResponseWrapper);
+        adm = nativeResponseWrapper;
       } else {
-        adm = JsonHelper.toJSONString(nativeResponse);
+        if (imp.getNative1().getNativeRequestWrapper() != null) {
+          NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
+          nativeResponseWrapper.setNativeResponse(nativeResponse);
+          adm = JsonHelper.toJSONString(nativeResponseWrapper);
+        } else {
+          adm = JsonHelper.toJSONString(nativeResponse);
+        }
       }
     }
     return adm;

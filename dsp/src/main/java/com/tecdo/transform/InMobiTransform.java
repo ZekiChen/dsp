@@ -20,4 +20,14 @@ public class InMobiTransform extends AbstractTransform implements IProtoTransfor
   public boolean useBurl() {
     return true;
   }
+
+  @Override
+  public boolean buildAdmObject() {
+    return true;
+  }
+
+  @Override
+  public boolean useLossUrl() {
+    return true;
+  }
 }

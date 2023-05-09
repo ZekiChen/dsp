@@ -1,4 +1,4 @@
-package com.tecdo.adm.api.delivery.entity.doris;
+package com.tecdo.entity.doris;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
