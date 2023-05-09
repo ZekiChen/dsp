@@ -30,6 +30,8 @@ public class Creative extends BaseEntity {
     private Integer height;
     @ApiModelProperty("素材URL")
     private String url;
+    @ApiModelProperty(value = "素材IAB类别", notes = "ContentCategoryEnum")
+    private String catIab;
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
     @TableField(fill = FieldFill.INSERT)
     private Integer status;

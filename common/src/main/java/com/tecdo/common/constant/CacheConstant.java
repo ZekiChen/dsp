@@ -18,6 +18,7 @@ public interface CacheConstant {
 	String CAMPAIGN_CACHE = "pac:adm:campaign";
 	String AD_GROUP_CACHE = "pac:adm:adGroup";
 	String AD_CACHE = "pac:adm:ad";
+	String CREATIVE_CACHE = "pac:adm:creative";
 	String ADV_CACHE = "pac:adm:adv";
 	// system
 	String DICT_CACHE = "pac:adm:dict";
