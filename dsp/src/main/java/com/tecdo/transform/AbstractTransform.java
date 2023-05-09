@@ -40,13 +40,17 @@ public abstract class AbstractTransform implements IProtoTransform {
   private final String winUrl = SpringUtil.getProperty("pac.notice.win-url");
   private final String impUrl = SpringUtil.getProperty("pac.notice.imp-url");
   private final String clickUrl = SpringUtil.getProperty("pac.notice.click-url");
+  private final String lossUrl = SpringUtil.getProperty("pac.notice.loss-url");
   private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
+  private final String AUCTION_LOSS_PARAM = "&loss_code=${AUCTION_LOSS}";
 
   public abstract String deepLinkFormat(String deepLink);
 
   public abstract boolean useBurl();
 
   public abstract boolean buildAdmObject();
+
+  public abstract boolean useLossUrl();
 
   @Override
   public BidRequest requestTransform(String req) {
@@ -90,6 +94,11 @@ public abstract class AbstractTransform implements IProtoTransform {
     String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
     String winUrl =
       urlFormat(this.winUrl, sign, wrapper, bidRequest, affiliate) + AUCTION_PRICE_PARAM;
+    if (useLossUrl()) {
+      String lossUrl =
+        urlFormat(this.lossUrl, sign, wrapper, bidRequest, affiliate) + AUCTION_LOSS_PARAM;
+      bid.setLurl(lossUrl);
+    }
     if (useBurl()) {
       bid.setBurl(SignHelper.urlAddSign(winUrl, sign));
     } else {

@@ -19,4 +19,9 @@ public class O25N11Transform extends AbstractTransform implements IProtoTransfor
   public boolean buildAdmObject() {
     return false;
   }
+
+  @Override
+  public boolean useLossUrl() {
+    return false;
+  }
 }

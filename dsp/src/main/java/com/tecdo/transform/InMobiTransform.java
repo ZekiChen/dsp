@@ -25,4 +25,9 @@ public class InMobiTransform extends AbstractTransform implements IProtoTransfor
   public boolean buildAdmObject() {
     return true;
   }
+
+  @Override
+  public boolean useLossUrl() {
+    return true;
+  }
 }

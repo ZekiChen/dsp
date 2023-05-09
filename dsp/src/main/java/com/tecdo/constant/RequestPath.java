@@ -14,4 +14,6 @@ public interface RequestPath {
 
   String PB = "/pb";
 
+  String LOSS = "/loss";
+
 }
