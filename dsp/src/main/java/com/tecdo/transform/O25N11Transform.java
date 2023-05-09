@@ -9,4 +9,9 @@ public class O25N11Transform extends AbstractTransform implements IProtoTransfor
   public String deepLinkFormat(String deepLink) {
     return deepLink;
   }
+
+  @Override
+  public boolean useBurl() {
+    return false;
+  }
 }

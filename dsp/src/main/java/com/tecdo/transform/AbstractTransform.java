@@ -44,6 +44,8 @@ public abstract class AbstractTransform implements IProtoTransform {
 
   public abstract String deepLinkFormat(String deepLink);
 
+  public abstract boolean useBurl();
+
   @Override
   public BidRequest requestTransform(String req) {
     BidRequest bidRequest = JsonHelper.parseObject(req, BidRequest.class);
@@ -86,7 +88,11 @@ public abstract class AbstractTransform implements IProtoTransform {
     String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
     String winUrl =
       urlFormat(this.winUrl, sign, wrapper, bidRequest, affiliate) + AUCTION_PRICE_PARAM;
-    bid.setNurl(SignHelper.urlAddSign(winUrl, sign));
+    if (useBurl()) {
+      bid.setBurl(SignHelper.urlAddSign(winUrl, sign));
+    } else {
+      bid.setNurl(SignHelper.urlAddSign(winUrl, sign));
+    }
     bid.setAdm(buildAdm(wrapper, bidRequest, affiliate));
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
@@ -102,6 +108,7 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     SeatBid seatBid = new SeatBid();
     seatBid.setBid(Collections.singletonList(bid));
+    seatBid.setSeat("agency");
     bidResponse.setSeatbid(Collections.singletonList(seatBid));
     return bidResponse;
 
