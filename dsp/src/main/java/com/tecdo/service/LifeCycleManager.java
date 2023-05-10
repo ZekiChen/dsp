@@ -10,7 +10,6 @@ import com.tecdo.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.*;
 
-import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -47,7 +46,7 @@ public class LifeCycleManager {
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 7;
+  private final int needInitCount = 8;
 
   @Value("${server.port}")
   private int serverPort;

@@ -2,7 +2,6 @@ package com.tecdo.service.init;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 
-import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
@@ -17,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -39,7 +37,7 @@ public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
     private State currentState = State.INIT;
     private long timerId;
 
-    private Map<Long, List<AfSync>> afSyncMap;
+    private Map<Integer, List<AfSync>> afSyncMap;
 
     @Value("${pac.timeout.load.db.default}")
     private long loadTimeout;
@@ -47,11 +45,11 @@ public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
     private long reloadInterval;
 
 
-    public Map<Long, List<AfSync>> getAfSyncMap() {
+    public Map<Integer, List<AfSync>> getAfSyncMap() {
         return afSyncMap;
     }
 
-    public List<AfSync> getAfSyncList(Long containerId) {
+    public List<AfSync> getAfSyncList(Integer containerId) {
         return afSyncMap.get(containerId);
     }
 
@@ -117,7 +115,7 @@ public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
                 threadPool.execute(() -> {
                     try {
                         List<AfSync> afSyncList = list();
-                        Map<Long, List<AfSync>> afSyncMap = new HashMap<>();
+                        Map<Integer, List<AfSync>> afSyncMap =
                         afSyncList
                             .stream()
                             .filter(v -> v.getHasSync() && v.getIsEnable())
@@ -141,7 +139,7 @@ public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
                 messageQueue.putMessage(EventType.ONE_DATA_READY);
-                break;
+                // no break
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.afSyncMap = params.get(ParamKey.AF_AUDIENCE_SYNC_KEY);

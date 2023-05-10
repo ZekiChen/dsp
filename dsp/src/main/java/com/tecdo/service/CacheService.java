@@ -37,6 +37,7 @@ public class CacheService {
     private final static String HAS_WIN_CACHE = "has-win";
     private final static String HAS_IMP_CACHE = "has-imp";
     private final static String HAS_CLICK_CACHE = "has-click";
+    private final static String AF_CACHE = "af";
 
     @Value("${pac.notice.expire.click}")
     private long clickExpire;
@@ -144,17 +145,16 @@ public class CacheService {
         return false;
     }
 
-    public String getAudienceSyncBloomFilterKey(Long containerId) {
+    public String getAudienceSyncBloomFilterKey(Integer containerId) {
         List<AfSync> afSyncList = afAudienceSyncManager.getAfSyncList(containerId);
         if(!CollectionUtils.isEmpty(afSyncList)) {
             Optional<AfSync> maxItem = afSyncList.stream()
                     .max(Comparator.comparing(AfSync::getVersionMillis));
-            if (maxItem.isPresent()) {
-                return maxItem.get().getContainerId().toString() + '_' + maxItem.get().getVersionMillis().toString();
-            }else {
-                return null;
-            }
-
+            return maxItem.map(afSync -> CacheConstant.AUDIENCE_CACHE
+              .concat(StrUtil.COLON).concat(AF_CACHE)
+              .concat(StrUtil.COLON).concat(maxItem.get().getContainerId().toString())
+              .concat(StrUtil.COLON).concat(maxItem.get().getVersionMillis().toString()))
+                          .orElse(null);
         }
         return null;
     }

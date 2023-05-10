@@ -21,7 +21,7 @@ public enum ConditionEnum {
     DEVICE_OS("device_os"),
     DEVICE_OSV("device_osv"),
     HOUR("hour"),
-    AUDIENCE("audience"),
+    AUDIENCE_AF("audience_af"),
     ;
 
     private final String desc;

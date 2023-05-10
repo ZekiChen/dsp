@@ -11,8 +11,6 @@ import com.tecdo.service.CacheService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
-import java.util.List;
-
 /**
  * @author sisyphus.su
  * @description: AF人群包过滤器
@@ -21,24 +19,24 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 public class AfAudienceFilter  extends AbstractRecallFilter{
-    private static final String AUDIENCE = ConditionEnum.AUDIENCE.getDesc();
+    private static final String AUDIENCE_AF = ConditionEnum.AUDIENCE_AF.getDesc();
 
     private final CacheService cacheService;
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditions().stream().filter(v-> AUDIENCE.equals(v.getAttribute())).findFirst().orElse(null);
+        TargetCondition condition = adDTO.getConditions().stream().filter(v-> AUDIENCE_AF.equals(v.getAttribute())).findFirst().orElse(null);
         if (condition == null) {
             return true;
         }
         //匹配布隆过滤器 需要调整成sha256
-        String deviceId = new String(DigestUtil.sha256(bidRequest.getDevice().getIfa()));
+        String sha256 = DigestUtil.sha256Hex(bidRequest.getDevice().getIfa());
 
         String[] containerIdList = condition.getValue().split(",");
 
         for (String containerId : containerIdList) {
-            String key = cacheService.getAudienceSyncBloomFilterKey(Long.valueOf(containerId));
-            if (key != null && cacheService.existInBloomFilter(key, deviceId)) {
+            String key = cacheService.getAudienceSyncBloomFilterKey(Integer.valueOf(containerId));
+            if (key != null && cacheService.existInBloomFilter(key, sha256)) {
                 return true;
             }
         }
