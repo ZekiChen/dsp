@@ -31,6 +31,7 @@ public class RecallFiltersFactory {
     private final BudgetFilter budgetFilter;
     private final ImpFrequencyFilter impFrequencyFilter;
     private final ClickFrequencyFilter clickFrequencyFilter;
+    private final AfAudienceFilter afAudienceFilter;
 
     /**
      * 获取广告召回流程所需的全部过滤器集
@@ -48,6 +49,7 @@ public class RecallFiltersFactory {
                                      timePeriodFilter,
                                      budgetFilter,
                                      impFrequencyFilter,
-                                     clickFrequencyFilter);
+                                     clickFrequencyFilter,
+                                     afAudienceFilter);
     }
 }

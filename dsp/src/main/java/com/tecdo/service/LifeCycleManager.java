@@ -8,14 +8,9 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.server.NetServer;
 import com.tecdo.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.server.request.HttpRequest;
-import com.tecdo.service.init.AbTestConfigManager;
-import com.tecdo.service.init.AdManager;
-import com.tecdo.service.init.AffiliateManager;
-import com.tecdo.service.init.BudgetManager;
-import com.tecdo.service.init.GooglePlayAppManager;
-import com.tecdo.service.init.IpTableManager;
-import com.tecdo.service.init.RtaInfoManager;
+import com.tecdo.service.init.*;
 
+import org.checkerframework.checker.units.qual.A;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -46,6 +41,8 @@ public class LifeCycleManager {
   private IpTableManager ipTableManager;
   @Autowired
   private MessageQueue messageQueue;
+  @Autowired
+  private AfAudienceSyncManager afAudienceSyncManager;
 
   private State currentState = State.INIT;
 
@@ -84,6 +81,12 @@ public class LifeCycleManager {
       case AFFILIATES_LOAD_ERROR:
       case AFFILIATES_LOAD_TIMEOUT:
         affManager.handleEvent(eventType, params);
+        break;
+      case AF_AUDIENCE_SYNC_TABLE_LOAD:
+      case AF_AUDIENCE_SYNC_LOAD_RESPONSE:
+      case AF_AUDIENCE_SYNC_LOAD_ERROR:
+      case AF_AUDIENCE_SYNC_LOAD_TIMEOUT:
+        afAudienceSyncManager.handleEvent(eventType, params);
         break;
       case ADS_LOAD:
       case ADS_LOAD_RESPONSE:
@@ -146,6 +149,7 @@ public class LifeCycleManager {
         abTestConfigManager.init(params);
         googlePlayAppManager.init(params);
         ipTableManager.init(params);
+        afAudienceSyncManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:

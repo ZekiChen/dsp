@@ -3,11 +3,18 @@ package com.tecdo.service;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.common.constant.CacheConstant;
+import com.tecdo.entity.AfSync;
+import com.tecdo.service.init.AfAudienceSyncManager;
 import com.tecdo.starter.redis.PacRedis;
 import lombok.RequiredArgsConstructor;
+import org.redisson.api.RBloomFilter;
+import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
+import org.springframework.util.CollectionUtils;
 
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
 import java.util.concurrent.TimeUnit;
 
@@ -21,6 +28,10 @@ import java.util.concurrent.TimeUnit;
 public class CacheService {
 
     private final PacRedis pacRedis;
+
+    private final RedissonClient redissonClient;
+
+    private final AfAudienceSyncManager afAudienceSyncManager;
 
     private final static String DAY_COUNT_CACHE = "day-count";
     private final static String HAS_WIN_CACHE = "has-win";
@@ -123,5 +134,28 @@ public class CacheService {
                 .concat(StrUtil.COLON).concat(HAS_CLICK_CACHE)
                 .concat(StrUtil.COLON).concat(bidId);
         return pacRedis.exists(key);
+    }
+
+    public Boolean existInBloomFilter(String key, String value) {
+        RBloomFilter<String> bloomFilter = redissonClient.getBloomFilter(key);
+        if (bloomFilter.isExists()) {
+            return bloomFilter.contains(value);
+        }
+        return false;
+    }
+
+    public String getAudienceSyncBloomFilterKey(Long containerId) {
+        List<AfSync> afSyncList = afAudienceSyncManager.getAfSyncList(containerId);
+        if(!CollectionUtils.isEmpty(afSyncList)) {
+            Optional<AfSync> maxItem = afSyncList.stream()
+                    .max(Comparator.comparing(AfSync::getVersionMillis));
+            if (maxItem.isPresent()) {
+                return maxItem.get().getContainerId().toString() + '_' + maxItem.get().getVersionMillis().toString();
+            }else {
+                return null;
+            }
+
+        }
+        return null;
     }
 }
