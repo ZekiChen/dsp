@@ -61,6 +61,10 @@ public class Controller implements MessageObserver {
       case IP_TABLE_LOAD_RESPONSE:
       case IP_TABLE_LOAD_ERROR:
       case IP_TABLE_LOAD_TIMEOUT:
+      case AF_AUDIENCE_SYNC_TABLE_LOAD:
+      case AF_AUDIENCE_SYNC_LOAD_RESPONSE:
+      case AF_AUDIENCE_SYNC_LOAD_ERROR:
+      case AF_AUDIENCE_SYNC_LOAD_TIMEOUT:
       case ONE_DATA_READY:
       case NETTY_START:
       case RECEIVE_PING_REQUEST:

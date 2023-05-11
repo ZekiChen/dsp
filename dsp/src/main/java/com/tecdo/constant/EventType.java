@@ -47,6 +47,11 @@ public enum EventType {
   IP_TABLE_LOAD_ERROR(1703, "ip table load failure"),
   IP_TABLE_LOAD_TIMEOUT(1704, "ip table load timeout"),
 
+  AF_AUDIENCE_SYNC_TABLE_LOAD(1801, "af audience sync load"),
+  AF_AUDIENCE_SYNC_LOAD_RESPONSE(1802, "af audience sync load response"),
+  AF_AUDIENCE_SYNC_LOAD_ERROR(1803, "af audience sync load failure"),
+  AF_AUDIENCE_SYNC_LOAD_TIMEOUT(1804, "af audience sync load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

@@ -31,6 +31,8 @@ public interface ParamKey {
   String GP_APP_CACHE_KEY = "gp-app-cache-key";
   String IP_TABLE_CACHE_KEY = "ip-table-key";
 
+  String AF_AUDIENCE_SYNC_KEY = "af-audience-sync-key";
+
   // task-imp
   String ADS_TASK_RESPONSE = "ads-imp-key";
   String ADS_RECALL_RESPONSE = "ads-recall-response";

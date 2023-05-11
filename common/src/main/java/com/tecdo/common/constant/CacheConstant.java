@@ -12,6 +12,8 @@ public interface CacheConstant {
 	String IMP_CACHE = "pac:dsp:imp";
 	String CLICK_CACHE = "pac:dsp:click";
 
+	String AUDIENCE_CACHE = "pac:dsp:audience";
+
 	// delivery
 	String CAMPAIGN_CACHE = "pac:adm:campaign";
 	String AD_GROUP_CACHE = "pac:adm:adGroup";
