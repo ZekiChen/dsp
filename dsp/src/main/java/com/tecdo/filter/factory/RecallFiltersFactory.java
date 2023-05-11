@@ -48,8 +48,9 @@ public class RecallFiltersFactory {
                                      deviceLangFilter,
                                      appBundleFilter,
                                      budgetFilter,
+                                     afAudienceFilter,
                                      impFrequencyFilter,
-                                     clickFrequencyFilter,
-                                     afAudienceFilter);
+                                     clickFrequencyFilter
+                                     );
     }
 }
