@@ -23,6 +23,8 @@ public class AdGroupVO extends AdGroup {
 
 	@ApiModelProperty("广告活动名称")
 	private String campaignName;
+	@ApiModelProperty("渠道名称集")
+	private String affiliateNames;
 	@ApiModelProperty("定向条件集")
 	List<TargetConditionVO> conditionVOs;
 

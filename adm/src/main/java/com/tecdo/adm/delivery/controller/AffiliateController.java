@@ -2,6 +2,7 @@ package com.tecdo.adm.delivery.controller;
 
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.tecdo.adm.api.delivery.entity.AffCountryBundleBList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.vo.AffiliateVO;
 import com.tecdo.adm.delivery.service.IAffiliateService;
@@ -74,5 +75,12 @@ public class AffiliateController {
     @ApiOperation(value = "列表", notes = "无需传参")
     public R<List<BaseVO>> list() {
         return R.data(service.listIdAndName());
+    }
+
+    @PostMapping("/update-country-bundle-blist")
+    @ApiOperationSupport(order = 7)
+    @ApiOperation(value = "渠道*国家*bundle黑名单配置", notes = "传入AffCountryBundleBList")
+    public R updateCountryBundleBLists(@Valid @RequestBody List<AffCountryBundleBList> bLists) {
+        return R.data(service.updateCountryBundleBLists(bLists));
     }
 }
