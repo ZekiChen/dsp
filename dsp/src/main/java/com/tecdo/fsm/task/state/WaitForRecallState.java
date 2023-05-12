@@ -22,7 +22,7 @@ import java.util.Map;
 @RequiredArgsConstructor
 public class WaitForRecallState implements ITaskState {
 
-  private final WaitForCtrPredictState waitForCtrPredictState;
+  private final WaitForPredictState waitForPredictState;
   private final WaitForRecycleState waitForRecycleState;
 
   @Value("${pac.timeout.task.ad.p-ctr}")
@@ -39,9 +39,9 @@ public class WaitForRecallState implements ITaskState {
           task.switchState(waitForRecycleState);
           return;
         }
-        task.callCtr3Api(adDTOMap);
-        task.startTimer(EventType.CTR_PREDICT_TIMEOUT, params, timeoutPCtr);
-        task.switchState(waitForCtrPredictState);
+        task.callPredictApi(adDTOMap);
+        task.startTimer(EventType.PREDICT_TIMEOUT, params, timeoutPCtr);
+        task.switchState(waitForPredictState);
         break;
       case ADS_RECALL_ERROR:
         task.cancelTimer(EventType.ADS_RECALL_TIMEOUT);

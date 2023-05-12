@@ -3,6 +3,7 @@ package com.tecdo.transform;
 import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.constant.FormatKey;
 import com.tecdo.domain.biz.dto.AdDTO;
@@ -21,6 +22,8 @@ import com.tecdo.util.AdmGenerator;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
+
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
@@ -34,14 +37,25 @@ public abstract class AbstractTransform implements IProtoTransform {
   private final String winUrl = SpringUtil.getProperty("pac.notice.win-url");
   private final String impUrl = SpringUtil.getProperty("pac.notice.imp-url");
   private final String clickUrl = SpringUtil.getProperty("pac.notice.click-url");
+  private final String lossUrl = SpringUtil.getProperty("pac.notice.loss-url");
   private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
+  private final String AUCTION_LOSS_PARAM = "&loss_code=${AUCTION_LOSS}";
   private final String impInfoUrl = SpringUtil.getProperty("pac.notice.imp-info-url");
 
   public abstract String deepLinkFormat(String deepLink);
 
+  public abstract boolean useBurl();
+
+  public abstract boolean buildAdmObject();
+
+  public abstract boolean useLossUrl();
+
   @Override
   public BidRequest requestTransform(String req) {
     BidRequest bidRequest = JsonHelper.parseObject(req, BidRequest.class);
+    if (bidRequest == null || CollectionUtils.isEmpty(bidRequest.getImp())) {
+      return bidRequest;
+    }
     for (Imp imp : bidRequest.getImp()) {
       if (imp.getNative1() != null) {
         String nativeRequestString = imp.getNative1().getRequest();
@@ -61,9 +75,13 @@ public abstract class AbstractTransform implements IProtoTransform {
     return bidRequest;
   }
 
-  public BidResponse responseTransform(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
+  public BidResponse responseTransform(AdDTOWrapper wrapper,
+                                       BidRequest bidRequest,
+                                       Affiliate affiliate) {
     AdDTO adDTO = wrapper.getAdDTO();
     String bidId = wrapper.getBidId();
+    Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
+    Creative creative = adDTO.getCreativeMap().get(creativeId);
     BidResponse bidResponse = new BidResponse();
     bidResponse.setId(bidRequest.getId());
     bidResponse.setBidid(bidId);
@@ -74,25 +92,44 @@ public abstract class AbstractTransform implements IProtoTransform {
     String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
     String winUrl =
       urlFormat(this.winUrl, sign, wrapper, bidRequest, affiliate) + AUCTION_PRICE_PARAM;
-    bid.setNurl(SignHelper.urlAddSign(winUrl, sign));
-    bid.setAdm(buildAdm(wrapper, bidRequest, affiliate));
+    if (useLossUrl()) {
+      String lossUrl =
+        urlFormat(this.lossUrl, sign, wrapper, bidRequest, affiliate) + AUCTION_LOSS_PARAM;
+      bid.setLurl(lossUrl);
+    }
+    if (useBurl()) {
+      bid.setBurl(SignHelper.urlAddSign(winUrl, sign));
+    } else {
+      bid.setNurl(SignHelper.urlAddSign(winUrl, sign));
+    }
+    if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType()) && buildAdmObject()) {
+      bid.setAdmobject(buildAdm(wrapper, bidRequest, affiliate));
+    } else {
+      bid.setAdm((String) buildAdm(wrapper, bidRequest, affiliate));
+    }
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
     bid.setBundle(adDTO.getCampaign().getPackageName());
-    bid.setIurl(adDTO.getCreativeMap().get(CreativeHelper.getCreativeId(adDTO.getAd())).getUrl());
+    bid.setIurl(creative.getUrl());
+    if (creative.getCatIab() != null) {
+      bid.setCat(Arrays.asList(StringUtils.split(creative.getCatIab(), ",")));
+    }
+    bid.setW(creative.getWidth());
+    bid.setH(creative.getHeight());
     bid.setCid(String.valueOf(adDTO.getCampaign().getId()));
-    bid.setCrid(String.valueOf(CreativeHelper.getCreativeId(adDTO.getAd())));
+    bid.setCrid(String.valueOf(creativeId));
 
     SeatBid seatBid = new SeatBid();
     seatBid.setBid(Collections.singletonList(bid));
+    seatBid.setSeat("agency");
     bidResponse.setSeatbid(Collections.singletonList(seatBid));
     return bidResponse;
 
   }
 
-  private String buildAdm(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
+  private Object buildAdm(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
     AdDTO adDTO = wrapper.getAdDTO();
-    String adm = null;
+    Object adm = null;
     String impTrackUrls = adDTO.getAdGroup().getImpTrackUrls();
     List<String> impTrackList = new ArrayList<>();
     String systemImpTrack = this.impUrl + AUCTION_PRICE_PARAM;
@@ -146,12 +183,18 @@ public abstract class AbstractTransform implements IProtoTransform {
                                deepLink,
                                impTrackList,
                                clickTrackList);
-      if (imp.getNative1().getNativeRequestWrapper() != null) {
+      if (buildAdmObject()) {
         NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
         nativeResponseWrapper.setNativeResponse(nativeResponse);
-        adm = JsonHelper.toJSONString(nativeResponseWrapper);
+        adm = nativeResponseWrapper;
       } else {
-        adm = JsonHelper.toJSONString(nativeResponse);
+        if (imp.getNative1().getNativeRequestWrapper() != null) {
+          NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
+          nativeResponseWrapper.setNativeResponse(nativeResponse);
+          adm = JsonHelper.toJSONString(nativeResponseWrapper);
+        } else {
+          adm = JsonHelper.toJSONString(nativeResponse);
+        }
       }
     }
     return adm;

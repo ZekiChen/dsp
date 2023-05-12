@@ -70,7 +70,7 @@ public class ResponseLog implements Serializable {
     private Double pCtr;
 
     /**
-     * 英语预估ctr的模型版本
+     * 预估ctr的模型版本
      */
     @JsonProperty("p_ctr_version")
     private String pCtrVersion;
@@ -264,4 +264,18 @@ public class ResponseLog implements Serializable {
     @JsonProperty("reviews")
     private Long reviews;
 
+    @JsonProperty("rta_token")
+    private String rtaToken;
+
+    /**
+     * 预估cvr
+     */
+    @JsonProperty("p_cvr")
+    private Double pCvr;
+
+    /**
+     * 预估cvr的模型版本
+     */
+    @JsonProperty("p_cvr_version")
+    private String pCvrVersion;
 }

@@ -61,6 +61,7 @@ public class ConditionHelper {
                     // 比如控制小时投放，20点到8点可投放
                     return num1 <= sourceNum || sourceNum <= num2;
                 }
+                // todo 当数据量多时，这里存在性能问题
             case INCLUDE:
                 return Arrays.stream(target.split(",")).anyMatch(i -> i.equalsIgnoreCase(source));
             case EXCLUDE:

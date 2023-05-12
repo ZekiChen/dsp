@@ -5,4 +5,5 @@ dependencies {
 
     implementation 'io.protostuff:protostuff-core'
     implementation 'io.protostuff:protostuff-runtime'
+    implementation 'org.redisson:redisson:3.8.2'
 }

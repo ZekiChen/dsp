@@ -14,6 +14,8 @@ public interface CacheConstant {
 	String NOTICE_CACHE = "pac:dsp:notice";
 	String RTA_CACHE = "pac:dsp:rta";
 
+	String AUDIENCE_CACHE = "pac:dsp:audience";
+
 	// delivery
 	String CAMPAIGN_CACHE = "pac:adm:campaign";
 	String AD_GROUP_CACHE = "pac:adm:adGroup";

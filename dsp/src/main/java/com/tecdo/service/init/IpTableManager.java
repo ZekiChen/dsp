@@ -129,6 +129,7 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
       case UPDATING:
         cancelReloadTimeoutTimer();
         this.ipItemMap = params.get(ParamKey.IP_TABLE_CACHE_KEY);
+        log.info("ip table load success");
         startNextReloadTimer(params);
         switchState(State.RUNNING);
         break;

@@ -3,18 +3,17 @@ package com.tecdo.fsm.task.state;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
-import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.fsm.task.Task;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Map;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 该状态内会计算出价
- *
+ * <p>
  * 受限点击成本：
  * cpc = AdGroup::optPrice * pctr * 1000
  * cpm = AdGroup::optPrice
@@ -25,7 +24,7 @@ import java.util.Map;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class WaitForCtrPredictState implements ITaskState {
+public class WaitForPredictState implements ITaskState {
 
   private final WaitForCalcPriceState waitForCalcPriceState;
   private final WaitForRecycleState waitForRecycleState;
@@ -36,19 +35,22 @@ public class WaitForCtrPredictState implements ITaskState {
   @Override
   public void handleEvent(EventType eventType, Params params, Task task) {
     switch (eventType) {
-      case CTR_PREDICT_FINISH:
-        task.cancelTimer(EventType.CTR_PREDICT_TIMEOUT);
-        Map<Integer, AdDTOWrapper> adDTOMap = params.get(ParamKey.ADS_P_CTR_RESPONSE);
-        task.calcPrice(adDTOMap);
-        task.startTimer(EventType.CALC_CPC_TIMEOUT, params, timeoutCalcPrice);
-        task.switchState(waitForCalcPriceState);
+      case PREDICT_FINISH:
+        task.savePredictResponse(params.get(ParamKey.ADS_P_CTR_RESPONSE));
+        boolean receiveAllPredictResponse = task.isReceiveAllPredictResponse();
+        if (receiveAllPredictResponse) {
+          task.cancelTimer(EventType.PREDICT_TIMEOUT);
+          task.calcPrice();
+          task.startTimer(EventType.CALC_CPC_TIMEOUT, params, timeoutCalcPrice);
+          task.switchState(waitForCalcPriceState);
+        }
         break;
-      case CTR_PREDICT_ERROR:
-        task.cancelTimer(EventType.CTR_PREDICT_TIMEOUT);
+      case PREDICT_ERROR:
+        task.cancelTimer(EventType.PREDICT_TIMEOUT);
         task.notifyFailed();
         task.switchState(waitForRecycleState);
         break;
-      case CTR_PREDICT_TIMEOUT:
+      case PREDICT_TIMEOUT:
         task.notifyFailed();
         task.switchState(waitForCalcPriceState);
         break;

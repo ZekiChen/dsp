@@ -15,4 +15,19 @@ public class InMobiTransform extends AbstractTransform implements IProtoTransfor
     }
     return deepLink;
   }
+
+  @Override
+  public boolean useBurl() {
+    return true;
+  }
+
+  @Override
+  public boolean buildAdmObject() {
+    return true;
+  }
+
+  @Override
+  public boolean useLossUrl() {
+    return true;
+  }
 }
