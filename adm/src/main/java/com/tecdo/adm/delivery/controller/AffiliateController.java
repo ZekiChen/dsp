@@ -1,5 +1,6 @@
 package com.tecdo.adm.delivery.controller;
 
+import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.AffCountryBundleBList;
@@ -37,6 +38,7 @@ public class AffiliateController {
     @ApiOperationSupport(order = 1)
     @ApiOperation(value = "新增", notes = "传入Affiliate")
     public R save(@Valid @RequestBody Affiliate affiliate) {
+        affiliate.setSecret(IdUtil.fastSimpleUUID().substring(0,16).toUpperCase());
         return R.status(service.save(affiliate));
     }
 
