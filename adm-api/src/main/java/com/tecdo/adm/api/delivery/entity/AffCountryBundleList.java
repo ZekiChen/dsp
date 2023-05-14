@@ -10,14 +10,14 @@ import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
 
 /**
- * 渠道*国家*bundle黑名单表
+ * 渠道*国家*bundle黑白名单表
  *
  * Created by Zeki on 2023/5/11
  */
 @Data
-@TableName("aff_country_bundle_blist")
-@ApiModel(value = "AffCountryBundleBList对象")
-public class AffCountryBundleBList extends IdEntity {
+@TableName("aff_country_bundle_list")
+@ApiModel(value = "AffCountryBundleList对象")
+public class AffCountryBundleList extends IdEntity {
 
     @ApiModelProperty("渠道ID")
     @NotNull
@@ -25,7 +25,10 @@ public class AffCountryBundleBList extends IdEntity {
     @ApiModelProperty("国家三位码")
     @NotBlank
     private String country;
-    @ApiModelProperty("包名")
+    @ApiModelProperty(value = "操作符", example = "include/exclude")
+    @NotBlank
+    private String operation;
+    @ApiModelProperty("包名，多个逗号分割")
     private String bundle;
 
 }

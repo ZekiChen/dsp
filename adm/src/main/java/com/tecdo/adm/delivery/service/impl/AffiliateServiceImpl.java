@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tecdo.adm.api.delivery.entity.AffCountryBundleBList;
+import com.tecdo.adm.api.delivery.entity.AffCountryBundleList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.mapper.AffiliateMapper;
 import com.tecdo.adm.delivery.service.IAffCountryBundleBListService;
@@ -33,16 +33,22 @@ public class AffiliateServiceImpl extends ServiceImpl<AffiliateMapper, Affiliate
 
     @Override
     @Transactional
-    public Boolean updateCountryBundleBLists(List<AffCountryBundleBList> bLists) {
-        if (CollUtil.isEmpty(bLists)) {
+    public Boolean updateCountryBundleLists(List<AffCountryBundleList> lists) {
+        if (CollUtil.isEmpty(lists)) {
             return false;
         }
-        Integer affiliateId = bLists.get(0).getAffiliateId();
-        affCountryBundleBListService.remove(Wrappers.<AffCountryBundleBList>lambdaQuery().eq(AffCountryBundleBList::getAffiliateId, affiliateId));
-        affCountryBundleBListService.saveBatch(bLists);
-        List<Integer> bListIds = bLists.stream().filter(e -> StrUtil.isBlank(e.getBundle()))
-                .map(AffCountryBundleBList::getId).collect(Collectors.toList());
+        Integer affiliateId = lists.get(0).getAffiliateId();
+        affCountryBundleBListService.remove(Wrappers.<AffCountryBundleList>lambdaQuery().eq(AffCountryBundleList::getAffiliateId, affiliateId));
+        affCountryBundleBListService.saveBatch(lists);
+        List<Integer> bListIds = lists.stream().filter(e -> StrUtil.isBlank(e.getBundle()))
+                .map(AffCountryBundleList::getId).collect(Collectors.toList());
         affCountryBundleBListService.removeBatchByIds(bListIds);
         return true;
+    }
+
+    @Override
+    public List<AffCountryBundleList> affCountryBundleLists(Integer affiliateId) {
+        return affCountryBundleBListService.list(Wrappers.<AffCountryBundleList>lambdaQuery()
+                .eq(AffCountryBundleList::getAffiliateId, affiliateId));
     }
 }
