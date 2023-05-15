@@ -32,6 +32,7 @@ public class AdGroupWrapper extends EntityWrapper<AdGroup, AdGroupVO> {
 		List<TargetConditionVO> conditionVOs = Objects.requireNonNull(BeanUtil.copy(conditions, TargetConditionVO.class));
 		vo.setConditionVOs(conditionVOs);
 		setAffNames(vo, conditionVOs);
+		setCountries(vo, conditionVOs);
 		return vo;
 	}
 
@@ -44,6 +45,12 @@ public class AdGroupWrapper extends EntityWrapper<AdGroup, AdGroupVO> {
 			List<String> affNames = AffiliateCache.listName(BigTool.toIntList(affiliateIds));
 			vo.setAffiliateNames(BigTool.join(affNames));
 		}
+	}
+
+	private void setCountries(AdGroupVO vo, List<TargetConditionVO> conditionVOs) {
+		conditionVOs.stream()
+				.filter(e -> ConditionEnum.DEVICE_COUNTRY.getDesc().equals(e.getAttribute()))
+				.findFirst().ifPresent(affCondition -> vo.setCountries(affCondition.getValue()));
 	}
 
 }
