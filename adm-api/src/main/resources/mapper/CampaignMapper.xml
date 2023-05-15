@@ -30,8 +30,11 @@
         <if test="campaign.status != null">
             and status = #{campaign.status}
         </if>
-        <if test="campaign.advId != null">
-            and adv_id = #{campaign.advId}
+        <if test="advIds != null and advIds.size > 0">
+           and c.adv_id IN
+            <foreach collection="advIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
         </if>
         <if test="campaign.name != null and campaign.name != ''">
             and name like concat(concat('%', #{campaign.name}),'%')

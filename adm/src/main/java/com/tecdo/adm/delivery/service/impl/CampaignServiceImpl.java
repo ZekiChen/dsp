@@ -110,8 +110,9 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
 
     @Override
     public IPage<Campaign> customPage(IPage<Campaign> page, Campaign campaign,
+                                      List<Integer> advIds,
                                       List<Integer> adGroupIds, String adGroupName,
                                       List<Integer> adIds, String adName) {
-        return baseMapper.customPage(page, campaign, adGroupIds, adGroupName, adIds, adName);
+        return baseMapper.customPage(page, campaign, advIds, adGroupIds, adGroupName, adIds, adName);
     }
 }
