@@ -3,7 +3,6 @@ package com.tecdo.filter;
 import cn.hutool.core.io.resource.ResourceUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.sun.istack.internal.NotNull;
 import com.tecdo.adm.api.delivery.entity.*;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
@@ -90,7 +89,6 @@ public class RecallFilterTest {
 
     // ====================================================================================================
 
-    @NotNull
     private List<AbstractRecallFilter> initAllRecallFilter() {
         List<AbstractRecallFilter> filters = filtersFactory.createFilters();
         FilterChainHelper.assemble(filters);
@@ -110,7 +108,6 @@ public class RecallFilterTest {
         return JSON.parseObject(ResourceUtil.readUtf8Str(resourcePath), BidRequest.class);
     }
 
-    @NotNull
     private Affiliate initDefaultAffiliate() {
         Affiliate affiliate = new Affiliate();
         affiliate.setId(1);
@@ -124,7 +121,6 @@ public class RecallFilterTest {
         return affiliate;
     }
 
-    @NotNull
     private AdDTO initDefaultAdDTO() {
         return AdDTO.builder()
                 .ad(buidAd())

@@ -30,5 +30,8 @@ public interface IAdGroupService extends IService<AdGroup> {
 
     boolean editListInfo(SimpleAdGroupUpdateVO vo);
 
-    IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds, List<String> affiliateIds);
+    IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup,
+                              List<Integer> campaignIds, String campaignName,
+                              List<Integer> adIds, String adName,
+                              List<String> affiliateIds);
 }

@@ -3,6 +3,7 @@ package com.tecdo.adm.delivery.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.Creative;
+import com.tecdo.adm.api.delivery.vo.CreativeSpecVO;
 import com.tecdo.adm.api.delivery.vo.CreativeVO;
 import com.tecdo.adm.delivery.service.ICreativeService;
 import com.tecdo.adm.delivery.wrapper.CreativeWrapper;
@@ -19,12 +20,14 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.List;
 
-import static com.tecdo.common.constant.CacheConstant.AD_CACHE;
+import static com.tecdo.common.constant.CacheConstant.CREATIVE_CACHE;
 
 /**
  * Created by Zeki on 2023/3/10
@@ -38,13 +41,6 @@ public class CreativeController {
     private final ICreativeService service;
     private final OssTemplate ossTemplate;
 
-//    @PostMapping("/add")
-//    @ApiOperationSupport(order = 1)
-//    @ApiOperation(value = "新增", notes = "传入Creative")
-//    public R save(@Valid @RequestBody Creative creative) {
-//        return R.status(service.save(creative));
-//    }
-
     @SneakyThrows
     @PostMapping("/add")
     @ApiOperationSupport(order = 1)
@@ -53,7 +49,8 @@ public class CreativeController {
                         @RequestParam("name") String name,
                         @RequestParam("type") Integer type,
                         @RequestParam("width") Integer width,
-                        @RequestParam("height") Integer height) {
+                        @RequestParam("height") Integer height,
+                        @RequestParam("catIab") String catIab) {
         PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
         Creative creative = new Creative();
         creative.setUrl(pacFile.getUrl());
@@ -61,21 +58,15 @@ public class CreativeController {
         creative.setType(type);
         creative.setWidth(width);
         creative.setHeight(height);
+        creative.setCatIab(catIab);
         return R.status(service.save(creative));
-//        if (service.save(creative)) {
-//            CreativeFileVO vo = Objects.requireNonNull(BeanUtil.copy(pacFile, CreativeFileVO.class));
-//            vo.setCreativeId(creative.getId());
-//            return R.data(vo);
-//        } else {
-//            return R.failure();
-//        }
     }
 
     @PutMapping("/update")
     @ApiOperationSupport(order = 2)
     @ApiOperation(value = "修改", notes = "传入Creative")
     public R update(@Valid @RequestBody Creative creative) {
-        CacheUtil.clear(AD_CACHE);
+        CacheUtil.clear(CREATIVE_CACHE);
         return R.status(service.updateById(creative));
     }
 
@@ -83,7 +74,7 @@ public class CreativeController {
     @ApiOperationSupport(order = 3)
     @ApiOperation(value = "删除", notes = "传入ids")
     public R remove(@ApiParam(value = "主键集合", required = true) @RequestParam String ids) {
-        CacheUtil.clear(AD_CACHE);
+        CacheUtil.clear(CREATIVE_CACHE);
         return R.status(service.removeByIds(BigTool.toLongList(ids)));
     }
 
@@ -101,5 +92,13 @@ public class CreativeController {
     public R<IPage<CreativeVO>> page(Creative creative, PQuery query) {
         IPage<Creative> pages = service.page(PCondition.getPage(query), PCondition.getQueryWrapper(creative));
         return R.data(CreativeWrapper.build().pageVO(pages));
+    }
+
+    @GetMapping("/spec-list")
+    @ApiOperationSupport(order = 6)
+    @ApiOperation(value = "规格列表", notes = "无需传参")
+    @Cacheable(cacheNames = CREATIVE_CACHE, key = "'listSpecs'")
+    public R<List<CreativeSpecVO>> listSpecs() {
+        return R.data(service.listSpecs());
     }
 }

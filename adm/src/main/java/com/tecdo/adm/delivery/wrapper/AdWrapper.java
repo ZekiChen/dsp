@@ -5,9 +5,9 @@ import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.adm.api.delivery.vo.AdVO;
-import com.tecdo.adm.common.cache.AdCache;
 import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.common.cache.CampaignCache;
+import com.tecdo.adm.common.cache.CreativeCache;
 import com.tecdo.starter.log.exception.ServiceException;
 import com.tecdo.starter.mp.support.EntityWrapper;
 import com.tecdo.starter.tool.util.BeanUtil;
@@ -35,20 +35,20 @@ public class AdWrapper extends EntityWrapper<Ad, AdVO> {
 		Creative image;
 		switch (adType) {
 			case BANNER:
-				image = AdCache.getCreative(vo.getImage());
+				image = CreativeCache.getCreative(vo.getImage());
 				vo.setImageUrl(image.getUrl());
 				vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
 				break;
 			case NATIVE:
-				image = AdCache.getCreative(vo.getImage());
-				Creative icon = AdCache.getCreative(vo.getIcon());
+				image = CreativeCache.getCreative(vo.getImage());
+				Creative icon = CreativeCache.getCreative(vo.getIcon());
 				vo.setImageUrl(image.getUrl());
 				vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
 				vo.setIconUrl(icon.getUrl());
 				vo.setIconSize("w" + icon.getWidth() + "h" + icon.getHeight());
 				break;
 			case VIDEO:
-				vo.setVideoUrl(AdCache.getCreative(vo.getVideo()).getUrl());
+				vo.setVideoUrl(CreativeCache.getCreative(vo.getVideo()).getUrl());
 				break;
 			case AUDIO:
 				throw new ServiceException("AD type not supported yet!");

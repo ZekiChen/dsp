@@ -2,11 +2,14 @@ package com.tecdo.adm.delivery.wrapper;
 
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
+import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
 import com.tecdo.adm.api.delivery.vo.TargetConditionVO;
 import com.tecdo.adm.common.cache.AdGroupCache;
+import com.tecdo.adm.common.cache.AffiliateCache;
 import com.tecdo.adm.common.cache.CampaignCache;
 import com.tecdo.starter.mp.support.EntityWrapper;
+import com.tecdo.starter.tool.BigTool;
 import com.tecdo.starter.tool.util.BeanUtil;
 
 import java.util.List;
@@ -28,7 +31,26 @@ public class AdGroupWrapper extends EntityWrapper<AdGroup, AdGroupVO> {
 		List<TargetCondition> conditions = AdGroupCache.listCondition(vo.getId());
 		List<TargetConditionVO> conditionVOs = Objects.requireNonNull(BeanUtil.copy(conditions, TargetConditionVO.class));
 		vo.setConditionVOs(conditionVOs);
+		setAffNames(vo, conditionVOs);
+		setCountries(vo, conditionVOs);
 		return vo;
+	}
+
+	private static void setAffNames(AdGroupVO vo, List<TargetConditionVO> conditionVOs) {
+		TargetConditionVO affCondition = conditionVOs.stream()
+				.filter(e -> ConditionEnum.AFFILIATE.getDesc().equals(e.getAttribute()))
+				.findFirst().orElse(null);
+		if (affCondition != null) {
+			String affiliateIds = affCondition.getValue();
+			List<String> affNames = AffiliateCache.listName(BigTool.toIntList(affiliateIds));
+			vo.setAffiliateNames(BigTool.join(affNames));
+		}
+	}
+
+	private void setCountries(AdGroupVO vo, List<TargetConditionVO> conditionVOs) {
+		conditionVOs.stream()
+				.filter(e -> ConditionEnum.DEVICE_COUNTRY.getDesc().equals(e.getAttribute()))
+				.findFirst().ifPresent(affCondition -> vo.setCountries(affCondition.getValue()));
 	}
 
 }

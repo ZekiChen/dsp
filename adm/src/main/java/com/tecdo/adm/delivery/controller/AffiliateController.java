@@ -1,7 +1,9 @@
 package com.tecdo.adm.delivery.controller;
 
+import cn.hutool.core.util.IdUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
+import com.tecdo.adm.api.delivery.entity.AffCountryBundleList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.vo.AffiliateVO;
 import com.tecdo.adm.delivery.service.IAffiliateService;
@@ -36,6 +38,7 @@ public class AffiliateController {
     @ApiOperationSupport(order = 1)
     @ApiOperation(value = "新增", notes = "传入Affiliate")
     public R save(@Valid @RequestBody Affiliate affiliate) {
+        affiliate.setSecret(IdUtil.fastSimpleUUID().substring(0,16).toUpperCase());
         return R.status(service.save(affiliate));
     }
 
@@ -74,5 +77,19 @@ public class AffiliateController {
     @ApiOperation(value = "列表", notes = "无需传参")
     public R<List<BaseVO>> list() {
         return R.data(service.listIdAndName());
+    }
+
+    @PostMapping("/update-country-bundle-list")
+    @ApiOperationSupport(order = 7)
+    @ApiOperation(value = "配置渠道*国家*bundle黑白名单", notes = "传入AffCountryBundleList")
+    public R updateCountryBundleLists(@Valid @RequestBody List<AffCountryBundleList> bLists) {
+        return R.data(service.updateCountryBundleLists(bLists));
+    }
+
+    @GetMapping("/country-bundle-list/{affiliateId}")
+    @ApiOperationSupport(order = 8)
+    @ApiOperation(value = "查询渠道*国家*bundle黑白名单", notes = "传入affiliateId")
+    public R<List<AffCountryBundleList>> affCountryBundleLists(@PathVariable("affiliateId") Integer affiliateId) {
+        return R.data(service.affCountryBundleLists(affiliateId));
     }
 }
