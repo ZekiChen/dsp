@@ -16,4 +16,6 @@ public interface RequestPath {
   String PB_AE = "/pb/ae";
 
   String IMP_INFO = "/imp-info";
+  String LOSS = "/loss";
+
 }

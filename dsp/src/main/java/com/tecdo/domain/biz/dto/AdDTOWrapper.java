@@ -31,6 +31,16 @@ public class AdDTOWrapper {
   private String pCtrVersion;
 
   /**
+   * 预估的cvr
+   */
+  private Double pCvr;
+
+  /**
+   * 英语预估cvr的模型版本
+   */
+  private String pCvrVersion;
+
+  /**
    * 出价cpc
    */
   private BigDecimal bidPrice;

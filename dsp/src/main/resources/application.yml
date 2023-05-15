@@ -23,3 +23,7 @@ spring:
           url: ${data-center.datasource.doris.url}
           username: ${data-center.datasource.doris.username}
           password: ${data-center.datasource.doris.password}
+        afmysql:
+          url: ${pac.datasource.af.url}
+          username: ${pac.datasource.af.username}
+          password: ${pac.datasource.af.password}

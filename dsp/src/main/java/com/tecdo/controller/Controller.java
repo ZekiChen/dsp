@@ -65,6 +65,10 @@ public class Controller implements MessageObserver {
       case ADV_LOAD_RESPONSE:
       case ADV_LOAD_ERROR:
       case ADV_LOAD_TIMEOUT:
+      case AF_AUDIENCE_SYNC_TABLE_LOAD:
+      case AF_AUDIENCE_SYNC_LOAD_RESPONSE:
+      case AF_AUDIENCE_SYNC_LOAD_ERROR:
+      case AF_AUDIENCE_SYNC_LOAD_TIMEOUT:
       case ONE_DATA_READY:
       case NETTY_START:
       case RECEIVE_PING_REQUEST:
@@ -97,9 +101,9 @@ public class Controller implements MessageObserver {
       case ADS_RECALL_FINISH:
       case ADS_RECALL_ERROR:
       case ADS_RECALL_TIMEOUT:
-      case CTR_PREDICT_FINISH:
-      case CTR_PREDICT_ERROR:
-      case CTR_PREDICT_TIMEOUT:
+      case PREDICT_FINISH:
+      case PREDICT_ERROR:
+      case PREDICT_TIMEOUT:
       case CALC_CPC_FINISH:
       case CALC_CPC_ERROR:
       case CALC_CPC_TIMEOUT:

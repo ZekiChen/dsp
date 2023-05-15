@@ -56,6 +56,11 @@ public class Bid extends Extension {
     private String adm;
 
     /**
+     * inmobi专用字段
+     */
+    private Object admobject;
+
+    /**
      * 预加载的广告ID, 可以在交易胜出的时候使用
      */
     private String adid;

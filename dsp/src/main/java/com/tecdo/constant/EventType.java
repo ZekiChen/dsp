@@ -52,6 +52,11 @@ public enum EventType {
   ADV_LOAD_ERROR(1803, "adv list load failure"),
   ADV_LOAD_TIMEOUT(1804, "adv list load timeout"),
 
+  AF_AUDIENCE_SYNC_TABLE_LOAD(1901, "af audience sync load"),
+  AF_AUDIENCE_SYNC_LOAD_RESPONSE(1902, "af audience sync load response"),
+  AF_AUDIENCE_SYNC_LOAD_ERROR(1903, "af audience sync load failure"),
+  AF_AUDIENCE_SYNC_LOAD_TIMEOUT(1904, "af audience sync load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 
@@ -82,9 +87,9 @@ public enum EventType {
   ADS_RECALL_ERROR(4003, "ads recall error"),
   ADS_RECALL_TIMEOUT(4004, "ads recall timeout"),
 
-  CTR_PREDICT_FINISH(4101, "ctr predict finish"),
-  CTR_PREDICT_ERROR(4102, "ctr predict error"),
-  CTR_PREDICT_TIMEOUT(4103, "ctr predict timeout"),
+  PREDICT_FINISH(4101, "ctr predict finish"),
+  PREDICT_ERROR(4102, "ctr predict error"),
+  PREDICT_TIMEOUT(4103, "ctr predict timeout"),
 
   CALC_CPC_FINISH(4201, "calculate cpc finish"),
   CALC_CPC_ERROR(4202, "calculate cpc error"),
