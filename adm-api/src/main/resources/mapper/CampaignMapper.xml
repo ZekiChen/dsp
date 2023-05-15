@@ -25,10 +25,10 @@
             LEFT JOIN ad ad ON g.id = ad.group_id
         WHERE 1=1
         <if test="campaign.id != null">
-            and id = #{campaign.id}
+            and c.id = #{campaign.id}
         </if>
         <if test="campaign.status != null">
-            and status = #{campaign.status}
+            and c.status = #{campaign.status}
         </if>
         <if test="advIds != null and advIds.size > 0">
            and c.adv_id IN
@@ -37,10 +37,10 @@
             </foreach>
         </if>
         <if test="campaign.name != null and campaign.name != ''">
-            and name like concat(concat('%', #{campaign.name}),'%')
+            and c.name like concat(concat('%', #{campaign.name}),'%')
         </if>
         <if test="campaign.packageName != null and campaign.packageName != ''">
-            and package_name like concat(concat('%', #{campaign.packageName}),'%')
+            and c.package_name like concat(concat('%', #{campaign.packageName}),'%')
         </if>
         <if test="adGroupIds != null and adGroupIds.size > 0">
            and g.id IN
