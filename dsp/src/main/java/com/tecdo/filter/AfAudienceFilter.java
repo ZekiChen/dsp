@@ -35,8 +35,8 @@ public class AfAudienceFilter  extends AbstractRecallFilter{
         String[] containerIdList = condition.getValue().split(",");
 
         for (String containerId : containerIdList) {
-            String key = cacheService.getAudienceSyncBloomFilterKey(Integer.valueOf(containerId));
-            if (key != null && cacheService.existInBloomFilter(key, sha256)) {
+            String key = cacheService.getAudienceCache().getAudienceSyncBloomFilterKey(Integer.valueOf(containerId));
+            if (key != null && cacheService.getAudienceCache().existInBloomFilter(key, sha256)) {
                 return true;
             }
         }

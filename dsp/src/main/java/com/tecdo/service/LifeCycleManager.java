@@ -11,6 +11,7 @@ import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.AdvManager;
+import com.tecdo.service.init.AfAudienceSyncManager;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.IpTableManager;
