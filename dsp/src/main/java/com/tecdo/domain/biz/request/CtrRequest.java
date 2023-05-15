@@ -29,13 +29,6 @@ public class CtrRequest implements Serializable {
     private Integer adId;
 
     /**
-     * 日期 yyyy-MM-dd
-     */
-    @JSONField(name = "day")
-    @JsonProperty("day")
-    private String dayOld;
-
-    /**
      * adx的id
      */
     private Integer affiliateId;
@@ -75,10 +68,6 @@ public class CtrRequest implements Serializable {
      */
     private String bundleId;
 
-    @JSONField(name = "bundle")
-    @JsonProperty("bundle")
-    private String bundleOld;
-
     /**
      * 国家三字码
      */
@@ -113,20 +102,12 @@ public class CtrRequest implements Serializable {
      */
     private Integer feature1;
 
-    @JSONField(name = "rtaFeature")
-    @JsonProperty("rtaFeature")
-    private Integer rtaFeatureOld;
-
     /**
      * 投放的产品的包名
      */
     @JSONField(name = "package")
     @JsonProperty("package")
     private String packageName;
-
-    @JSONField(name = "packageName")
-    @JsonProperty("packageName")
-    private String packageNameOld;
 
     /**
      * 投放的产品的category
@@ -149,15 +130,16 @@ public class CtrRequest implements Serializable {
 
     private String deviceId;
 
+    private List<String> bundleIdCategory;
 
-    private List<String> categoryList;
+    private List<String> bundleIdTag;
 
-    private List<String> tagList;
+    private String bundleIdScore;
 
-    private String score;
+    private Long bundleIdDownload;
 
-    private Long downloads;
+    private Long bundleIdReview;
 
-    private Long reviews;
+    private String tagId;
 
 }

@@ -1,13 +1,11 @@
 package com.tecdo.fsm.task;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
-import com.tecdo.ab.util.AbTestConfigHelper;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
@@ -31,7 +29,6 @@ import com.tecdo.domain.openrtb.request.Banner;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.AbTestConfig;
 import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
@@ -55,11 +52,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -358,7 +350,6 @@ public class Task {
       googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
-                     .dayOld(DateUtil.today())
                      .affiliateId(affId)
                      .adFormat(adType.getDesc())
                      .adWidth(adWidth)
@@ -367,7 +358,6 @@ public class Task {
                      .osv(device.getOsv())
                      .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
                      .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
-                     .bundleOld(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
                      .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
                      .connectionType(device.getConnectiontype())
                      .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
@@ -377,11 +367,7 @@ public class Task {
                      .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
                                        .map(CampaignRtaInfo::getRtaFeature)
                                        .orElse(-1))
-                     .rtaFeatureOld(Optional.ofNullable(adDTO.getCampaignRtaInfo())
-                                            .map(CampaignRtaInfo::getRtaFeature)
-                                            .orElse(-1))
                      .packageName(adDTO.getCampaign().getPackageName())
-                     .packageNameOld(adDTO.getCampaign().getPackageName())
                      .category(adDTO.getCampaign().getCategory())
                      .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
                      .domain(bidRequest.getApp().getDomain())
@@ -391,11 +377,12 @@ public class Task {
                      .ua(device.getUa())
                      .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
                      .deviceId(device.getIfa())
-                     .categoryList(googleApp.getCategoryList())
-                     .tagList(googleApp.getTagList())
-                     .score(googleApp.getScore())
-                     .downloads(googleApp.getDownloads())
-                     .reviews(googleApp.getReviews())
+                     .bundleIdCategory(googleApp.getCategoryList())
+                     .bundleIdTag(googleApp.getTagList())
+                     .bundleIdScore(googleApp.getScore())
+                     .bundleIdDownload(googleApp.getDownloads())
+                     .bundleIdReview(googleApp.getReviews())
+                     .tagId(imp.getTagid())
                      .build();
   }
 
@@ -449,11 +436,12 @@ public class Task {
                      .ua(device.getUa())
                      .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
                      .deviceId(device.getIfa())
-                     .categoryList(googleApp.getCategoryList())
-                     .tagList(googleApp.getTagList())
-                     .score(googleApp.getScore())
-                     .downloads(googleApp.getDownloads())
-                     .reviews(googleApp.getReviews())
+                     .bundleIdCategory(googleApp.getCategoryList())
+                     .bundleIdTag(googleApp.getTagList())
+                     .bundleIdScore(googleApp.getScore())
+                     .bundleIdDownload(googleApp.getDownloads())
+                     .bundleIdReview(googleApp.getReviews())
+                     .tagId(imp.getTagid())
                      .build();
   }
 
