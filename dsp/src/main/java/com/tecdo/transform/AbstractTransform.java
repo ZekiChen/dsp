@@ -1,5 +1,7 @@
 package com.tecdo.transform;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
@@ -15,6 +17,7 @@ import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.domain.openrtb.response.SeatBid;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
 import com.tecdo.domain.openrtb.response.n.NativeResponseWrapper;
+import com.tecdo.service.rta.ae.AeHelper;
 import com.tecdo.util.AdmGenerator;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
@@ -25,14 +28,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import cn.hutool.extra.spring.SpringUtil;
 
 @Component
 public abstract class AbstractTransform implements IProtoTransform {
@@ -43,6 +40,7 @@ public abstract class AbstractTransform implements IProtoTransform {
   private final String lossUrl = SpringUtil.getProperty("pac.notice.loss-url");
   private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
   private final String AUCTION_LOSS_PARAM = "&loss_code=${AUCTION_LOSS}";
+  private final String impInfoUrl = SpringUtil.getProperty("pac.notice.imp-info-url");
 
   public abstract String deepLinkFormat(String deepLink);
 
@@ -158,8 +156,9 @@ public abstract class AbstractTransform implements IProtoTransform {
                                    .collect(Collectors.toList());
 
 
-    String clickUrl =
-      urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
+    String clickUrl = StrUtil.isNotBlank(wrapper.getLandingPage()) ?
+            AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper.getBidId(), sign) :
+            urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
     String deepLink =
       urlFormat(adDTO.getAdGroup().getDeeplink(), sign, wrapper, bidRequest, affiliate);
     deepLink = deepLinkFormat(deepLink);
@@ -168,7 +167,8 @@ public abstract class AbstractTransform implements IProtoTransform {
                                    deepLink,
                                    adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
                                    impTrackList,
-                                   clickTrackList);
+                                   clickTrackList,
+                                   urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate));
     }
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
       List<Imp> impList = bidRequest.getImp();

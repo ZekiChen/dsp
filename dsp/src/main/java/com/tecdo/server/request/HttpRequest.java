@@ -107,6 +107,19 @@ public class HttpRequest {
     }
   }
 
+  public Integer getParamAsInteger(String key) {
+    String value = getParamAsStr(key);
+    if (null == value) {
+      return null;
+    }
+    if (NumberUtils.isParsable(value)) {
+      return NumberUtils.toInt(value);
+    } else {
+      logger.warn("could not parse param as int:{} !", value);
+      return 0;
+    }
+  }
+
   public double getParamAsDouble(String key) {
     String value = getParamAsStr(key);
     if (null == value) {

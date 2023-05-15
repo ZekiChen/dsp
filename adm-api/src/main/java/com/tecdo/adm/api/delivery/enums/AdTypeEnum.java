@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.util.Arrays;
 
 /**
- * 物料类型
+ * 广告类型
  *
  * Created by Zeki on 2022/12/22
  **/

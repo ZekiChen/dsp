@@ -6,7 +6,6 @@ import com.tecdo.starter.mp.interceptor.PacPaginationInterceptor;
 import com.tecdo.starter.mp.interceptor.QueryInterceptor;
 import com.tecdo.starter.mp.props.MPProperties;
 import lombok.AllArgsConstructor;
-import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
@@ -17,7 +16,6 @@ import org.springframework.context.annotation.Bean;
  */
 @AutoConfiguration
 @AllArgsConstructor
-@MapperScan("com.tecdo.pac.**.mapper.**")
 @EnableConfigurationProperties(MPProperties.class)
 public class MPConfiguration {
 

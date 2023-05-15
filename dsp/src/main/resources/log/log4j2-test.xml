@@ -23,14 +23,14 @@
     </xi:include>
 
     <Loggers>
-        <AsyncLogger name="com.tecdo" level="DEBUG">
+        <AsyncLogger name="com.tecdo" level="INFO">
             <AppenderRef ref="INFO"/>
             <AppenderRef ref="WARN" level="WARN"/>
             <AppenderRef ref="ERROR" level="ERROR"/>
         </AsyncLogger>
 
-        <Root level="DEBUG">
-            <AppenderRef ref="STDOUT" level="DEBUG"/>
+        <Root level="INFO">
+            <AppenderRef ref="STDOUT" level="INFO"/>
             <AppenderRef ref="CatLog4j2Appender"/>
         </Root>
 
@@ -56,6 +56,10 @@
 
         <Logger name="pb_log" level="INFO" additivity="false">
             <AppenderRef ref="PB_LOG"/>
+        </Logger>
+
+        <Logger name="imp_info_log" level="INFO" additivity="false">
+            <AppenderRef ref="IMP_INFO_LOG"/>
         </Logger>
 
         <Logger name="validate_notice_log" level="INFO" additivity="false">

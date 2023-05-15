@@ -58,6 +58,10 @@
             <AppenderRef ref="PB_LOG"/>
         </Logger>
 
+        <Logger name="imp_info_log" level="INFO" additivity="false">
+            <AppenderRef ref="IMP_INFO_LOG"/>
+        </Logger>
+
         <Logger name="validate_notice_log" level="INFO" additivity="false">
             <AppenderRef ref="VALIDATE_NOTICE_LOG"/>
         </Logger>

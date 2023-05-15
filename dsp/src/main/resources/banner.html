@@ -1,47 +1,171 @@
-<div id="fc_dsp_banner_wrap" style="width: 100%;height: 100%;overflow: hidden;"><a target="_blank"
-                                                                                   href="{CLICK_URL}">
-  <img
-    src="{IMG_URL}"
-    border="0"
-    style="max-width:100%;max-height:100%;position:absolute;top:0;left:0;right:0;bottom:0;margin:auto;"
-    onclick="fireClickTracker()"> </a>
-  <div id="fc_dsp_banner_imp"></div>
+<div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
+    <a id="fc_dsp_banner_link" target="_blank" href="{CLICK_URL}">
+        <img
+                id="fc_dsp_banner_img"
+                src="{IMG_URL}"
+                border="0"
+                style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"
+                onClick="fireClickTracker()"
+        />
+    </a>
+    <div id="fc_dsp_banner_imp"></div>
 </div>
-<script
-  type="text/javascript">document.getElementById("fc_dsp_banner_imp").innerHTML = '{IMP_DIV_LIST}';
-var clickTrackers = [{CLICK_TRACK_URL_LIST}];
+<script type="text/javascript">
+    document.getElementById('fc_dsp_banner_imp').innerHTML = '{IMP_DIV_LIST}';
+    var clickTrackers = [{CLICK_TRACK_URL_LIST}];
+    var impInfoUrl = '{IMP_INFO_URL}';
+    var i = 0;
+    var timer = setInterval(function () {
+        i++;
+        console.log(i);
+        var e = document.getElementById('fc_dsp_banner_img');
+        var info = getBoundingClientRect(e);
+        var sty = window.getComputedStyle(e);
+        var params = {
+            width: Number(info.right) - Number(info.left),
+            height: Number(info.bottom) - Number(info.top),
+            z_index: sty.zIndex,
+            max_index: getMaxIndex(),
+            display: sty.display,
+            view_width: getViewport().width || 0,
+            view_height: getViewport().height || 0,
+            img_top: info.top,
+            img_bottom: info.bottom,
+            img_left: info.left,
+            img_right: info.right,
+        };
+        if (i > 2 || (params.width > 0 && params.height > 0)) {
+            var paramsStr = '';
+            for (var key in params) {
+                if (key) {
+                    paramsStr += '&' + key + '=' + (params[key]);
+                }
+            }
+            var c = createXmlHttp();
+            c.open('GET', impInfoUrl + paramsStr, true);
+            c.send();
+            console.log('send success');
+            clearInterval(timer);
+        }
+    }, 1000);
 
-function createXmlHttp() {
-    var a;
-    try {
-        a = new XMLHttpRequest()
-    } catch (b) {
+    function createXmlHttp() {
+        var a;
         try {
-            a = new ActiveXObject("Msxml2.XMLHTTP")
+            a = new XMLHttpRequest();
         } catch (b) {
             try {
-                a = new ActiveXObject("Microsoft.XMLHTTP")
+                a = new ActiveXObject('Msxml2.XMLHTTP');
             } catch (b) {
-                a = false
+                try {
+                    a = new ActiveXObject('Microsoft.XMLHTTP');
+                } catch (b) {
+                    a = false;
+                }
+            }
+        }
+        return a;
+    }
+
+    function fireClickTracker() {
+        for (var a in clickTrackers) {
+            var c = createXmlHttp();
+            if (!c) {
+                var b = document.createElement('iframe');
+                b.height = 1;
+                b.width = 1;
+                b.style.display = 'none';
+                b.src = clickTrackers[a];
+                document.getElementById('fc_dsp_banner_wrap').appendChild(b);
+            } else {
+                c.open('GET', clickTrackers[a], true);
+                c.send();
             }
         }
     }
-    return a
-}
 
-function fireClickTracker() {
-    for (var a in clickTrackers) {
-        var c = createXmlHttp();
-        if (!c) {
-            var b = document.createElement("iframe");
-            b.height = 1;
-            b.width = 1;
-            b.style.display = "none";
-            b.src = clickTrackers[a];
-            document.getElementById("fc_dsp_banner_wrap").appendChild(b)
+    function getViewport() {
+        // 检查 document.compatMode 属性，以确定浏览器是否运行在混杂模式。
+        // Safari3.1 之前的版本不支持这个属性，因此就会自动执行 else 语句
+        if (document.compatMode == 'BackCompat') {
+            return {
+                width: document.body.clientWidth,
+                height: document.body.clientHeight,
+            };
         } else {
-            c.open("GET", clickTrackers[a], true);
-            c.send()
+            return {
+                width: document.documentElement.clientWidth,
+                height: document.documentElement.clientHeight,
+            };
         }
     }
-};</script>
+
+    function getElementLeft(element) {
+        var actualLeft = element.offsetLeft;
+        var current = element.offsetParent;
+        while (current !== null) {
+            actualLeft += current.offsetLeft;
+            current = current.offsetParent;
+        }
+        return actualLeft;
+    }
+
+    function getElementTop(element) {
+        var actualTop = element.offsetTop;
+        var current = element.offsetParent;
+        while (current !== null) {
+            actualTop += current.offsetTop;
+            current = current.offsetParent;
+        }
+        return actualTop;
+    }
+
+    function getBoundingClientRect(element) {
+        var scrollTop = document.documentElement.scrollTop;
+        var scrollLeft = document.documentElement.scrollLeft;
+        if (element.getBoundingClientRect) {
+            if (typeof arguments.callee.offset != 'number') {
+                var temp = document.createElement('div');
+                temp.style.cssText = 'position:absolute;left:0;top:0;';
+                document.body.appendChild(temp);
+                arguments.callee.offset = -temp.getBoundingClientRect().top - scrollTop;
+                document.body.removeChild(temp);
+                temp = null;
+            }
+            var rect = element.getBoundingClientRect();
+            var offset = arguments.callee.offset;
+            return {
+                left: rect.left + offset,
+                right: rect.right + offset,
+                top: rect.top + offset,
+                bottom: rect.bottom + offset,
+            };
+        } else {
+            var actualLeft = getElementLeft(element);
+            var actualTop = getElementTop(element);
+            return {
+                left: actualLeft - scrollLeft,
+                right: actualLeft + element.offsetWidth - scrollLeft,
+                top: actualTop - scrollTop,
+                bottom: actualTop + element.offsetHeight - scrollTop,
+            };
+        }
+    }
+
+    function getMaxIndex() {
+        var allElement = Array.from(document.all);
+        var zIndex = [];
+        allElement.forEach(function (item) {
+            var itemZindex = Number(window.getComputedStyle(item, null).getPropertyValue('z-index'));
+            if (itemZindex) {
+                zIndex.push(itemZindex);
+            }
+        });
+        var max = 0;
+        // console.log(zIndex);
+        if (zIndex.length) {
+            max = Math.max(...zIndex);
+        }
+        return max;
+    }
+</script>

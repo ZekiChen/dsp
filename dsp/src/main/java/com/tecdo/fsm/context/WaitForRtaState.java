@@ -22,18 +22,20 @@ public class WaitForRtaState implements IContextState {
   public void handleEvent(EventType eventType, Params params, Context context) {
     switch (eventType) {
       case REQUEST_RTA_RESPONSE:
-        context.cancelTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT);
-        context.saveRtaResponse(params);
-        if (context.checkResponse()) {
-          context.sort();
-          context.startTimer(EventType.WAIT_SORT_AD_TIMEOUT,
-                             context.assignParams(),
-                             sortTimeout);
-          context.switchState(waitForSortState);
-        } else {
-          context.switchState(waiForRecycleState);
-          context.responseData();
-          context.requestComplete();
+        if (context.rtaResponseFinish()) {
+          context.cancelTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT);
+          context.saveRtaResponse(params);
+          if (context.checkResponse()) {
+            context.sort();
+            context.startTimer(EventType.WAIT_SORT_AD_TIMEOUT,
+                    context.assignParams(),
+                    sortTimeout);
+            context.switchState(waitForSortState);
+          } else {
+            context.switchState(waiForRecycleState);
+            context.responseData();
+            context.requestComplete();
+          }
         }
         break;
       case WAIT_REQUEST_RTA_RESPONSE_TIMEOUT:

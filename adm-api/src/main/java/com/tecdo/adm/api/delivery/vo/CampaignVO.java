@@ -16,6 +16,8 @@ public class CampaignVO extends Campaign {
 
 	private static final long serialVersionUID = 1L;
 
+	@ApiModelProperty("广告主名称")
+	private String advName;
 	@ApiModelProperty("Campaign RTA信息")
 	private CampaignRtaVO campaignRtaVO;
 

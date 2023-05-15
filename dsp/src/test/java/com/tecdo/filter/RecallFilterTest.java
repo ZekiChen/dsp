@@ -1,8 +1,9 @@
 package com.tecdo.filter;
 
 import cn.hutool.core.io.resource.ResourceUtil;
-import com.alibaba.fastjson2.JSON;
-import com.alibaba.fastjson2.TypeReference;
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
+import com.sun.istack.internal.NotNull;
 import com.tecdo.adm.api.delivery.entity.*;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
@@ -11,13 +12,12 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.domain.openrtb.request.n.NativeRequest;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainHelper;
-import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -201,7 +201,7 @@ public class RecallFilterTest {
         campaignRtaInfo.setId(1);
         campaignRtaInfo.setCampaignId(1);
         campaignRtaInfo.setAdvCampaignId("10086");
-        campaignRtaInfo.setAdvId(10086);
+        campaignRtaInfo.setAdvMemId(10086);
         campaignRtaInfo.setRtaFeature(1);
         campaignRtaInfo.setCreateTime(new Date());
         campaignRtaInfo.setUpdateTime(new Date());

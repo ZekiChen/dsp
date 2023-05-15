@@ -1,6 +1,13 @@
 dependencies {
 
-    implementation project(':common')
+    implementation(project(':common')) {
+        exclude group: 'com.squareup.okhttp3', module: 'okhttp'
+        exclude group: 'com.squareup.okio', module: 'okio'
+    }
+    // 解决冲突 hw-obs-sdk 依赖这个版本
+    implementation 'com.squareup.okhttp3:okhttp:4.9.3'
+    implementation 'com.squareup.okio:okio:2.8.0'
+
     implementation project(':adm-api')
     implementation project(':tool:core-launch')
     implementation project(':tool:starter-tool')
@@ -19,6 +26,7 @@ dependencies {
     implementation 'mysql:mysql-connector-java'
 
     implementation 'com.github.xiaoymin:knife4j-openapi2-spring-boot-starter'
+
 }
 
 publishing {

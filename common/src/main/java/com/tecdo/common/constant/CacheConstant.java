@@ -11,6 +11,8 @@ public interface CacheConstant {
 	String WIN_CACHE = "pac:dsp:win";
 	String IMP_CACHE = "pac:dsp:imp";
 	String CLICK_CACHE = "pac:dsp:click";
+	String NOTICE_CACHE = "pac:dsp:notice";
+	String RTA_CACHE = "pac:dsp:rta";
 
 	String AUDIENCE_CACHE = "pac:dsp:audience";
 
@@ -18,6 +20,7 @@ public interface CacheConstant {
 	String CAMPAIGN_CACHE = "pac:adm:campaign";
 	String AD_GROUP_CACHE = "pac:adm:adGroup";
 	String AD_CACHE = "pac:adm:ad";
+	String ADV_CACHE = "pac:adm:adv";
 	// system
 	String DICT_CACHE = "pac:adm:dict";
 

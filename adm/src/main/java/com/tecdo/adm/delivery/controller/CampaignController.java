@@ -3,7 +3,9 @@ package com.tecdo.adm.delivery.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.Campaign;
+import com.tecdo.adm.api.delivery.vo.BaseCampaignVO;
 import com.tecdo.adm.api.delivery.vo.CampaignVO;
+import com.tecdo.adm.api.delivery.vo.SimpleCampaignUpdateVO;
 import com.tecdo.adm.delivery.service.ICampaignService;
 import com.tecdo.adm.delivery.wrapper.CampaignWrapper;
 import com.tecdo.common.constant.AppConstant;
@@ -20,10 +22,10 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-
 import java.util.List;
 
-import static com.tecdo.common.constant.CacheConstant.*;
+import static com.tecdo.common.constant.CacheConstant.AD_GROUP_CACHE;
+import static com.tecdo.common.constant.CacheConstant.CAMPAIGN_CACHE;
 
 /**
  * Created by Zeki on 2023/3/6
@@ -72,7 +74,7 @@ public class CampaignController {
     @ApiOperationSupport(order = 5)
     @ApiOperation(value = "分页", notes = "传入Campaign")
     public R<IPage<CampaignVO>> page(Campaign campaign, PQuery query) {
-        IPage<Campaign> pages = service.page(PCondition.getPage(query), PCondition.getQueryWrapper(campaign));
+        IPage<Campaign> pages = service.customPage(PCondition.getPage(query), campaign);
         return R.data(CampaignWrapper.build().pageVO(pages));
     }
 
@@ -82,4 +84,20 @@ public class CampaignController {
     public R<List<BaseVO>> list() {
         return R.data(service.listIdAndName());
     }
+
+    @GetMapping("/list-with-group")
+    @ApiOperationSupport(order = 7)
+    @ApiOperation(value = "列表（包含AdGroup)", notes = "无需传参")
+    public R<List<BaseCampaignVO>> listWithGroup() {
+        return R.data(service.listCampaignWithGroupIdName());
+    }
+
+    @PutMapping("/update/list-info")
+    @ApiOperationSupport(order = 8)
+    @ApiOperation(value = "列表直接修改", notes = "传入SimpleCampaignUpdateVO")
+    public R updateListInfo(@RequestBody SimpleCampaignUpdateVO vo) {
+        CacheUtil.clear(CAMPAIGN_CACHE);
+        return R.status(service.editListInfo(vo));
+    }
+
 }

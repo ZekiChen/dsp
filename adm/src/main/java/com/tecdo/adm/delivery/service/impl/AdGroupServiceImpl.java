@@ -1,20 +1,32 @@
 package com.tecdo.adm.delivery.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
+import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
+import com.tecdo.adm.api.delivery.vo.SimpleAdGroupUpdateVO;
+import com.tecdo.adm.common.cache.AdCache;
+import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.adm.delivery.service.ITargetConditionService;
+import com.tecdo.starter.mp.entity.BaseEntity;
 import com.tecdo.starter.mp.vo.BaseVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Created by Zeki on 2023/3/6
@@ -64,5 +76,94 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     @Override
     public List<AdGroup> listByCampaignIds(List<Integer> campaignIds) {
         return baseMapper.selectList(Wrappers.<AdGroup>lambdaQuery().in(AdGroup::getCampaignId, campaignIds));
+    }
+
+    @Override
+    @Transactional
+    public boolean copy(Integer targetCampaignId, Integer sourceAdGroupId, Integer copyNum,
+                        Integer targetAdGroupStatus, Integer targetAdStatus) {
+        AdGroup sourceAdGroup = AdGroupCache.getAdGroup(sourceAdGroupId);
+        List<TargetCondition> sourceConditions = AdGroupCache.listCondition(sourceAdGroupId);
+        if (copyNum < 1 || sourceAdGroup == null || CollUtil.isEmpty(sourceConditions)) {
+            return false;
+        }
+        List<Ad> sourceAds = AdCache.listAd(sourceAdGroupId);
+        replaceAdGroup(sourceAdGroup, targetCampaignId, targetAdGroupStatus);
+        List<AdGroup> targetAdGroups = copyAdGroups(sourceAdGroup, copyNum);
+        saveBatch(targetAdGroups);
+        List<TargetCondition> targetConditions = replaceAndCopyConditions(targetAdGroups, sourceConditions);
+        conditionService.saveBatch(targetConditions);
+        if (CollUtil.isNotEmpty(sourceAds)) {
+            List<Ad> targetAds = replaceAndCopyAds(targetAdGroups, sourceAds, targetAdStatus);
+            adService.saveBatch(targetAds);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean editListInfo(SimpleAdGroupUpdateVO vo) {
+        AdGroup adGroup = getById(vo.getId());
+        if (adGroup == null) {
+            return false;
+        }
+        adGroup.setOptPrice(vo.getOptPrice());
+        adGroup.setDailyBudget(vo.getDailyBudget());
+        adGroup.setStatus(vo.getStatus());
+        adGroup.setUpdateTime(new Date());
+        return updateById(adGroup);
+    }
+
+    @Override
+    public IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds, List<String> affiliateIds) {
+        return baseMapper.customPage(page, adGroup, campaignIds, affiliateIds);
+    }
+
+    private static List<Ad> replaceAndCopyAds(List<AdGroup> targetAdGroups, List<Ad> sourceAds, Integer targetAdStatus) {
+        return targetAdGroups.stream()
+                .flatMap(group -> sourceAds.stream().map(ad -> {
+                    Ad newAd = BeanUtil.copyProperties(ad, Ad.class);
+                    newAd.setGroupId(group.getId());
+                    newAd.setStatus(targetAdStatus);
+                    resetBaseEntity(newAd);
+                    return newAd;
+                }))
+                .collect(Collectors.toList());
+    }
+
+    private static void resetBaseEntity(BaseEntity entity) {
+        entity.setId(null);
+        entity.setCreateTime(null);
+        entity.setUpdateTime(null);
+    }
+
+    private static List<TargetCondition> replaceAndCopyConditions(List<AdGroup> targetAdGroups,
+                                                                  List<TargetCondition> sourceConditions) {
+        return targetAdGroups.stream()
+                .flatMap(group -> sourceConditions.stream()
+                        .map(cond -> {
+                            TargetCondition newCond = BeanUtil.copyProperties(cond, TargetCondition.class);
+                            newCond.setAdGroupId(group.getId());
+                            resetBaseEntity(newCond);
+                            return newCond;
+                        }))
+                .collect(Collectors.toList());
+    }
+
+    private static void replaceAdGroup(AdGroup sourceAdGroup,
+                                       Integer targetCampaignId, Integer targetAdGroupStatus) {
+        resetBaseEntity(sourceAdGroup);
+        sourceAdGroup.setCampaignId(targetCampaignId);
+        sourceAdGroup.setStatus(targetAdGroupStatus);
+    }
+
+    private static List<AdGroup> copyAdGroups(AdGroup sourceAdGroup, Integer copyNum) {
+        return IntStream.range(0, copyNum)
+                .mapToObj(i -> {
+                    int count = i + 1;
+                    AdGroup target = BeanUtil.copyProperties(sourceAdGroup, AdGroup.class);
+                    target.setName(target.getName() + "-copy" + count);
+                    return target;
+                })
+                .collect(Collectors.toList());
     }
 }

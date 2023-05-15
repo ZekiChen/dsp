@@ -31,7 +31,7 @@ public class ImpFrequencyFilter extends AbstractRecallFilter {
     }
     Integer campaignId = adDTO.getCampaign().getId();
     String deviceId = bidRequest.getDevice().getIfa();
-    Integer countToday = cacheService.getImpCountToday(campaignId.toString(), deviceId);
+    Integer countToday = cacheService.getFrequencyCache().getImpCountToday(campaignId.toString(), deviceId);
 
     return ConditionHelper.compare(String.valueOf(countToday),
                                    condition.getOperation(),

@@ -47,10 +47,15 @@ public enum EventType {
   IP_TABLE_LOAD_ERROR(1703, "ip table load failure"),
   IP_TABLE_LOAD_TIMEOUT(1704, "ip table load timeout"),
 
-  AF_AUDIENCE_SYNC_TABLE_LOAD(1801, "af audience sync load"),
-  AF_AUDIENCE_SYNC_LOAD_RESPONSE(1802, "af audience sync load response"),
-  AF_AUDIENCE_SYNC_LOAD_ERROR(1803, "af audience sync load failure"),
-  AF_AUDIENCE_SYNC_LOAD_TIMEOUT(1804, "af audience sync load timeout"),
+  ADV_LOAD(1801, "adv list load"),
+  ADV_LOAD_RESPONSE(1802, "adv list load response"),
+  ADV_LOAD_ERROR(1803, "adv list load failure"),
+  ADV_LOAD_TIMEOUT(1804, "adv list load timeout"),
+
+  AF_AUDIENCE_SYNC_TABLE_LOAD(1901, "af audience sync load"),
+  AF_AUDIENCE_SYNC_LOAD_RESPONSE(1902, "af audience sync load response"),
+  AF_AUDIENCE_SYNC_LOAD_ERROR(1903, "af audience sync load failure"),
+  AF_AUDIENCE_SYNC_LOAD_TIMEOUT(1904, "af audience sync load timeout"),
 
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
@@ -62,6 +67,7 @@ public enum EventType {
   RECEIVE_IMP_NOTICE(3004, "receive imp notice"),
   RECEIVE_CLICK_NOTICE(3005, "receive click notice"),
   RECEIVE_PB_NOTICE(3006, "receive pb notice"),
+  RECEIVE_IMP_INFO_NOTICE(3007, "receive imp info notice"),
 
   BID_TASK_FINISH(3101, "bid task finish"),
   BID_TASK_FAILED(3102, "bid task failed"),

@@ -1,5 +1,9 @@
 package com.tecdo.fsm.task;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
@@ -7,7 +11,6 @@ import com.tecdo.ab.util.AbTestConfigHelper;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
-import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
 import com.tecdo.common.util.Params;
@@ -167,11 +170,8 @@ public class Task {
 
     Map<Integer, AdDTOWrapper> resMap = new HashMap<>();
     for (AdDTO adDTO : adManager.getAdDTOMap().values()) {
-      List<TargetCondition> conditions = listLegalCondition(adDTO.getConditions());
-      // 原则上不应该修改adDTO，因为所有的请求都是直接用的manager的数据，但是conditions的过滤对所有请求都适用，在这里操作也没有实际影响
-      adDTO.setConditions(conditions);
       // 该 AD 没有定投需求，过滤掉
-      if (CollUtil.isEmpty(conditions)) {
+      if (CollUtil.isEmpty(adDTO.getConditions())) {
         log.warn("ad: {} doesn't have condition, filter", adDTO.getAd().getId());
         continue;
       }
@@ -184,16 +184,6 @@ public class Task {
     return resMap;
   }
 
-  /**
-   * 获取参数合法的condition对象（即非空校验）
-   */
-  private List<TargetCondition> listLegalCondition(List<TargetCondition> conditions) {
-    return conditions.stream()
-                     .filter(e -> e != null && StrUtil.isAllNotBlank(e.getAttribute(),
-                                                                     e.getOperation(),
-                                                                     e.getValue()))
-                     .collect(Collectors.toList());
-  }
 
   public void callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap) {
 

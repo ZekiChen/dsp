@@ -112,7 +112,7 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
             case RUNNING:
                 threadPool.execute(() -> {
                     try {
-                        Map<Integer, RtaInfo> rtaInfoMap = list().stream().collect(Collectors.toMap(RtaInfo::getAdvId, e -> e));
+                        Map<Integer, RtaInfo> rtaInfoMap = list().stream().collect(Collectors.toMap(RtaInfo::getAdvMemId, e -> e));
                         params.put(ParamKey.RTA_INFOS_CACHE_KEY, rtaInfoMap);
                         messageQueue.putMessage(EventType.RTA_INFOS_LOAD_RESPONSE, params);
                     } catch (Exception e) {

@@ -1,4 +1,4 @@
-package com.tecdo.entity.doris;
+package com.tecdo.adm.api.doris.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 import lombok.Data;
@@ -7,13 +7,13 @@ import java.io.Serializable;
 import java.util.Date;
 
 /**
- * 花费实时数据
+ * 展示实时数据
  *
  * Created by Zeki on 2023/2/21
  */
 @Data
-@TableName("pac_dsp_imp_cost")
-public class AdGroupCost implements Serializable {
+@TableName("pac_dsp_imp_count")
+public class AdGroupImpCount implements Serializable {
 
     /**
      * 广告活动 id
@@ -26,9 +26,9 @@ public class AdGroupCost implements Serializable {
     private String adGroupId;
 
     /**
-     * 花费金额
+     * 展示数量
      */
-    private Double sumSuccessPrice;
+    private Long value;
 
     /**
      * 创建时间

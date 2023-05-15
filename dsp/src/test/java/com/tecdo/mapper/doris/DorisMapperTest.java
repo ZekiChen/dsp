@@ -6,8 +6,11 @@ import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.adm.api.delivery.mapper.CampaignRtaInfoMapper;
 import com.tecdo.adm.api.delivery.mapper.RtaInfoMapper;
-import com.tecdo.entity.doris.AdGroupCost;
-import com.tecdo.entity.doris.AdGroupImpCount;
+import com.tecdo.adm.api.doris.entity.AdGroupCost;
+import com.tecdo.adm.api.doris.entity.AdGroupImpCount;
+import com.tecdo.adm.api.doris.mapper.AdGroupCostMapper;
+import com.tecdo.adm.api.doris.mapper.AdGroupImpCountMapper;
+
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;

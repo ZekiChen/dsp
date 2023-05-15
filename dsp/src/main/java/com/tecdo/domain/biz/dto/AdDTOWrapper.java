@@ -1,9 +1,9 @@
 package com.tecdo.domain.biz.dto;
 
-import java.math.BigDecimal;
-
 import lombok.Getter;
 import lombok.Setter;
+
+import java.math.BigDecimal;
 
 @Setter
 @Getter
@@ -46,7 +46,7 @@ public class AdDTOWrapper {
   private BigDecimal bidPrice;
 
   /**
-   * 广告主 rta token
+   * 广告主 lazada rta token
    */
   private String rtaToken;
 
@@ -61,13 +61,18 @@ public class AdDTOWrapper {
   private String bidId;
 
   /**
-   * 是否请求了rta
+   * 是否请求了 rta
    */
   private int rtaRequest;
 
   /**
-   * 是否为rta匹配
+   * 是否为 rta 匹配
    */
   private int rtaRequestTrue;
+
+  /**
+   * 落地页，目前AE RTA会用到
+   */
+  private String landingPage;
 
 }

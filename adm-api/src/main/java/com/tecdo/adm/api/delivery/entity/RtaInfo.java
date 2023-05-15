@@ -19,7 +19,7 @@ import lombok.EqualsAndHashCode;
 public class RtaInfo extends BaseEntity {
 
     @ApiModelProperty("广告主ID")
-    private Integer advId;
+    private Integer advMemId;
     @ApiModelProperty("app key")
     private String appKey;
     @ApiModelProperty("app secret")

@@ -22,6 +22,7 @@ public class CampaignWrapper extends EntityWrapper<Campaign, CampaignVO> {
 	@Override
 	public CampaignVO entityVO(Campaign campaign) {
 		CampaignVO vo = Objects.requireNonNull(BeanUtil.copy(campaign, CampaignVO.class));
+//		vo.setAdvName(AdvCache.getAdv(vo.getAdvId()).getName());
 		CampaignRtaInfo campaignRta = CampaignCache.getCampaignRta(vo.getId());
 		CampaignRtaVO campaignRtaVO = BeanUtil.copy(campaignRta, CampaignRtaVO.class);
 		vo.setCampaignRtaVO(campaignRtaVO);

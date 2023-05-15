@@ -1,8 +1,10 @@
 package com.tecdo.adm.delivery.service;
 
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
+import com.tecdo.adm.api.delivery.vo.SimpleAdGroupUpdateVO;
 import com.tecdo.starter.mp.vo.BaseVO;
 
 import java.util.List;
@@ -22,4 +24,11 @@ public interface IAdGroupService extends IService<AdGroup> {
     List<BaseVO> listIdAndName();
 
     List<AdGroup> listByCampaignIds(List<Integer> campaignIds);
+
+    boolean copy(Integer targetCampaignId, Integer sourceAdGroupId, Integer copyNum,
+                 Integer targetAdGroupStatus, Integer targetAdStatus);
+
+    boolean editListInfo(SimpleAdGroupUpdateVO vo);
+
+    IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds, List<String> affiliateIds);
 }

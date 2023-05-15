@@ -1,16 +1,15 @@
-package com.tecdo.service.init;
+package com.tecdo.service.init.doris;
 
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tecdo.core.launch.thread.ThreadPool;
+import com.tecdo.adm.api.doris.entity.AdGroupCost;
+import com.tecdo.adm.api.doris.mapper.AdGroupCostMapper;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.entity.doris.AdGroupCost;
-import com.tecdo.mapper.doris.AdGroupCostMapper;
+import com.tecdo.core.launch.thread.ThreadPool;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -52,15 +51,15 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
     /**
      * 从 Doris 加载 当天campaign的实时花费 集合，每 5 秒刷新一次缓存
      */
-    public Double getCampaignCost(String campaignId, Double defaultValue){
-        return campaignCostMap.getOrDefault(campaignId, defaultValue);
+    public Double getCampaignCost(String campaignId){
+        return campaignCostMap.getOrDefault(campaignId, 0d);
     }
 
     /**
      * 从 Doris 加载 当天adGroup的实时花费 集合，每 5 秒刷新一次缓存
      */
-    public Double getAdGroupCost(String adGroupId, Double defaultValue) {
-        return this.adGroupCostMap.getOrDefault(adGroupId, defaultValue);
+    public Double getAdGroupCost(String adGroupId) {
+        return this.adGroupCostMap.getOrDefault(adGroupId, 0d);
     }
 
     @AllArgsConstructor
@@ -124,11 +123,8 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
             case RUNNING:
                 threadPool.execute(() -> {
                     try {
-                        String today = DateUtil.today();
-                        LambdaQueryWrapper<AdGroupCost> wrapper = Wrappers.<AdGroupCost>lambdaQuery()
-                                .ge(AdGroupCost::getCreateDate, today + " 00:00:00")
-                                .lt(AdGroupCost::getCreateDate, today + " 23:59:59");
-                        List<AdGroupCost> costList = list(wrapper);
+                        List<AdGroupCost> costList = list(Wrappers.<AdGroupCost>lambdaQuery()
+                                .eq(AdGroupCost::getCreateDate, DateUtil.today()));
                         Map<String, Double> campaignBudgetMap = //
                           costList.stream()
                                   .collect(Collectors.groupingBy(AdGroupCost::getCampaignId,

@@ -61,6 +61,10 @@ public class Controller implements MessageObserver {
       case IP_TABLE_LOAD_RESPONSE:
       case IP_TABLE_LOAD_ERROR:
       case IP_TABLE_LOAD_TIMEOUT:
+      case ADV_LOAD:
+      case ADV_LOAD_RESPONSE:
+      case ADV_LOAD_ERROR:
+      case ADV_LOAD_TIMEOUT:
       case AF_AUDIENCE_SYNC_TABLE_LOAD:
       case AF_AUDIENCE_SYNC_LOAD_RESPONSE:
       case AF_AUDIENCE_SYNC_LOAD_ERROR:
@@ -78,6 +82,7 @@ public class Controller implements MessageObserver {
       case RECEIVE_IMP_NOTICE:
       case RECEIVE_CLICK_NOTICE:
       case RECEIVE_PB_NOTICE:
+      case RECEIVE_IMP_INFO_NOTICE:
         noticeService.handleEvent(eventType,params);
         break;
       // context

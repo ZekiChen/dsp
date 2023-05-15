@@ -13,7 +13,9 @@ public interface RequestPath {
   String CLICK = "/click";
 
   String PB = "/pb";
+  String PB_AE = "/pb/ae";
 
+  String IMP_INFO = "/imp-info";
   String LOSS = "/loss";
 
 }

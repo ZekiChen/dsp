@@ -1,245 +1,188 @@
 package com.tecdo.service;
 
-import cn.hutool.core.date.DateUtil;
-import com.tecdo.common.constant.HttpCode;
-import com.google.common.net.HttpHeaders;
+import cn.hutool.core.collection.CollUtil;
+import com.tecdo.adm.api.delivery.dto.CampaignDTO;
 import com.tecdo.common.util.Params;
-import com.tecdo.constant.EventType;
-import com.tecdo.constant.ParamKey;
-import com.tecdo.constant.RequestKey;
+import com.tecdo.constant.*;
 import com.tecdo.controller.MessageQueue;
+import com.tecdo.domain.biz.notice.ImpInfoNoticeInfo;
+import com.tecdo.domain.biz.notice.NoticeInfo;
+import com.tecdo.log.NoticeLogger;
 import com.tecdo.server.request.HttpRequest;
+import com.tecdo.service.init.AdManager;
+import com.tecdo.service.rta.ae.AePbDataVO;
+import com.tecdo.service.rta.ae.AePbInfoVO;
 import com.tecdo.util.JsonHelper;
+import com.tecdo.util.ResponseHelper;
 import lombok.extern.slf4j.Slf4j;
-
-import org.apache.commons.lang3.math.NumberUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
-import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 @Slf4j
 @Component
-
 public class NoticeService {
 
-  @Autowired
-  private MessageQueue messageQueue;
-  @Autowired
-  private CacheService cacheService;
-  @Autowired
-  private ValidateService validateService;
+    @Autowired
+    private MessageQueue messageQueue;
+    @Autowired
+    private CacheService cacheService;
+    @Autowired
+    private ValidateService validateService;
+    @Autowired
+    private AdManager adManager;
 
-  private final Logger winLog = LoggerFactory.getLogger("win_log");
-  private final Logger impLog = LoggerFactory.getLogger("imp_log");
-  private final Logger clickLog = LoggerFactory.getLogger("click_log");
-  private final Logger pbLog = LoggerFactory.getLogger("pb_log");
-  private final Logger validateLog = LoggerFactory.getLogger("validate_notice_log");
-
-  public void handleEvent(EventType eventType, Params params) {
-    HttpRequest httpRequest = params.get(ParamKey.HTTP_REQUEST);
-    ValidateCode code = validateService.validateNoticeRequest(httpRequest, eventType);
-    if (code != ValidateCode.SUCCESS) {
-      switch (eventType) {
-        case RECEIVE_WIN_NOTICE:
-          handleValidateFailed("win", httpRequest, code);
-          break;
-        case RECEIVE_IMP_NOTICE:
-          handleValidateFailed("imp", httpRequest, code);
-          break;
-        case RECEIVE_CLICK_NOTICE:
-          handleValidateFailed("click", httpRequest, code);
-          break;
-        case RECEIVE_PB_NOTICE:
-          handleValidateFailed("pb", httpRequest, code);
-          break;
-        default:
-          log.error("Can't handle event, type: {}, code: {}", eventType, code);
-      }
-      return;
+    public void handleEvent(EventType eventType, Params params) {
+        HttpRequest httpRequest = params.get(ParamKey.HTTP_REQUEST);
+        switch (httpRequest.getPath()) {
+            case RequestPath.PB_AE:
+                aePbHandle(eventType, params, httpRequest);
+                break;
+            case RequestPath.IMP_INFO:
+                impInfoHandle(eventType, params, httpRequest);
+                break;
+            default:
+                generalHandle(eventType, params, httpRequest);
+        }
     }
 
-    switch (eventType) {
-      case RECEIVE_WIN_NOTICE:
-        handleWinNotice(httpRequest);
-        break;
-      case RECEIVE_IMP_NOTICE:
-        handleImpNotice(httpRequest);
-        break;
-      case RECEIVE_CLICK_NOTICE:
-        handleClickNotice(httpRequest);
-        break;
-      case RECEIVE_PB_NOTICE:
-        handlePbNotice(httpRequest);
-        break;
-      default:
-        log.error("Can't handle event, type: {}", eventType);
-    }
-  }
-
-  private void handleWinNotice(HttpRequest httpRequest) {
-    String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
-    String bidSuccessPrice = httpRequest.getParamAsStr(RequestKey.BID_SUCCESS_PRICE);
-    int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
-    int adGroupId = httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID);
-    int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
-    int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
-    Map<String, Object> map = new HashMap<>();
-    map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
-    map.put("time_millis", System.currentTimeMillis());
-    map.put("bid_id", bidId);
-    map.put("campaign_id", campaignId);
-    map.put("ad_group_id", adGroupId);
-    map.put("ad_id", adId);
-    map.put("creative_id", creativeId);
-    if (NumberUtils.isParsable(bidSuccessPrice)) {
-      map.put("bid_success_price", new BigDecimal(bidSuccessPrice).doubleValue());
-    } else {
-      map.put("bid_success_price", 0d);
-    }
-
-    winLog.info(JsonHelper.toJSONString(map));
-
-
-    Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
-                          .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
-    messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
-  }
-
-  private void handleImpNotice(HttpRequest httpRequest) {
-    String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
-    String bidSuccessPrice = httpRequest.getParamAsStr(RequestKey.BID_SUCCESS_PRICE);
-    String ipFromImp = httpRequest.getIp();
-    int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
-    int adGroupId = httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID);
-    int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
-    int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
-    String deviceId = httpRequest.getParamAsStr(RequestKey.DEVICE_ID);
-    Map<String, Object> map = new HashMap<>();
-    map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
-    map.put("time_millis", System.currentTimeMillis());
-    map.put("referer", httpRequest.getHeader(HttpHeaders.REFERER));
-    map.put("ua_from_imp", httpRequest.getHeader(HttpHeaders.USER_AGENT));
-    map.put("bid_id", bidId);
-    map.put("ip_from_imp", ipFromImp);
-    map.put("campaign_id", campaignId);
-    map.put("ad_group_id", adGroupId);
-    map.put("ad_id", adId);
-    map.put("creative_id", creativeId);
-    map.put("device_id", deviceId);
-    if (NumberUtils.isParsable(bidSuccessPrice)) {
-      map.put("bid_success_price", new BigDecimal(bidSuccessPrice).doubleValue());
-    } else {
-      map.put("bid_success_price", 0d);
+    private void aePbHandle(EventType eventType, Params params, HttpRequest httpRequest) {
+        List<NoticeInfo> noticeInfos = new ArrayList<>();
+        AePbDataVO aePbDataVO = JsonHelper.parseObject(httpRequest.getBody(), AePbDataVO.class);
+        if (aePbDataVO == null || CollUtil.isEmpty(aePbDataVO.getData())) {
+            ResponseHelper.aeParamError(messageQueue, params, httpRequest);
+            return;
+        }
+        for (AePbInfoVO aePbInfoVO : aePbDataVO.getData()) {
+            NoticeInfo info = cacheService.getNoticeCache().getNoticeInfo(aePbInfoVO.getBidId());
+            if (info == null) {
+                ResponseHelper.aeParamError(messageQueue, params, httpRequest);
+                return;
+            }
+            CampaignDTO campaignDTO = adManager.getCampaignDTOMap().get(info.getCampaignId());
+            if (campaignDTO == null
+                    || campaignDTO.getCampaignRtaInfo() == null
+                    || !Objects.equals(campaignDTO.getCampaignRtaInfo().getChannel(), aePbDataVO.getChannel())) {
+                ResponseHelper.aeParamError(messageQueue, params, httpRequest);
+                return;
+            }
+            info.setBidId(aePbInfoVO.getBidId());
+            info.setSign(aePbInfoVO.getSign());
+            info.setUvCnt(aePbInfoVO.getUvCnt());
+            info.setMbrCnt(aePbInfoVO.getMbrCnt());
+            noticeInfos.add(info);
+        }
+        List<NoticeInfo> infos = new ArrayList<>();
+        for (NoticeInfo info : noticeInfos) {
+            ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
+                    info.getSign(), info.getCampaignId(), eventType);
+            if (code != ValidateCode.SUCCESS) {
+                logValidateFailed(eventType, httpRequest, code, info);
+                ResponseHelper.aeParamError(messageQueue, params, httpRequest);
+                return;
+            }
+            info.setValidateCode(code);
+            infos.add(info);
+        }
+        infos.forEach(info -> logValidateSucceed(eventType, httpRequest, info));
+        ResponseHelper.aeOK(messageQueue, params, httpRequest);
     }
 
-    impLog.info(JsonHelper.toJSONString(map));
-
-    cacheService.incrImpCount(String.valueOf(campaignId), deviceId);
-
-    Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
-                          .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
-    messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
-  }
-
-  private void handleClickNotice(HttpRequest httpRequest) {
-    String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
-    int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
-    int adGroupId = httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID);
-    int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
-    int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
-    String deviceId = httpRequest.getParamAsStr(RequestKey.DEVICE_ID);
-    String ipFromClick = httpRequest.getIp();
-    Map<String, Object> map = new HashMap<>();
-    map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
-    map.put("time_millis", System.currentTimeMillis());
-    map.put("referer", httpRequest.getHeader(HttpHeaders.REFERER));
-    map.put("ua_from_click", httpRequest.getHeader(HttpHeaders.USER_AGENT));
-    map.put("bid_id", bidId);
-    map.put("campaign_id", campaignId);
-    map.put("ad_group_id", adGroupId);
-    map.put("ad_id", adId);
-    map.put("creative_id", creativeId);
-    map.put("device_id", deviceId);
-    map.put("ip_from_click", ipFromClick);
-    clickLog.info(JsonHelper.toJSONString(map));
-
-    cacheService.incrClickCount(String.valueOf(campaignId), deviceId);
-    cacheService.clickMark(bidId);
-
-    Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
-                          .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
-    messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
-  }
-
-  private void handlePbNotice(HttpRequest httpRequest) {
-    String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
-    String eventType = httpRequest.getParamAsStr(RequestKey.EVENT_TYPE);
-    int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
-    int adGroupId = httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID);
-    int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
-    int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
-    Map<String, Object> map = new HashMap<>();
-    map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
-    map.put("time_millis", System.currentTimeMillis());
-    map.put("bid_id", bidId);
-    map.put("campaign_id", campaignId);
-    map.put("ad_group_id", adGroupId);
-    map.put("ad_id", adId);
-    map.put("creative_id", creativeId);
-
-    if (eventType != null) {
-      map.put(eventType, 1);
+    private void impInfoHandle(EventType eventType, Params params, HttpRequest httpRequest) {
+        ImpInfoNoticeInfo info = ImpInfoNoticeInfo.buildInfo(httpRequest);
+        ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
+                info.getSign(), info.getCampaignId(), eventType);
+        if (code == ValidateCode.SUCCESS) {
+            logImpInfoValidateSuccess(httpRequest, info);
+            ResponseHelper.ok(messageQueue, params, httpRequest);
+        } else {
+            logValidateFailed(eventType, httpRequest, code, info);
+            ResponseHelper.badRequest(messageQueue, params, httpRequest);
+        }
     }
-    pbLog.info(JsonHelper.toJSONString(map));
 
-    Params params = Params.create(ParamKey.HTTP_CODE, HttpCode.OK)
-                          .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
-    messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
-  }
-
-  private void handleValidateFailed(String type, HttpRequest httpRequest, ValidateCode code) {
-    String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
-    String bidSuccessPrice = httpRequest.getParamAsStr(RequestKey.BID_SUCCESS_PRICE);
-    String ip = httpRequest.getIp();
-    String eventType = httpRequest.getParamAsStr(RequestKey.EVENT_TYPE);
-    int campaignId = httpRequest.getParamAsInt(RequestKey.CAMPAIGN_ID);
-    int adGroupId = httpRequest.getParamAsInt(RequestKey.AD_GROUP_ID);
-    int adId = httpRequest.getParamAsInt(RequestKey.AD_ID);
-    int creativeId = httpRequest.getParamAsInt(RequestKey.CREATIVE_ID);
-    String deviceId = httpRequest.getParamAsStr(RequestKey.DEVICE_ID);
-    Map<String, Object> map = new HashMap<>();
-    map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
-    map.put("time_millis", System.currentTimeMillis());
-    map.put("bid_id", bidId);
-    map.put("campaign_id", campaignId);
-    map.put("ad_group_id", adGroupId);
-    map.put("ad_id", adId);
-    map.put("creative_id", creativeId);
-    map.put("device_id", deviceId);
-    map.put("referer", httpRequest.getHeader(HttpHeaders.REFERER));
-    map.put("ua", httpRequest.getHeader(HttpHeaders.USER_AGENT));
-    map.put("ip", ip);
-    if (NumberUtils.isParsable(bidSuccessPrice)) {
-      map.put("bid_success_price", new BigDecimal(bidSuccessPrice).doubleValue());
-    } else {
-      map.put("bid_success_price", 0d);
+    private void generalHandle(EventType eventType, Params params, HttpRequest httpRequest) {
+        NoticeInfo info = NoticeInfo.buildInfo(httpRequest);
+        ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
+                info.getSign(), info.getCampaignId(), eventType);
+        if (code == ValidateCode.SUCCESS) {
+            logValidateSucceed(eventType, httpRequest, info);
+            ResponseHelper.ok(messageQueue, params, httpRequest);
+        } else {
+            logValidateFailed(eventType, httpRequest, code, info);
+            ResponseHelper.badRequest(messageQueue, params, httpRequest);
+        }
     }
-    if (eventType != null) {
-      map.put(eventType, 1);
-    }
-    map.put("type", type);
-    map.put("code", code.name());
 
-    validateLog.info(JsonHelper.toJSONString(map));
-    Params params = Params.create()
-                          .put(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
-                          .put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
-    messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
-  }
+    private void logValidateFailed(EventType eventType, HttpRequest httpRequest, ValidateCode code, NoticeInfo noticeInfo) {
+        switch (eventType) {
+            case RECEIVE_WIN_NOTICE:
+                handleValidateFailed("win", noticeInfo, httpRequest, code);
+                break;
+            case RECEIVE_IMP_NOTICE:
+                handleValidateFailed("imp", noticeInfo, httpRequest, code);
+                break;
+            case RECEIVE_CLICK_NOTICE:
+                handleValidateFailed("click", noticeInfo, httpRequest, code);
+                break;
+            case RECEIVE_PB_NOTICE:
+                handleValidateFailed("pb", noticeInfo, httpRequest, code);
+                break;
+            case RECEIVE_IMP_INFO_NOTICE:
+                handleValidateFailed("imp-info", noticeInfo, httpRequest, code);
+                break;
+            default:
+                log.error("Can't handle event, type: {}, code: {}", eventType, code);
+        }
+    }
+
+    private void handleValidateFailed(String type, NoticeInfo info,
+                                      HttpRequest httpRequest, ValidateCode code) {
+        NoticeLogger.logValidateFailed(type, info, httpRequest, code);
+    }
+
+    private void logValidateSucceed(EventType eventType, HttpRequest httpRequest, NoticeInfo noticeInfo) {
+        switch (eventType) {
+            case RECEIVE_WIN_NOTICE:
+                handleWinNotice(httpRequest, noticeInfo);
+                break;
+            case RECEIVE_IMP_NOTICE:
+                handleImpNotice(httpRequest, noticeInfo);
+                break;
+            case RECEIVE_CLICK_NOTICE:
+                handleClickNotice(httpRequest, noticeInfo);
+                break;
+            case RECEIVE_PB_NOTICE:
+                handlePbNotice(httpRequest, noticeInfo);
+                break;
+            default:
+                log.error("Can't handle event, type: {}", eventType);
+        }
+    }
+
+    private void handleWinNotice(HttpRequest httpRequest, NoticeInfo info) {
+        NoticeLogger.logWin(httpRequest, info);
+    }
+
+    private void handleImpNotice(HttpRequest httpRequest, NoticeInfo info) {
+        NoticeLogger.logImp(httpRequest, info);
+        cacheService.getFrequencyCache().incrImpCount(String.valueOf(info.getCampaignId()), info.getDeviceId());
+    }
+
+    private void handleClickNotice(HttpRequest httpRequest, NoticeInfo info) {
+        NoticeLogger.logClick(httpRequest, info);
+        cacheService.getFrequencyCache().incrClickCount(String.valueOf(info.getCampaignId()), info.getDeviceId());
+        cacheService.getNoticeCache().clickMark(info.getBidId());
+    }
+
+    private void handlePbNotice(HttpRequest httpRequest, NoticeInfo info) {
+        NoticeLogger.logPb(httpRequest, info);
+    }
+
+    private void logImpInfoValidateSuccess(HttpRequest httpRequest, ImpInfoNoticeInfo info) {
+        NoticeLogger.logImpInfoValidateSuccess(httpRequest, info);
+    }
 }

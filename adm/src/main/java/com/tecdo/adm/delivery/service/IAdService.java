@@ -10,5 +10,9 @@ import java.util.List;
  */
 public interface IAdService extends IService<Ad> {
 
+    List<Ad> listByAdGroupId(Integer adGroupId);
+
     void deleteByAdGroupIds(List<Integer> adGroupIds);
+
+    boolean copy(Integer sourceAdId, List<Integer> targetAdGroupIds, Integer targetAdStatus);
 }

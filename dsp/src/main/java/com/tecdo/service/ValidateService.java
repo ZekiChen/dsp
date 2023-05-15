@@ -1,5 +1,8 @@
 package com.tecdo.service;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.common.constant.Constant;
 import com.tecdo.common.constant.HttpCode;
@@ -20,24 +23,15 @@ import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.util.*;
 
 @Slf4j
 @Service
@@ -190,14 +184,11 @@ public class ValidateService {
      *
      * @return ValidateCode
      */
-    public ValidateCode validateNoticeRequest(HttpRequest httpRequest, EventType eventType) {
-        String bidId = httpRequest.getParamAsStr(RequestKey.BID_ID);
-        String sign = httpRequest.getParamAsStr(RequestKey.SIGN);
-        String campaignId = httpRequest.getParamAsStr(RequestKey.CAMPAIGN_ID);
-        if (StrUtil.hasBlank(bidId, sign, campaignId)) {
+    public ValidateCode validateNoticeRequest(String bidId, String sign, Integer campaignId, EventType eventType) {
+        if (StrUtil.hasBlank(bidId, sign) || campaignId == null) {
             return ValidateCode.BLANK_VALID_FAILED;
         }
-        if (!bidIdValid(bidId, sign, campaignId)) {
+        if (!bidIdValid(bidId, sign, campaignId.toString())) {
             return ValidateCode.BID_ID_VALID_FAILED;
         }
         if (!windowValid(bidId, eventType)) {
@@ -223,6 +214,7 @@ public class ValidateService {
                 expire = winExpire;
                 break;
           case RECEIVE_IMP_NOTICE:
+          case RECEIVE_IMP_INFO_NOTICE:
                 expire = impExpire;
                 break;
           case RECEIVE_CLICK_NOTICE:
@@ -243,9 +235,10 @@ public class ValidateService {
     private boolean funnelValid(String bidId, EventType eventType) {
         switch (eventType) {
             case RECEIVE_CLICK_NOTICE:
-                return cacheService.hasWin(bidId) || cacheService.hasImp(bidId);
+                return cacheService.getNoticeCache().hasWin(bidId)
+                        || cacheService.getNoticeCache().hasImp(bidId);
             case RECEIVE_PB_NOTICE:
-                return cacheService.hasClick(bidId);
+                return cacheService.getNoticeCache().hasClick(bidId);
             default:
                 return true;
         }
@@ -254,9 +247,9 @@ public class ValidateService {
     private boolean duplicateValid(String bidId, EventType eventType) {
         switch (eventType) {
             case RECEIVE_WIN_NOTICE:
-                return cacheService.winMark(bidId);
+                return cacheService.getNoticeCache().winMark(bidId);
             case RECEIVE_IMP_NOTICE:
-                return cacheService.impMark(bidId);
+                return cacheService.getNoticeCache().impMark(bidId);
             default:
                 return true;
         }

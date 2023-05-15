@@ -12,6 +12,22 @@ apollo:
 
 spring:
   datasource:
-    url: ${pac.datasource.dsp.url}
-    username: ${pac.datasource.dsp.username}
-    password: ${pac.datasource.dsp.password}
+    dynamic:
+      primary: mysql
+      datasource:
+        mysql:
+          url: ${pac.datasource.dsp.url}
+          username: ${pac.datasource.dsp.username}
+          password: ${pac.datasource.dsp.password}
+        doris-ods:
+          url: ${data-center.datasource.doris.url}
+          username: ${data-center.datasource.doris.username}
+          password: ${data-center.datasource.doris.password}
+        doris-ads:
+          url: ${data-center.datasource.doris-ads.url}
+          username: ${data-center.datasource.doris-ads.username}
+          password: ${data-center.datasource.doris-ads.password}
+
+  servlet:
+    multipart:
+      max-file-size: 2MB

@@ -294,8 +294,10 @@ public class PacRedis {
 	/**
 	 * 获取记数器的值
 	 */
-	public Long getCounter(String key) {
-		return Long.valueOf(String.valueOf(valueOps.get(key)));
+	public Integer getCounter(String key) {
+//		return Long.valueOf(String.valueOf(valueOps.get(key)));
+		String countStr = stringRedisTemplate.opsForValue().get(key);
+		return Integer.valueOf(Optional.ofNullable(countStr).orElse("0"));
 	}
 
 	/**
