@@ -127,6 +127,23 @@
         </Filters>
     </RollingFile>
 
+    <RollingFile name="LOSS_LOG" fileName="${BUSINESS_LOG_HOME}/loss.log"
+                 filePattern="${BUSINESS_LOG_HOME}/loss-%d{yyyy-MM-dd-HH}.log">
+        <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+        </Policies>
+        <DefaultRolloverStrategy>
+            <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                <IfFileName glob="loss-*.log"/>
+                <IfLastModified age="360H"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
     <RollingFile name="IMP_LOG" fileName="${BUSINESS_LOG_HOME}/imp.log"
                  filePattern="${BUSINESS_LOG_HOME}/imp-%d{yyyy-MM-dd-HH}.log">
         <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>

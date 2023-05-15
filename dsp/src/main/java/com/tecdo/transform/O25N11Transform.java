@@ -22,6 +22,6 @@ public class O25N11Transform extends AbstractTransform implements IProtoTransfor
 
   @Override
   public boolean useLossUrl() {
-    return false;
+    return true;
   }
 }

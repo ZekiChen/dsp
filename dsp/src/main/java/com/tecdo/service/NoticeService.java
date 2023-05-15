@@ -122,6 +122,9 @@ public class NoticeService {
             case RECEIVE_WIN_NOTICE:
                 handleValidateFailed("win", noticeInfo, httpRequest, code);
                 break;
+            case RECEIVE_LOSS_NOTICE:
+                handleValidateFailed("loss", noticeInfo, httpRequest, code);
+                break;
             case RECEIVE_IMP_NOTICE:
                 handleValidateFailed("imp", noticeInfo, httpRequest, code);
                 break;
@@ -149,6 +152,9 @@ public class NoticeService {
             case RECEIVE_WIN_NOTICE:
                 handleWinNotice(httpRequest, noticeInfo);
                 break;
+            case RECEIVE_LOSS_NOTICE:
+                handleLossNotice(httpRequest, noticeInfo);
+                break;
             case RECEIVE_IMP_NOTICE:
                 handleImpNotice(httpRequest, noticeInfo);
                 break;
@@ -165,6 +171,10 @@ public class NoticeService {
 
     private void handleWinNotice(HttpRequest httpRequest, NoticeInfo info) {
         NoticeLogger.logWin(httpRequest, info);
+    }
+
+    private void handleLossNotice(HttpRequest httpRequest, NoticeInfo info) {
+        NoticeLogger.logLoss(httpRequest, info);
     }
 
     private void handleImpNotice(HttpRequest httpRequest, NoticeInfo info) {

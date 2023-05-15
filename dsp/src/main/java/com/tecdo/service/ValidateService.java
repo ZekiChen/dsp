@@ -211,6 +211,7 @@ public class ValidateService {
       long expire = winExpire;
         switch (eventType) {
           case RECEIVE_WIN_NOTICE:
+          case RECEIVE_LOSS_NOTICE:
                 expire = winExpire;
                 break;
           case RECEIVE_IMP_NOTICE:
@@ -248,6 +249,8 @@ public class ValidateService {
         switch (eventType) {
             case RECEIVE_WIN_NOTICE:
                 return cacheService.getNoticeCache().winMark(bidId);
+          case RECEIVE_LOSS_NOTICE:
+            return cacheService.getNoticeCache().lossMark(bidId);
             case RECEIVE_IMP_NOTICE:
                 return cacheService.getNoticeCache().impMark(bidId);
             default:

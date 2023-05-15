@@ -22,6 +22,7 @@ public class NoticeCache {
     private final PacRedis pacRedis;
 
     private final static String HAS_WIN_CACHE = "has-win";
+    private final static String HAS_LOSS_CACHE = "has-loss";
     private final static String HAS_IMP_CACHE = "has-imp";
     private final static String HAS_CLICK_CACHE = "has-click";
 
@@ -39,6 +40,16 @@ public class NoticeCache {
         String key = CacheConstant.WIN_CACHE
                 .concat(StrUtil.COLON).concat(HAS_WIN_CACHE)
                 .concat(StrUtil.COLON).concat(bidId);
+        return pacRedis.setIfAbsent(key, 1, clickExpire, TimeUnit.SECONDS);
+    }
+
+    /**
+     * 竞价失败的记录时间为点击窗口
+     */
+    public boolean lossMark(String bidId) {
+        String key = CacheConstant.LOSS_CACHE
+          .concat(StrUtil.COLON).concat(HAS_LOSS_CACHE)
+          .concat(StrUtil.COLON).concat(bidId);
         return pacRedis.setIfAbsent(key, 1, clickExpire, TimeUnit.SECONDS);
     }
 
