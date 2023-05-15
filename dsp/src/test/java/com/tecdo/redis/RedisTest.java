@@ -8,6 +8,8 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
+import java.util.concurrent.TimeUnit;
+
 /**
  * Created by Zeki on 2023/5/4
  */
@@ -48,4 +50,10 @@ public class RedisTest {
         System.out.println(noticeInfo);
     }
 
+    @Test
+    public void test_PacRedis_setIfAbsent() {
+        pacRedis.setIfAbsent("test", 1, 3600L, TimeUnit.SECONDS);
+        Boolean test = pacRedis.exists("test");
+        System.out.println(test);
+    }
 }
