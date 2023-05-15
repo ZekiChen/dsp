@@ -49,7 +49,8 @@ public class CreativeController {
                         @RequestParam("name") String name,
                         @RequestParam("type") Integer type,
                         @RequestParam("width") Integer width,
-                        @RequestParam("height") Integer height) {
+                        @RequestParam("height") Integer height,
+                        @RequestParam("catIab") String catIab) {
         PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
         Creative creative = new Creative();
         creative.setUrl(pacFile.getUrl());
@@ -57,6 +58,7 @@ public class CreativeController {
         creative.setType(type);
         creative.setWidth(width);
         creative.setHeight(height);
+        creative.setCatIab(catIab);
         return R.status(service.save(creative));
     }
 
