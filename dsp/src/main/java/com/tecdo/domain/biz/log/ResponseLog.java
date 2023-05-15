@@ -278,4 +278,14 @@ public class ResponseLog implements Serializable {
      */
     @JsonProperty("p_cvr_version")
     private String pCvrVersion;
+
+
+    @JsonProperty("badv")
+    private List<String> bAdv;
+
+    @JsonProperty("bapp")
+    private List<String> bApp;
+
+    @JsonProperty("bcat")
+    private List<String> bCat;
 }

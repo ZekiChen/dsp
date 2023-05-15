@@ -115,6 +115,9 @@ public class ResponseLogger {
                       .downloads(googlePlayApp.getDownloads())
                       .reviews(googlePlayApp.getReviews())
                       .rtaToken(wrapper.getRtaToken())
+                      .bAdv(bidRequest.getBadv())
+                      .bApp(bidRequest.getBapp())
+                      .bCat(bidRequest.getBcat())
                       .build();
   }
 }
