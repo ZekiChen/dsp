@@ -73,8 +73,14 @@ public class CampaignController {
     @GetMapping("/page")
     @ApiOperationSupport(order = 5)
     @ApiOperation(value = "分页", notes = "传入Campaign")
-    public R<IPage<CampaignVO>> page(Campaign campaign, PQuery query) {
-        IPage<Campaign> pages = service.customPage(PCondition.getPage(query), campaign);
+    public R<IPage<CampaignVO>> page(@ApiParam("广告组ID集") @RequestParam(required = false) String adGroupIds,
+                                     @ApiParam("广告组名称") @RequestParam(required = false) String adGroupName,
+                                     @ApiParam("广告ID集") @RequestParam(required = false) String adIds,
+                                     @ApiParam("广告名称") @RequestParam(required = false) String adName,
+                                     Campaign campaign, PQuery query) {
+        IPage<Campaign> pages = service.customPage(PCondition.getPage(query), campaign,
+                BigTool.toIntList(adGroupIds), adGroupName,
+                BigTool.toIntList(adIds), adName);
         return R.data(CampaignWrapper.build().pageVO(pages));
     }
 

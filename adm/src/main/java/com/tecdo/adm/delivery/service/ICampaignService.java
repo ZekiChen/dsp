@@ -27,5 +27,7 @@ public interface ICampaignService extends IService<Campaign> {
 
     boolean editListInfo(SimpleCampaignUpdateVO vo);
 
-    IPage<Campaign> customPage(IPage<Campaign> page, Campaign campaign);
+    IPage<Campaign> customPage(IPage<Campaign> page, Campaign campaign,
+                               List<Integer> adGroupIds, String adGroupName,
+                               List<Integer> adIds, String adName);
 }

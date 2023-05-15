@@ -20,5 +20,9 @@ public interface CampaignMapper extends BaseMapper<Campaign> {
 
     List<SimpleCampaignDTO> listCampaignWithGroupIdName();
 
-    IPage<Campaign> customPage(IPage<Campaign> page, @Param("param") Campaign campaign);
+    IPage<Campaign> customPage(IPage<Campaign> page, @Param("campaign") Campaign campaign,
+                               @Param("adGroupIds") List<Integer> adGroupIds,
+                               @Param("adGroupName") String adGroupName,
+                               @Param("adIds") List<Integer> adIds,
+                               @Param("adName") String adName);
 }

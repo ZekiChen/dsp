@@ -17,22 +17,45 @@
     </resultMap>
 
     <select id="customPage" resultMap="baseRsMap">
-        select * from campaign
-        where 1=1
-        <if test="param.id != null">
-            and id = #{param.id}
+        SELECT DISTINCT
+            c.*
+        FROM
+            campaign c
+            LEFT JOIN ad_group g ON c.id = g.campaign_id
+            LEFT JOIN ad ad ON g.id = ad.group_id
+        WHERE 1=1
+        <if test="campaign.id != null">
+            and id = #{campaign.id}
         </if>
-        <if test="param.status != null">
-            and status = #{param.status}
+        <if test="campaign.status != null">
+            and status = #{campaign.status}
         </if>
-        <if test="param.advId != null">
-            and adv_id = #{param.advId}
+        <if test="campaign.advId != null">
+            and adv_id = #{campaign.advId}
         </if>
-        <if test="param.name != null and param.name != ''">
-            and name like concat(concat('%', #{param.name}),'%')
+        <if test="campaign.name != null and campaign.name != ''">
+            and name like concat(concat('%', #{campaign.name}),'%')
         </if>
-        <if test="param.packageName != null and param.packageName != ''">
-            and package_name like concat(concat('%', #{param.packageName}),'%')
+        <if test="campaign.packageName != null and campaign.packageName != ''">
+            and package_name like concat(concat('%', #{campaign.packageName}),'%')
+        </if>
+        <if test="adGroupIds != null and adGroupIds.size > 0">
+           and g.id IN
+            <foreach collection="adGroupIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="adGroupName != null and adGroupName != ''">
+            and g.name like concat(concat('%', #{adGroupName}),'%')
+        </if>
+        <if test="adIds != null and adIds.size > 0">
+           and ad.id IN
+            <foreach collection="adIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="adName != null and adName != ''">
+            and ad.name like concat(concat('%', #{adName}),'%')
         </if>
     </select>
 
