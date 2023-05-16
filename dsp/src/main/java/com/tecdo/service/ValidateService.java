@@ -3,6 +3,7 @@ package com.tecdo.service;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
+import com.tecdo.adm.api.delivery.entity.AffCountryBundleList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.common.constant.Constant;
 import com.tecdo.common.constant.HttpCode;
@@ -15,6 +16,7 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.server.request.HttpRequest;
+import com.tecdo.service.init.AffCountryBundleListManager;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.service.init.IpTableManager;
 import com.tecdo.service.init.Pair;
@@ -33,6 +35,9 @@ import org.springframework.stereotype.Service;
 
 import java.util.*;
 
+import static com.tecdo.filter.AbstractRecallFilter.Constant.EXCLUDE;
+import static com.tecdo.filter.AbstractRecallFilter.Constant.INCLUDE;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
@@ -41,6 +46,7 @@ public class ValidateService {
   private final AffiliateManager affiliateManager;
 
   private final IpTableManager ipTableManager;
+  private final AffCountryBundleListManager affCountryBundleListManager;
 
   private final MessageQueue messageQueue;
   private final CacheService cacheService;
@@ -98,6 +104,17 @@ public class ValidateService {
       return;
     }
 
+      String country = bidRequest.getDevice().getGeo().getCountry();
+      String bundle = bidRequest.getApp().getBundle();
+      if (!validateAffCountryBundleList(affiliate.getId(), country, bundle)) {
+          log.info("affiliate country bundle list validate fail! , country: {}, bundle: {}", country, bundle);
+          messageQueue.putMessage(EventType.RESPONSE_RESULT,
+                  Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
+                          .put(ParamKey.CHANNEL_CONTEXT,
+                                  httpRequest.getChannelContext()));
+          return;
+      }
+
     String ip = bidRequest.getDevice().getIp();
     Pair<Boolean, String> blocked = ipTableManager.ipCheck(ip);
     if (blocked.left) {
@@ -141,6 +158,31 @@ public class ValidateService {
                     .put(ParamKey.AFFILIATE, affiliate));
 
   }
+
+    private boolean validateAffCountryBundleList(Integer affiliateId, String country, String bundle) {
+        List<AffCountryBundleList> lists = affCountryBundleListManager.listAffCountryBundleList(affiliateId);
+        if (CollUtil.isEmpty(lists)) {
+            return true;
+        }
+        for (AffCountryBundleList e : lists) {
+            if (country.equals(e.getCountry())) {
+                if (StrUtil.isBlank(e.getBundle())) {
+                    return true;
+                }
+                String[] targetBundles = e.getBundle().split(StrUtil.COMMA);
+                switch (e.getOperation()) {
+                    case INCLUDE:
+                        return Arrays.asList(targetBundles).contains(bundle);
+                    case EXCLUDE:
+                        return !Arrays.asList(targetBundles).contains(bundle);
+                    default:
+                        log.error("unknown operation for filter aff country bundle list: {}", e.getOperation());
+                        return true;
+                }
+            }
+        }
+        return true;
+    }
 
   private boolean validateBidRequest(BidRequest bidRequest) {
     // 目标渠道：目前只参与移动端流量的竞价

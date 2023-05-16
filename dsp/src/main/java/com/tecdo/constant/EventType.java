@@ -57,6 +57,11 @@ public enum EventType {
   AF_AUDIENCE_SYNC_LOAD_ERROR(1903, "af audience sync load failure"),
   AF_AUDIENCE_SYNC_LOAD_TIMEOUT(1904, "af audience sync load timeout"),
 
+  AFF_COUNTRY_BUNDLE_LIST_LOAD(2001, "aff country bundle list load"),
+  AFF_COUNTRY_BUNDLE_LIST_LOAD_RESPONSE(2002, "aff country bundle list load response"),
+  AFF_COUNTRY_BUNDLE_LIST_LOAD_ERROR(2003, "aff country bundle list load failure"),
+  AFF_COUNTRY_BUNDLE_LIST_LOAD_TIMEOUT(2004, "aff country bundle list load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 
