@@ -20,19 +20,25 @@
     </resultMap>
 
     <select id="customPage" resultMap="baseRsMap">
-        select DISTINCT g.* from ad_group g LEFT JOIN target_condition c ON g.id = c.ad_group_id
+        SELECT DISTINCT
+            g.*
+        FROM
+            ad_group g
+            LEFT JOIN target_condition t ON g.id = t.ad_group_id
+            LEFT JOIN campaign c ON g.campaign_id = c.id
+            LEFT JOIN ad ON ad.group_id = g.id
         where 1=1
-        <if test="param.id != null">
-            and g.id = #{param.id}
+        <if test="adGroup.id != null">
+            and g.id = #{adGroup.id}
         </if>
-        <if test="param.status != null">
-            and g.status = #{param.status}
+        <if test="adGroup.status != null">
+            and g.status = #{adGroup.status}
         </if>
-        <if test="param.name != null and param.name != ''">
-            and g.name like concat(concat('%', #{param.name}),'%')
+        <if test="adGroup.name != null and adGroup.name != ''">
+            and g.name like concat(concat('%', #{adGroup.name}),'%')
         </if>
-        <if test="param.bidStrategy != null">
-            and g.bid_strategy = #{param.bidStrategy}
+        <if test="adGroup.bidStrategy != null">
+            and g.bid_strategy = #{adGroup.bidStrategy}
         </if>
         <if test="campaignIds != null and campaignIds.size > 0">
            and g.campaign_id IN
@@ -40,20 +46,32 @@
                 #{item}
             </foreach>
         </if>
+        <if test="campaignName != null and campaignName != ''">
+            and c.name like concat(concat('%', #{campaignName}),'%')
+        </if>
+        <if test="adIds != null and adIds.size > 0">
+           and ad.id IN
+            <foreach collection="adIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="adName != null and adName != ''">
+            and ad.name like concat(concat('%', #{adName}),'%')
+        </if>
         <if test="affiliateIds != null and affiliateIds.size > 0">
-            and c.attribute = 'affiliate' and
-            CASE c.operation
+            and t.attribute = 'affiliate' and
+            CASE t.operation
                 WHEN 'include' THEN
                     <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
-                        FIND_IN_SET(#{item}, c.`value`)
+                        FIND_IN_SET(#{item}, t.`value`)
                     </foreach>
                 WHEN 'exclude' THEN NOT
                     <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
-                        FIND_IN_SET(#{item}, c.`value`)
+                        FIND_IN_SET(#{item}, t.`value`)
                     </foreach>
                 WHEN 'eq' THEN
                     <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
-                        c.`value` = #{item}
+                        t.`value` = #{item}
                     </foreach>
                 END
         </if>

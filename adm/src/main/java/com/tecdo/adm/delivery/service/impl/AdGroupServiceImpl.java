@@ -114,8 +114,11 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
-    public IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup, List<Integer> campaignIds, List<String> affiliateIds) {
-        return baseMapper.customPage(page, adGroup, campaignIds, affiliateIds);
+    public IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup,
+                                     List<Integer> campaignIds, String campaignName,
+                                     List<Integer> adIds, String adName,
+                                     List<String> affiliateIds) {
+        return baseMapper.customPage(page, adGroup, campaignIds, campaignName, adIds, adName, affiliateIds);
     }
 
     private static List<Ad> replaceAndCopyAds(List<AdGroup> targetAdGroups, List<Ad> sourceAds, Integer targetAdStatus) {

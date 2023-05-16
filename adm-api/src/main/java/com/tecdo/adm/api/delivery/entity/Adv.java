@@ -22,6 +22,8 @@ public class Adv extends BaseEntity {
 
     @ApiModelProperty("广告主名称")
     private String name;
+    @ApiModelProperty(value = "类型", notes = "AdvTypeEnum")
+    private Integer type;
 
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
     @TableField(fill = FieldFill.INSERT)

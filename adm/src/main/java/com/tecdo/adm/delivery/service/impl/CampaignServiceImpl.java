@@ -15,6 +15,7 @@ import com.tecdo.adm.delivery.service.ICampaignService;
 import com.tecdo.starter.mp.vo.BaseVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Collections;
 import java.util.Date;
@@ -32,9 +33,15 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
     private final IAdGroupService adGroupService;
 
     @Override
+    @Transactional
     public boolean add(CampaignVO vo) {
-        vo.getCampaignRtaVO().setAdvMemId(vo.getCampaignRtaVO().getAdvId());
-        return save(vo) && campaignRtaService.save(vo.getCampaignRtaVO());
+        save(vo);
+        CampaignRtaVO campaignRtaVO = vo.getCampaignRtaVO();
+        if (campaignRtaVO != null) {
+            campaignRtaVO.setAdvMemId(campaignRtaVO.getAdvId());
+            campaignRtaService.save(campaignRtaVO);
+        }
+        return true;
     }
 
     @Override
@@ -102,7 +109,10 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
     }
 
     @Override
-    public IPage<Campaign> customPage(IPage<Campaign> page, Campaign campaign) {
-        return baseMapper.customPage(page, campaign);
+    public IPage<Campaign> customPage(IPage<Campaign> page, Campaign campaign,
+                                      List<Integer> advIds,
+                                      List<Integer> adGroupIds, String adGroupName,
+                                      List<Integer> adIds, String adName) {
+        return baseMapper.customPage(page, campaign, advIds, adGroupIds, adGroupName, adIds, adName);
     }
 }
