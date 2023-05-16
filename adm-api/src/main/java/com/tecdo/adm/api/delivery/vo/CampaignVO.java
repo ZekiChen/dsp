@@ -18,6 +18,9 @@ public class CampaignVO extends Campaign {
 
 	@ApiModelProperty("广告主名称")
 	private String advName;
+	@ApiModelProperty("广告主类型")
+	private Integer advType;
+
 	@ApiModelProperty("Campaign RTA信息")
 	private CampaignRtaVO campaignRtaVO;
 
