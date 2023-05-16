@@ -33,8 +33,8 @@ public interface ParamKey {
   String GP_APP_CACHE_KEY = "gp-app-cache-key";
   String ADV_CACHE_KEY = "adv-cache-key";
   String IP_TABLE_CACHE_KEY = "ip-table-key";
-
   String AF_AUDIENCE_SYNC_KEY = "af-audience-sync-key";
+  String AFF_COUNTRY_BUNDLE_LIST_CACHE_KEY = "aff-country-bundle-list-cache-key";
 
   // task-imp
   String ADS_TASK_RESPONSE = "ads-imp-key";
