@@ -1,8 +1,5 @@
 package com.tecdo.fsm.task;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
@@ -52,6 +49,9 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -273,7 +273,11 @@ public class Task {
         }
         for (CvrResponse resp : result.getData()) {
           AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
-          wrapper.setPCvr(resp.getPCvr());
+          if (resp.getPCvr() != null) {
+            wrapper.setPCvr(resp.getPCvr());
+          } else {
+            wrapper.setPCvr(resp.getPCtcvrEvent1());
+          }
           wrapper.setPCvrVersion(result.getVersion());
         }
         params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
