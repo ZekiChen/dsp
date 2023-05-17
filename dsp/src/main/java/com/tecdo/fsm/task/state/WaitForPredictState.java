@@ -39,6 +39,7 @@ public class WaitForPredictState implements ITaskState {
         task.savePredictResponse(params.get(ParamKey.ADS_P_CTR_RESPONSE));
         boolean receiveAllPredictResponse = task.isReceiveAllPredictResponse();
         if (receiveAllPredictResponse) {
+          task.tick("task-calc-price");
           task.cancelTimer(EventType.PREDICT_TIMEOUT);
           task.calcPrice();
           task.startTimer(EventType.CALC_CPC_TIMEOUT, params, timeoutCalcPrice);

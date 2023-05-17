@@ -1,5 +1,6 @@
 package com.tecdo.fsm.task;
 
+import com.dianping.cat.Cat;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
@@ -36,6 +37,7 @@ import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
+import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
@@ -85,6 +87,8 @@ public class Task {
   private final Map<EventType, Long> eventTimerMap = new HashMap<>();
   private final Map<Integer, AdDTOWrapper> resMap = new HashMap<>();
 
+  private ActionConsumeRecorder recorder = new ActionConsumeRecorder();
+
   private ITaskState currentState = SpringUtil.getBean(InitState.class);
 
   public void init(BidRequest bidRequest,
@@ -109,6 +113,7 @@ public class Task {
     currentState = SpringUtil.getBean(InitState.class);
     this.predictResCount = 0;
     this.resMap.clear();
+    this.recorder.reset();
   }
 
   public void switchState(ITaskState newState) {
@@ -502,14 +507,27 @@ public class Task {
                        .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
     Params params = assignParams().put(ParamKey.ADS_TASK_RESPONSE, adDTOMap);
     messageQueue.putMessage(EventType.BID_TASK_FINISH, params);
-
+    record();
   }
 
   public void notifyFailed() {
+    record();
     messageQueue.putMessage(EventType.BID_TASK_FAILED, assignParams());
   }
 
   public Params assignParams() {
     return Params.create(ParamKey.REQUEST_ID, requestId).put(ParamKey.TASK_ID, taskId);
+  }
+
+  public void tick(String action) {
+    recorder.tick(action);
+  }
+
+  public void record() {
+    recorder.stop();
+    Map<String, Double> costMap = recorder.consumes();
+    costMap.forEach((k, v) -> {
+      Cat.logMetricForDuration(k, v.longValue());
+    });
   }
 }

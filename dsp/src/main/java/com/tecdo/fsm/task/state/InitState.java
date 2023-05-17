@@ -27,6 +27,7 @@ public class InitState implements ITaskState {
   public void handleEvent(EventType eventType, Params params, Task task) {
     switch (eventType) {
       case TASK_START:
+        task.tick("task-ad-recall");
         task.listRecallAd();
         task.startTimer(EventType.ADS_RECALL_TIMEOUT,
                         task.assignParams(),
