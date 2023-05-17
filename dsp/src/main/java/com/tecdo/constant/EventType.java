@@ -73,6 +73,7 @@ public enum EventType {
   RECEIVE_CLICK_NOTICE(3005, "receive click notice"),
   RECEIVE_PB_NOTICE(3006, "receive pb notice"),
   RECEIVE_IMP_INFO_NOTICE(3007, "receive imp info notice"),
+  RECEIVE_LOSS_NOTICE(3008, "receive loss notice"),
 
   BID_TASK_FINISH(3101, "bid task finish"),
   BID_TASK_FAILED(3102, "bid task failed"),

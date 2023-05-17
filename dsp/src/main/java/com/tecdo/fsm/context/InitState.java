@@ -21,6 +21,7 @@ public class InitState implements IContextState {
   public void handleEvent(EventType eventType, Params params, Context context) {
     switch (eventType) {
       case RECEIVE_BID_REQUEST:
+        context.tick("context-ad-recall");
         context.handleBidRequest();
         context.startTimer(EventType.WAIT_TASK_RESPONSE_TIMEOUT,
                            context.assignParams(),

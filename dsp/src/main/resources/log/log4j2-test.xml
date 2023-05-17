@@ -46,6 +46,10 @@
             <AppenderRef ref="WIN_LOG"/>
         </Logger>
 
+        <Logger name="loss_log" level="INFO" additivity="false">
+            <AppenderRef ref="LOSS_LOG"/>
+        </Logger>
+
         <Logger name="imp_log" level="INFO" additivity="false">
             <AppenderRef ref="IMP_LOG"/>
         </Logger>

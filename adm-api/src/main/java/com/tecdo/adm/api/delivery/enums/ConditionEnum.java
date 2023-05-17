@@ -22,6 +22,7 @@ public enum ConditionEnum {
     DEVICE_OSV("device_osv"),
     HOUR("hour"),
     AUDIENCE_AF("audience_af"),
+    AFFILIATE_BLOCKED_AD("affiliate_blocked_ad"),
     ;
 
     private final String desc;

@@ -98,6 +98,9 @@ public class RequestLogger {
                 .score(googlePlayApp.getScore())
                 .downloads(googlePlayApp.getDownloads())
                 .reviews(googlePlayApp.getReviews())
+                .bAdv(bidRequest.getBadv())
+                .bApp(bidRequest.getBapp())
+                .bCat(bidRequest.getBcat())
                 .build();
     }
 }

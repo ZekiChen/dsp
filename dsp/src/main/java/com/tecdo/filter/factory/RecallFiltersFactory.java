@@ -32,12 +32,14 @@ public class RecallFiltersFactory {
     private final ImpFrequencyFilter impFrequencyFilter;
     private final ClickFrequencyFilter clickFrequencyFilter;
     private final AfAudienceFilter afAudienceFilter;
+    private final AffiliateBlockedAdFilter affiliateBlockedAdFilter;
 
     /**
      * 获取广告召回流程所需的全部过滤器集
      */
     public List<AbstractRecallFilter> createFilters() {
         return CollUtil.newArrayList(affiliateFilter,
+                                     affiliateBlockedAdFilter,
                                      timePeriodFilter,
                                      deviceCountryFilter,
                                      deviceOSFilter,

@@ -1,13 +1,9 @@
 package com.tecdo.fsm.task;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.extra.spring.SpringUtil;
+import com.dianping.cat.Cat;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
-import com.tecdo.ab.util.AbTestConfigHelper;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
@@ -31,7 +27,6 @@ import com.tecdo.domain.openrtb.request.Banner;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.AbTestConfig;
 import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
@@ -42,6 +37,7 @@ import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
+import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
@@ -56,9 +52,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -93,6 +87,8 @@ public class Task {
   private final Map<EventType, Long> eventTimerMap = new HashMap<>();
   private final Map<Integer, AdDTOWrapper> resMap = new HashMap<>();
 
+  private ActionConsumeRecorder recorder = new ActionConsumeRecorder();
+
   private ITaskState currentState = SpringUtil.getBean(InitState.class);
 
   public void init(BidRequest bidRequest,
@@ -117,6 +113,7 @@ public class Task {
     currentState = SpringUtil.getBean(InitState.class);
     this.predictResCount = 0;
     this.resMap.clear();
+    this.recorder.reset();
   }
 
   public void switchState(ITaskState newState) {
@@ -281,7 +278,11 @@ public class Task {
         }
         for (CvrResponse resp : result.getData()) {
           AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
-          wrapper.setPCvr(resp.getPCvr());
+          if (resp.getPCvr() != null) {
+            wrapper.setPCvr(resp.getPCvr());
+          } else {
+            wrapper.setPCvr(resp.getPCtcvrEvent1());
+          }
           wrapper.setPCvrVersion(result.getVersion());
         }
         params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
@@ -358,7 +359,6 @@ public class Task {
       googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
-                     .dayOld(DateUtil.today())
                      .affiliateId(affId)
                      .adFormat(adType.getDesc())
                      .adWidth(adWidth)
@@ -367,7 +367,6 @@ public class Task {
                      .osv(device.getOsv())
                      .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
                      .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
-                     .bundleOld(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
                      .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
                      .connectionType(device.getConnectiontype())
                      .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
@@ -377,11 +376,7 @@ public class Task {
                      .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
                                        .map(CampaignRtaInfo::getRtaFeature)
                                        .orElse(-1))
-                     .rtaFeatureOld(Optional.ofNullable(adDTO.getCampaignRtaInfo())
-                                            .map(CampaignRtaInfo::getRtaFeature)
-                                            .orElse(-1))
                      .packageName(adDTO.getCampaign().getPackageName())
-                     .packageNameOld(adDTO.getCampaign().getPackageName())
                      .category(adDTO.getCampaign().getCategory())
                      .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
                      .domain(bidRequest.getApp().getDomain())
@@ -391,11 +386,12 @@ public class Task {
                      .ua(device.getUa())
                      .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
                      .deviceId(device.getIfa())
-                     .categoryList(googleApp.getCategoryList())
-                     .tagList(googleApp.getTagList())
-                     .score(googleApp.getScore())
-                     .downloads(googleApp.getDownloads())
-                     .reviews(googleApp.getReviews())
+                     .bundleIdCategory(googleApp.getCategoryList())
+                     .bundleIdTag(googleApp.getTagList())
+                     .bundleIdScore(googleApp.getScore())
+                     .bundleIdDownload(googleApp.getDownloads())
+                     .bundleIdReview(googleApp.getReviews())
+                     .tagId(imp.getTagid())
                      .build();
   }
 
@@ -449,11 +445,12 @@ public class Task {
                      .ua(device.getUa())
                      .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
                      .deviceId(device.getIfa())
-                     .categoryList(googleApp.getCategoryList())
-                     .tagList(googleApp.getTagList())
-                     .score(googleApp.getScore())
-                     .downloads(googleApp.getDownloads())
-                     .reviews(googleApp.getReviews())
+                     .bundleIdCategory(googleApp.getCategoryList())
+                     .bundleIdTag(googleApp.getTagList())
+                     .bundleIdScore(googleApp.getScore())
+                     .bundleIdDownload(googleApp.getDownloads())
+                     .bundleIdReview(googleApp.getReviews())
+                     .tagId(imp.getTagid())
                      .build();
   }
 
@@ -510,14 +507,27 @@ public class Task {
                        .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
     Params params = assignParams().put(ParamKey.ADS_TASK_RESPONSE, adDTOMap);
     messageQueue.putMessage(EventType.BID_TASK_FINISH, params);
-
+    record();
   }
 
   public void notifyFailed() {
+    record();
     messageQueue.putMessage(EventType.BID_TASK_FAILED, assignParams());
   }
 
   public Params assignParams() {
     return Params.create(ParamKey.REQUEST_ID, requestId).put(ParamKey.TASK_ID, taskId);
+  }
+
+  public void tick(String action) {
+    recorder.tick(action);
+  }
+
+  public void record() {
+    recorder.stop();
+    Map<String, Double> costMap = recorder.consumes();
+    costMap.forEach((k, v) -> {
+      Cat.logMetricForDuration(k, v.longValue());
+    });
   }
 }
