@@ -40,8 +40,6 @@ public class LifeCycleManager {
   @Autowired
   private IpTableManager ipTableManager;
   @Autowired
-  private AdvManager advManager;
-  @Autowired
   private MessageQueue messageQueue;
   @Autowired
   private AfAudienceSyncManager afAudienceSyncManager;
@@ -51,7 +49,7 @@ public class LifeCycleManager {
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 10;
+  private final int needInitCount = 9;
 
   @Value("${server.port}")
   private int serverPort;
@@ -128,12 +126,6 @@ public class LifeCycleManager {
       case IP_TABLE_LOAD_TIMEOUT:
         ipTableManager.handleEvent(eventType, params);
         break;
-      case ADV_LOAD:
-      case ADV_LOAD_RESPONSE:
-      case ADV_LOAD_ERROR:
-      case ADV_LOAD_TIMEOUT:
-        advManager.handleEvent(eventType, params);
-        break;
       case AFF_COUNTRY_BUNDLE_LIST_LOAD:
       case AFF_COUNTRY_BUNDLE_LIST_LOAD_RESPONSE:
       case AFF_COUNTRY_BUNDLE_LIST_LOAD_ERROR:
@@ -166,7 +158,6 @@ public class LifeCycleManager {
         googlePlayAppManager.init(params);
         ipTableManager.init(params);
         afAudienceSyncManager.init(params);
-        advManager.init(params);
         affCountryBundleListManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;

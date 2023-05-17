@@ -49,4 +49,9 @@ public class AdDTO implements Serializable {
    */
   private CampaignRtaInfo campaignRtaInfo;
 
+  /**
+   * 广告主信息
+   */
+  private Adv adv;
+
 }

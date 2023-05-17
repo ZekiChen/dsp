@@ -24,7 +24,6 @@ import com.tecdo.log.RequestLogger;
 import com.tecdo.log.ResponseLogger;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.CacheService;
-import com.tecdo.service.init.AdvManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
@@ -95,8 +94,6 @@ public class Context {
 
   private final GooglePlayAppManager googlePlayAppManager =
     SpringUtil.getBean(GooglePlayAppManager.class);
-
-  private final AdvManager advManager = SpringUtil.getBean(AdvManager.class);
 
   private final CacheService cacheService = SpringUtil.getBean(CacheService.class);
 
@@ -228,9 +225,7 @@ public class Context {
       this.adDTOWrapperList.stream()
                            .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()) &&
                                         AdvEnum.LAZADA.getDesc()
-                                                      .equals(advManager.getAdvName(i.getAdDTO()
-                                                                                     .getCampaign()
-                                                                                     .getAdvId())))
+                                                      .equals(i.getAdDTO().getAdv().getName()))
                            .collect(Collectors.groupingBy(i -> i.getAdDTO()
                                                                 .getCampaignRtaInfo()
                                                                 .getAdvMemId()));
@@ -249,9 +244,7 @@ public class Context {
       this.adDTOWrapperList.stream()
                            .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()) &
                                         AdvEnum.AE.getDesc()
-                                                  .equals(advManager.getAdvName(i.getAdDTO()
-                                                                                 .getCampaign()
-                                                                                 .getAdvId())))
+                                                  .equals(i.getAdDTO().getAdv().getName()))
                            .collect(Collectors.toMap(ad -> ad.getAdDTO().getCampaign().getId(),
                                                      ad -> ad.getAdDTO()
                                                              .getCampaignRtaInfo()
@@ -413,7 +406,7 @@ public class Context {
   }
 
   private void cacheNoticeInfoByAe(AdDTOWrapper adDTOWrapper, BidRequest bidRequest) {
-    String advName = advManager.getAdvName(adDTOWrapper.getAdDTO().getCampaign().getAdvId());
+    String advName = adDTOWrapper.getAdDTO().getAdv().getName();
     if (AdvEnum.AE.getDesc().equals(advName)) {
       Ad ad = adDTOWrapper.getAdDTO().getAd();
       NoticeInfo info = new NoticeInfo();

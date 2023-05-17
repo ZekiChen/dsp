@@ -47,11 +47,6 @@ public enum EventType {
   IP_TABLE_LOAD_ERROR(1703, "ip table load failure"),
   IP_TABLE_LOAD_TIMEOUT(1704, "ip table load timeout"),
 
-  ADV_LOAD(1801, "adv list load"),
-  ADV_LOAD_RESPONSE(1802, "adv list load response"),
-  ADV_LOAD_ERROR(1803, "adv list load failure"),
-  ADV_LOAD_TIMEOUT(1804, "adv list load timeout"),
-
   AF_AUDIENCE_SYNC_TABLE_LOAD(1901, "af audience sync load"),
   AF_AUDIENCE_SYNC_LOAD_RESPONSE(1902, "af audience sync load response"),
   AF_AUDIENCE_SYNC_LOAD_ERROR(1903, "af audience sync load failure"),

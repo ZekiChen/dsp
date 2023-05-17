@@ -155,8 +155,9 @@ public class AdManager {
                         List<TargetCondition> conditions = conditionMapper.selectList(Wrappers.lambdaQuery());
                         Map<Integer, Campaign> campaignMap = campaignMapper.selectList(Wrappers.<Campaign>lambdaQuery().eq(Campaign::getStatus,1)).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
                         List<CampaignRtaInfo> campaignRtaInfos = campaignRtaMapper.selectList(Wrappers.lambdaQuery());
+                        Map<Integer, Adv> advMap = advMapper.selectList(Wrappers.<Adv>lambdaQuery().eq(Adv::getStatus,1)).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
 
-                        Map<Integer, AdDTO> adDTOMap = listAndConvertAds(ads, creativeMap, adGroupMap, conditions, campaignMap, campaignRtaInfos);
+                        Map<Integer, AdDTO> adDTOMap = listAndConvertAds(ads, creativeMap, adGroupMap, conditions, campaignMap, campaignRtaInfos, advMap);
                         Map<Integer, CampaignDTO> campaignDTOMap = listCampaignDTOMap(ads, creativeMap, adGroupMap, conditions, campaignMap, campaignRtaInfos);
 
                         params.put(ParamKey.ADS_CACHE_KEY, adDTOMap);
@@ -176,14 +177,15 @@ public class AdManager {
     }
 
     /**
-     * 将 ad（creative）、ad_group（target_condition）、campaign（campaign_rta_info）数据平铺整合 AdDTO 集
+     * 将 ad（creative）、ad_group（target_condition）、campaign（campaign_rta_info）、adv数据平铺整合 AdDTO 集
      */
     private Map<Integer, AdDTO> listAndConvertAds(List<Ad> ads,
                                                   Map<Integer, Creative> creativeMap,
                                                   Map<Integer, AdGroup> adGroupMap,
                                                   List<TargetCondition> conditions,
                                                   Map<Integer, Campaign> campaignMap,
-                                                  List<CampaignRtaInfo> campaignRtaInfos) {
+                                                  List<CampaignRtaInfo> campaignRtaInfos,
+                                                  Map<Integer,Adv> advMap) {
         List<AdDTO> adDTOs = new ArrayList<>();
         for (Ad ad : ads) {
             Map<Integer, Creative> creatives = listCreativesByAd(creativeMap, ad);
@@ -191,14 +193,19 @@ public class AdManager {
             List<TargetCondition> targetConditions = listConditionByGroup(conditions, adGroup);
             Campaign campaign = getCampaignByGroup(campaignMap, adGroup);
             CampaignRtaInfo campaignRtaInfo = getCampaignRtaByCampaign(campaignRtaInfos, campaign);
-            if(adGroup == null || campaign == null){
+            Adv adv = getAdvByCampaign(advMap, campaign);
+            if (adGroup == null || campaign == null || adv == null) {
                 continue;
             }
             AdDTO adDTO = AdDTO.builder()
-                    .ad(ad).creativeMap(creatives)
-                    .adGroup(adGroup).conditions(targetConditions)
-                    .campaign(campaign).campaignRtaInfo(campaignRtaInfo)
-                    .build();
+                               .ad(ad)
+                               .creativeMap(creatives)
+                               .adGroup(adGroup)
+                               .conditions(targetConditions)
+                               .campaign(campaign)
+                               .campaignRtaInfo(campaignRtaInfo)
+                               .adv(adv)
+                               .build();
             adDTOs.add(adDTO);
         }
         return adDTOs.stream().collect(Collectors.toMap(e -> e.getAd().getId(), e -> e));
@@ -268,6 +275,10 @@ public class AdManager {
             }
         }
         return null;
+    }
+
+    private Adv getAdvByCampaign(Map<Integer, Adv> advMap, Campaign campaign) {
+        return campaign == null ? null : advMap.get(campaign.getAdvId());
     }
 
     private void handleAdsResponse(Params params) {
