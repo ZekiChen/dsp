@@ -49,6 +49,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import cn.hutool.core.collection.CollUtil;
@@ -186,7 +187,7 @@ public class Task {
 
     Map<Integer, AdDTOWrapper> cpcMap = new HashMap<>();
     Map<Integer, AdDTOWrapper> cpaMap = new HashMap<>();
-    Map<Integer, AdDTOWrapper> cpmMap = new HashMap<>();
+    Map<Integer, AdDTOWrapper> noNeedPredict = new HashMap<>();
     adDTOMap.forEach((k, v) -> {
       BidStrategyEnum strategyEnum = BidStrategyEnum.of(v.getAdDTO().getAdGroup().getBidStrategy());
       switch (strategyEnum) {
@@ -197,8 +198,9 @@ public class Task {
           cpaMap.put(k, v);
           break;
         case CPM:
+        case DYNAMIC:
         default:
-          cpmMap.put(k, v);
+          noNeedPredict.put(k, v);
       }
     });
     Params cpcParams = assignParams();
@@ -221,7 +223,7 @@ public class Task {
     }
 
     messageQueue.putMessage(EventType.PREDICT_FINISH,
-                            assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, cpmMap));
+                            assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, noNeedPredict));
   }
 
   private void callCtr(Map<Integer, AdDTOWrapper> adDTOMap,
@@ -489,6 +491,16 @@ public class Task {
         bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
                              .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
                              .multiply(BigDecimal.valueOf(1000));
+        break;
+      case DYNAMIC:
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        if (adDTO.getAdGroup().getBidProbability() > random.nextDouble()) {
+          bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getBidMultiplier())
+                               .multiply(BigDecimal.valueOf(imp.getBidfloor()))
+                               .min(BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice()));
+        } else {
+          bidPrice = BigDecimal.ZERO;
+        }
         break;
       case CPM:
       default:

@@ -12,7 +12,7 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum BidStrategyEnum {
 
-  CPM(1, "cpm"), CPC(2, "cpc"), CPA(3, "cpa"), OTHER(-1, "other");
+  CPM(1, "cpm"), CPC(2, "cpc"), CPA(3, "cpa"),DYNAMIC(4,"dynamic"), OTHER(-1, "other");
 
   private final int type;
   private final String desc;

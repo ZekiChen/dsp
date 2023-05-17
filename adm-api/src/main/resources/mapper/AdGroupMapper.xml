@@ -17,6 +17,8 @@
         <result column="daily_budget" property="dailyBudget"/>
         <result column="bid_strategy" property="bidStrategy"/>
         <result column="opt_price" property="optPrice"/>
+        <result column="bid_multiplier" property="bidMultiplier"/>
+        <result column="bid_probability" property="bidProbability"/>
     </resultMap>
 
     <select id="customPage" resultMap="baseRsMap">
