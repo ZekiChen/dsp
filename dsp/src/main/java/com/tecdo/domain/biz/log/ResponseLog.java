@@ -28,6 +28,11 @@ public class ResponseLog implements Serializable {
     @JsonProperty("bid_id")
     private String bidId;
 
+    @JsonProperty("adv_id")
+    private Integer advId;
+    @JsonProperty("adv_name")
+    private String advName;
+
     @JsonProperty("campaign_id")
     private Integer campaignId;
     @JsonProperty("campaign_name")
