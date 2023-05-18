@@ -118,7 +118,7 @@ public class AdmGenerator {
     nativeResponse.setAssets(responseAssetList);
     nativeResponse.setImptrackers(impTrackUrl);
     Link link = new Link();
-    link.setUrl(deepLink);
+    link.setUrl(StringUtils.firstNonBlank(deepLink, clickUrl));
     link.setFallback(clickUrl);
     link.setClicktrackers(clickTrackUrl);
     nativeResponse.setLink(link);
