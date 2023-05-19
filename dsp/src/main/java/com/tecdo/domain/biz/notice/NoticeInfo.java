@@ -33,6 +33,7 @@ public class NoticeInfo implements Serializable {
     private ValidateCode validateCode;
 
     // 以下数据是ae特有的
+    private Boolean isRealtime;
     /**
      * 近实时事件，普通用户访问/会员用户访问，uv，0/1/null
      */
