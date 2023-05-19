@@ -42,6 +42,19 @@ public class NoticeInfo implements Serializable {
      */
     private Integer mbrCnt;
 
+    // 离线事件
+    /**
+     * 订单金额
+     */
+    private Double orderAmount;
+    /**
+     * 付费事件，0/1/null
+     */
+    private Integer buyerCnt;
+    private Double p4pRevenue;
+    private Double affiRevenue;
+    private Integer newRegister;
+
     public static NoticeInfo buildInfo(HttpRequest httpRequest) {
         NoticeInfo info = new NoticeInfo();
         info.setBidId(httpRequest.getParamAsStr(RequestKey.BID_ID));

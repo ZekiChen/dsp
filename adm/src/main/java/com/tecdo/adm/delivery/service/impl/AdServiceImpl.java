@@ -6,11 +6,13 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.mapper.AdMapper;
+import com.tecdo.adm.api.delivery.vo.SimpleAdUpdateVO;
 import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.starter.mp.entity.BaseEntity;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -46,6 +48,17 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
         }).collect(Collectors.toList());
         saveBatch(targetAds);
         return true;
+    }
+
+    @Override
+    public boolean editListInfo(SimpleAdUpdateVO vo) {
+        Ad entity = getById(vo.getId());
+        if (entity == null) {
+            return false;
+        }
+        entity.setName(vo.getName());
+        entity.setUpdateTime(new Date());
+        return updateById(entity);
     }
 
     private static void resetBaseEntity(BaseEntity entity) {

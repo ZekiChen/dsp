@@ -31,9 +31,6 @@
         <if test="adGroup.id != null">
             and g.id = #{adGroup.id}
         </if>
-        <if test="adGroup.status != null">
-            and g.status = #{adGroup.status}
-        </if>
         <if test="adGroup.name != null and adGroup.name != ''">
             and g.name like concat(concat('%', #{adGroup.name}),'%')
         </if>
@@ -75,10 +72,71 @@
                     </foreach>
                 END
         </if>
+        <if test="countries != null and countries.size > 0">
+            and t.attribute = 'device_country' and
+            CASE t.operation
+                WHEN 'include' THEN
+                    <foreach collection="countries" item="item" index="index" open="(" close=")" separator="OR">
+                        FIND_IN_SET(#{item}, t.`value`)
+                    </foreach>
+                WHEN 'exclude' THEN NOT
+                    <foreach collection="countries" item="item" index="index" open="(" close=")" separator="OR">
+                        FIND_IN_SET(#{item}, t.`value`)
+                    </foreach>
+                WHEN 'eq' THEN
+                    <foreach collection="countries" item="item" index="index" open="(" close=")" separator="OR">
+                        t.`value` = #{item}
+                    </foreach>
+                END
+        </if>
+        <choose>
+            <when test="adGroup.status == null">
+                and g.status != 2
+            </when>
+            <otherwise>
+                and g.status = #{adGroup.status}
+            </otherwise>
+        </choose>
     </select>
 
     <select id="listIdAndName" resultType="com.tecdo.starter.mp.vo.BaseVO">
         select id, name from ad_group
+    </select>
+
+    <select id="listIdByLikeCampaignName" resultType="java.lang.Integer">
+        select
+            g.id
+        from
+            ad_group g
+            left join campaign c on c.id = g.campaign_id
+        where 1=1
+         <if test="campaignName != null and campaignName != ''">
+            and c.name like concat(concat('%', #{campaignName}),'%')
+        </if>
+    </select>
+
+    <select id="listIdByLikeAdGroupName" resultType="java.lang.Integer">
+        select
+            id
+        from
+            ad_group
+        where 1=1
+         <if test="name != null and name != ''">
+            and name like concat(concat('%', #{name}),'%')
+        </if>
+    </select>
+
+    <select id="listIdByAdvIds" resultType="java.lang.Integer">
+        select
+            g.id
+        from
+            ad_group g
+            left join campaign c on c.id = g.campaign_id
+        where 1=1
+            and c.adv_id in
+            <foreach collection="advIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
     </select>
 
 </mapper>

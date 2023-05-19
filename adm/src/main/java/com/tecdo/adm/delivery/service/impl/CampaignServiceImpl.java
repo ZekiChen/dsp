@@ -98,14 +98,15 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
 
     @Override
     public boolean editListInfo(SimpleCampaignUpdateVO vo) {
-        Campaign campaign = getById(vo.getId());
-        if (campaign == null) {
+        Campaign entity = getById(vo.getId());
+        if (entity == null) {
             return false;
         }
-        campaign.setDailyBudget(vo.getDailyBudget());
-        campaign.setStatus(vo.getStatus());
-        campaign.setUpdateTime(new Date());
-        return updateById(campaign);
+        entity.setName(vo.getName());
+        entity.setDailyBudget(vo.getDailyBudget());
+        entity.setStatus(vo.getStatus());
+        entity.setUpdateTime(new Date());
+        return updateById(entity);
     }
 
     @Override

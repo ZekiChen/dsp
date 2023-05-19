@@ -1,29 +1,31 @@
 package com.tecdo.adm.api.delivery.vo;
 
-import com.tecdo.starter.mp.entity.IdEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
-import lombok.EqualsAndHashCode;
+
+import javax.validation.constraints.NotEmpty;
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by Zeki on 2023/3/8
  */
 @Data
-@EqualsAndHashCode(callSuper = true)
-@ApiModel(value = "SimpleAdGroupUpdateVO对象")
-public class SimpleAdGroupUpdateVO extends IdEntity {
+@ApiModel(value = "Object")
+public class BatchAdGroupUpdateVO implements Serializable {
 
 	private static final long serialVersionUID = 1L;
 
-	@ApiModelProperty("广告组名")
-	private String name;
+	@ApiModelProperty("广告组ID集")
+	@NotEmpty
+	private List<Integer> adGroupIds;
 	@ApiModelProperty("操作价格")
 	private Double optPrice;
 	@ApiModelProperty(value = "竞价策略", notes = "BidStrategyEnum")
 	private Integer bidStrategy;
 	@ApiModelProperty("日预算")
 	private Double dailyBudget;
-	@ApiModelProperty("状态")
+	@ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
 	private Integer status;
 }
