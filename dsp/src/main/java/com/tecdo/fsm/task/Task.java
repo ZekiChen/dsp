@@ -494,7 +494,7 @@ public class Task {
         break;
       case DYNAMIC:
         ThreadLocalRandom random = ThreadLocalRandom.current();
-        if (adDTO.getAdGroup().getBidProbability() > random.nextDouble()) {
+        if (adDTO.getAdGroup().getBidProbability() > random.nextDouble(100)) {
           bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getBidMultiplier())
                                .multiply(BigDecimal.valueOf(imp.getBidfloor()))
                                .min(BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice()));
