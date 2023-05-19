@@ -1,5 +1,8 @@
 package com.tecdo.filter;
 
+import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.Creative;
+import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.Banner;
 import com.tecdo.domain.openrtb.request.BidRequest;
@@ -8,9 +11,6 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.domain.openrtb.request.Native;
 import com.tecdo.domain.openrtb.request.Video;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
-import com.tecdo.adm.api.delivery.entity.Affiliate;
-import com.tecdo.adm.api.delivery.entity.Creative;
-import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
 import com.tecdo.filter.util.ConditionHelper;
 
@@ -46,12 +46,10 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     return false;
                 }
                 if (banner.getW() != null && banner.getH() != null) {
-                    return ConditionHelper.compare(banner.getW().toString(),
-                                                   Constant.EQ,
-                                                   creative.getWidth().toString()) &&
-                           ConditionHelper.compare(banner.getH().toString(),
-                                                   Constant.EQ,
-                                                   creative.getHeight().toString());
+                    return ((creative.getWidth() >= banner.getW() &&
+                             creative.getHeight() >= banner.getH() &&
+                             (float) creative.getWidth() / creative.getHeight() ==
+                             (float) banner.getW() / banner.getH()));
                 } else {
                     if (CollUtil.isEmpty(banner.getFormat())) {
                         return false;
@@ -59,8 +57,10 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     boolean hitFlag = false;
                     for (Format format : banner.getFormat()) {
                         if (format.getW() != null && format.getH() != null) {
-                            if (ConditionHelper.compare(format.getW().toString(), Constant.EQ, creative.getWidth().toString())
-                                    && ConditionHelper.compare(format.getH().toString(), Constant.EQ, creative.getHeight().toString())) {
+                            if (creative.getWidth() >= format.getW() &&
+                                creative.getHeight() >= format.getH() &&
+                                (float) creative.getWidth() / creative.getHeight() ==
+                                (float) format.getW() / format.getH()) {
                                 hitFlag = true;
                             }
                         }
@@ -86,6 +86,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 }
                 boolean hitFlag = false;
                 for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getAssets()) {
+                    // 跳过非img的过滤
                     if (nativeRequestAsset.getImg() == null) {
                         continue;
                     }
@@ -116,19 +117,11 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                         }
                     }
                     // 没有wmin，hmin，或者min判断不通过，则进入下面的判断
-                    // 判断w和h是否存在，大小符合则为true
+                    // 判断w和h是否存在，只要大于要求值，并且比例相同就通过
                     if (w != null && h != null) {
-                        if (w.equals(creative.getWidth()) && h.equals(creative.getHeight())) {
+                        if (creative.getWidth() >= w && creative.getHeight() >= h &&
+                            (float) creative.getWidth() / creative.getHeight() == (float) w / h) {
                             hitFlag = true;
-                        }
-                        // icon 只要大于要求值，并且比例相同就通过
-                        if (!Objects.equals(nativeRequestAsset.getImg().getType(),
-                                           ImageAssetTypeEnum.MAIN.getValue())) {
-                            if (creative.getWidth() >= w && creative.getHeight() >= h &&
-                                (float) creative.getWidth() / creative.getHeight() ==
-                                (float) w / h) {
-                                hitFlag = true;
-                            }
                         }
                     }
                     // 如果这一轮图像判断，hitFlag 为false，则返回false
