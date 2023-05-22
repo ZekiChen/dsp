@@ -166,6 +166,7 @@ public class AdGroupController {
     @ApiOperationSupport(order = 11)
     @ApiOperation(value = "批量修改", notes = "传入Object")
     public R updateBatch(@Valid @RequestBody BatchAdGroupUpdateVO vo) {
+        CacheUtil.clear(AD_GROUP_CACHE);
         return R.status(service.updateBatch(vo));
     }
 
