@@ -173,6 +173,7 @@ public class AdGroupController {
     @ApiOperationSupport(order = 12)
     @ApiOperation(value = "批量修改bundle", notes = "传入Object")
     public R bundleUpdateBatch(@Valid @RequestBody BundleAdGroupUpdateVO vo) {
+        CacheUtil.clear(AD_GROUP_CACHE);
         return R.status(service.bundleUpdateBatch(vo));
     }
 }

@@ -136,6 +136,8 @@ public class AdController {
                     Set<Integer> set = new HashSet<>(groupIdsByAdvIds);
                     adGroupIds = adGroupIds.stream().filter(set::contains).collect(Collectors.toList());
                     wrapper.in(Ad::getGroupId, adGroupIds);
+                } else {
+                    wrapper.in(Ad::getGroupId, adGroupIds);
                 }
             }
         }
