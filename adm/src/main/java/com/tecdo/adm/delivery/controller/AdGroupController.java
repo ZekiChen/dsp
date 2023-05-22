@@ -152,6 +152,7 @@ public class AdGroupController {
     @ApiOperationSupport(order = 9)
     @ApiOperation(value = "列表直接修改bundle", notes = "传入Object")
     public R updateBundles(@Valid @RequestBody TargetCondition condition) {
+        CacheUtil.clear(AD_GROUP_CACHE);
         return R.status(service.updateBundles(condition));
     }
 
