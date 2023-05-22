@@ -51,6 +51,7 @@ public class CreativeController {
                         @RequestParam("width") Integer width,
                         @RequestParam("height") Integer height,
                         @RequestParam("catIab") String catIab) {
+        CacheUtil.clear(CREATIVE_CACHE);
         PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
         Creative creative = new Creative();
         creative.setUrl(pacFile.getUrl());

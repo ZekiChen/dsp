@@ -71,8 +71,14 @@ public class NoticeService {
             }
             info.setBidId(aePbInfoVO.getBidId());
             info.setSign(aePbInfoVO.getSign());
+            info.setIsRealtime(aePbInfoVO.getIsRealtime());
             info.setUvCnt(aePbInfoVO.getUvCnt());
             info.setMbrCnt(aePbInfoVO.getMbrCnt());
+            info.setOrderAmount(aePbInfoVO.getOrderAmount());
+            info.setBuyerCnt(aePbInfoVO.getBuyerCnt());
+            info.setP4pRevenue(aePbInfoVO.getP4pRevenue());
+            info.setAffiRevenue(aePbInfoVO.getAffiRevenue());
+            info.setNewRegister(aePbInfoVO.getNewRegister());
             noticeInfos.add(info);
         }
         List<NoticeInfo> infos = new ArrayList<>();

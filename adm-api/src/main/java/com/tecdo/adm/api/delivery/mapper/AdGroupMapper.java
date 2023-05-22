@@ -22,5 +22,11 @@ public interface AdGroupMapper extends BaseMapper<AdGroup> {
                               @Param("campaignName") String campaignName,
                               @Param("adIds") List<Integer> adIds,
                               @Param("adName") String adName,
-                              @Param("affiliateIds") List<String> affiliateIds);
+                              @Param("affiliateIds") List<String> affiliateIds,
+                              @Param("countries") List<String> countries);
+
+    List<Integer> listIdByLikeCampaignName(@Param("campaignName") String campaignName);
+    List<Integer> listIdByLikeAdGroupName(@Param("name") String name);
+
+    List<Integer> listIdByAdvIds(@Param("advIds") List<Integer> advIds);
 }

@@ -13,7 +13,9 @@ import java.util.Arrays;
 public enum BaseStatusEnum {
 
     PAUSE(0, "pause"),
-    ACTIVE(1, "active");
+    ACTIVE(1, "active"),
+    DELETE(2, "delete"),
+    ;
 
     private final int type;
     private final String desc;

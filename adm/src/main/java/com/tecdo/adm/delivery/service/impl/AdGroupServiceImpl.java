@@ -2,14 +2,19 @@ package com.tecdo.adm.delivery.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
+import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
+import com.tecdo.adm.api.delivery.vo.BatchAdGroupUpdateVO;
+import com.tecdo.adm.api.delivery.vo.BundleAdGroupUpdateVO;
 import com.tecdo.adm.api.delivery.vo.SimpleAdGroupUpdateVO;
 import com.tecdo.adm.common.cache.AdCache;
 import com.tecdo.adm.common.cache.AdGroupCache;
@@ -18,13 +23,12 @@ import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.adm.delivery.service.ITargetConditionService;
 import com.tecdo.starter.mp.entity.BaseEntity;
 import com.tecdo.starter.mp.vo.BaseVO;
+import com.tecdo.starter.tool.BigTool;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.Collections;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -102,23 +106,151 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     @Override
     public boolean editListInfo(SimpleAdGroupUpdateVO vo) {
-        AdGroup adGroup = getById(vo.getId());
-        if (adGroup == null) {
+        AdGroup entity = getById(vo.getId());
+        if (entity == null) {
             return false;
         }
-        adGroup.setOptPrice(vo.getOptPrice());
-        adGroup.setDailyBudget(vo.getDailyBudget());
-        adGroup.setStatus(vo.getStatus());
-        adGroup.setUpdateTime(new Date());
-        return updateById(adGroup);
+        entity.setName(vo.getName());
+        entity.setDailyBudget(vo.getDailyBudget());
+        entity.setBidStrategy(vo.getBidStrategy());
+        entity.setOptPrice(vo.getOptPrice());
+        entity.setStatus(vo.getStatus());
+        entity.setUpdateTime(new Date());
+        return updateById(entity);
     }
 
     @Override
     public IPage<AdGroup> customPage(IPage<AdGroup> page, AdGroup adGroup,
                                      List<Integer> campaignIds, String campaignName,
                                      List<Integer> adIds, String adName,
-                                     List<String> affiliateIds) {
-        return baseMapper.customPage(page, adGroup, campaignIds, campaignName, adIds, adName, affiliateIds);
+                                     List<String> affiliateIds,
+                                     List<String> countries) {
+        return baseMapper.customPage(page, adGroup, campaignIds, campaignName, adIds, adName, affiliateIds, countries);
+    }
+
+    @Override
+    public boolean updateBundles(TargetCondition condition) {
+        LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
+                .eq(TargetCondition::getAdGroupId, condition.getAdGroupId())
+                .eq(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc());
+        conditionService.remove(wrapper);
+        if (StrUtil.isNotBlank(condition.getValue())) {
+            condition.setAttribute(ConditionEnum.BUNDLE.getDesc());
+            conditionService.save(condition);
+        }
+        return true;
+    }
+
+    @Override
+    public TargetCondition listBundle(Integer adGroupId) {
+        LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
+                .eq(TargetCondition::getAdGroupId, adGroupId)
+                .eq(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc());
+        return conditionService.getOne(wrapper);
+    }
+
+    @Override
+    public List<Integer> listIdByLikeCampaignName(String campaignName) {
+        return baseMapper.listIdByLikeCampaignName(campaignName);
+    }
+
+    @Override
+    public List<Integer> listIdByLikeAdGroupName(String name) {
+        return baseMapper.listIdByLikeAdGroupName(name);
+    }
+
+    @Override
+    public List<Integer> listAdGroupIdForListAd(String cIds, String gIds, String cName, String gName) {
+        List<Integer> adGroupIds = new ArrayList<>();
+        if (StrUtil.isNotBlank(cIds)) {
+            List<AdGroup> ids1 = listByCampaignIds(BigTool.toIntList(cIds));
+            if (CollUtil.isEmpty(ids1)) {
+                return null;
+            }
+            adGroupIds.addAll(ids1.stream().map(AdGroup::getId).collect(Collectors.toList()));
+        }
+        if (StrUtil.isNotBlank(gIds)) {
+            List<Integer> ids2 = BigTool.toIntList(gIds);
+            if (CollUtil.isEmpty(adGroupIds)) {
+                adGroupIds.addAll(ids2);
+            } else {
+                Set<Integer> set = new HashSet<>(adGroupIds);
+                adGroupIds = ids2.stream().filter(set::contains).collect(Collectors.toList());
+                if (CollUtil.isEmpty(adGroupIds)) {
+                    return null;
+                }
+            }
+        }
+        if (StrUtil.isNotBlank(cName)) {
+            List<Integer> ids3 = listIdByLikeCampaignName(cName);
+            if (CollUtil.isEmpty(ids3)) {
+                return null;
+            }
+            if (CollUtil.isEmpty(adGroupIds)) {
+                adGroupIds.addAll(ids3);
+            } else {
+                Set<Integer> set = new HashSet<>(adGroupIds);
+                adGroupIds = ids3.stream().filter(set::contains).collect(Collectors.toList());
+                if (CollUtil.isEmpty(adGroupIds)) {
+                    return null;
+                }
+            }
+        }
+        if (StrUtil.isNotBlank(gName)) {
+            List<Integer> ids4 = listIdByLikeAdGroupName(gName);
+            if (CollUtil.isEmpty(ids4)) {
+                return null;
+            }
+            if (CollUtil.isEmpty(adGroupIds)) {
+                adGroupIds.addAll(ids4);
+            } else {
+                Set<Integer> set = new HashSet<>(adGroupIds);
+                adGroupIds = ids4.stream().filter(set::contains).collect(Collectors.toList());
+                if (CollUtil.isEmpty(adGroupIds)) {
+                    return null;
+                }
+            }
+        }
+        return adGroupIds;
+    }
+
+    @Override
+    public boolean updateBatch(BatchAdGroupUpdateVO vo) {
+        List<AdGroup> adGroups = vo.getAdGroupIds().stream().map(id -> {
+            AdGroup entity = new AdGroup();
+            entity.setId(id);
+            entity.setStatus(vo.getStatus());
+            entity.setOptPrice(vo.getOptPrice());
+            entity.setBidStrategy(vo.getBidStrategy());
+            entity.setDailyBudget(vo.getDailyBudget());
+            entity.setUpdateTime(new Date());
+            return entity;
+        }).collect(Collectors.toList());
+        updateBatchById(adGroups);
+        return true;
+    }
+
+    @Override
+    public List<Integer> listIdByAdvIds(List<Integer> advIds) {
+        return baseMapper.listIdByAdvIds(advIds);
+    }
+
+    @Override
+    public boolean bundleUpdateBatch(BundleAdGroupUpdateVO vo) {
+        List<Integer> adGroupIds = vo.getAdGroupIds();
+        conditionService.deleteByAdGroupIds(adGroupIds);
+        if (StrUtil.isNotBlank(vo.getValue())) {
+            List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
+                TargetCondition condition = new TargetCondition();
+                condition.setAdGroupId(id);
+                condition.setAttribute(ConditionEnum.BUNDLE.getDesc());
+                condition.setOperation(vo.getOperation());
+                condition.setValue(vo.getValue());
+                return condition;
+            }).collect(Collectors.toList());
+            conditionService.saveBatch(conditions);
+        }
+        return true;
     }
 
     private static List<Ad> replaceAndCopyAds(List<AdGroup> targetAdGroups, List<Ad> sourceAds, Integer targetAdStatus) {
