@@ -1,5 +1,6 @@
 package com.tecdo.log;
 
+import cn.hutool.core.date.DateUtil;
 import com.google.common.net.HttpHeaders;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.domain.biz.notice.ImpInfoNoticeInfo;
@@ -7,7 +8,6 @@ import com.tecdo.domain.biz.notice.NoticeInfo;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.ValidateCode;
 import com.tecdo.util.JsonHelper;
-
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -17,8 +17,6 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
-
-import cn.hutool.core.date.DateUtil;
 
 /**
  * Created by Zeki on 2023/5/5
@@ -118,6 +116,13 @@ public class NoticeLogger {
         map.put("ad_group_id", info.getAdGroupId());
         map.put("ad_id", info.getAdId());
         map.put("creative_id", info.getCreativeId());
+
+        map.put("is_realtime", info.getIsRealtime());
+        map.put("buyer_cnt", info.getBuyerCnt());
+        map.put("order_amount", info.getOrderAmount());
+        map.put("p4p_revenue", info.getP4pRevenue());
+        map.put("affi_revenue", info.getAffiRevenue());
+        map.put("new_register", info.getNewRegister());
 
         if (info.getEventType() != null) {
             map.put(info.getEventType(), 1);
