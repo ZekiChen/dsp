@@ -1,8 +1,5 @@
 package com.tecdo.service;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.AffCountryBundleList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.common.constant.Constant;
@@ -25,15 +22,25 @@ import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.tecdo.filter.AbstractRecallFilter.Constant.EXCLUDE;
 import static com.tecdo.filter.AbstractRecallFilter.Constant.INCLUDE;
@@ -107,7 +114,11 @@ public class ValidateService {
       String country = bidRequest.getDevice().getGeo().getCountry();
       String bundle = bidRequest.getApp().getBundle();
       if (!validateAffCountryBundleList(affiliate.getId(), country, bundle)) {
-          log.info("affiliate country bundle list validate fail! , country: {}, bundle: {}", country, bundle);
+        log.info(
+          "affiliate country bundle list validate fail! ,affiliate: {}, country: {}, bundle: {}",
+          affiliate.getId(),
+          country,
+          bundle);
           messageQueue.putMessage(EventType.RESPONSE_RESULT,
                   Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
                           .put(ParamKey.CHANNEL_CONTEXT,
@@ -253,6 +264,7 @@ public class ValidateService {
       long expire = winExpire;
         switch (eventType) {
           case RECEIVE_WIN_NOTICE:
+          case RECEIVE_LOSS_NOTICE:
                 expire = winExpire;
                 break;
           case RECEIVE_IMP_NOTICE:
@@ -290,6 +302,8 @@ public class ValidateService {
         switch (eventType) {
             case RECEIVE_WIN_NOTICE:
                 return cacheService.getNoticeCache().winMark(bidId);
+          case RECEIVE_LOSS_NOTICE:
+            return cacheService.getNoticeCache().lossMark(bidId);
             case RECEIVE_IMP_NOTICE:
                 return cacheService.getNoticeCache().impMark(bidId);
             default:

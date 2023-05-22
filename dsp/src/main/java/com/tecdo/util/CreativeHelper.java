@@ -61,8 +61,8 @@ public class CreativeHelper {
                         }
                     }
                     if (wSb.length() > 0) {
-                        bidCreative.setWidth(wSb.delete(wSb.length() - 1, wSb.length()).toString());
-                        bidCreative.setHeight(hSb.delete(hSb.length() - 1, hSb.length()).toString());
+                        bidCreative.setWidth(wSb.delete(wSb.length() - 1, wSb.length()).toString().split(StrUtil.COMMA)[0]);
+                        bidCreative.setHeight(hSb.delete(hSb.length() - 1, hSb.length()).toString().split(StrUtil.COMMA)[0]);
                     }
                 }
             }
@@ -95,8 +95,8 @@ public class CreativeHelper {
                         hSb.append(nativeRequestAsset.getImg().getHmin()).append(StrUtil.COMMA);
                     }
                     if (wSb.length() > 0) {
-                        bidCreative.setWidth(wSb.delete(wSb.length() - 1, wSb.length()).toString());
-                        bidCreative.setHeight(hSb.delete(hSb.length() - 1, hSb.length()).toString());
+                        bidCreative.setWidth(wSb.delete(wSb.length() - 1, wSb.length()).toString().split(StrUtil.COMMA)[0]);
+                        bidCreative.setHeight(hSb.delete(hSb.length() - 1, hSb.length()).toString().split(StrUtil.COMMA)[0]);
                     }
                 }
             }

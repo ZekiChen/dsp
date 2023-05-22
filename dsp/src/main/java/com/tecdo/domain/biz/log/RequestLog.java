@@ -205,4 +205,13 @@ public class RequestLog implements Serializable {
 
     @JsonProperty("reviews")
     private Long reviews;
+
+    @JsonProperty("badv")
+    private List<String> bAdv;
+
+    @JsonProperty("bapp")
+    private List<String> bApp;
+
+    @JsonProperty("bcat")
+    private List<String> bCat;
 }

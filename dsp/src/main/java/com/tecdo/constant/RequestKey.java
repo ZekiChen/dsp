@@ -9,6 +9,7 @@ public interface RequestKey {
 
   String BID_ID = "bid_id";
   String BID_SUCCESS_PRICE = "bid_success_price";
+  String LOSS_CODE = "loss_code";
   String CAMPAIGN_ID = "campaign_id";
   String AD_GROUP_ID = "ad_group_id";
   String AD_ID = "ad_id";

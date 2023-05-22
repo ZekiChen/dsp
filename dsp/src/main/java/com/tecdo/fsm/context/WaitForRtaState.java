@@ -26,6 +26,7 @@ public class WaitForRtaState implements IContextState {
           context.cancelTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT);
           context.saveRtaResponse(params);
           if (context.checkResponse()) {
+            context.tick("context-sort");
             context.sort();
             context.startTimer(EventType.WAIT_SORT_AD_TIMEOUT,
                     context.assignParams(),

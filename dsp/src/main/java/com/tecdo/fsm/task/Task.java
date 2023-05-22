@@ -1,13 +1,9 @@
 package com.tecdo.fsm.task;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.extra.spring.SpringUtil;
+import com.dianping.cat.Cat;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
-import com.tecdo.ab.util.AbTestConfigHelper;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
@@ -31,7 +27,6 @@ import com.tecdo.domain.openrtb.request.Banner;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.AbTestConfig;
 import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
@@ -42,6 +37,7 @@ import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
+import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
@@ -53,12 +49,11 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -93,6 +88,8 @@ public class Task {
   private final Map<EventType, Long> eventTimerMap = new HashMap<>();
   private final Map<Integer, AdDTOWrapper> resMap = new HashMap<>();
 
+  private ActionConsumeRecorder recorder = new ActionConsumeRecorder();
+
   private ITaskState currentState = SpringUtil.getBean(InitState.class);
 
   public void init(BidRequest bidRequest,
@@ -117,6 +114,7 @@ public class Task {
     currentState = SpringUtil.getBean(InitState.class);
     this.predictResCount = 0;
     this.resMap.clear();
+    this.recorder.reset();
   }
 
   public void switchState(ITaskState newState) {
@@ -189,7 +187,7 @@ public class Task {
 
     Map<Integer, AdDTOWrapper> cpcMap = new HashMap<>();
     Map<Integer, AdDTOWrapper> cpaMap = new HashMap<>();
-    Map<Integer, AdDTOWrapper> cpmMap = new HashMap<>();
+    Map<Integer, AdDTOWrapper> noNeedPredict = new HashMap<>();
     adDTOMap.forEach((k, v) -> {
       BidStrategyEnum strategyEnum = BidStrategyEnum.of(v.getAdDTO().getAdGroup().getBidStrategy());
       switch (strategyEnum) {
@@ -200,8 +198,9 @@ public class Task {
           cpaMap.put(k, v);
           break;
         case CPM:
+        case DYNAMIC:
         default:
-          cpmMap.put(k, v);
+          noNeedPredict.put(k, v);
       }
     });
     Params cpcParams = assignParams();
@@ -224,7 +223,7 @@ public class Task {
     }
 
     messageQueue.putMessage(EventType.PREDICT_FINISH,
-                            assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, cpmMap));
+                            assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, noNeedPredict));
   }
 
   private void callCtr(Map<Integer, AdDTOWrapper> adDTOMap,
@@ -281,7 +280,11 @@ public class Task {
         }
         for (CvrResponse resp : result.getData()) {
           AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
-          wrapper.setPCvr(resp.getPCvr());
+          if (resp.getPCvr() != null) {
+            wrapper.setPCvr(resp.getPCvr());
+          } else {
+            wrapper.setPCvr(resp.getPCtcvrEvent1());
+          }
           wrapper.setPCvrVersion(result.getVersion());
         }
         params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
@@ -342,23 +345,15 @@ public class Task {
     // 素材的
     Creative creative = adDTO.getCreativeMap().get(creativeId);
     AdTypeEnum adType = AdTypeEnum.of(adDTO.getAd().getType());
-    Integer adWidth;
-    Integer adHeight;
-    if (adType == AdTypeEnum.BANNER) {
-      // banner广告用素材大小，因为banner广告要大小完全匹配才会出价。banner上有多个format，所以取素材大小，也就是匹配的版位大小
-      adWidth = creative.getWidth();
-      adHeight = creative.getHeight();
-    } else {
-      // native广告用native大小，因为native有wmin，hmin，所以用版位大小
-      adWidth = Integer.parseInt(bidCreative.getWidth());
-      adHeight = Integer.parseInt(bidCreative.getHeight());
-    }
+    // 用版位大小
+    Integer adWidth = Integer.parseInt(bidCreative.getWidth());
+    Integer adHeight = Integer.parseInt(bidCreative.getHeight());
+
     Device device = bidRequest.getDevice();
     GooglePlayApp googleApp =
       googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
     return CtrRequest.builder()
                      .adId(adDTO.getAd().getId())
-                     .dayOld(DateUtil.today())
                      .affiliateId(affId)
                      .adFormat(adType.getDesc())
                      .adWidth(adWidth)
@@ -367,7 +362,6 @@ public class Task {
                      .osv(device.getOsv())
                      .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
                      .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
-                     .bundleOld(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
                      .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
                      .connectionType(device.getConnectiontype())
                      .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
@@ -377,11 +371,7 @@ public class Task {
                      .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
                                        .map(CampaignRtaInfo::getRtaFeature)
                                        .orElse(-1))
-                     .rtaFeatureOld(Optional.ofNullable(adDTO.getCampaignRtaInfo())
-                                            .map(CampaignRtaInfo::getRtaFeature)
-                                            .orElse(-1))
                      .packageName(adDTO.getCampaign().getPackageName())
-                     .packageNameOld(adDTO.getCampaign().getPackageName())
                      .category(adDTO.getCampaign().getCategory())
                      .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
                      .domain(bidRequest.getApp().getDomain())
@@ -391,11 +381,12 @@ public class Task {
                      .ua(device.getUa())
                      .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
                      .deviceId(device.getIfa())
-                     .categoryList(googleApp.getCategoryList())
-                     .tagList(googleApp.getTagList())
-                     .score(googleApp.getScore())
-                     .downloads(googleApp.getDownloads())
-                     .reviews(googleApp.getReviews())
+                     .bundleIdCategory(googleApp.getCategoryList())
+                     .bundleIdTag(googleApp.getTagList())
+                     .bundleIdScore(googleApp.getScore())
+                     .bundleIdDownload(googleApp.getDownloads())
+                     .bundleIdReview(googleApp.getReviews())
+                     .tagId(imp.getTagid())
                      .build();
   }
 
@@ -406,17 +397,10 @@ public class Task {
     // 素材的
     Creative creative = adDTO.getCreativeMap().get(creativeId);
     AdTypeEnum adType = AdTypeEnum.of(adDTO.getAd().getType());
-    Integer adWidth;
-    Integer adHeight;
-    if (adType == AdTypeEnum.BANNER) {
-      // banner广告用素材大小，因为banner广告要大小完全匹配才会出价。banner上有多个format，所以取素材大小，也就是匹配的版位大小
-      adWidth = creative.getWidth();
-      adHeight = creative.getHeight();
-    } else {
-      // native广告用native大小，因为native有wmin，hmin，所以用版位大小
-      adWidth = Integer.parseInt(bidCreative.getWidth());
-      adHeight = Integer.parseInt(bidCreative.getHeight());
-    }
+    // 用版位大小
+    Integer adWidth = Integer.parseInt(bidCreative.getWidth());
+    Integer adHeight = Integer.parseInt(bidCreative.getHeight());
+
     Device device = bidRequest.getDevice();
     GooglePlayApp googleApp =
       googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
@@ -449,11 +433,12 @@ public class Task {
                      .ua(device.getUa())
                      .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
                      .deviceId(device.getIfa())
-                     .categoryList(googleApp.getCategoryList())
-                     .tagList(googleApp.getTagList())
-                     .score(googleApp.getScore())
-                     .downloads(googleApp.getDownloads())
-                     .reviews(googleApp.getReviews())
+                     .bundleIdCategory(googleApp.getCategoryList())
+                     .bundleIdTag(googleApp.getTagList())
+                     .bundleIdScore(googleApp.getScore())
+                     .bundleIdDownload(googleApp.getDownloads())
+                     .bundleIdReview(googleApp.getReviews())
+                     .tagId(imp.getTagid())
                      .build();
   }
 
@@ -493,6 +478,16 @@ public class Task {
                              .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
                              .multiply(BigDecimal.valueOf(1000));
         break;
+      case DYNAMIC:
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        if (adDTO.getAdGroup().getBidProbability() > random.nextDouble(100)) {
+          bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getBidMultiplier())
+                               .multiply(BigDecimal.valueOf(imp.getBidfloor()))
+                               .min(BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice()));
+        } else {
+          bidPrice = BigDecimal.ZERO;
+        }
+        break;
       case CPM:
       default:
         bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice());
@@ -510,14 +505,27 @@ public class Task {
                        .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
     Params params = assignParams().put(ParamKey.ADS_TASK_RESPONSE, adDTOMap);
     messageQueue.putMessage(EventType.BID_TASK_FINISH, params);
-
+    record();
   }
 
   public void notifyFailed() {
+    record();
     messageQueue.putMessage(EventType.BID_TASK_FAILED, assignParams());
   }
 
   public Params assignParams() {
     return Params.create(ParamKey.REQUEST_ID, requestId).put(ParamKey.TASK_ID, taskId);
+  }
+
+  public void tick(String action) {
+    recorder.tick(action);
+  }
+
+  public void record() {
+    recorder.stop();
+    Map<String, Double> costMap = recorder.consumes();
+    costMap.forEach((k, v) -> {
+      Cat.logMetricForDuration(k, v.longValue());
+    });
   }
 }

@@ -28,6 +28,11 @@ public class ResponseLog implements Serializable {
     @JsonProperty("bid_id")
     private String bidId;
 
+    @JsonProperty("adv_id")
+    private Integer advId;
+    @JsonProperty("adv_name")
+    private String advName;
+
     @JsonProperty("campaign_id")
     private Integer campaignId;
     @JsonProperty("campaign_name")
@@ -278,4 +283,14 @@ public class ResponseLog implements Serializable {
      */
     @JsonProperty("p_cvr_version")
     private String pCvrVersion;
+
+
+    @JsonProperty("badv")
+    private List<String> bAdv;
+
+    @JsonProperty("bapp")
+    private List<String> bApp;
+
+    @JsonProperty("bcat")
+    private List<String> bCat;
 }

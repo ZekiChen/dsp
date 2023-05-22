@@ -55,6 +55,8 @@ public class ResponseLogger {
     return ResponseLog.builder()
                       .createTime(DateUtil.format(new Date(), "yyyy-MM-dd_HH"))
                       .bidId(wrapper.getBidId())
+                      .advId(wrapper.getAdDTO().getAdv().getId())
+                      .advName(wrapper.getAdDTO().getAdv().getName())
                       .campaignId(wrapper.getAdDTO().getCampaign().getId())
                       .campaignName(wrapper.getAdDTO().getCampaign().getName())
                       .adGroupId(wrapper.getAdDTO().getAdGroup().getId())
@@ -115,6 +117,9 @@ public class ResponseLogger {
                       .downloads(googlePlayApp.getDownloads())
                       .reviews(googlePlayApp.getReviews())
                       .rtaToken(wrapper.getRtaToken())
+                      .bAdv(bidRequest.getBadv())
+                      .bApp(bidRequest.getBapp())
+                      .bCat(bidRequest.getBcat())
                       .build();
   }
 }

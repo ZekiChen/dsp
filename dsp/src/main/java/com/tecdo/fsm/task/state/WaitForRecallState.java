@@ -39,6 +39,7 @@ public class WaitForRecallState implements ITaskState {
           task.switchState(waitForRecycleState);
           return;
         }
+        task.tick("task-ad-predict");
         task.callPredictApi(adDTOMap);
         task.startTimer(EventType.PREDICT_TIMEOUT, params, timeoutPCtr);
         task.switchState(waitForPredictState);

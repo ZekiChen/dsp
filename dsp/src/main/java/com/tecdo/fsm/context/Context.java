@@ -1,7 +1,6 @@
 package com.tecdo.fsm.context;
 
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
+import com.dianping.cat.Cat;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
@@ -25,7 +24,6 @@ import com.tecdo.log.RequestLogger;
 import com.tecdo.log.ResponseLogger;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.CacheService;
-import com.tecdo.service.init.AdvManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
@@ -33,14 +31,26 @@ import com.tecdo.service.rta.Target;
 import com.tecdo.service.rta.ae.AeRtaInfoVO;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
+import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.StringConfigUtil;
-import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Context {
@@ -56,6 +66,8 @@ public class Context {
   private AdDTOWrapper response = null;
 
   private Long requestId;
+
+  private ActionConsumeRecorder recorder = new ActionConsumeRecorder();
 
   private Map<String, Task> taskMap = new HashMap<>();
   // taskId,adId,AdDTOWrapper
@@ -77,13 +89,11 @@ public class Context {
 
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
 
-  private int  rtaResponseCount = 0;
+  private int rtaResponseCount = 0;
   private final int rtaResponseNeed = 2;
 
   private final GooglePlayAppManager googlePlayAppManager =
     SpringUtil.getBean(GooglePlayAppManager.class);
-
-  private final AdvManager advManager = SpringUtil.getBean(AdvManager.class);
 
   private final CacheService cacheService = SpringUtil.getBean(CacheService.class);
 
@@ -113,6 +123,7 @@ public class Context {
     this.eventTimerMap.clear();
     this.protoTransform = null;
     this.rtaResponseCount = 0;
+    this.recorder.reset();
   }
 
   public void handleBidRequest() {
@@ -181,7 +192,7 @@ public class Context {
       try {
         Map<Integer, Target> rtaResMap = doRequestRtaByLazada(bidRequest);
         messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
-                params.put(ParamKey.REQUEST_LAZADA_RTA_RESPONSE, rtaResMap));
+                                params.put(ParamKey.REQUEST_LAZADA_RTA_RESPONSE, rtaResMap));
       } catch (Exception e) {
         log.error("contextId: {}, request lazada rta cause a exception:", requestId, e);
         messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
@@ -192,7 +203,7 @@ public class Context {
       try {
         Map<Integer, Target> rtaResMap = doRequestRtaByAE(bidRequest);
         messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
-                params.put(ParamKey.REQUEST_AE_RTA_RESPONSE, rtaResMap));
+                                params.put(ParamKey.REQUEST_AE_RTA_RESPONSE, rtaResMap));
       } catch (Exception e) {
         log.error("contextId: {}, request ae rta cause a exception:", requestId, e);
         messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
@@ -212,11 +223,12 @@ public class Context {
     // 只保留lazada rta的单子，并将单子按照广告主分组
     Map<Integer, List<AdDTOWrapper>> advToAdList = //
       this.adDTOWrapperList.stream()
-           .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo())
-                   && AdvEnum.LAZADA.getDesc().equals(advManager.getAdvName(i.getAdDTO().getCampaign().getAdvId())))
-           .collect(Collectors.groupingBy(i -> i.getAdDTO()
-                                                .getCampaignRtaInfo()
-                                                .getAdvMemId()));
+                           .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()) &&
+                                        AdvEnum.LAZADA.getDesc()
+                                                      .equals(i.getAdDTO().getAdv().getName()))
+                           .collect(Collectors.groupingBy(i -> i.getAdDTO()
+                                                                .getCampaignRtaInfo()
+                                                                .getAdvMemId()));
     // 分广告主进行rta匹配
     advToAdList.forEach((advId, adList) -> {
       RtaInfo rtaInfo = rtaInfoManager.getRtaInfo(advId);
@@ -228,17 +240,21 @@ public class Context {
   private Map<Integer, Target> doRequestRtaByAE(BidRequest bidRequest) {
     String deviceId = bidRequest.getDevice().getIfa();
     // 只保留ae rta的单子
-    Map<Integer, String> cid2AdvCid = this.adDTOWrapperList.stream()
-            .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo())
-                    & AdvEnum.AE.getDesc().equals(advManager.getAdvName(i.getAdDTO().getCampaign().getAdvId())))
-            .collect(Collectors.toMap(
-                    ad -> ad.getAdDTO().getCampaign().getId(),
-                    ad -> ad.getAdDTO().getCampaignRtaInfo().getAdvCampaignId(),
-                    (o, n) -> o));
+    Map<Integer, String> cid2AdvCid = //
+      this.adDTOWrapperList.stream()
+                           .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()) &
+                                        AdvEnum.AE.getDesc()
+                                                  .equals(i.getAdDTO().getAdv().getName()))
+                           .collect(Collectors.toMap(ad -> ad.getAdDTO().getCampaign().getId(),
+                                                     ad -> ad.getAdDTO()
+                                                             .getCampaignRtaInfo()
+                                                             .getAdvCampaignId(),
+                                                     (o, n) -> o));
     Set<String> advCampaignIds = new HashSet<>(cid2AdvCid.values());
-    List<AeRtaInfoVO> aeRtaInfoVOs = cacheService.getRtaCache().getAeRtaResponse(advCampaignIds, deviceId);
-    Map<String, AeRtaInfoVO> advCId2AeRtaVOMap = aeRtaInfoVOs.stream()
-            .collect(Collectors.toMap(AeRtaInfoVO::getAdvCampaignId, e -> e));
+    List<AeRtaInfoVO> aeRtaInfoVOs =
+      cacheService.getRtaCache().getAeRtaResponse(advCampaignIds, deviceId);
+    Map<String, AeRtaInfoVO> advCId2AeRtaVOMap =
+      aeRtaInfoVOs.stream().collect(Collectors.toMap(AeRtaInfoVO::getAdvCampaignId, e -> e));
 
     return cid2AdvCid.entrySet().stream().map(entry -> {
       Integer campaignId = entry.getKey();
@@ -256,12 +272,13 @@ public class Context {
     Map<Integer, Target> lazadaRtaMap = params.get(ParamKey.REQUEST_LAZADA_RTA_RESPONSE);
     Map<Integer, Target> aeRtaMap = params.get(ParamKey.REQUEST_AE_RTA_RESPONSE);
     Map<Integer, Target> mergeRtaMap = Stream.of(lazadaRtaMap, aeRtaMap)
-            .flatMap(map -> map.entrySet().stream())
-            .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
+                                             .flatMap(map -> map.entrySet().stream())
+                                             .collect(Collectors.toMap(Map.Entry::getKey,
+                                                                       Map.Entry::getValue));
 
     Map<Integer, List<AdDTOWrapper>> campaignIdToAdList = //
-            this.adDTOWrapperList.stream()
-                    .collect(Collectors.groupingBy(i -> i.getAdDTO().getCampaign().getId()));
+      this.adDTOWrapperList.stream()
+                           .collect(Collectors.groupingBy(i -> i.getAdDTO().getCampaign().getId()));
     // 将rta匹配的结果保存到AdDTOWrapper中
     for (Map.Entry<Integer, Target> entry : mergeRtaMap.entrySet()) {
       Integer campaignId = entry.getKey();
@@ -276,13 +293,14 @@ public class Context {
           case AE:
             ad.setLandingPage(t.getLandingPage());
             break;
-          }
+        }
       });
     }
     // 只保留非rta的单子 和 rta并且匹配的单子
     this.adDTOWrapperList = this.adDTOWrapperList.stream()
-            .filter(i -> i.getAdDTO().getCampaignRtaInfo() == null || i.getRtaRequestTrue() == 1)
-            .collect(Collectors.toList());
+                                                 .filter(i -> i.getAdDTO().getCampaignRtaInfo() ==
+                                                              null || i.getRtaRequestTrue() == 1)
+                                                 .collect(Collectors.toList());
     log.info("contextId: {}, after rta filter, size: {}", requestId, adDTOWrapperList.size());
   }
 
@@ -327,6 +345,7 @@ public class Context {
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     }
     messageQueue.putMessage(eventType, params);
+    record();
   }
 
   // 32位UUID + 13位时间戳
@@ -387,7 +406,7 @@ public class Context {
   }
 
   private void cacheNoticeInfoByAe(AdDTOWrapper adDTOWrapper, BidRequest bidRequest) {
-    String advName = advManager.getAdvName(adDTOWrapper.getAdDTO().getCampaign().getAdvId());
+    String advName = adDTOWrapper.getAdDTO().getAdv().getName();
     if (AdvEnum.AE.getDesc().equals(advName)) {
       Ad ad = adDTOWrapper.getAdDTO().getAd();
       NoticeInfo info = new NoticeInfo();
@@ -398,5 +417,17 @@ public class Context {
       info.setDeviceId(bidRequest.getDevice().getIfa());
       cacheService.getNoticeCache().setNoticeInfo(adDTOWrapper.getBidId(), info);
     }
+  }
+
+  public void tick(String action) {
+    recorder.tick(action);
+  }
+
+  public void record() {
+    recorder.stop();
+    Map<String, Double> costMap = recorder.consumes();
+    costMap.forEach((k, v) -> {
+      Cat.logMetricForDuration(k, v.longValue());
+    });
   }
 }

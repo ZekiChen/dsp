@@ -125,15 +125,16 @@ public class CvrRequest implements Serializable {
 
   private String deviceId;
 
+  private List<String> bundleIdCategory;
 
-  private List<String> categoryList;
+  private List<String> bundleIdTag;
 
-  private List<String> tagList;
+  private String bundleIdScore;
 
-  private String score;
+  private Long bundleIdDownload;
 
-  private Long downloads;
+  private Long bundleIdReview;
 
-  private Long reviews;
+  private String tagId;
 
 }

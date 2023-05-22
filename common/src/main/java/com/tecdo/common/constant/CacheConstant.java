@@ -9,6 +9,7 @@ public interface CacheConstant {
 
 	// =================================== cache key ===========================================
 	String WIN_CACHE = "pac:dsp:win";
+	String LOSS_CACHE = "pac:dsp:loss";
 	String IMP_CACHE = "pac:dsp:imp";
 	String CLICK_CACHE = "pac:dsp:click";
 	String NOTICE_CACHE = "pac:dsp:notice";

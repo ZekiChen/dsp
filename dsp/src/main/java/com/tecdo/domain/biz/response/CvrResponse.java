@@ -22,4 +22,6 @@ public class CvrResponse implements Serializable {
    */
   private Double pCvr;
 
+  private Double pCtcvrEvent1;
+
 }

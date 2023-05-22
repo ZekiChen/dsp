@@ -30,6 +30,8 @@ public class NoticeInfo implements Serializable {
     private String bidId;
     private String sign;
 
+    private Integer lossCode;
+
     private ValidateCode validateCode;
 
     // 以下数据是ae特有的
@@ -67,6 +69,7 @@ public class NoticeInfo implements Serializable {
         info.setDeviceId(httpRequest.getParamAsStr(RequestKey.DEVICE_ID));
         info.setEventType(httpRequest.getParamAsStr(RequestKey.EVENT_TYPE));
         info.setBidSuccessPrice(httpRequest.getParamAsStr(RequestKey.BID_SUCCESS_PRICE));
+        info.setLossCode(httpRequest.getParamAsInt(RequestKey.LOSS_CODE));
         return info;
     }
 }
