@@ -46,9 +46,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     return false;
                 }
                 if (banner.getW() != null && banner.getH() != null) {
-                    return ((creative.getWidth() >= banner.getW() &&
-                             creative.getHeight() >= banner.getH() &&
-                             (float) creative.getWidth() / creative.getHeight() ==
+                    return (((float) creative.getWidth() / creative.getHeight() ==
                              (float) banner.getW() / banner.getH()));
                 } else {
                     if (CollUtil.isEmpty(banner.getFormat())) {
@@ -57,9 +55,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     boolean hitFlag = false;
                     for (Format format : banner.getFormat()) {
                         if (format.getW() != null && format.getH() != null) {
-                            if (creative.getWidth() >= format.getW() &&
-                                creative.getHeight() >= format.getH() &&
-                                (float) creative.getWidth() / creative.getHeight() ==
+                            if ((float) creative.getWidth() / creative.getHeight() ==
                                 (float) format.getW() / format.getH()) {
                                 hitFlag = true;
                             }
@@ -117,11 +113,19 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                         }
                     }
                     // 没有wmin，hmin，或者min判断不通过，则进入下面的判断
-                    // 判断w和h是否存在，只要大于要求值，并且比例相同就通过
                     if (w != null && h != null) {
-                        if (creative.getWidth() >= w && creative.getHeight() >= h &&
-                            (float) creative.getWidth() / creative.getHeight() == (float) w / h) {
-                            hitFlag = true;
+                        //wmin，hmin存在，需要大于要求值，并且比例相同
+                        if (wmin != null && hmin != null && wmin > 0 && hmin > 0) {
+                            if (creative.getWidth() >= wmin && creative.getHeight() >= hmin &&
+                                (float) creative.getWidth() / creative.getHeight() ==
+                                (float) w / h) {
+                                hitFlag = true;
+                            }
+                        } else {
+                            if ((float) creative.getWidth() / creative.getHeight() ==
+                                (float) w / h) {
+                                hitFlag = true;
+                            }
                         }
                     }
                     // 如果这一轮图像判断，hitFlag 为false，则返回false
