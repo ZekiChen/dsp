@@ -345,17 +345,10 @@ public class Task {
     // 素材的
     Creative creative = adDTO.getCreativeMap().get(creativeId);
     AdTypeEnum adType = AdTypeEnum.of(adDTO.getAd().getType());
-    Integer adWidth;
-    Integer adHeight;
-    if (adType == AdTypeEnum.BANNER) {
-      // banner广告用素材大小，因为banner广告要大小完全匹配才会出价。banner上有多个format，所以取素材大小，也就是匹配的版位大小
-      adWidth = creative.getWidth();
-      adHeight = creative.getHeight();
-    } else {
-      // native广告用native大小，因为native有wmin，hmin，所以用版位大小
-      adWidth = Integer.parseInt(bidCreative.getWidth());
-      adHeight = Integer.parseInt(bidCreative.getHeight());
-    }
+    // 用版位大小
+    Integer adWidth = Integer.parseInt(bidCreative.getWidth());
+    Integer adHeight = Integer.parseInt(bidCreative.getHeight());
+
     Device device = bidRequest.getDevice();
     GooglePlayApp googleApp =
       googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
@@ -404,17 +397,10 @@ public class Task {
     // 素材的
     Creative creative = adDTO.getCreativeMap().get(creativeId);
     AdTypeEnum adType = AdTypeEnum.of(adDTO.getAd().getType());
-    Integer adWidth;
-    Integer adHeight;
-    if (adType == AdTypeEnum.BANNER) {
-      // banner广告用素材大小，因为banner广告要大小完全匹配才会出价。banner上有多个format，所以取素材大小，也就是匹配的版位大小
-      adWidth = creative.getWidth();
-      adHeight = creative.getHeight();
-    } else {
-      // native广告用native大小，因为native有wmin，hmin，所以用版位大小
-      adWidth = Integer.parseInt(bidCreative.getWidth());
-      adHeight = Integer.parseInt(bidCreative.getHeight());
-    }
+    // 用版位大小
+    Integer adWidth = Integer.parseInt(bidCreative.getWidth());
+    Integer adHeight = Integer.parseInt(bidCreative.getHeight());
+
     Device device = bidRequest.getDevice();
     GooglePlayApp googleApp =
       googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
