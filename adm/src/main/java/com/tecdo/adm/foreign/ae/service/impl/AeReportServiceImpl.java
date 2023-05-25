@@ -3,18 +3,16 @@ package com.tecdo.adm.foreign.ae.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
-import com.tecdo.adm.api.delivery.dto.AdGroupDTO;
 import com.tecdo.adm.api.delivery.dto.CampaignDTO;
-import com.tecdo.adm.api.delivery.entity.AdGroup;
+import com.tecdo.adm.api.delivery.entity.Adv;
 import com.tecdo.adm.api.delivery.entity.Campaign;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
-import com.tecdo.adm.api.delivery.enums.AdvEnum;
+import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
 import com.tecdo.adm.api.doris.entity.Report;
 import com.tecdo.adm.api.doris.mapper.ReportMapper;
 import com.tecdo.adm.api.foreign.ae.vo.request.AeDailyCostVO;
 import com.tecdo.adm.api.foreign.ae.vo.response.AeDataVO;
 import com.tecdo.adm.api.foreign.ae.vo.response.AeReportVO;
-import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.common.cache.AdvCache;
 import com.tecdo.adm.common.cache.CampaignCache;
 import com.tecdo.adm.foreign.ae.service.IAeReportService;
@@ -54,12 +52,9 @@ public class AeReportServiceImpl implements IAeReportService {
 
         List<CampaignDTO> campaignDTOs = new ArrayList<>();
         for (Campaign campaign : campaigns) {
-            String advName = AdvCache.getAdv(campaign.getAdvId()).getName();
-            if (AdvEnum.AE.getDesc().equalsIgnoreCase(advName)) {
+            Adv adv = AdvCache.getAdv(campaign.getAdvId());
+            if (AdvTypeEnum.AE_RTA.getType() == adv.getType()) {
                 CampaignDTO campaignDTO = Objects.requireNonNull(BeanUtil.copy(campaign, CampaignDTO.class));
-                campaignDTO.setAdvName(advName);
-                List<AdGroup> adGroups = AdGroupCache.listAdGroup(campaign.getId());
-                campaignDTO.setAdGroupDTOs(BeanUtil.copy(adGroups, AdGroupDTO.class));
                 campaignDTO.setCampaignRtaInfo(CampaignCache.getCampaignRta(campaign.getId()));
                 campaignDTOs.add(campaignDTO);
             }
