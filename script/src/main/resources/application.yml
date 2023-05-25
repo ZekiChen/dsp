@@ -1,0 +1,25 @@
+# Apollo 配置
+app:
+  id: pac-dsp-script
+apollo:
+  cluster: default
+  bootstrap:
+    namespaces: application,infrastructure
+    enabled: true
+    eagerLoad:
+      enabled: true
+  meta: http://dev-apollo.tec-develop.com
+
+spring:
+  datasource:
+    dynamic:
+      primary: mysql
+      datasource:
+        mysql:
+          url: ${pac.datasource.dsp.url}
+          username: ${pac.datasource.dsp.username}
+          password: ${pac.datasource.dsp.password}
+        doris-ods:
+          url: ${data-center.datasource.doris.url}
+          username: ${data-center.datasource.doris.username}
+          password: ${data-center.datasource.doris.password}

@@ -1,0 +1,100 @@
+<Appenders>
+    <Console name="STDOUT" target="SYSTEM_OUT">
+        <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+        <PatternLayout pattern="${CONSOLE_LOG_PATTERN}"/>
+    </Console>
+
+    <RollingFile name="DEBUG" fileName="${LOG_HOME}/debug.log"
+                 filePattern="${LOG_HOME}/history/debug-%d{yyyy-MM-dd-HH}.%i.zip">
+        <PatternLayout pattern="${ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+            <SizeBasedTriggeringPolicy size="200MB"/>
+        </Policies>
+        <DefaultRolloverStrategy compressionLevel="1" max="64">
+            <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
+                <IfFileName glob="debug-*.zip"/>
+                <IfLastModified age="360H"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="DEBUG" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
+    <RollingFile name="INFO" fileName="${LOG_HOME}/info.log"
+                 filePattern="${LOG_HOME}/history/info-%d{yyyy-MM-dd-HH}.%i.zip">
+        <PatternLayout pattern="${ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+            <SizeBasedTriggeringPolicy size="200MB"/>
+        </Policies>
+        <DefaultRolloverStrategy compressionLevel="1" max="64">
+            <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
+                <IfFileName glob="info-*.zip"/>
+                <IfLastModified age="360H"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
+    <RollingFile name="WARN" fileName="${LOG_HOME}/warn.log"
+                 filePattern="${LOG_HOME}/history/warn-%d{yyyy-MM-dd-HH}.%i.zip">
+        <PatternLayout pattern="${ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+            <SizeBasedTriggeringPolicy size="200MB"/>
+        </Policies>
+        <DefaultRolloverStrategy compressionLevel="1" max="64">
+            <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
+                <IfFileName glob="warn-*.zip"/>
+                <IfLastModified age="360H"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="WARN" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
+    <RollingFile name="ERROR" fileName="${LOG_HOME}/error.log"
+                 filePattern="${LOG_HOME}/history/error-%d{yyyy-MM-dd-HH}.%i.zip">
+        <PatternLayout pattern="${ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+            <SizeBasedTriggeringPolicy size="200MB"/>
+        </Policies>
+        <DefaultRolloverStrategy compressionLevel="1" max="64">
+            <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
+                <IfFileName glob="error-*.zip"/>
+                <IfLastModified age="360H"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="ERROR" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
+    <RollingFile name="AE_RTA_LOG" fileName="${BUSINESS_LOG_HOME}/ae-rta.log"
+                 filePattern="${BUSINESS_LOG_HOME}/ae-rta-%d{yyyy-MM-dd-HH}.log">
+        <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+        </Policies>
+        <DefaultRolloverStrategy>
+            <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                <IfFileName glob="ae-rta-*.log"/>
+                <IfAccumulatedFileSize exceeds="20GB"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
+
+    <CatLog4j2Appender name="CatLog4j2Appender">
+        <PatternLayout pattern="${ENCODER_PATTERN}"/>
+    </CatLog4j2Appender>
+</Appenders>

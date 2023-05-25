@@ -5,6 +5,7 @@ include 'dsp'
 include 'job'
 include 'adm'
 include 'adm-api'
+include 'script'
 
 file("${rootDir}/tool").eachDirMatch(~/.*/) {
     include "tool:${it.name}"
