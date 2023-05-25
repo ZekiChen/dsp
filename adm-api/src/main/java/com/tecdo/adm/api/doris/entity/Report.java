@@ -11,8 +11,8 @@ import java.io.Serializable;
  * Created by Zeki on 2023/2/21
  */
 @Data
-@TableName("ads_pac_dsp_di")
-public class AdsDi implements Serializable {
+@TableName("pac_dsp_report")
+public class Report implements Serializable {
 
     private Integer campaignId;
 

@@ -9,8 +9,8 @@ import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.Campaign;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.enums.AdvEnum;
-import com.tecdo.adm.api.doris.entity.AdsDi;
-import com.tecdo.adm.api.doris.mapper.AdsDiMapper;
+import com.tecdo.adm.api.doris.entity.Report;
+import com.tecdo.adm.api.doris.mapper.ReportMapper;
 import com.tecdo.adm.api.foreign.ae.vo.request.AeDailyCostVO;
 import com.tecdo.adm.api.foreign.ae.vo.response.AeDataVO;
 import com.tecdo.adm.api.foreign.ae.vo.response.AeReportVO;
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AeReportServiceImpl implements IAeReportService {
 
-    private final AdsDiMapper adsDiMapper;
+    private final ReportMapper reportMapper;
 
     @Override
     public AeDataVO<AeReportVO> listAdvCampaignDailyReport(AeDailyCostVO vo) {
@@ -69,12 +69,12 @@ public class AeReportServiceImpl implements IAeReportService {
             campaignIds = campaignDTOs.stream().map(IdEntity::getId).collect(Collectors.toSet());
 
             List<String> dateHours = getUsWestHour(vo.getBizDate());
-            List<AdsDi> adsDis = adsDiMapper.getAeDailyReportInUsWest(dateHours, campaignIds);
-            Map<Integer, AdsDi> adsDiMap = adsDis.stream().collect(Collectors.toMap(AdsDi::getCampaignId, Function.identity()));
+            List<Report> adsDis = reportMapper.getAeDailyReportInUsWest(dateHours, campaignIds);
+            Map<Integer, Report> adsDiMap = adsDis.stream().collect(Collectors.toMap(Report::getCampaignId, Function.identity()));
 
             List<AeReportVO> aeReports = new ArrayList<>();
             for (CampaignDTO dto : campaignDTOs) {
-                AdsDi adsDi = adsDiMap.getOrDefault(dto.getId(), new AdsDi());
+                Report adsDi = adsDiMap.getOrDefault(dto.getId(), new Report());
                 Double cost = adsDi.getImpSuccessPriceTotal();
                 Long imps = adsDi.getImpCount();
                 Long clicks = adsDi.getClickCount();

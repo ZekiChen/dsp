@@ -1,21 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
-<mapper namespace="com.tecdo.adm.api.doris.mapper.AdsDiMapper">
+<mapper namespace="com.tecdo.adm.api.doris.mapper.ReportMapper">
 
-    <select id="getAeDailyReportInUsWest" resultType="com.tecdo.adm.api.doris.entity.AdsDi">
+    <select id="getAeDailyReportInUsWest" resultType="com.tecdo.adm.api.doris.entity.Report">
         SELECT
             campaign_id as campaignId,
             sum( imp_count ) as impCount,
             sum( click_count ) as clickCount,
             sum( imp_success_price_total ) / 1000 as impSuccessPriceTotal
         FROM
-            ads_pac_dsp_di
+            pac_dsp_report
         WHERE
             campaign_id in
             <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
-            AND create_time in
+            AND report_hour in
             <foreach collection="dateHours" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
