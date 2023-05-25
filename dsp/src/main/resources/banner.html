@@ -17,7 +17,6 @@
     var i = 0;
     var timer = setInterval(function () {
         i++;
-        console.log(i);
         var e = document.getElementById('fc_dsp_banner_img');
         var info = getBoundingClientRect(e);
         var sty = window.getComputedStyle(e);
@@ -85,8 +84,6 @@
     }
 
     function getViewport() {
-        // 检查 document.compatMode 属性，以确定浏览器是否运行在混杂模式。
-        // Safari3.1 之前的版本不支持这个属性，因此就会自动执行 else 语句
         if (document.compatMode == 'BackCompat') {
             return {
                 width: document.body.clientWidth,
@@ -162,7 +159,6 @@
             }
         });
         var max = 0;
-        // console.log(zIndex);
         if (zIndex.length) {
             max = Math.max(...zIndex);
         }
