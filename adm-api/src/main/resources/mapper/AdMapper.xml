@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tecdo.adm.api.delivery.mapper.AdMapper">
+
+    <resultMap id="baseRsMap" type="com.tecdo.adm.api.delivery.entity.Ad">
+        <result column="id" property="id"/>
+        <result column="status" property="status"/>
+        <result column="create_time" property="createTime"/>
+        <result column="update_time" property="updateTime"/>
+
+        <result column="group_id" property="groupId"/>
+        <result column="name" property="name"/>
+        <result column="type" property="type"/>
+        <result column="image" property="image"/>
+        <result column="icon" property="icon"/>
+        <result column="title" property="title"/>
+        <result column="description" property="description"/>
+        <result column="cta" property="cta"/>
+        <result column="video" property="video"/>
+    </resultMap>
+
+    <select id="listSimpleAd" resultType="com.tecdo.adm.api.delivery.vo.SimpleAdVO">
+        select id,name,type,status from ad where group_id = #{adGroupId}
+    </select>
+
+    <select id="listIdByGroupIds" resultType="java.lang.Integer">
+        select id from ad where 1=1
+        <if test="adGroupIds != null and adGroupIds.size > 0">
+           and group_id IN
+            <foreach collection="adGroupIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+</mapper>

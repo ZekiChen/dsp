@@ -20,6 +20,7 @@ public interface ICampaignService extends IService<Campaign> {
     boolean edit(CampaignVO vo);
 
     boolean delete(List<Integer> ids);
+    boolean logicDelete(List<Integer> ids);
 
     List<BaseVO> listIdAndName();
 

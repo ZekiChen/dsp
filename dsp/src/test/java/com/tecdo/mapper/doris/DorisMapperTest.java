@@ -7,10 +7,7 @@ import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.adm.api.delivery.mapper.CampaignRtaInfoMapper;
 import com.tecdo.adm.api.delivery.mapper.RtaInfoMapper;
 import com.tecdo.adm.api.doris.entity.AdGroupCost;
-import com.tecdo.adm.api.doris.entity.AdGroupImpCount;
 import com.tecdo.adm.api.doris.mapper.AdGroupCostMapper;
-import com.tecdo.adm.api.doris.mapper.AdGroupImpCountMapper;
-
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -27,8 +24,6 @@ public class DorisMapperTest {
 
     // Doris
     @Autowired
-    private AdGroupImpCountMapper impCountMapper;
-    @Autowired
     private AdGroupCostMapper costMapper;
     // MySQL
     @Autowired
@@ -39,12 +34,6 @@ public class DorisMapperTest {
     /**
      * 测试 Mapper 是否正确访问指定的 Doris
      */
-    @Test
-    public void test_AdGroupImpCountMapper_availability() {
-        List<AdGroupImpCount> impCounts = impCountMapper.selectList(Wrappers.<AdGroupImpCount>query().last("limit 1"));
-        System.out.println(impCounts);
-    }
-
     @Test
     public void test_AdGroupCostMapper_availability() {
         List<AdGroupCost> costs = costMapper.selectList(Wrappers.<AdGroupCost>query().last("limit 1"));

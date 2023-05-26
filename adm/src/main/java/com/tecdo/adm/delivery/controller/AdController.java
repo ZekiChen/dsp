@@ -10,12 +10,15 @@ import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.vo.AdVO;
+import com.tecdo.adm.api.delivery.vo.BatchAdUpdateVO;
 import com.tecdo.adm.api.delivery.vo.SimpleAdUpdateVO;
+import com.tecdo.adm.api.delivery.vo.SimpleAdVO;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.adm.delivery.wrapper.AdWrapper;
 import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
+import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import com.tecdo.starter.mp.support.PCondition;
 import com.tecdo.starter.mp.support.PQuery;
 import com.tecdo.starter.redis.CacheUtil;
@@ -66,7 +69,7 @@ public class AdController {
     @ApiOperation(value = "删除", notes = "传入ids")
     public R remove(@ApiParam(value = "主键集合", required = true) @RequestParam String ids) {
         CacheUtil.clear(AD_CACHE);
-        return R.status(service.removeByIds(BigTool.toLongList(ids)));
+        return R.status(service.logicDelete(BigTool.toIntList(ids)));
     }
 
     @GetMapping("/detail")
@@ -141,6 +144,9 @@ public class AdController {
                 }
             }
         }
+        if (ad.getStatus() == null) {
+            wrapper.ne(Ad::getStatus, BaseStatusEnum.DELETE.getType());
+        }
         IPage<Ad> pages = service.page(PCondition.getPage(query), wrapper);
         return R.data(AdWrapper.build().pageVO(pages));
     }
@@ -167,5 +173,20 @@ public class AdController {
     public R updateListInfo(@RequestBody SimpleAdUpdateVO vo) {
         CacheUtil.clear(AD_CACHE);
         return R.status(service.editListInfo(vo));
+    }
+
+    @PutMapping("/update-batch")
+    @ApiOperationSupport(order = 9)
+    @ApiOperation(value = "批量修改", notes = "传入Object")
+    public R updateBatch(@Valid @RequestBody BatchAdUpdateVO vo) {
+        CacheUtil.clear(AD_CACHE);
+        return R.status(service.updateBatch(vo));
+    }
+
+    @GetMapping("/list/{adGroupId}")
+    @ApiOperationSupport(order = 10)
+    @ApiOperation(value = "根据gId获取ad列表", notes = "传入adGroupId")
+    public R<List<SimpleAdVO>> listSimpleAd(@PathVariable Integer adGroupId) {
+        return R.data(service.listSimpleAd(adGroupId));
     }
 }

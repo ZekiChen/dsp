@@ -141,4 +141,14 @@
             </foreach>
     </select>
 
+    <select id="listIdByCampaignIds" resultType="java.lang.Integer">
+        select id from ad_group where 1=1
+        <if test="campaignIds != null and campaignIds.size > 0">
+           and campaign_id IN
+            <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
 </mapper>

@@ -66,7 +66,7 @@ public class AdGroupController {
     @ApiOperation(value = "删除", notes = "传入ids")
     public R remove(@ApiParam(value = "主键集合", required = true) @RequestParam String ids) {
         CacheUtil.clear(AD_GROUP_CACHE);
-        return R.status(service.delete(BigTool.toIntList(ids)));
+        return R.status(service.logicDelete(BigTool.toIntList(ids)));
     }
 
     @GetMapping("/detail")
@@ -136,8 +136,9 @@ public class AdGroupController {
                   @ApiParam("源adGroupId") @RequestParam Integer sourceAdGroupId,
                   @ApiParam("复制数量") @RequestParam Integer copyNum,
                   @ApiParam("目标adGroup状态") @RequestParam Integer targetAdGroupStatus,
+                  @ApiParam("复制的adIds") @RequestParam(required = false) String sourceAdIds,
                   @ApiParam("目标ad状态") @RequestParam Integer targetAdStatus) {
-        return R.status(service.copy(targetCampaignId, sourceAdGroupId, copyNum, targetAdGroupStatus, targetAdStatus));
+        return R.status(service.copy(targetCampaignId, sourceAdGroupId, copyNum, targetAdGroupStatus, sourceAdIds, targetAdStatus));
     }
 
     @PutMapping("/update/list-info")

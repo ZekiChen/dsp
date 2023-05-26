@@ -16,12 +16,12 @@ import com.tecdo.adm.api.delivery.vo.AdGroupVO;
 import com.tecdo.adm.api.delivery.vo.BatchAdGroupUpdateVO;
 import com.tecdo.adm.api.delivery.vo.BundleAdGroupUpdateVO;
 import com.tecdo.adm.api.delivery.vo.SimpleAdGroupUpdateVO;
-import com.tecdo.adm.common.cache.AdCache;
 import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.adm.delivery.service.ITargetConditionService;
 import com.tecdo.starter.mp.entity.BaseEntity;
+import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import com.tecdo.starter.mp.vo.BaseVO;
 import com.tecdo.starter.tool.BigTool;
 import lombok.RequiredArgsConstructor;
@@ -66,6 +66,23 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    public boolean logicDelete(List<Integer> ids) {
+        if (CollUtil.isEmpty(ids)) return true;
+        Date date = new Date();
+        List<AdGroup> entities = ids.stream().map(id -> {
+            AdGroup entity = new AdGroup();
+            entity.setId(id);
+            entity.setStatus(BaseStatusEnum.DELETE.getType());
+            entity.setUpdateTime(date);
+            return entity;
+        }).collect(Collectors.toList());
+        updateBatchById(entities);
+        List<Integer> adIds = adService.listIdByGroupIds(ids);
+        adService.logicDelete(adIds);
+        return true;
+    }
+
+    @Override
     public void deleteByCampaignIds(List<Integer> campaignIds) {
         List<AdGroup> adGroups = baseMapper.selectList(Wrappers.<AdGroup>lambdaQuery().in(AdGroup::getCampaignId, campaignIds));
         List<Integer> adGroupIds = adGroups.stream().map(AdGroup::getId).collect(Collectors.toList());
@@ -85,19 +102,19 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     @Override
     @Transactional
     public boolean copy(Integer targetCampaignId, Integer sourceAdGroupId, Integer copyNum,
-                        Integer targetAdGroupStatus, Integer targetAdStatus) {
+                        Integer targetAdGroupStatus, String sourceAdIds, Integer targetAdStatus) {
         AdGroup sourceAdGroup = AdGroupCache.getAdGroup(sourceAdGroupId);
         List<TargetCondition> sourceConditions = AdGroupCache.listCondition(sourceAdGroupId);
         if (copyNum < 1 || sourceAdGroup == null || CollUtil.isEmpty(sourceConditions)) {
             return false;
         }
-        List<Ad> sourceAds = AdCache.listAd(sourceAdGroupId);
         replaceAdGroup(sourceAdGroup, targetCampaignId, targetAdGroupStatus);
         List<AdGroup> targetAdGroups = copyAdGroups(sourceAdGroup, copyNum);
         saveBatch(targetAdGroups);
         List<TargetCondition> targetConditions = replaceAndCopyConditions(targetAdGroups, sourceConditions);
         conditionService.saveBatch(targetConditions);
-        if (CollUtil.isNotEmpty(sourceAds)) {
+        if (StrUtil.isNotBlank(sourceAdIds)) {
+            List<Ad> sourceAds = adService.listByIds(BigTool.toIntList(sourceAdIds));
             List<Ad> targetAds = replaceAndCopyAds(targetAdGroups, sourceAds, targetAdStatus);
             adService.saveBatch(targetAds);
         }
@@ -236,9 +253,21 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    public List<Integer> listIdByCampaignIds(List<Integer> campaignIds) {
+        if (CollUtil.isEmpty(campaignIds)) {
+            return new ArrayList<>();
+        }
+        return baseMapper.listIdByCampaignIds(campaignIds);
+    }
+
+    @Override
     public boolean bundleUpdateBatch(BundleAdGroupUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
         conditionService.deleteByAdGroupIds(adGroupIds);
+        LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
+                .in(TargetCondition::getAdGroupId, adGroupIds)
+                .in(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc());
+        conditionService.remove(wrapper);
         if (StrUtil.isNotBlank(vo.getValue())) {
             List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
                 TargetCondition condition = new TargetCondition();

@@ -3,6 +3,7 @@ package com.tecdo.log;
 import cn.hutool.core.date.DateUtil;
 import com.google.common.net.HttpHeaders;
 import com.tecdo.constant.RequestKey;
+import com.tecdo.constant.RequestPath;
 import com.tecdo.domain.biz.notice.ImpInfoNoticeInfo;
 import com.tecdo.domain.biz.notice.NoticeInfo;
 import com.tecdo.server.request.HttpRequest;
@@ -117,21 +118,24 @@ public class NoticeLogger {
         map.put("ad_id", info.getAdId());
         map.put("creative_id", info.getCreativeId());
 
-        map.put("is_realtime", info.getIsRealtime());
-        map.put("buyer_cnt", info.getBuyerCnt());
-        map.put("order_amount", info.getOrderAmount());
-        map.put("p4p_revenue", info.getP4pRevenue());
-        map.put("affi_revenue", info.getAffiRevenue());
-        map.put("new_register", info.getNewRegister());
-
         if (info.getEventType() != null) {
             map.put(info.getEventType(), 1);
         }
-        if (Objects.equals(info.getUvCnt(), 1)) {
-            map.put(RequestKey.EVENT_4, 1);
-        }
-        if (Objects.equals(info.getMbrCnt(), 1)) {
-            map.put(RequestKey.EVENT_5, 1);
+
+        if (RequestPath.PB_AE.equals(httpRequest.getPath())) {
+            map.put("is_realtime", info.getIsRealtime());
+            map.put("buyer_cnt", info.getBuyerCnt());
+            map.put("order_amount", info.getOrderAmount());
+            map.put("p4p_revenue", info.getP4pRevenue());
+            map.put("affi_revenue", info.getAffiRevenue());
+            map.put("new_register", info.getNewRegister());
+
+            if (Objects.equals(info.getUvCnt(), 1)) {
+                map.put(RequestKey.EVENT_4, 1);
+            }
+            if (Objects.equals(info.getMbrCnt(), 1)) {
+                map.put(RequestKey.EVENT_5, 1);
+            }
         }
 
         pbLog.info(JsonHelper.toJSONString(map));
