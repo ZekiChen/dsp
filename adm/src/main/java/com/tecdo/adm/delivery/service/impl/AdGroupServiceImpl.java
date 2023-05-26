@@ -263,7 +263,6 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     @Override
     public boolean bundleUpdateBatch(BundleAdGroupUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
-        conditionService.deleteByAdGroupIds(adGroupIds);
         LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
                 .in(TargetCondition::getAdGroupId, adGroupIds)
                 .in(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc());
