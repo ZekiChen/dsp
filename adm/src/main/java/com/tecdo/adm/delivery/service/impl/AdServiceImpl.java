@@ -5,13 +5,18 @@ import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.Ad;
+import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.adm.api.delivery.mapper.AdMapper;
+import com.tecdo.adm.api.delivery.vo.BatchAdUpdateVO;
 import com.tecdo.adm.api.delivery.vo.SimpleAdUpdateVO;
+import com.tecdo.adm.api.delivery.vo.SimpleAdVO;
 import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.starter.mp.entity.BaseEntity;
+import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +36,21 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
     @Override
     public void deleteByAdGroupIds(List<Integer> adGroupIds) {
         baseMapper.delete(Wrappers.<Ad>lambdaQuery().in(Ad::getGroupId, adGroupIds));
+    }
+
+    @Override
+    public boolean logicDelete(List<Integer> adIds) {
+        if (CollUtil.isEmpty(adIds)) return true;
+        Date date = new Date();
+        List<Ad> entities = adIds.stream().map(id -> {
+            Ad entity = new Ad();
+            entity.setId(id);
+            entity.setStatus(BaseStatusEnum.DELETE.getType());
+            entity.setUpdateTime(date);
+            return entity;
+        }).collect(Collectors.toList());
+        updateBatchById(entities);
+        return true;
     }
 
     @Override
@@ -59,6 +79,38 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
         entity.setName(vo.getName());
         entity.setUpdateTime(new Date());
         return updateById(entity);
+    }
+
+    @Override
+    public boolean updateBatch(BatchAdUpdateVO vo) {
+        Date date = new Date();
+        List<Ad> entities = vo.getAdIds().stream().map(id -> {
+            Ad entity = new Ad();
+            entity.setId(id);
+            entity.setStatus(vo.getStatus());
+            entity.setUpdateTime(date);
+            return entity;
+        }).collect(Collectors.toList());
+        updateBatchById(entities);
+        return true;
+    }
+
+    @Override
+    public List<SimpleAdVO> listSimpleAd(Integer adGroupId) {
+        List<SimpleAdVO> vos = baseMapper.listSimpleAd(adGroupId);
+        vos.forEach(vo -> {
+            AdTypeEnum adTypeEnum = AdTypeEnum.of(vo.getType());
+            vo.setTypeName(adTypeEnum.getDesc().toLowerCase());
+        });
+        return vos;
+    }
+
+    @Override
+    public List<Integer> listIdByGroupIds(List<Integer> adGroupIds) {
+        if (CollUtil.isEmpty(adGroupIds)) {
+            return new ArrayList<>();
+        }
+        return baseMapper.listIdByGroupIds(adGroupIds);
     }
 
     private static void resetBaseEntity(BaseEntity entity) {

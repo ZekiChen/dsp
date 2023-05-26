@@ -12,6 +12,7 @@ import com.tecdo.adm.api.delivery.vo.SimpleCampaignUpdateVO;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.ICampaignRtaService;
 import com.tecdo.adm.delivery.service.ICampaignService;
+import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import com.tecdo.starter.mp.vo.BaseVO;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -38,7 +39,7 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
         save(vo);
         CampaignRtaVO campaignRtaVO = vo.getCampaignRtaVO();
         if (campaignRtaVO != null) {
-            campaignRtaVO.setAdvMemId(campaignRtaVO.getAdvId());
+            campaignRtaVO.setAdvId(campaignRtaVO.getAdvMemId());
             campaignRtaService.save(campaignRtaVO);
         }
         return true;
@@ -52,7 +53,7 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
                 campaignRtaService.deleteByCampaignIds(Collections.singletonList(vo.getId()));
                 return true;
             }
-            campaignRtaVO.setAdvMemId(campaignRtaVO.getAdvId());
+            campaignRtaVO.setAdvId(campaignRtaVO.getAdvMemId());
             return campaignRtaService.updateById(campaignRtaVO);
         }
         return false;
@@ -66,6 +67,22 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
             return true;
         }
         return false;
+    }
+
+    @Override
+    public boolean logicDelete(List<Integer> ids) {
+        Date date = new Date();
+        List<Campaign> entities = ids.stream().map(id -> {
+            Campaign entity = new Campaign();
+            entity.setId(id);
+            entity.setStatus(BaseStatusEnum.DELETE.getType());
+            entity.setUpdateTime(date);
+            return entity;
+        }).collect(Collectors.toList());
+        updateBatchById(entities);
+        List<Integer> adGroupIds = adGroupService.listIdByCampaignIds(ids);
+        adGroupService.logicDelete(adGroupIds);
+        return true;
     }
 
     @Override

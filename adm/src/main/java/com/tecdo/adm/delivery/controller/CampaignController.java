@@ -59,7 +59,7 @@ public class CampaignController {
     public R remove(@ApiParam(value = "主键集合", required = true) @RequestParam String ids) {
         CacheUtil.clear(CAMPAIGN_CACHE);
         CacheUtil.clear(AD_GROUP_CACHE);
-        return R.status(service.delete(BigTool.toIntList(ids)));
+        return R.status(service.logicDelete(BigTool.toIntList(ids)));
     }
 
     @GetMapping("/detail")

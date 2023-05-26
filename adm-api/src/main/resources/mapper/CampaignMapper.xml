@@ -60,6 +60,14 @@
         <if test="adName != null and adName != ''">
             and ad.name like concat(concat('%', #{adName}),'%')
         </if>
+        <choose>
+            <when test="campaign.status == null">
+                and c.status != 2
+            </when>
+            <otherwise>
+                and c.status = #{campaign.status}
+            </otherwise>
+        </choose>
     </select>
 
     <select id="listIdAndName" resultType="com.tecdo.starter.mp.vo.BaseVO">

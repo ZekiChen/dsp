@@ -22,6 +22,7 @@ public interface IAdGroupService extends IService<AdGroup> {
     boolean edit(AdGroupVO vo);
 
     boolean delete(List<Integer> ids);
+    boolean logicDelete(List<Integer> ids);
 
     void deleteByCampaignIds(List<Integer> campaignIds);
 
@@ -30,7 +31,7 @@ public interface IAdGroupService extends IService<AdGroup> {
     List<AdGroup> listByCampaignIds(List<Integer> campaignIds);
 
     boolean copy(Integer targetCampaignId, Integer sourceAdGroupId, Integer copyNum,
-                 Integer targetAdGroupStatus, Integer targetAdStatus);
+                 Integer targetAdGroupStatus, String sourceAdIds, Integer targetAdStatus);
 
     boolean editListInfo(SimpleAdGroupUpdateVO vo);
 
@@ -53,6 +54,7 @@ public interface IAdGroupService extends IService<AdGroup> {
     boolean updateBatch(BatchAdGroupUpdateVO vo);
 
     List<Integer> listIdByAdvIds(List<Integer> advIds);
+    List<Integer> listIdByCampaignIds(List<Integer> campaignIds);
 
     boolean bundleUpdateBatch(BundleAdGroupUpdateVO vo);
 }

@@ -2,6 +2,10 @@ package com.tecdo.adm.api.delivery.mapper;
 
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tecdo.adm.api.delivery.entity.Ad;
+import com.tecdo.adm.api.delivery.vo.SimpleAdVO;
+import org.apache.ibatis.annotations.Param;
+
+import java.util.List;
 
 /**
  * 广告信息 Mapper接口
@@ -10,4 +14,7 @@ import com.tecdo.adm.api.delivery.entity.Ad;
  **/
 public interface AdMapper extends BaseMapper<Ad> {
 
+    List<SimpleAdVO> listSimpleAd(@Param("adGroupId") Integer adGroupId);
+
+    List<Integer> listIdByGroupIds(@Param("adGroupIds") List<Integer> adGroupIds);
 }
