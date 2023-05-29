@@ -4,6 +4,7 @@ package com.tecdo;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
+import com.google.common.util.concurrent.RateLimiter;
 import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.entity.CampaignRtaDTO;
 import com.tecdo.enums.AeMaterialTypeEnum;
@@ -82,6 +83,9 @@ public class Ae {
   @Value("${pac.script.ae.default-last-time:-3}")
   private int defaultLastTime;
 
+  @Value("${pac.script.ae.max-qps:500}")
+  private int maxQps;
+
   private String[] getStartAndEndTime() {
     Calendar nowTime = Calendar.getInstance();
     String endTime = DateUtil.format(nowTime.getTime(), HOUR_FORMAT);
@@ -124,6 +128,7 @@ public class Ae {
       end = args[2];
     }
     List<String> timeRange = getTimeRange(start, end);
+    RateLimiter rateLimiter = RateLimiter.create(maxQps);
 
 
     Set<CampaignRtaDTO> campaignRtaDTOS = campaignMapper.listAdvCampaign();
@@ -152,7 +157,7 @@ public class Ae {
                                                                                    advCampaignIds.size())))
                                            .forEach(list -> {
                                              futureList.add(threadPool.submit(() -> {
-                                               callAeRtaAndCache(deviceId, list, channel);
+                                               callAeRtaAndCache(deviceId, list, channel, rateLimiter);
                                              }));
                                            }));
 
@@ -188,7 +193,7 @@ public class Ae {
   }
 
 
-  private void callAeRtaAndCache(String deviceId, List<String> advCampaignIds, String channel) {
+  private void callAeRtaAndCache(String deviceId, List<String> advCampaignIds, String channel,RateLimiter rateLimiter) {
     long timestamp = System.currentTimeMillis();
     Map<String, Object> aeRequestParam = new HashMap<>();
     aeRequestParam.put("adid", deviceId);
@@ -197,6 +202,7 @@ public class Ae {
     aeRequestParam.put("timestamp", timestamp);
     aeRequestParam.put("sign", AeSignHelper.getSign(deviceId, channel, timestamp, advCampaignIds));
 
+    rateLimiter.acquire();
     HttpResult result =
       OkHttps.sync(AE_RTA_URL).bodyType(OkHttps.JSON).addBodyPara(aeRequestParam).post();
     if (!result.isSuccessful()) {
