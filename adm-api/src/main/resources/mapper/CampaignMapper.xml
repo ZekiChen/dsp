@@ -83,7 +83,18 @@
         FROM
             campaign c
             RIGHT JOIN ad_group g ON c.id = g.campaign_id
+    </select>
 
+    <select id="listIdByAdvIds" resultType="java.lang.Integer">
+        select
+            c.id
+        from
+            campaign c
+        where 1=1
+            and c.adv_id in
+            <foreach collection="advIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
     </select>
 
 </mapper>

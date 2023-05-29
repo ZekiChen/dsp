@@ -32,4 +32,6 @@ public interface ICampaignService extends IService<Campaign> {
                                List<Integer> advIds,
                                List<Integer> adGroupIds, String adGroupName,
                                List<Integer> adIds, String adName);
+
+    List<Integer> listIdByAdvIds(List<Integer> advIds);
 }

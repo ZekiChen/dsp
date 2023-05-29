@@ -26,4 +26,6 @@ public interface CampaignMapper extends BaseMapper<Campaign> {
                                @Param("adGroupName") String adGroupName,
                                @Param("adIds") List<Integer> adIds,
                                @Param("adName") String adName);
+
+    List<Integer> listIdByAdvIds(@Param("advIds") List<Integer> advIds);
 }

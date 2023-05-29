@@ -12,6 +12,7 @@ import com.tecdo.adm.api.delivery.vo.BatchAdGroupUpdateVO;
 import com.tecdo.adm.api.delivery.vo.BundleAdGroupUpdateVO;
 import com.tecdo.adm.api.delivery.vo.SimpleAdGroupUpdateVO;
 import com.tecdo.adm.delivery.service.IAdGroupService;
+import com.tecdo.adm.delivery.service.ICampaignService;
 import com.tecdo.adm.delivery.wrapper.AdGroupWrapper;
 import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
@@ -45,6 +46,7 @@ import static com.tecdo.common.constant.CacheConstant.AD_GROUP_CACHE;
 public class AdGroupController {
 
     private final IAdGroupService service;
+    private final ICampaignService campaignService;
 
     @PostMapping("/add")
     @ApiOperationSupport(order = 1)
@@ -93,7 +95,7 @@ public class AdGroupController {
         if (StrUtil.isNotBlank(campaignIds)) {
             preCIds.addAll(BigTool.toIntList(campaignIds));
         } else if (StrUtil.isNotBlank(advIds)) {
-            preCIds.addAll(service.listIdByAdvIds(BigTool.toIntList(advIds)));
+            preCIds.addAll(campaignService.listIdByAdvIds(BigTool.toIntList(advIds)));
         }
         IPage<AdGroup> pages;
         if (CollUtil.isEmpty(preCIds)) {
