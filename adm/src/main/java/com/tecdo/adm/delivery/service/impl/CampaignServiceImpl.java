@@ -133,4 +133,9 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
                                       List<Integer> adIds, String adName) {
         return baseMapper.customPage(page, campaign, advIds, adGroupIds, adGroupName, adIds, adName);
     }
+
+    @Override
+    public List<Integer> listIdByAdvIds(List<Integer> advIds) {
+        return baseMapper.listIdByAdvIds(advIds);
+    }
 }
