@@ -132,58 +132,63 @@ public class Ae {
     Set<CampaignRtaDTO> campaignRtaDTOS = campaignMapper.listAdvCampaign();
 
     for (int cur = 0; cur < timeRange.size() - 1; cur++) {
-      String startTime = timeRange.get(cur);
-      String endTime = timeRange.get(cur + 1);
-      List<String> deviceIdList = requestMapper.listDeviceId(country, startTime, endTime);
-      log.info("{} deviceId size: {}", startTime, deviceIdList.size());
-      List<Future> futureList = new ArrayList<>();
-      for (String deviceId : deviceIdList) {
-        try {
-          campaignRtaDTOS.parallelStream()
-                         .filter(dto -> !pacRedis.exists(AE_RTA_CACHE.concat(":")
-                                                                     .concat(dto.getAdvCampaignId())
-                                                                     .concat(":")
-                                                                     .concat(deviceId)))
-                         .collect(Collectors.groupingBy(CampaignRtaDTO::getChannel,
-                                                        Collectors.mapping(CampaignRtaDTO::getAdvCampaignId,
-                                                                           Collectors.toList())))
-                         // AE限制每次最多只能传 10 个 advCampaignId，因此超过 10 个则分批调用
-                         .forEach((channel, advCampaignIds) -> //
-                                    IntStream.range(0, (advCampaignIds.size() + 9) / 10)
-                                             .mapToObj(i -> advCampaignIds.subList(i * 10,
-                                                                                   Math.min(
-                                                                                     (i + 1) * 10,
-                                                                                     advCampaignIds.size())))
-                                             .forEach(list -> {
-                                               futureList.add(threadPool.submit(() -> {
-                                                 callAeRtaAndCache(deviceId,
-                                                                   list,
-                                                                   channel,
-                                                                   rateLimiter);
+      try {
+        String startTime = timeRange.get(cur);
+        String endTime = timeRange.get(cur + 1);
+        List<String> deviceIdList = requestMapper.listDeviceId(country, startTime, endTime);
+        log.info("{} deviceId size: {}", startTime, deviceIdList.size());
+        List<Future> futureList = new ArrayList<>();
+        for (String deviceId : deviceIdList) {
+          try {
+            campaignRtaDTOS.parallelStream()
+                           .filter(dto -> !pacRedis.exists(AE_RTA_CACHE.concat(":")
+                                                                       .concat(dto.getAdvCampaignId())
+                                                                       .concat(":")
+                                                                       .concat(deviceId)))
+                           .collect(Collectors.groupingBy(CampaignRtaDTO::getChannel,
+                                                          Collectors.mapping(CampaignRtaDTO::getAdvCampaignId,
+                                                                             Collectors.toList())))
+                           // AE限制每次最多只能传 10 个 advCampaignId，因此超过 10 个则分批调用
+                           .forEach((channel, advCampaignIds) -> //
+                                      IntStream.range(0, (advCampaignIds.size() + 9) / 10)
+                                               .mapToObj(i -> advCampaignIds.subList(i * 10,
+                                                                                     Math.min(
+                                                                                       (i + 1) * 10,
+                                                                                       advCampaignIds.size())))
+                                               .forEach(list -> {
+                                                 futureList.add(threadPool.submit(() -> {
+                                                   callAeRtaAndCache(deviceId,
+                                                                     list,
+                                                                     channel,
+                                                                     rateLimiter);
+                                                 }));
                                                }));
-                                             }));
-          if (futureList.size() >= batchSize) {
-            for (Future future : futureList) {
-              try {
-                future.get(timeout, TimeUnit.SECONDS);
-              } catch (Throwable e) {
-                e.printStackTrace();
+            if (futureList.size() >= batchSize) {
+              for (Future future : futureList) {
+                try {
+                  future.get(timeout, TimeUnit.SECONDS);
+                } catch (Throwable e) {
+                  e.printStackTrace();
+                }
               }
+              futureList.clear();
             }
-            futureList.clear();
+          } catch (Exception e) {
+            e.printStackTrace();
           }
-        } catch (Exception e) {
-          e.printStackTrace();
         }
-      }
-      for (Future future : futureList) {
-        try {
-          future.get(timeout, TimeUnit.SECONDS);
-        } catch (Throwable e) {
-          e.printStackTrace();
+        for (Future future : futureList) {
+          try {
+            future.get(timeout, TimeUnit.SECONDS);
+          } catch (Throwable e) {
+            e.printStackTrace();
+          }
         }
+        log.info("{} finish", startTime);
+      } catch (Exception e) {
+        cur--;
+        log.error(timeRange.get(cur) + "catch exception, retry", e);
       }
-      log.info("{} finish", startTime);
     }
 
   }
