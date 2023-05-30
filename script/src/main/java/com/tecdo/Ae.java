@@ -187,7 +187,7 @@ public class Ae {
         log.info("{} finish", startTime);
       } catch (Exception e) {
         cur--;
-        log.error(timeRange.get(cur) + "catch exception, retry", e);
+        log.error(timeRange.get(cur + 1) + "catch exception, retry", e);
       }
     }
 
