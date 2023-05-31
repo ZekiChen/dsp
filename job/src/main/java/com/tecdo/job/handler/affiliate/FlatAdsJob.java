@@ -75,7 +75,7 @@ public class FlatAdsJob {
             }
             Long dspImp = dspSpent.getImp();
             Double dspCost = dspSpent.getCost();
-            double impGap = Math.abs((dspImp - flatAdsCost) / dspImp);
+            double impGap = Math.abs((dspImp - flatAdsImp) / dspImp);
             double costGap = Math.abs((dspCost - flatAdsCost) / dspCost);
             // 群消息通知时，保留2位小数
             String flatAdsCostStr = NumberUtil.round(flatAdsCost, 2).toString();
