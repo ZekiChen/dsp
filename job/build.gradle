@@ -13,6 +13,8 @@ dependencies {
     implementation 'com.alibaba:druid-spring-boot-starter'
     implementation 'mysql:mysql-connector-java'
     implementation 'com.baomidou:dynamic-datasource-spring-boot-starter'
+
+    implementation 'com.lazada:lazop-api-sdk'
 }
 
 publishing {
