@@ -58,23 +58,23 @@ public class FlatAdsJob {
             FlatAdsResponse response = result.getBody().toBean(FlatAdsResponse.class);
             List<FlatAdsReportVO> reportVOs = response.getData();
             if (CollUtil.isEmpty(reportVOs)) {
-                logError("call FlatAds report error, data is empty");
+                logError("call FlatAds report error, data is empty, date: {}" + yesterday);
                 return;
             }
             FlatAdsReportVO reportVO = reportVOs.get(0);
             Long flatAdsImp = reportVO.getImpression();
             Double flatAdsCost = reportVO.getGrossRevenue();
             if (flatAdsCost == null || flatAdsImp == null) {
-                logError("call FlatAds report error, revenue or imp is null");
+                logError("call FlatAds report cost or imp is null, date: " + yesterday);
                 return;
             }
             SpentDTO dspSpent = doGetReportSpentForFlatAds();
             if (dspSpent == null) {
-                log.info("get report spent for flatAds is null");
+                logError("get report spent for flatAds is null, date: " + yesterday);
                 return;
             }
-            Long dspImp = dspSpent.getImp();
-            Double dspCost = dspSpent.getCost();
+            Long dspImp = dspSpent.getImp() != null ? dspSpent.getImp() : 0L;
+            double dspCost = dspSpent.getCost() != null ? dspSpent.getCost() : 0d;
             double impGap = Math.abs((dspImp - flatAdsImp) / dspImp);
             double costGap = Math.abs((dspCost - flatAdsCost) / dspCost);
             // 群消息通知时，保留2位小数
