@@ -1,4 +1,4 @@
-package com.tecdo.job.domain.flatads;
+package com.tecdo.job.domain.vo.flatads;
 
 import lombok.Getter;
 import lombok.Setter;

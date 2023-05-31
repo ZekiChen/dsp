@@ -22,4 +22,15 @@
         GROUP BY campaign_id
     </select>
 
+
+    <select id="getReportSpentForFlatAds" resultType="com.tecdo.adm.api.delivery.dto.SpentDTO">
+        SELECT
+            sum(imp_count) as imp,
+            sum(imp_success_price_total)/1000 as cost
+        FROM
+            pac_dsp_report
+        WHERE
+            affiliate_id = #{affId} and report_date = '${createDate}'
+    </select>
+
 </mapper>

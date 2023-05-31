@@ -7,8 +7,8 @@ import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.NumberUtil;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
-import com.tecdo.job.domain.flatads.FlatAdsReportVO;
-import com.tecdo.job.domain.flatads.FlatAdsResponse;
+import com.tecdo.job.domain.vo.flatads.FlatAdsReportVO;
+import com.tecdo.job.domain.vo.flatads.FlatAdsResponse;
 import com.tecdo.job.service.init.BudgetManager;
 import com.tecdo.job.service.init.CampaignManager;
 import com.tecdo.job.util.WeChatRobotUtils;
@@ -23,6 +23,9 @@ import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
+import static com.tecdo.job.util.MonitorGroupHelper.MONITOR_GROUP;
+import static com.tecdo.job.util.MonitorGroupHelper.logError;
+
 /**
  * 监控类任务
  *
@@ -32,11 +35,6 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class MonitorJob {
-
-    // DSP监控告警通知群
-    private final static String MONITOR_GROUP = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=1b914817-45ab-4b7d-9bec-92bc6408a69f";
-    // 电话告警通知
-//    private final static String PHONE_CALL = "https://qyapi.weixin.qq.com/cgi-bin/webhook/send?key=667ab4ef-2bf0-404c-af6c-936fd7f795d6";
 
     @Value("${foreign.flat-ads.report-url}")
     private String flatAdsReportUrl;
@@ -110,21 +108,5 @@ public class MonitorJob {
             sum += budgetManager.getCampaignCost(String.valueOf(campaignId), 0d);
         }
         return sum;
-    }
-
-    private static void logError(String msg) {
-        logError(msg, false);
-    }
-
-    private static void logError(String msg, boolean send2Wechat) {
-        log.error(msg);
-        XxlJobHelper.handleFail(msg);
-        if (send2Wechat) {
-            try {
-                WeChatRobotUtils.sendTextMsg(MONITOR_GROUP, msg);
-            } catch (Exception e) {
-                logError(msg);
-            }
-        }
     }
 }
