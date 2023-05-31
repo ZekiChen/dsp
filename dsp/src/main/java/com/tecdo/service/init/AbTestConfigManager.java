@@ -120,7 +120,7 @@ public class AbTestConfigManager extends ServiceImpl<AbTestConfigMapper, AbTestC
             LambdaQueryWrapper<AbTestConfig> wrapper =
               Wrappers.<AbTestConfig>lambdaQuery().eq(AbTestConfig::getStatus, 1);
             Map<String, List<AbTestConfig>> abTestConfig =
-              list(wrapper).stream().collect(Collectors.groupingBy(AbTestConfig::getTag));
+              list(wrapper).stream().collect(Collectors.groupingBy(AbTestConfig::getGroup));
             params.put(ParamKey.AB_TEST_CONFIG_CACHE_KEY, abTestConfig);
             messageQueue.putMessage(EventType.AB_TEST_CONFIG_LOAD_RESPONSE, params);
           } catch (Exception e) {
