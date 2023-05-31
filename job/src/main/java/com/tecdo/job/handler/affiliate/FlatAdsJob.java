@@ -38,7 +38,7 @@ public class FlatAdsJob {
 
     @Value("${foreign.flat-ads.report-url}")
     private String flatAdsReportUrl;
-    @Value("${pac.dsp.aff.gap.percent}")
+    @Value("${pac.dsp.aff.gap}")
     private Double gap;
 
     private final ReportMapper reportMapper;
