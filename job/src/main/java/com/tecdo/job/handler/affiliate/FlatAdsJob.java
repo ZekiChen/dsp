@@ -70,7 +70,7 @@ public class FlatAdsJob {
             }
             SpentDTO dspSpent = doGetReportSpentForFlatAds();
             if (dspSpent == null) {
-                logError("get dsp spent for flatAds error, spent is null");
+                log.info("get report spent for flatAds is null");
                 return;
             }
             Long dspImp = dspSpent.getImp();
