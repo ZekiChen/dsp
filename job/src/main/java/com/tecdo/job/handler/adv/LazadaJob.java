@@ -22,7 +22,7 @@ import com.tecdo.job.domain.vo.lazada.LazadaReportVO;
 import com.tecdo.job.domain.vo.lazada.LazadaResponse;
 import com.tecdo.job.service.mvc.IReportAdvGapService;
 import com.tecdo.job.util.StringConfigUtil;
-import com.tecdo.job.util.WeChatRobotUtils;
+import com.tecdo.common.util.WeChatRobotUtils;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;

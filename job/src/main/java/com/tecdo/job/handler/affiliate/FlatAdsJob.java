@@ -14,7 +14,7 @@ import com.tecdo.job.domain.entity.ReportAffGap;
 import com.tecdo.job.domain.vo.flatads.FlatAdsReportVO;
 import com.tecdo.job.domain.vo.flatads.FlatAdsResponse;
 import com.tecdo.job.mapper.ReportAffGapMapper;
-import com.tecdo.job.util.WeChatRobotUtils;
+import com.tecdo.common.util.WeChatRobotUtils;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
