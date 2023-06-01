@@ -5,8 +5,6 @@ import com.tecdo.starter.mp.entity.IdEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
-import java.util.Date;
-
 /**
  * 报表与渠道gap差异
  *
@@ -22,7 +20,7 @@ public class ReportAffGap extends IdEntity {
 	/**
 	 * 创建日期
 	 */
-	private Date createDate;
+	private String createDate;
 	/**
 	 * 渠道ID
 	 */

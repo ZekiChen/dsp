@@ -3,7 +3,7 @@
 <mapper namespace="com.tecdo.adm.api.delivery.mapper.AffiliateMapper">
 
     <select id="listIdAndName" resultType="com.tecdo.starter.mp.vo.BaseVO">
-        select id, name from affiliate
+        select id, name from affiliate where status != 2
     </select>
 
 </mapper>

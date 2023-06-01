@@ -2,6 +2,7 @@ package com.tecdo.adm.api.doris.mapper;
 
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
+import com.tecdo.adm.api.delivery.dto.ReportEventDTO;
 import com.tecdo.adm.api.delivery.dto.SpentDTO;
 import com.tecdo.adm.api.doris.entity.Report;
 import org.apache.ibatis.annotations.Param;
@@ -19,4 +20,8 @@ public interface ReportMapper extends BaseMapper<Report> {
                                           @Param("campaignIds") Set<Integer> campaignIds);
 
     SpentDTO getReportSpentForFlatAds(@Param("affId") Integer affId, @Param("createDate") String createDate);
+
+    ReportEventDTO getRepostEventForLazada(@Param("date") String date,
+                                           @Param("country") String country,
+                                           @Param("campaignIds") List<Integer> campaignIds);
 }

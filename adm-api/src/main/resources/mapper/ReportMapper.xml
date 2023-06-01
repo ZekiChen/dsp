@@ -30,7 +30,24 @@
         FROM
             pac_dsp_report
         WHERE
-            affiliate_id = #{affId} and report_date = '${createDate}'
+            affiliate_id = #{affId}
+            and report_date = #{createDate}
+    </select>
+
+    <select id="getRepostEventForLazada" resultType="com.tecdo.adm.api.delivery.dto.ReportEventDTO">
+        SELECT
+            sum(event1_count) as event1,
+            sum(event2_count) as event2,
+            sum(event3_count) as event3
+        FROM
+            pac_dsp_report
+        WHERE
+            campaign_id in
+            <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and report_date = #{date}
+            and country = #{country}
     </select>
 
 </mapper>

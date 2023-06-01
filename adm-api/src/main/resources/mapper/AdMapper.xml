@@ -20,7 +20,7 @@
     </resultMap>
 
     <select id="listSimpleAd" resultType="com.tecdo.adm.api.delivery.vo.SimpleAdVO">
-        select id,name,type,status from ad where group_id = #{adGroupId}
+        select id,name,type,status from ad where group_id = #{adGroupId} and status != 2
     </select>
 
     <select id="listIdByGroupIds" resultType="java.lang.Integer">
@@ -31,6 +31,7 @@
                 #{item}
             </foreach>
         </if>
+        and status != 2
     </select>
 
 </mapper>
