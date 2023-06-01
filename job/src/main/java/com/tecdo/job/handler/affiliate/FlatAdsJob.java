@@ -2,6 +2,7 @@ package com.tecdo.job.handler.affiliate;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DatePattern;
+import cn.hutool.core.date.DateTime;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.NumberUtil;
@@ -21,7 +22,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -47,10 +47,12 @@ public class FlatAdsJob {
     @XxlJob("flatAdsGap")
     public void flatAdsGap() {
         XxlJobHelper.log("获取前一天数据，落库FlatAds和报表gap，超过阈值则告警");
-        String yesterday = DateUtil.format(DateUtil.yesterday(), DatePattern.PURE_DATE_PATTERN);
+        DateTime yesterday = DateUtil.yesterday();
+        String stdYesterday = yesterday.toDateStr();
+        String yesterdayStr = DateUtil.format(yesterday, DatePattern.PURE_DATE_PATTERN);
         Map<String, String> conditionMap = MapUtil.newHashMap();
-        conditionMap.put("dt_from", yesterday);
-        conditionMap.put("dt_to", yesterday);
+        conditionMap.put("dt_from", yesterdayStr);
+        conditionMap.put("dt_to", yesterdayStr);
         Map<String, Object> paramMap = MapUtil.newHashMap();
         paramMap.put("condition", conditionMap);
         HttpResult result = OkHttps.sync(flatAdsReportUrl).bodyType(OkHttps.JSON).addBodyPara(paramMap).post();
@@ -58,25 +60,25 @@ public class FlatAdsJob {
             FlatAdsResponse response = result.getBody().toBean(FlatAdsResponse.class);
             List<FlatAdsReportVO> reportVOs = response.getData();
             if (CollUtil.isEmpty(reportVOs)) {
-                logError("call FlatAds report error, data is empty, date: {}" + yesterday);
+                logError("call FlatAds report error, data is empty, date: {}" + stdYesterday);
                 return;
             }
             FlatAdsReportVO reportVO = reportVOs.get(0);
             Long flatAdsImp = reportVO.getImpression();
             Double flatAdsCost = reportVO.getGrossRevenue();
             if (flatAdsCost == null || flatAdsImp == null) {
-                logError("call FlatAds report cost or imp is null, date: " + yesterday);
+                logError("call FlatAds report cost or imp is null, date: " + stdYesterday);
                 return;
             }
             SpentDTO dspSpent = doGetReportSpentForFlatAds();
             if (dspSpent == null) {
-                logError("get report spent for flatAds is null, date: " + yesterday);
+                logError("get report spent for flatAds is null, date: " + stdYesterday);
                 return;
             }
             long dspImp = dspSpent.getImp() != null ? dspSpent.getImp() : 0L;
             double dspCost = dspSpent.getCost() != null ? dspSpent.getCost() : 0d;
             if (dspImp == 0L || dspCost == 0d) {
-                logError("get report imp/cost for flatAds is 0, date: " + yesterday);
+                logError("get report imp/cost for flatAds is 0, date: " + stdYesterday);
                 return;
             }
             double impGap = Math.abs((double) (dspImp - flatAdsImp) / dspImp) * 100;
@@ -103,13 +105,13 @@ public class FlatAdsJob {
                     return;
                 }
             }
-            ReportAffGap entity = buildDspAffGap(93, DateUtil.yesterday(),
+            ReportAffGap entity = buildDspAffGap(93, stdYesterday,
                     flatAdsImp, flatAdsCostStr, dspImp, dspCostStr, impGapStr, costGapStr);
             reportAffGapMapper.insert(entity);
         }
     }
 
-    private static ReportAffGap buildDspAffGap(Integer affiliateId, Date createDate,
+    private static ReportAffGap buildDspAffGap(Integer affiliateId, String createDate,
                                                Long flatAdsImp, String flatAdsCostStr,
                                                Long dspImp, String dspCostStr,
                                                String impGapStr, String costGapStr) {
