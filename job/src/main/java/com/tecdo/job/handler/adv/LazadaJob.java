@@ -17,12 +17,12 @@ import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
 import com.tecdo.adm.api.delivery.mapper.RtaInfoMapper;
 import com.tecdo.adm.api.doris.mapper.ReportMapper;
+import com.tecdo.common.util.WeChatRobotUtils;
 import com.tecdo.job.domain.entity.ReportAdvGap;
 import com.tecdo.job.domain.vo.lazada.LazadaReportVO;
 import com.tecdo.job.domain.vo.lazada.LazadaResponse;
 import com.tecdo.job.service.mvc.IReportAdvGapService;
 import com.tecdo.job.util.StringConfigUtil;
-import com.tecdo.common.util.WeChatRobotUtils;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
@@ -63,9 +63,9 @@ public class LazadaJob {
 
     @XxlJob("lazadaGap")
     public void lazadaGap() {
-        XxlJobHelper.log("重跑过去一周数据，落库lazada和报表gap，超过阈值则告警");
+        XxlJobHelper.log("重跑过去三天数据，落库lazada和报表gap，超过阈值则告警");
         String yesterday = DateUtil.yesterday().toDateStr();
-        String lastWeek = DateUtil.lastWeek().toDateStr();
+        String startDay = DateUtil.offsetDay(DateUtil.yesterday(), -2).toDateStr();
 
         List<RtaInfo> rtaInfos = rtaInfoMapper.selectList(Wrappers.query());
         List<Integer> campaignIds = campaignMapper.listIdByAdvIds(Collections.singletonList(1));
@@ -78,7 +78,7 @@ public class LazadaJob {
             request.addApiParameter("report_type", "DATA_STATISTICS");
             request.addApiParameter("page", "1");
             request.addApiParameter("page_size", "10");
-            request.addApiParameter("start_date", lastWeek);
+            request.addApiParameter("start_date", startDay);
             request.addApiParameter("end_date", yesterday);
             request.addApiParameter("campaign_type", "Retargeting");
             request.addApiParameter("sort_column", "date");
@@ -99,7 +99,7 @@ public class LazadaJob {
                     logError("LazadaPage is null or data is empty");
                     continue;
                 }
-                // 一个国家的一周数据
+                // 一个国家的近三天数据
                 List<LazadaReportVO> reportVOs = resp.getData().getData();
                 String country = StringConfigUtil.getCountryCode3(reportVOs.get(0).getCountry());
                 List<ReportAdvGap> entities = new ArrayList<>();
