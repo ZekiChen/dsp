@@ -73,16 +73,20 @@ public class FlatAdsJob {
                 logError("get report spent for flatAds is null, date: " + yesterday);
                 return;
             }
-            Long dspImp = dspSpent.getImp() != null ? dspSpent.getImp() : 0L;
+            long dspImp = dspSpent.getImp() != null ? dspSpent.getImp() : 0L;
             double dspCost = dspSpent.getCost() != null ? dspSpent.getCost() : 0d;
-            double impGap = Math.abs((dspImp - flatAdsImp) / dspImp);
-            double costGap = Math.abs((dspCost - flatAdsCost) / dspCost);
+            if (dspImp == 0L || dspCost == 0d) {
+                logError("get report imp/cost for flatAds is 0, date: " + yesterday);
+                return;
+            }
+            double impGap = Math.abs((double) (dspImp - flatAdsImp) / dspImp) * 100;
+            double costGap = Math.abs((dspCost - flatAdsCost) / dspCost) * 100;
             // 群消息通知时，保留2位小数
             String flatAdsCostStr = NumberUtil.round(flatAdsCost, 2).toString();
             String dspCostStr = NumberUtil.round(dspCost, 2).toString();
             String impGapStr = NumberUtil.round(impGap, 2).toString();
             String costGapStr = NumberUtil.round(costGap, 2).toString();
-            if (costGap > (gap / 100)) {
+            if (costGap > gap) {
                 String msg = "报表与渠道gap差异监控\n"
                         + "渠道：FlatAds\n"
                         + "日期：" + DateUtil.yesterday().toDateStr() + "\n"
