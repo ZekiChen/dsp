@@ -1,5 +1,6 @@
 package com.tecdo.entity;
 
+import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tecdo.starter.mp.entity.BaseEntity;
 import lombok.Data;
@@ -16,6 +17,7 @@ public class AbTestConfig extends BaseEntity {
     /**
      * 分组,同一个分组的path和weight要求要相等
      */
+    @TableField("`group`")
     private String group;
 
     /**
