@@ -1,0 +1,18 @@
+dependencies {
+
+    implementation project(':common')
+    implementation project(':tool:core-launch')
+    implementation project(':tool:starter-redis')
+    implementation project(':tool:starter-mybatis')
+    implementation project(':tool:starter-log')
+
+    implementation libraries.netty
+
+    implementation 'cn.hutool:hutool-all'
+
+    implementation 'com.alibaba:druid-spring-boot-starter'
+    implementation 'mysql:mysql-connector-java'
+    implementation 'com.baomidou:dynamic-datasource-spring-boot-starter'
+    implementation 'org.redisson:redisson:3.8.2'
+
+}

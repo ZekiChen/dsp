@@ -4,6 +4,7 @@ import com.dianping.cat.Cat;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
+import com.tecdo.ab.util.AbTestConfigHelper;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
@@ -27,6 +28,7 @@ import com.tecdo.domain.openrtb.request.Banner;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
+import com.tecdo.entity.AbTestConfig;
 import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
@@ -314,7 +316,20 @@ public class Task {
     Map<String, Object> paramMap =
       MapUtil.<String, Object>builder().put("data", ctrRequests).build();
 
-    return OkHttps.sync(ctrPredictUrl)
+    Map<String, List<AbTestConfig>> abTestConfigMap = abTestConfigManager.getAbTestConfigMap();
+    String url = ctrPredictUrl;
+    for (Map.Entry<String, List<AbTestConfig>> entry : abTestConfigMap.entrySet()) {
+      List<AbTestConfig> configList = entry.getValue();
+      if (AbTestConfigHelper.execute(configList, bidRequest, affId)) {
+        AbTestConfig config = configList.get(0);
+        if (config.getWeight() > ThreadLocalRandom.current().nextDouble(100)) {
+          url = ctrPredictUrl + "/" + config.getPath();
+          break;
+        }
+      }
+    }
+
+    return OkHttps.sync(url)
                   .bodyType(OkHttps.JSON)
                   .setBodyPara(JsonHelper.toJSONString(paramMap))
                   .post();
@@ -332,7 +347,19 @@ public class Task {
     Map<String, Object> paramMap =
       MapUtil.<String, Object>builder().put("data", cvrRequests).build();
 
-    return OkHttps.sync(cvrPredictUrl)
+    Map<String, List<AbTestConfig>> abTestConfigMap = abTestConfigManager.getAbTestConfigMap();
+    String url = cvrPredictUrl;
+    for (Map.Entry<String, List<AbTestConfig>> entry : abTestConfigMap.entrySet()) {
+      List<AbTestConfig> configList = entry.getValue();
+      if (AbTestConfigHelper.execute(configList, bidRequest, affId)) {
+        AbTestConfig config = configList.get(0);
+        if (config.getWeight() > ThreadLocalRandom.current().nextDouble(100)) {
+          url = cvrPredictUrl + "/" + config.getPath();
+          break;
+        }
+      }
+    }
+    return OkHttps.sync(url)
                   .bodyType(OkHttps.JSON)
                   .setBodyPara(JsonHelper.toJSONString(paramMap))
                   .post();

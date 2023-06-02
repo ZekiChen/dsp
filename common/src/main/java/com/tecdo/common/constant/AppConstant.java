@@ -8,5 +8,6 @@ public interface AppConstant {
     String DSP = "dsp";
     String JOB = "job";
     String ADM = "adm";
+    String SCRIPT = "script";
 
 }
