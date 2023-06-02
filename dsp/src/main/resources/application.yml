@@ -20,9 +20,9 @@ spring:
           username: ${pac.datasource.dsp.username}
           password: ${pac.datasource.dsp.password}
         doris-ods:
-          url: jdbc:mysql://pacdsp-doris-external.tec-develop.com:9030/ads?characterEncoding=utf-8&zeroDateTimeBehavior=convertToNull
-          username: brainx
-          password: JZY0oTSiONqiLdIh
+          url: ${data-center.datasource.doris.url}
+          username: ${data-center.datasource.doris.username}
+          password: ${data-center.datasource.doris.password}
         afmysql:
           url: ${pac.datasource.af.url}
           username: ${pac.datasource.af.username}
