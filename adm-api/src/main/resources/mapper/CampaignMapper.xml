@@ -71,7 +71,7 @@
     </select>
 
     <select id="listIdAndName" resultType="com.tecdo.starter.mp.vo.BaseVO">
-        select id, name from campaign
+        select id, name from campaign where status != 2
     </select>
 
     <select id="listCampaignWithGroupIdName" resultType="com.tecdo.adm.api.delivery.dto.SimpleCampaignDTO">
@@ -83,6 +83,7 @@
         FROM
             campaign c
             RIGHT JOIN ad_group g ON c.id = g.campaign_id
+        where c.status != 2 and g.status != 2
     </select>
 
     <select id="listIdByAdvIds" resultType="java.lang.Integer">
@@ -95,6 +96,7 @@
             <foreach collection="advIds" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
+            and c.status != 2
     </select>
 
 </mapper>

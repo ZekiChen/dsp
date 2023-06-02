@@ -3,7 +3,7 @@
 <mapper namespace="com.tecdo.adm.api.delivery.mapper.AdvMapper">
 
     <select id="listIdAndName" resultType="com.tecdo.starter.mp.vo.BaseVO">
-        select id, name from adv
+        select id, name from adv where status != 2
     </select>
 
 </mapper>

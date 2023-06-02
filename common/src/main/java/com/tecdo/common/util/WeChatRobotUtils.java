@@ -1,12 +1,8 @@
-package com.tecdo.job.util;
-
-import cn.hutool.core.util.BooleanUtil;
-import cn.hutool.json.JSONUtil;
+package com.tecdo.common.util;
 
 import com.alibaba.fastjson.JSONObject;
 import okhttp3.*;
 
-import java.io.File;
 import java.io.IOException;
 import java.util.Collections;
 import java.util.concurrent.TimeUnit;
@@ -37,7 +33,7 @@ public class WeChatRobotUtils {
         //请求参数
         JSONObject text = new JSONObject();
         text.put("content", msg);
-        if (BooleanUtil.isTrue(isAtAll)) {
+        if (isAtAll) {
             text.put("mentioned_list", Collections.singletonList("@all"));
         }
         JSONObject reqBody = new JSONObject();
@@ -148,57 +144,57 @@ public class WeChatRobotUtils {
         return null;
     }
 
-    /**
-     * 发送附件消息
-     * 发送参数请求格式
-     * {
-     * "msgtype":"file",
-     * "file":{
-     * "media_id": "3a8asd892asd8asd"
-     * },
-     * }
-     *
-     * @param robotUrl 机器人群hook连接
-     * @param file     文件
-     * @param fileName 展示的文件全名称
-     * @return 是否成功
-     */
-    public static Boolean sendFileMsg(String robotUrl, File file, String fileName) throws Exception {
-        String mediaId = uploadFile(robotUrl, file, fileName);
-        JSONObject mediaFile = new JSONObject();
-        mediaFile.put("media_id", mediaId);
-        JSONObject reqBody = new JSONObject();
-        reqBody.put("msgtype", "file");
-        reqBody.put("file", mediaFile);
-        String respMsg = callWeChatBot(robotUrl, reqBody.toString());
-        if (respMsg == null || respMsg.isEmpty()) {
-            return false;
-        }
-        return "0".equals(respMsg.substring(11, 12));
-    }
-
-    /**
-     * 上传文件
-     *
-     * @param robotUrl url
-     * @param file     附件
-     * @return
-     * @throws Exception
-     */
-    private static String uploadFile(String robotUrl, File file, String fileName) throws Exception {
-        String key = robotUrl.substring(robotUrl.indexOf("key="));
-        String mediaUrl = "https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?type=file&" + key;
-        MediaType contentType = MediaType.parse("application/form-data; boundary");
-        RequestBody requestBody = new MultipartBody.Builder()
-                .setType(MultipartBody.FORM)
-                .addFormDataPart("media", fileName, RequestBody.create(contentType, file))
-                .build();
-
-        cn.hutool.json.JSONObject respContent = JSONUtil.parseObj(okHttp(requestBody, mediaUrl));
-        if (respContent.getInt("errcode") != 0) {
-            throw new RuntimeException(respContent.getStr("errmsg"));
-        }
-        return respContent.getStr("media_id");
-    }
+//    /**
+//     * 发送附件消息
+//     * 发送参数请求格式
+//     * {
+//     * "msgtype":"file",
+//     * "file":{
+//     * "media_id": "3a8asd892asd8asd"
+//     * },
+//     * }
+//     *
+//     * @param robotUrl 机器人群hook连接
+//     * @param file     文件
+//     * @param fileName 展示的文件全名称
+//     * @return 是否成功
+//     */
+//    public static Boolean sendFileMsg(String robotUrl, File file, String fileName) throws Exception {
+//        String mediaId = uploadFile(robotUrl, file, fileName);
+//        JSONObject mediaFile = new JSONObject();
+//        mediaFile.put("media_id", mediaId);
+//        JSONObject reqBody = new JSONObject();
+//        reqBody.put("msgtype", "file");
+//        reqBody.put("file", mediaFile);
+//        String respMsg = callWeChatBot(robotUrl, reqBody.toString());
+//        if (respMsg == null || respMsg.isEmpty()) {
+//            return false;
+//        }
+//        return "0".equals(respMsg.substring(11, 12));
+//    }
+//
+//    /**
+//     * 上传文件
+//     *
+//     * @param robotUrl url
+//     * @param file     附件
+//     * @return
+//     * @throws Exception
+//     */
+//    private static String uploadFile(String robotUrl, File file, String fileName) throws Exception {
+//        String key = robotUrl.substring(robotUrl.indexOf("key="));
+//        String mediaUrl = "https://qyapi.weixin.qq.com/cgi-bin/webhook/upload_media?type=file&" + key;
+//        MediaType contentType = MediaType.parse("application/form-data; boundary");
+//        RequestBody requestBody = new MultipartBody.Builder()
+//                .setType(MultipartBody.FORM)
+//                .addFormDataPart("media", fileName, RequestBody.create(contentType, file))
+//                .build();
+//
+//        cn.hutool.json.JSONObject respContent = JSONUtil.parseObj(okHttp(requestBody, mediaUrl));
+//        if (respContent.getInt("errcode") != 0) {
+//            throw new RuntimeException(respContent.getStr("errmsg"));
+//        }
+//        return respContent.getStr("media_id");
+//    }
 
 }

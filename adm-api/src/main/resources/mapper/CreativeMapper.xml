@@ -3,7 +3,7 @@
 <mapper namespace="com.tecdo.adm.api.delivery.mapper.CreativeMapper">
 
     <select id="listSpecs" resultType="com.tecdo.adm.api.delivery.vo.CreativeSpecVO">
-        select distinct width, height  from creative
+        select distinct width, height  from creative where status != 2
     </select>
 
 </mapper>

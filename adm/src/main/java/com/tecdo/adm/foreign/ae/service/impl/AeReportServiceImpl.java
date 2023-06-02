@@ -16,6 +16,7 @@ import com.tecdo.adm.api.foreign.ae.vo.response.AeReportVO;
 import com.tecdo.adm.common.cache.AdvCache;
 import com.tecdo.adm.common.cache.CampaignCache;
 import com.tecdo.adm.foreign.ae.service.IAeReportService;
+import com.tecdo.common.util.MonitorHelper;
 import com.tecdo.starter.mp.entity.IdEntity;
 import com.tecdo.starter.tool.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
@@ -59,33 +60,34 @@ public class AeReportServiceImpl implements IAeReportService {
                 campaignDTOs.add(campaignDTO);
             }
         }
-
         if (CollUtil.isNotEmpty(campaignDTOs)) {
             campaignIds = campaignDTOs.stream().map(IdEntity::getId).collect(Collectors.toSet());
-
             List<String> dateHours = getUsWestHour(vo.getBizDate());
-            List<Report> adsDis = reportMapper.getAeDailyReportInUsWest(dateHours, campaignIds);
-            Map<Integer, Report> adsDiMap = adsDis.stream().collect(Collectors.toMap(Report::getCampaignId, Function.identity()));
+            try {
+                List<Report> adsDis = reportMapper.getAeDailyReportInUsWest(dateHours, campaignIds);
+                Map<Integer, Report> adsDiMap = adsDis.stream().collect(Collectors.toMap(Report::getCampaignId, Function.identity()));
+                List<AeReportVO> aeReports = new ArrayList<>();
+                for (CampaignDTO dto : campaignDTOs) {
+                    Report adsDi = adsDiMap.getOrDefault(dto.getId(), new Report());
+                    Double cost = adsDi.getImpSuccessPriceTotal();
+                    Long imps = adsDi.getImpCount();
+                    Long clicks = adsDi.getClickCount();
 
-            List<AeReportVO> aeReports = new ArrayList<>();
-            for (CampaignDTO dto : campaignDTOs) {
-                Report adsDi = adsDiMap.getOrDefault(dto.getId(), new Report());
-                Double cost = adsDi.getImpSuccessPriceTotal();
-                Long imps = adsDi.getImpCount();
-                Long clicks = adsDi.getClickCount();
-
-                AeReportVO aeReport = AeReportVO.builder()
-                        .campaignId(dto.getCampaignRtaInfo().getAdvCampaignId())
-                        .cost(cost)
-                        .impressions(imps)
-                        .clicks(clicks)
-                        .cpm(imps != null && imps != 0L ? (cost / imps * 1000) : null)
-                        .cpc(clicks != null && clicks != 0L ? (cost / clicks) : null)
-                        .ctr(clicks != null && imps != null && imps != 0L ? (clicks.doubleValue() / imps.doubleValue()) : null)
-                        .build();
-                aeReports.add(aeReport);
+                    AeReportVO aeReport = AeReportVO.builder()
+                            .campaignId(dto.getCampaignRtaInfo().getAdvCampaignId())
+                            .cost(cost)
+                            .impressions(imps)
+                            .clicks(clicks)
+                            .cpm(imps != null && imps != 0L ? (cost / imps * 1000) : null)
+                            .cpc(clicks != null && clicks != 0L ? (cost / clicks) : null)
+                            .ctr(clicks != null && imps != null && imps != 0L ? (clicks.doubleValue() / imps.doubleValue()) : null)
+                            .build();
+                    aeReports.add(aeReport);
+                }
+                aeDataVO.setDataList(aeReports);
+            } catch (Exception e) {
+                MonitorHelper.logError( "ae rta cost api error: " + e.getMessage(), true);
             }
-            aeDataVO.setDataList(aeReports);
         }
         return aeDataVO;
     }
