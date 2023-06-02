@@ -33,6 +33,9 @@ public class ResponseLog implements Serializable {
     @JsonProperty("adv_name")
     private String advName;
 
+    @JsonProperty("bid_strategy")
+    private Integer bidStrategy;
+
     @JsonProperty("campaign_id")
     private Integer campaignId;
     @JsonProperty("campaign_name")
@@ -283,6 +286,12 @@ public class ResponseLog implements Serializable {
      */
     @JsonProperty("p_cvr_version")
     private String pCvrVersion;
+
+    /**
+     * 落地页，目前AE RTA会用到
+     */
+    @JsonProperty("landing_page")
+    private String landingPage;
 
 
     @JsonProperty("badv")
