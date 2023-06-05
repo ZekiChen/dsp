@@ -12,7 +12,7 @@ import java.util.Date;
  * Created by Zeki on 2023/2/21
  */
 @Data
-@TableName("pac_dsp_imp_cost")
+@TableName("imp_cost")
 public class AdGroupCost implements Serializable {
 
     /**

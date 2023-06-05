@@ -23,7 +23,3 @@ spring:
           url: ${data-center.datasource.doris-ads.url}
           username: ${data-center.datasource.doris-ads.username}
           password: ${data-center.datasource.doris-ads.password}
-        doris-ods:
-          url: ${data-center.datasource.doris.url}
-          username: ${data-center.datasource.doris.username}
-          password: ${data-center.datasource.doris.password}
