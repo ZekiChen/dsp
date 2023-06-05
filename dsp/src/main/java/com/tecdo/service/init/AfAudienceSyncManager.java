@@ -171,6 +171,7 @@ public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
+                log.error("timeout load af audience");
                 startNextReloadTimer(params);
                 switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
                 break;

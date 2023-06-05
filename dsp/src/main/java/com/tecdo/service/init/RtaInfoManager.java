@@ -161,6 +161,7 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
+                log.error("timeout load rta info");
                 startNextReloadTimer(params);
                 switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
                 break;

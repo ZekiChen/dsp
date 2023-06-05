@@ -155,6 +155,7 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
       case UPDATING:
+        log.error("timeout load ip table");
         startNextReloadTimer(params);
         switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
         break;

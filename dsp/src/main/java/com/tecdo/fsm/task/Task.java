@@ -214,6 +214,7 @@ public class Task {
       messageQueue.putMessage(EventType.PREDICT_FINISH,
                               assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, cpcMap));
     } else {
+      Cat.logMetricForDuration("ctr-batch-size", cpcMap.size());
       threadPool.execute(() -> callCtr(cpcMap, cpcParams, bidRequest, imp, affId));
     }
 
@@ -221,6 +222,7 @@ public class Task {
       messageQueue.putMessage(EventType.PREDICT_FINISH,
                               assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, cpaMap));
     } else {
+      Cat.logMetricForDuration("cvr-batch-size", cpaMap.size());
       threadPool.execute(() -> callCvr(cpaMap, cpaParams, bidRequest, imp, affId));
     }
 

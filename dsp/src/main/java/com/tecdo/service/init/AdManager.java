@@ -316,6 +316,7 @@ public class AdManager {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
+                log.error("timeout load ad dto");
                 startNextReloadTimer(params);
                 switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
                 break;
