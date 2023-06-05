@@ -179,6 +179,7 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
       case UPDATING:
+        log.error("timeout load gp app info");
         startNextReloadTimer(params);
         switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
         break;
