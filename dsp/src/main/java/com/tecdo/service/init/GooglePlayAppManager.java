@@ -36,6 +36,7 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
 
   private State currentState = State.INIT;
   private long timerId;
+  private boolean initFinish;
 
   private Map<String, GooglePlayApp> googlePlayAppMap;
 
@@ -146,14 +147,14 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
   private void handleLoadResponse(Params params) {
     cancelReloadTimeoutTimer();
     this.googlePlayAppMap = params.get(ParamKey.GP_APP_CACHE_KEY);
+    if (!initFinish) {
+      messageQueue.putMessage(EventType.ONE_DATA_READY);
+      initFinish = true;
+    }
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
-        log.info("gp app load success, size: {}", googlePlayAppMap.size());
-        messageQueue.putMessage(EventType.ONE_DATA_READY);
-        startNextReloadTimer(params);
-        switchState(State.RUNNING);
-        break;
       case UPDATING:
+        log.info("gp app load success, size: {}", googlePlayAppMap.size());
         startNextReloadTimer(params);
         switchState(State.RUNNING);
         break;

@@ -11,17 +11,15 @@ import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.entity.AbTestConfig;
 import com.tecdo.mapper.AbTestConfigMapper;
-
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -37,6 +35,7 @@ public class AbTestConfigManager extends ServiceImpl<AbTestConfigMapper, AbTestC
 
   private State currentState = State.INIT;
   private long timerId;
+  private boolean initFinish;
 
   private Map<String, List<AbTestConfig>> abTestConfigMap;
 
@@ -137,9 +136,12 @@ public class AbTestConfigManager extends ServiceImpl<AbTestConfigMapper, AbTestC
   }
 
   private void handleAbTestConfigResponse(Params params) {
+    if (!initFinish) {
+      messageQueue.putMessage(EventType.ONE_DATA_READY);
+      initFinish = true;
+    }
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
-        messageQueue.putMessage(EventType.ONE_DATA_READY);
       case UPDATING:
         cancelReloadTimeoutTimer();
         this.abTestConfigMap = params.get(ParamKey.AB_TEST_CONFIG_CACHE_KEY);

@@ -1,5 +1,6 @@
 package com.tecdo.service.init.doris;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.doris.entity.AdGroupCost;
@@ -10,7 +11,8 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
-
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.date.DateUtil;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -39,6 +37,7 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
 
     private State currentState = State.INIT;
     private long timerId;
+    private boolean initFinish;
 
     private Map<String, Double> campaignCostMap;
     private Map<String, Double> adGroupCostMap;
@@ -155,12 +154,12 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
         log.info("budgets load success, campaign size: {}, ad group size: {}",
                  campaignCostMap.size(),
                  adGroupCostMap.size());
+        if (!initFinish) {
+            messageQueue.putMessage(EventType.ONE_DATA_READY);
+            initFinish = true;
+        }
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
-                messageQueue.putMessage(EventType.ONE_DATA_READY);
-                startNextReloadTimer(params);
-                switchState(State.RUNNING);
-                break;
             case UPDATING:
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);

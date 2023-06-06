@@ -35,6 +35,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
 
     private State currentState = State.INIT;
     private long timerId;
+    private boolean initFinish;
 
     private Map<String, Affiliate> affiliateMap;
 
@@ -141,9 +142,12 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     }
 
     private void handleAffiliatesResponse(Params params) {
+        if (!initFinish) {
+            messageQueue.putMessage(EventType.ONE_DATA_READY);
+            initFinish = true;
+        }
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
-                messageQueue.putMessage(EventType.ONE_DATA_READY);
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.affiliateMap = params.get(ParamKey.AFFILIATES_CACHE_KEY);

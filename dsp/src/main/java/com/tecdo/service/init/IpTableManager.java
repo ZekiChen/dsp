@@ -10,7 +10,9 @@ import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.entity.IpTable;
 import com.tecdo.mapper.IpTableMapper;
-
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -35,6 +33,7 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
 
   private State currentState = State.INIT;
   private long timerId;
+  private boolean initFinish;
 
   private Map<String, List<IpItem>> ipItemMap;
 
@@ -123,9 +122,12 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
   }
 
   private void handleResponse(Params params) {
+    if (!initFinish) {
+      messageQueue.putMessage(EventType.ONE_DATA_READY);
+      initFinish = true;
+    }
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
-        messageQueue.putMessage(EventType.ONE_DATA_READY);
       case UPDATING:
         cancelReloadTimeoutTimer();
         this.ipItemMap = params.get(ParamKey.IP_TABLE_CACHE_KEY);
