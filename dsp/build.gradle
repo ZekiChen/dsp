@@ -5,7 +5,6 @@ dependencies {
     implementation project(':tool:core-launch')
     implementation project(':tool:starter-redis')
     implementation project(':tool:starter-mybatis')
-    implementation project(':tool:starter-log')
 
     implementation libraries.netty
 

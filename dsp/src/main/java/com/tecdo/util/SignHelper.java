@@ -4,7 +4,7 @@ import cn.hutool.core.util.StrUtil;
 import cn.hutool.crypto.digest.MD5;
 import com.tecdo.common.constant.Constant;
 import com.tecdo.constant.RequestKey;
-import com.tecdo.starter.log.exception.ServiceException;
+import com.tecdo.exception.DspException;
 
 import java.nio.charset.StandardCharsets;
 
@@ -26,7 +26,7 @@ public class SignHelper {
      */
     public static String digest(String source, String assist) {
         if (StrUtil.hasBlank(source, assist)) {
-            throw new ServiceException("target/assist is blank!");
+            throw new DspException("target/assist is blank!");
         }
         return new MD5((source + assist + SALT).getBytes(StandardCharsets.UTF_8)).digestHex16(source);
     }
