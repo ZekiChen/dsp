@@ -7,7 +7,7 @@ import lombok.Setter;
 @Getter
 public class Target {
 
-  private String advName;
+  private int advType;
   private boolean target;
   private String token;  // Lazada
   private String landingPage;  // AE
