@@ -27,7 +27,3 @@ spring:
           url: ${pac.datasource.af.url}
           username: ${pac.datasource.af.username}
           password: ${pac.datasource.af.password}
-
-  servlet:
-    multipart:
-      max-file-size: 2MB
