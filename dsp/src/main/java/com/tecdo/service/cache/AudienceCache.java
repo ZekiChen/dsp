@@ -1,9 +1,10 @@
 package com.tecdo.service.cache;
 
+import cn.hutool.core.util.StrUtil;
+import com.tecdo.adm.api.audience.entity.AfSync;
 import com.tecdo.common.constant.CacheConstant;
-import com.tecdo.entity.AfSync;
 import com.tecdo.service.init.AfAudienceSyncManager;
-
+import lombok.RequiredArgsConstructor;
 import org.redisson.api.RBloomFilter;
 import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
@@ -12,9 +13,6 @@ import org.springframework.util.CollectionUtils;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-
-import cn.hutool.core.util.StrUtil;
-import lombok.RequiredArgsConstructor;
 
 @Service
 @RequiredArgsConstructor

@@ -116,7 +116,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
                 threadPool.execute(() -> {
                     try {
                         LambdaQueryWrapper<Affiliate> wrapper =
-                          Wrappers.<Affiliate>lambdaQuery().eq(Affiliate::getStatus, 1);
+                                Wrappers.<Affiliate>lambdaQuery().eq(Affiliate::getStatus, 1);
                         List<Affiliate> affiliateList = list(wrapper);
                         Map<String, Affiliate> affiliateMap = new HashMap<>();
                         for (Affiliate affiliate : affiliateList) {

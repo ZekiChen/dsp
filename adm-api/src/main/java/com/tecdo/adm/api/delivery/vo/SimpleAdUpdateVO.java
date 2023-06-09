@@ -2,6 +2,7 @@ package com.tecdo.adm.api.delivery.vo;
 
 import com.tecdo.starter.mp.entity.IdEntity;
 import io.swagger.annotations.ApiModel;
+import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 
@@ -16,4 +17,6 @@ public class SimpleAdUpdateVO extends IdEntity {
 	private static final long serialVersionUID = 1L;
 
 	private String name;
+	@ApiModelProperty("备注")
+	private String remark;
 }

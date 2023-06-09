@@ -3,14 +3,17 @@ package com.tecdo.service.rta;
 import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
-import com.tecdo.adm.api.delivery.enums.AdvEnum;
+import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.service.rta.api.LazopClient;
 import com.tecdo.service.rta.api.LazopRequest;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.Date;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
@@ -67,7 +70,7 @@ public class RtaHelper {
         List<LazadaTarget> targetList = data.getTargetList();
         targetList.forEach(i -> {
           Target target = new Target();
-          target.setAdvName(AdvEnum.LAZADA.getDesc());
+          target.setAdvType(AdvTypeEnum.LAZADA_RTA.getType());
           if (i.isTarget()) {
             target.setTarget(true);
             target.setToken(data.getToken());

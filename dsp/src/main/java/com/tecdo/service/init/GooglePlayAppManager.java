@@ -116,18 +116,18 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
         threadPool.execute(() -> {
           try {
             LambdaQueryWrapper<GooglePlayApp> wrapper =
-              Wrappers.<GooglePlayApp>lambdaQuery().eq(GooglePlayApp::isFound, 1);
+                    Wrappers.<GooglePlayApp>lambdaQuery().eq(GooglePlayApp::isFound, 1);
             List<GooglePlayApp> list = list(wrapper);
             Map<String, GooglePlayApp> appMap =
-              list.stream().collect(Collectors.toMap(GooglePlayApp::getBundleId, i -> {
-                if (StringUtils.isNotEmpty(i.getCategorys())) {
-                  i.setCategoryList(Arrays.asList(i.getCategorys().split(",")));
-                }
-                if (StringUtils.isNotEmpty(i.getTags())) {
-                  i.setTagList(Arrays.asList(i.getTags().split(",")));
-                }
-                return i;
-              }, (o, n) -> n));
+                    list.stream().collect(Collectors.toMap(GooglePlayApp::getBundleId, i -> {
+                      if (StringUtils.isNotEmpty(i.getCategorys())) {
+                        i.setCategoryList(Arrays.asList(i.getCategorys().split(",")));
+                      }
+                      if (StringUtils.isNotEmpty(i.getTags())) {
+                        i.setTagList(Arrays.asList(i.getTags().split(",")));
+                      }
+                      return i;
+                    }, (o, n) -> n));
             params.put(ParamKey.GP_APP_CACHE_KEY, appMap);
             messageQueue.putMessage(EventType.GP_APP_LOAD_RESPONSE, params);
           } catch (Exception e) {

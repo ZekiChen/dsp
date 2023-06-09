@@ -32,6 +32,8 @@ public class Campaign extends BaseEntity {
     private String category;
     @ApiModelProperty("推广单子的域名")
     private String domain;
+    @ApiModelProperty("备注")
+    private String remark;
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
     @TableField(fill = FieldFill.INSERT)
     private Integer status;

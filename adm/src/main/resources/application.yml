@@ -23,7 +23,7 @@ spring:
           url: ${data-center.datasource.doris-ads.url}
           username: ${data-center.datasource.doris-ads.username}
           password: ${data-center.datasource.doris-ads.password}
-
-  servlet:
-    multipart:
-      max-file-size: 2MB
+        afmysql:
+          url: ${pac.datasource.af.url}
+          username: ${pac.datasource.af.username}
+          password: ${pac.datasource.af.password}

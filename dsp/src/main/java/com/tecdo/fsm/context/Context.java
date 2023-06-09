@@ -1,10 +1,12 @@
 package com.tecdo.fsm.context;
 
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
-import com.tecdo.adm.api.delivery.enums.AdvEnum;
+import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
 import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
@@ -35,22 +37,11 @@ import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.StringConfigUtil;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Context {
@@ -224,8 +215,7 @@ public class Context {
     Map<Integer, List<AdDTOWrapper>> advToAdList = //
       this.adDTOWrapperList.stream()
                            .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()) &&
-                                        AdvEnum.LAZADA.getDesc()
-                                                      .equals(i.getAdDTO().getAdv().getName()))
+                                        AdvTypeEnum.LAZADA_RTA.getType() == i.getAdDTO().getAdv().getType())
                            .collect(Collectors.groupingBy(i -> i.getAdDTO()
                                                                 .getCampaignRtaInfo()
                                                                 .getAdvMemId()));
@@ -243,8 +233,7 @@ public class Context {
     Map<Integer, String> cid2AdvCid = //
       this.adDTOWrapperList.stream()
                            .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()) &
-                                        AdvEnum.AE.getDesc()
-                                                  .equals(i.getAdDTO().getAdv().getName()))
+                                        AdvTypeEnum.AE_RTA.getType() == i.getAdDTO().getAdv().getType())
                            .collect(Collectors.toMap(ad -> ad.getAdDTO().getCampaign().getId(),
                                                      ad -> ad.getAdDTO()
                                                              .getCampaignRtaInfo()
@@ -261,7 +250,7 @@ public class Context {
       String advCampaignId = entry.getValue();
       AeRtaInfoVO vo = advCId2AeRtaVOMap.get(advCampaignId);
       Target target = new Target();
-      target.setAdvName(AdvEnum.AE.getDesc());
+      target.setAdvType(AdvTypeEnum.AE_RTA.getType());
       target.setTarget(vo.getTarget());
       target.setLandingPage(vo.getLandingPage());  // cache sink 已经处理过了，取该层即可
       return new AbstractMap.SimpleEntry<>(campaignId, target);
@@ -286,11 +275,11 @@ public class Context {
       campaignIdToAdList.get(campaignId).forEach(ad -> {
         ad.setRtaRequest(1);
         ad.setRtaRequestTrue(t.isTarget() ? 1 : 0);
-        switch (AdvEnum.of(t.getAdvName())) {
-          case LAZADA:
+        switch (AdvTypeEnum.of(t.getAdvType())) {
+          case LAZADA_RTA:
             ad.setRtaToken(t.isTarget() ? t.getToken() : null);
             break;
-          case AE:
+          case AE_RTA:
             ad.setLandingPage(t.getLandingPage());
             break;
         }
@@ -406,8 +395,8 @@ public class Context {
   }
 
   private void cacheNoticeInfoByAe(AdDTOWrapper adDTOWrapper, BidRequest bidRequest) {
-    String advName = adDTOWrapper.getAdDTO().getAdv().getName();
-    if (AdvEnum.AE.getDesc().equals(advName)) {
+    Integer advType = adDTOWrapper.getAdDTO().getAdv().getType();
+    if (AdvTypeEnum.AE_RTA.getType() == advType) {
       Ad ad = adDTOWrapper.getAdDTO().getAd();
       NoticeInfo info = new NoticeInfo();
       info.setCampaignId(adDTOWrapper.getAdDTO().getCampaign().getId());

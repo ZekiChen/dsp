@@ -1,5 +1,6 @@
 package com.tecdo.service.init.doris;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.doris.entity.AdGroupCost;
@@ -10,7 +11,8 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
-
+import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -18,10 +20,6 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.date.DateUtil;
-import lombok.AllArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -126,10 +124,10 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
                         List<AdGroupCost> costList = list(Wrappers.<AdGroupCost>lambdaQuery()
                                 .eq(AdGroupCost::getCreateDate, DateUtil.today()));
                         Map<String, Double> campaignBudgetMap = //
-                          costList.stream()
-                                  .collect(Collectors.groupingBy(AdGroupCost::getCampaignId,
-                                                                 Collectors.summingDouble(
-                                                                   AdGroupCost::getSumSuccessPrice)));
+                                costList.stream()
+                                        .collect(Collectors.groupingBy(AdGroupCost::getCampaignId,
+                                                Collectors.summingDouble(
+                                                        AdGroupCost::getSumSuccessPrice)));
                         Map<String, Double> adGroupBudgetMap = costList.stream().collect(Collectors.toMap(
                                 AdGroupCost::getAdGroupId, AdGroupCost::getSumSuccessPrice, (o,n)->n));
                         params.put(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY, campaignBudgetMap);
@@ -153,8 +151,8 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
         this.campaignCostMap = params.get(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY);
         this.adGroupCostMap = params.get(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY);
         log.info("budgets load success, campaign size: {}, ad group size: {}",
-                 campaignCostMap.size(),
-                 adGroupCostMap.size());
+                campaignCostMap.size(),
+                adGroupCostMap.size());
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
                 messageQueue.putMessage(EventType.ONE_DATA_READY);

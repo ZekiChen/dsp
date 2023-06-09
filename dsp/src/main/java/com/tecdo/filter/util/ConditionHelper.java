@@ -1,12 +1,12 @@
 package com.tecdo.filter.util;
 
 
-import java.util.Arrays;
-import java.util.Objects;
-
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
-import com.tecdo.starter.log.exception.ServiceException;
+import com.tecdo.exception.DspException;
+
+import java.util.Arrays;
+import java.util.Objects;
 
 import static com.tecdo.filter.AbstractRecallFilter.Constant.*;
 
@@ -50,7 +50,7 @@ public class ConditionHelper {
             case BETWEEN:
                 String[] targetArr = target.split(",");
                 if (targetArr.length != 2) {
-                    throw new ServiceException("The value of the 'between' must be two numbers");
+                    throw new DspException("The value of the 'between' must be two numbers");
                 }
                 double sourceNum = Double.parseDouble(source);
                 double num1 = Double.parseDouble(targetArr[0]);

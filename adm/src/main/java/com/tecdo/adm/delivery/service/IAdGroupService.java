@@ -57,4 +57,5 @@ public interface IAdGroupService extends IService<AdGroup> {
     List<Integer> listIdByCampaignIds(List<Integer> campaignIds);
 
     boolean bundleUpdateBatch(BundleAdGroupUpdateVO vo);
+    boolean hourUpdateBatch(BundleAdGroupUpdateVO vo);
 }

@@ -10,7 +10,9 @@ import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.entity.IpTable;
 import com.tecdo.mapper.IpTableMapper;
-
+import lombok.AllArgsConstructor;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -19,10 +21,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
-
-import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
@@ -105,7 +103,7 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
         threadPool.execute(() -> {
           try {
             Map<String, List<IpTable>> ipTableList =
-              list().stream().collect(Collectors.groupingBy(IpTable::getType));
+                    list().stream().collect(Collectors.groupingBy(IpTable::getType));
             Map<String, List<IpItem>> ipItemMap = convertAndMerge(ipTableList);
             params.put(ParamKey.IP_TABLE_CACHE_KEY, ipItemMap);
             messageQueue.putMessage(EventType.IP_TABLE_LOAD_RESPONSE, params);
@@ -200,8 +198,8 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
 
   private IpItem convert(IpTable ipTable) {
     return IpItem.of(transformIpToNumber(ipTable.getStartIp()),
-                     transformIpToNumber(ipTable.getEndIp()),
-                     ipTable.getType());
+            transformIpToNumber(ipTable.getEndIp()),
+            ipTable.getType());
   }
 
   /**
@@ -243,3 +241,4 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
     return ret;
   }
 }
+

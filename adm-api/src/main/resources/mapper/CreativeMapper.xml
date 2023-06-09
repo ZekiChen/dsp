@@ -6,4 +6,12 @@
         select distinct width, height  from creative where status != 2
     </select>
 
+    <select id="listIdByLikeName" resultType="java.lang.Integer">
+        select id from creative where name like concat(concat('%', #{name}),'%');
+    </select>
+
+    <select id="listIdBySize" resultType="java.lang.Integer">
+        select id from creative where width = #{width} and height = #{height}
+    </select>
+
 </mapper>

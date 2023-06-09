@@ -39,7 +39,6 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
         save(vo);
         CampaignRtaVO campaignRtaVO = vo.getCampaignRtaVO();
         if (campaignRtaVO != null) {
-            campaignRtaVO.setAdvId(campaignRtaVO.getAdvMemId());
             campaignRtaService.save(campaignRtaVO);
         }
         return true;
@@ -53,7 +52,6 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
                 campaignRtaService.deleteByCampaignIds(Collections.singletonList(vo.getId()));
                 return true;
             }
-            campaignRtaVO.setAdvId(campaignRtaVO.getAdvMemId());
             return campaignRtaService.updateById(campaignRtaVO);
         }
         return false;
@@ -121,6 +119,7 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
         }
         entity.setName(vo.getName());
         entity.setDailyBudget(vo.getDailyBudget());
+        entity.setRemark(vo.getRemark());
         entity.setStatus(vo.getStatus());
         entity.setUpdateTime(new Date());
         return updateById(entity);

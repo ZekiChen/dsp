@@ -181,4 +181,12 @@ public class AdGroupController {
         CacheUtil.clear(AD_GROUP_CACHE);
         return R.status(service.bundleUpdateBatch(vo));
     }
+
+    @PutMapping("/hour-update-batch")
+    @ApiOperationSupport(order = 13)
+    @ApiOperation(value = "批量修改投放时段", notes = "传入Object")
+    public R hourUpdateBatch(@Valid @RequestBody BundleAdGroupUpdateVO vo) {
+        CacheUtil.clear(AD_GROUP_CACHE);
+        return R.status(service.hourUpdateBatch(vo));
+    }
 }

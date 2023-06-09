@@ -8,7 +8,7 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
-import com.tecdo.entity.AfSync;
+import com.tecdo.adm.api.audience.entity.AfSync;
 import com.tecdo.mapper.AfSyncMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -139,7 +139,6 @@ public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
                 messageQueue.putMessage(EventType.ONE_DATA_READY);
-                // no break
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.afSyncMap = params.get(ParamKey.AF_AUDIENCE_SYNC_KEY);

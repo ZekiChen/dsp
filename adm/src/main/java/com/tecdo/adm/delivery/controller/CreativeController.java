@@ -21,11 +21,14 @@ import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static com.tecdo.common.constant.CacheConstant.CREATIVE_CACHE;
 
@@ -42,25 +45,24 @@ public class CreativeController {
     private final OssTemplate ossTemplate;
 
     @SneakyThrows
-    @PostMapping("/add")
+    @PostMapping(value = "/add", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiOperationSupport(order = 1)
     @ApiOperation(value = "新增", notes = "传入素材")
-    public R uploadFile(@RequestParam("file") MultipartFile file,
-                        @RequestParam("name") String name,
-                        @RequestParam("type") Integer type,
-                        @RequestParam("width") Integer width,
-                        @RequestParam("height") Integer height,
-                        @RequestParam("catIab") String catIab) {
+    public R batchUploadFile(@RequestPart("files") MultipartFile[] files, @RequestParam Map<String, String> paramMap) {
         CacheUtil.clear(CREATIVE_CACHE);
-        PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
-        Creative creative = new Creative();
-        creative.setUrl(pacFile.getUrl());
-        creative.setName(name);
-        creative.setType(type);
-        creative.setWidth(width);
-        creative.setHeight(height);
-        creative.setCatIab(catIab);
-        return R.status(service.save(creative));
+        List<Creative> entities = new ArrayList<>();
+        for (int i = 0; i < files.length; i++) {
+            PacFile pacFile = ossTemplate.uploadFile(files[i].getOriginalFilename(), files[i].getInputStream());
+            Creative creative = new Creative();
+            creative.setUrl(pacFile.getUrl());
+            creative.setName(paramMap.get("name" + i));
+            creative.setType(Integer.parseInt(paramMap.get("type" + i)));
+            creative.setWidth(Integer.parseInt(paramMap.get("width" + i)));
+            creative.setHeight(Integer.parseInt(paramMap.get("height" + i)));
+            creative.setCatIab(paramMap.get("catIab" + i));
+            entities.add(creative);
+        }
+        return R.status(service.saveBatch(entities));
     }
 
     @PutMapping("/update")

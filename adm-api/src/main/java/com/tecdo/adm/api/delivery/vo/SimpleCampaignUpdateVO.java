@@ -20,6 +20,8 @@ public class SimpleCampaignUpdateVO extends IdEntity {
 	private String name;
 	@ApiModelProperty("日预算")
 	private Double dailyBudget;
+	@ApiModelProperty("备注")
+	private String remark;
 	@ApiModelProperty("状态")
 	private Integer status;
 }

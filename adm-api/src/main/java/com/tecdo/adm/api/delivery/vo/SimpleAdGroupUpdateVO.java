@@ -24,6 +24,8 @@ public class SimpleAdGroupUpdateVO extends IdEntity {
 	private Integer bidStrategy;
 	@ApiModelProperty("日预算")
 	private Double dailyBudget;
+	@ApiModelProperty("备注")
+	private String remark;
 	@ApiModelProperty("状态")
 	private Integer status;
 }

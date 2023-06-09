@@ -15,6 +15,7 @@ import com.tecdo.adm.api.delivery.vo.SimpleAdUpdateVO;
 import com.tecdo.adm.api.delivery.vo.SimpleAdVO;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.IAdService;
+import com.tecdo.adm.delivery.service.ICreativeService;
 import com.tecdo.adm.delivery.wrapper.AdWrapper;
 import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
@@ -30,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -48,6 +50,7 @@ public class AdController {
 
     private final IAdService service;
     private final IAdGroupService adGroupService;
+    private final ICreativeService creativeService;
 
     @PostMapping("/add")
     @ApiOperationSupport(order = 1)
@@ -90,6 +93,10 @@ public class AdController {
                                @ApiParam("筛选campaignName") @RequestParam(required = false) String cName,
                                @ApiParam("筛选adGroupIds") @RequestParam(required = false) String gIds,
                                @ApiParam("筛选adGroupName") @RequestParam(required = false) String gName,
+                               @ApiParam("筛选width") @RequestParam(required = false) Integer width,
+                               @ApiParam("筛选height") @RequestParam(required = false) Integer height,
+                               @ApiParam("筛选creativeId") @RequestParam(required = false) String creativeIds,
+                               @ApiParam("筛选creativeName") @RequestParam(required = false) String creativeName,
                                Ad ad, PQuery query) {
         LambdaQueryWrapper<Ad> wrapper = Wrappers.lambdaQuery(ad);
         List<Integer> adGroupIds = adGroupService.listAdGroupIdForListAd(cIds, gIds, cName, gName);
@@ -147,6 +154,44 @@ public class AdController {
         if (ad.getStatus() == null) {
             wrapper.ne(Ad::getStatus, BaseStatusEnum.DELETE.getType());
         }
+
+        List<Integer> creativeIdList = new ArrayList<>();
+        if (StrUtil.isNotBlank(creativeIds)) {
+            creativeIdList.addAll(BigTool.toIntList(creativeIds));
+        }
+        if (StrUtil.isNotBlank(creativeName)) {
+            List<Integer> IdsByLikeName = creativeService.listIdByLikeName(creativeName);
+            if (CollUtil.isEmpty(creativeIdList)) {
+                creativeIdList.addAll(IdsByLikeName);
+            } else {
+                Set<Integer> set = new HashSet<>(IdsByLikeName);
+                creativeIdList = creativeIdList.stream().filter(set::contains).collect(Collectors.toList());
+            }
+            if (CollUtil.isEmpty(creativeIdList)) {
+                return R.data(new Page<>());
+            }
+        }
+        if (width != null && height != null) {
+            List<Integer> idsBySize = creativeService.listIdBySize(width, height);
+            if (CollUtil.isEmpty(creativeIdList)) {
+                creativeIdList.addAll(idsBySize);
+            } else {
+                Set<Integer> set = new HashSet<>(idsBySize);
+                creativeIdList = creativeIdList.stream().filter(set::contains).collect(Collectors.toList());
+            }
+            if (CollUtil.isEmpty(creativeIdList)) {
+                return R.data(new Page<>());
+            }
+        }
+        creativeIdList = creativeIdList.stream().distinct().collect(Collectors.toList());
+        if (CollUtil.isNotEmpty(creativeIdList)) {
+            wrapper.in(Ad::getImage, creativeIdList)
+                    .or()
+                    .in(Ad::getIcon, creativeIdList)
+                    .or()
+                    .in(Ad::getVideo, creativeIdList);
+        }
+
         IPage<Ad> pages = service.page(PCondition.getPage(query), wrapper);
         return R.data(AdWrapper.build().pageVO(pages));
     }
@@ -161,10 +206,10 @@ public class AdController {
     @PostMapping("/copy")
     @ApiOperationSupport(order = 7)
     @ApiOperation(value = "批量复制", notes = "传入表单参数")
-    public R copy(@ApiParam("源adId") @RequestParam Integer sourceAdId,
+    public R copy(@ApiParam("源adId集") @RequestParam String sourceAdIds,
                   @ApiParam("目标adGroupId集") @RequestParam String targetAdGroupIds,
                   @ApiParam("目标ad状态") @RequestParam Integer targetAdStatus) {
-        return R.status(service.copy(sourceAdId, BigTool.toIntList(targetAdGroupIds), targetAdStatus));
+        return R.status(service.copy(sourceAdIds, BigTool.toIntList(targetAdGroupIds), targetAdStatus));
     }
 
     @PutMapping("/update/list-info")

@@ -5,6 +5,7 @@ import com.tecdo.starter.mp.entity.IdEntity;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
+import lombok.EqualsAndHashCode;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotNull;
@@ -16,6 +17,7 @@ import javax.validation.constraints.NotNull;
  */
 @Data
 @TableName("aff_country_bundle_list")
+@EqualsAndHashCode(callSuper = true)
 @ApiModel(value = "AffCountryBundleList对象")
 public class AffCountryBundleList extends IdEntity {
 

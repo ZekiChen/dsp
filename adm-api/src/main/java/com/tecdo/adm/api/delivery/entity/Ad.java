@@ -38,6 +38,8 @@ public class Ad extends BaseEntity {
     private String cta;
     @ApiModelProperty("视频 creative id")
     private Integer video;
+    @ApiModelProperty("备注")
+    private String remark;
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
     @TableField(fill = FieldFill.INSERT)
     private Integer status;

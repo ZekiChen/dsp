@@ -42,6 +42,8 @@ public class AdGroup extends BaseEntity {
     private Double bidMultiplier;
     @ApiModelProperty("竞价概率,只在bidStrategy=4时生效")
     private Double bidProbability;
+    @ApiModelProperty("备注")
+    private String remark;
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
     @TableField(fill = FieldFill.INSERT)
     private Integer status;

@@ -131,6 +131,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         entity.setDailyBudget(vo.getDailyBudget());
         entity.setBidStrategy(vo.getBidStrategy());
         entity.setOptPrice(vo.getOptPrice());
+        entity.setRemark(vo.getRemark());
         entity.setStatus(vo.getStatus());
         entity.setUpdateTime(new Date());
         return updateById(entity);
@@ -272,6 +273,27 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
                 TargetCondition condition = new TargetCondition();
                 condition.setAdGroupId(id);
                 condition.setAttribute(ConditionEnum.BUNDLE.getDesc());
+                condition.setOperation(vo.getOperation());
+                condition.setValue(vo.getValue());
+                return condition;
+            }).collect(Collectors.toList());
+            conditionService.saveBatch(conditions);
+        }
+        return true;
+    }
+
+    @Override
+    public boolean hourUpdateBatch(BundleAdGroupUpdateVO vo) {
+        List<Integer> adGroupIds = vo.getAdGroupIds();
+        LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
+                .in(TargetCondition::getAdGroupId, adGroupIds)
+                .in(TargetCondition::getAttribute, ConditionEnum.HOUR.getDesc());
+        conditionService.remove(wrapper);
+        if (StrUtil.isNotBlank(vo.getValue())) {
+            List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
+                TargetCondition condition = new TargetCondition();
+                condition.setAdGroupId(id);
+                condition.setAttribute(ConditionEnum.HOUR.getDesc());
                 condition.setOperation(vo.getOperation());
                 condition.setValue(vo.getValue());
                 return condition;
