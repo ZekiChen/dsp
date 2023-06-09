@@ -46,7 +46,6 @@ public class AdManager {
 
     private State currentState = State.INIT;
     private long timerId;
-    private boolean initFinish;
 
     private Map<Integer, AdDTO> adDTOMap;
     private Map<Integer, CampaignDTO> campaignDTOMap;
@@ -180,14 +179,14 @@ public class AdManager {
                 continue;
             }
             AdDTO adDTO = AdDTO.builder()
-                               .ad(ad)
-                               .creativeMap(creatives)
-                               .adGroup(adGroup)
-                               .conditions(targetConditions)
-                               .campaign(campaign)
-                               .campaignRtaInfo(campaignRtaInfo)
-                               .adv(adv)
-                               .build();
+                    .ad(ad)
+                    .creativeMap(creatives)
+                    .adGroup(adGroup)
+                    .conditions(targetConditions)
+                    .campaign(campaign)
+                    .campaignRtaInfo(campaignRtaInfo)
+                    .adv(adv)
+                    .build();
             adDTOs.add(adDTO);
         }
         return adDTOs.stream().collect(Collectors.toMap(e -> e.getAd().getId(), e -> e));
@@ -264,12 +263,9 @@ public class AdManager {
     }
 
     private void handleAdsResponse(Params params) {
-        if (!initFinish) {
-            messageQueue.putMessage(EventType.ONE_DATA_READY);
-            initFinish = true;
-        }
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                messageQueue.putMessage(EventType.ONE_DATA_READY);
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.adDTOMap = params.get(ParamKey.ADS_CACHE_KEY);
@@ -310,3 +306,4 @@ public class AdManager {
         }
     }
 }
+

@@ -35,7 +35,6 @@ public class AbTestConfigManager extends ServiceImpl<AbTestConfigMapper, AbTestC
 
   private State currentState = State.INIT;
   private long timerId;
-  private boolean initFinish;
 
   private Map<String, List<AbTestConfig>> abTestConfigMap;
 
@@ -117,9 +116,9 @@ public class AbTestConfigManager extends ServiceImpl<AbTestConfigMapper, AbTestC
         threadPool.execute(() -> {
           try {
             LambdaQueryWrapper<AbTestConfig> wrapper =
-              Wrappers.<AbTestConfig>lambdaQuery().eq(AbTestConfig::getStatus, 1);
+                    Wrappers.<AbTestConfig>lambdaQuery().eq(AbTestConfig::getStatus, 1);
             Map<String, List<AbTestConfig>> abTestConfig =
-              list(wrapper).stream().collect(Collectors.groupingBy(AbTestConfig::getGroup));
+                    list(wrapper).stream().collect(Collectors.groupingBy(AbTestConfig::getGroup));
             params.put(ParamKey.AB_TEST_CONFIG_CACHE_KEY, abTestConfig);
             messageQueue.putMessage(EventType.AB_TEST_CONFIG_LOAD_RESPONSE, params);
           } catch (Exception e) {
@@ -136,12 +135,9 @@ public class AbTestConfigManager extends ServiceImpl<AbTestConfigMapper, AbTestC
   }
 
   private void handleAbTestConfigResponse(Params params) {
-    if (!initFinish) {
-      messageQueue.putMessage(EventType.ONE_DATA_READY);
-      initFinish = true;
-    }
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
+        messageQueue.putMessage(EventType.ONE_DATA_READY);
       case UPDATING:
         cancelReloadTimeoutTimer();
         this.abTestConfigMap = params.get(ParamKey.AB_TEST_CONFIG_CACHE_KEY);
@@ -181,3 +177,4 @@ public class AbTestConfigManager extends ServiceImpl<AbTestConfigMapper, AbTestC
   }
 
 }
+

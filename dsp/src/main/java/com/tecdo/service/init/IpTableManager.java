@@ -33,7 +33,6 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
 
   private State currentState = State.INIT;
   private long timerId;
-  private boolean initFinish;
 
   private Map<String, List<IpItem>> ipItemMap;
 
@@ -104,7 +103,7 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
         threadPool.execute(() -> {
           try {
             Map<String, List<IpTable>> ipTableList =
-              list().stream().collect(Collectors.groupingBy(IpTable::getType));
+                    list().stream().collect(Collectors.groupingBy(IpTable::getType));
             Map<String, List<IpItem>> ipItemMap = convertAndMerge(ipTableList);
             params.put(ParamKey.IP_TABLE_CACHE_KEY, ipItemMap);
             messageQueue.putMessage(EventType.IP_TABLE_LOAD_RESPONSE, params);
@@ -122,12 +121,9 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
   }
 
   private void handleResponse(Params params) {
-    if (!initFinish) {
-      messageQueue.putMessage(EventType.ONE_DATA_READY);
-      initFinish = true;
-    }
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
+        messageQueue.putMessage(EventType.ONE_DATA_READY);
       case UPDATING:
         cancelReloadTimeoutTimer();
         this.ipItemMap = params.get(ParamKey.IP_TABLE_CACHE_KEY);
@@ -202,8 +198,8 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
 
   private IpItem convert(IpTable ipTable) {
     return IpItem.of(transformIpToNumber(ipTable.getStartIp()),
-                     transformIpToNumber(ipTable.getEndIp()),
-                     ipTable.getType());
+            transformIpToNumber(ipTable.getEndIp()),
+            ipTable.getType());
   }
 
   /**
@@ -245,3 +241,4 @@ public class IpTableManager extends ServiceImpl<IpTableMapper, IpTable> {
     return ret;
   }
 }
+

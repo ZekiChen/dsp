@@ -33,7 +33,6 @@ public class AffCountryBundleListManager extends ServiceImpl<AffCountryBundleLis
 
     private State currentState = State.INIT;
     private long timerId;
-    private boolean initFinish;
 
     private Map<Integer, List<AffCountryBundleList>> affCountryBundleListMap;
 
@@ -132,12 +131,9 @@ public class AffCountryBundleListManager extends ServiceImpl<AffCountryBundleLis
     }
 
     private void handleResponse(Params params) {
-        if (!initFinish) {
-            messageQueue.putMessage(EventType.ONE_DATA_READY);
-            initFinish = true;
-        }
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                messageQueue.putMessage(EventType.ONE_DATA_READY);
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.affCountryBundleListMap = params.get(ParamKey.AFF_COUNTRY_BUNDLE_LIST_CACHE_KEY);
@@ -177,3 +173,4 @@ public class AffCountryBundleListManager extends ServiceImpl<AffCountryBundleLis
     }
 
 }
+

@@ -37,7 +37,6 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
 
     private State currentState = State.INIT;
     private long timerId;
-    private boolean initFinish;
 
     private Map<String, Double> campaignCostMap;
     private Map<String, Double> adGroupCostMap;
@@ -125,14 +124,15 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
                         List<AdGroupCost> costList = list(Wrappers.<AdGroupCost>lambdaQuery()
                                 .eq(AdGroupCost::getCreateDate, DateUtil.today()));
                         Map<String, Double> campaignBudgetMap = //
-                          costList.stream()
-                                  .collect(Collectors.groupingBy(AdGroupCost::getCampaignId,
-                                                                 Collectors.summingDouble(
-                                                                   AdGroupCost::getSumSuccessPrice)));
+                                costList.stream()
+                                        .collect(Collectors.groupingBy(AdGroupCost::getCampaignId,
+                                                Collectors.summingDouble(
+                                                        AdGroupCost::getSumSuccessPrice)));
                         Map<String, Double> adGroupBudgetMap = costList.stream().collect(Collectors.toMap(
                                 AdGroupCost::getAdGroupId, AdGroupCost::getSumSuccessPrice, (o,n)->n));
                         params.put(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY, campaignBudgetMap);
                         params.put(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY, adGroupBudgetMap);
+                        Thread.sleep(11000);
                         messageQueue.putMessage(EventType.BUDGETS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("budgets load failure from db", e);
@@ -152,14 +152,14 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
         this.campaignCostMap = params.get(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY);
         this.adGroupCostMap = params.get(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY);
         log.info("budgets load success, campaign size: {}, ad group size: {}",
-                 campaignCostMap.size(),
-                 adGroupCostMap.size());
-        if (!initFinish) {
-            messageQueue.putMessage(EventType.ONE_DATA_READY);
-            initFinish = true;
-        }
+                campaignCostMap.size(),
+                adGroupCostMap.size());
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                messageQueue.putMessage(EventType.ONE_DATA_READY);
+                startNextReloadTimer(params);
+                switchState(State.RUNNING);
+                break;
             case UPDATING:
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);

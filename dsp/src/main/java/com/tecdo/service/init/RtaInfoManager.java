@@ -32,7 +32,6 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
 
     private State currentState = State.INIT;
     private long timerId;
-    private boolean initFinish;
 
     private Map<Integer, RtaInfo> rtaInfoMap;
 
@@ -130,12 +129,9 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
     }
 
     private void handleRtaInfosResponse(Params params) {
-        if (!initFinish) {
-            messageQueue.putMessage(EventType.ONE_DATA_READY);
-            initFinish = true;
-        }
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                messageQueue.putMessage(EventType.ONE_DATA_READY);
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.rtaInfoMap = params.get(ParamKey.RTA_INFOS_CACHE_KEY);
@@ -174,3 +170,4 @@ public class RtaInfoManager extends ServiceImpl<RtaInfoMapper, RtaInfo> {
         }
     }
 }
+
