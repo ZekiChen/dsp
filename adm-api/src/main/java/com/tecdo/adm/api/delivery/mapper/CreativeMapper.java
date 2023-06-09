@@ -3,6 +3,7 @@ package com.tecdo.adm.api.delivery.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.vo.CreativeSpecVO;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -14,4 +15,8 @@ import java.util.List;
 public interface CreativeMapper extends BaseMapper<Creative> {
 
     List<CreativeSpecVO> listSpecs();
+
+    List<Integer> listIdByLikeName(@Param("name") String name);
+
+    List<Integer> listIdBySize(@Param("width") Integer width, @Param("height") Integer height);
 }

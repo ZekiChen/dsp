@@ -12,4 +12,8 @@ import java.util.List;
 public interface ICreativeService extends IService<Creative> {
 
     List<CreativeSpecVO> listSpecs();
+
+    List<Integer> listIdByLikeName(String name);
+
+    List<Integer> listIdBySize(Integer width, Integer height);
 }

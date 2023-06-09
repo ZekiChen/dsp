@@ -8,7 +8,7 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
-import com.tecdo.entity.AfSync;
+import com.tecdo.adm.api.audience.entity.AfSync;
 import com.tecdo.mapper.AfSyncMapper;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;

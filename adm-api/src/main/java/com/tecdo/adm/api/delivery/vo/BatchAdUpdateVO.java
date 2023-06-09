@@ -20,6 +20,12 @@ public class BatchAdUpdateVO implements Serializable {
 	@ApiModelProperty("广告ID集")
 	@NotEmpty
 	private List<Integer> adIds;
+	@ApiModelProperty("广告标题")
+	private String title;
+	@ApiModelProperty("描述")
+	private String description;
+	@ApiModelProperty("行为召唤按钮描述")
+	private String cta;
 	@ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
 	private Integer status;
 }

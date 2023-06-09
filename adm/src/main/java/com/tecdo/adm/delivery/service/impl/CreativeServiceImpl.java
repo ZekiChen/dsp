@@ -21,4 +21,14 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
     public List<CreativeSpecVO> listSpecs() {
         return baseMapper.listSpecs();
     }
+
+    @Override
+    public List<Integer> listIdByLikeName(String name) {
+        return baseMapper.listIdByLikeName(name);
+    }
+
+    @Override
+    public List<Integer> listIdBySize(Integer width, Integer height) {
+        return baseMapper.listIdBySize(width, height);
+    }
 }

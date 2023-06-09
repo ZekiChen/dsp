@@ -18,7 +18,7 @@ public interface IAdService extends IService<Ad> {
     void deleteByAdGroupIds(List<Integer> adGroupIds);
     boolean logicDelete(List<Integer> adIds);
 
-    boolean copy(Integer sourceAdId, List<Integer> targetAdGroupIds, Integer targetAdStatus);
+    boolean copy(String sourceAdIds, List<Integer> targetAdGroupIds, Integer targetAdStatus);
 
     boolean editListInfo(SimpleAdUpdateVO vo);
 
