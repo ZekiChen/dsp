@@ -8,7 +8,15 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.server.NetServer;
 import com.tecdo.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.server.request.HttpRequest;
-import com.tecdo.service.init.*;
+import com.tecdo.service.init.AbTestConfigManager;
+import com.tecdo.service.init.AdManager;
+import com.tecdo.service.init.AfAudienceSyncManager;
+import com.tecdo.service.init.AffCountryBundleListManager;
+import com.tecdo.service.init.AffiliateManager;
+import com.tecdo.service.init.BundleDataManager;
+import com.tecdo.service.init.GooglePlayAppManager;
+import com.tecdo.service.init.IpTableManager;
+import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.init.doris.BudgetManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -45,11 +53,12 @@ public class LifeCycleManager {
   private AfAudienceSyncManager afAudienceSyncManager;
   @Autowired
   private AffCountryBundleListManager affCountryBundleListManager;
-
+  @Autowired
+  private BundleDataManager bundleDataManager;
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 9;
+  private final int needInitCount = 10;
 
   @Value("${server.port}")
   private int serverPort;
@@ -132,6 +141,12 @@ public class LifeCycleManager {
       case AFF_COUNTRY_BUNDLE_LIST_LOAD_TIMEOUT:
         affCountryBundleListManager.handleEvent(eventType, params);
         break;
+      case BUNDLE_DATA_LOAD:
+      case BUNDLE_DATA_LOAD_RESPONSE:
+      case BUNDLE_DATA_LOAD_ERROR:
+      case BUNDLE_DATA_LOAD_TIMEOUT:
+        bundleDataManager.handleEvent(eventType, params);
+        break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -159,6 +174,7 @@ public class LifeCycleManager {
         ipTableManager.init(params);
         afAudienceSyncManager.init(params);
         affCountryBundleListManager.init(params);
+        bundleDataManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:

@@ -30,4 +30,5 @@ public class Affiliate extends BaseEntity {
     @TableField(fill = FieldFill.INSERT)
     private Integer status;
 
+    private Double requireWinRate;
 }

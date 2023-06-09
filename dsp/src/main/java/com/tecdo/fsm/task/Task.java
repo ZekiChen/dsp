@@ -4,12 +4,14 @@ import com.dianping.cat.Cat;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
+import com.google.common.base.MoreObjects;
 import com.tecdo.ab.util.AbTestConfigHelper;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
+import com.tecdo.adm.api.doris.entity.BundleData;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
@@ -35,8 +37,10 @@ import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
+import com.tecdo.service.CacheService;
 import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.AdManager;
+import com.tecdo.service.init.BundleDataManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.ActionConsumeRecorder;
@@ -47,6 +51,7 @@ import com.tecdo.util.JsonHelper;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -82,6 +87,8 @@ public class Task {
     SpringUtil.getBean(AbTestConfigManager.class);
   private final GooglePlayAppManager googlePlayAppManager =
     SpringUtil.getBean(GooglePlayAppManager.class);
+  private final BundleDataManager bundleDataManager = SpringUtil.getBean(BundleDataManager.class);
+  private final CacheService cacheService = SpringUtil.getBean(CacheService.class);
   private final RecallFiltersFactory filtersFactory =
     SpringUtil.getBean(RecallFiltersFactory.class);
   private final ThreadPool threadPool = SpringUtil.getBean(ThreadPool.class);
@@ -483,7 +490,9 @@ public class Task {
   public void calcPrice() {
     Params params = assignParams();
     try {
-      this.resMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e)));
+      String key = makeKey();
+
+      this.resMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e, key)));
       params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, this.resMap);
       messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
     } catch (Exception e) {
@@ -492,8 +501,49 @@ public class Task {
     }
   }
 
-  private BigDecimal doCalcPrice(AdDTOWrapper adDTOWrapper) {
+  private String makeKey() {
+    Device device = bidRequest.getDevice();
+    BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
+    return FieldFormatHelper.countryFormat(device.getGeo().getCountry())
+                            .concat("_")
+                            .concat(FieldFormatHelper.bundleIdFormat(bidRequest.getApp()
+                                                                               .getBundle()))
+                            .concat("_")
+                            .concat(Optional.ofNullable(bidCreative.getType())
+                                            .map(AdTypeEnum::of)
+                                            .map(AdTypeEnum::getDesc)
+                                            .orElse(""))
+                            .concat("_")
+                            .concat(MoreObjects.firstNonNull(bidCreative.getWidth(), ""))
+                            .concat("_")
+                            .concat(MoreObjects.firstNonNull(bidCreative.getHeight(), ""));
+  }
+
+  private BigDecimal doCalcPrice(AdDTOWrapper adDTOWrapper, String key) {
+    Map<String, BundleData> bundleDataMap = bundleDataManager.getBundleDataMap();
+    boolean needTest = !bundleDataManager.getImpGtSizeSet().contains(key);
     AdDTO adDTO = adDTOWrapper.getAdDTO();
+    if (needTest && adDTO.getAdGroup().getBundleTestEnable()) {
+      BundleData bundleData = bundleDataMap.get(key);
+      if (bundleData != null) {
+        Double winRate = bundleData.getWinRate();
+        Double bidPrice = bundleData.getBidPrice();
+        if (winRate < 1) {
+          if (bidPrice < imp.getBidfloor()) {
+            BigDecimal newPrice =
+              BigDecimal.valueOf(imp.getBidfloor()).multiply(BigDecimal.valueOf(1.2));
+          } else {
+            BigDecimal newPrice = BigDecimal.valueOf(bidPrice).multiply(BigDecimal.valueOf(1.2));
+          }
+        } else {
+          BigDecimal newPrice = BigDecimal.valueOf(bidPrice)
+                                          .multiply(BigDecimal.valueOf(bundleData.getK()))
+                                          .divide(BigDecimal.valueOf(bundleData.getOldK()),
+                                                  RoundingMode.HALF_UP);
+
+        }
+      }
+    }
     BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTO.getAdGroup().getBidStrategy());
     BigDecimal bidPrice;
     switch (bidStrategy) {
