@@ -23,6 +23,10 @@ spring:
           url: ${data-center.datasource.doris-ads.url}
           username: ${data-center.datasource.doris-ads.username}
           password: ${data-center.datasource.doris-ads.password}
+        afmysql:
+          url: ${pac.datasource.af.url}
+          username: ${pac.datasource.af.username}
+          password: ${pac.datasource.af.password}
 
   servlet:
     multipart:
