@@ -132,7 +132,6 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
                                 AdGroupCost::getAdGroupId, AdGroupCost::getSumSuccessPrice, (o,n)->n));
                         params.put(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY, campaignBudgetMap);
                         params.put(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY, adGroupBudgetMap);
-                        Thread.sleep(11000);
                         messageQueue.putMessage(EventType.BUDGETS_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("budgets load failure from db", e);
