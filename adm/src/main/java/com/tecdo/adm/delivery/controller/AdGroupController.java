@@ -96,6 +96,9 @@ public class AdGroupController {
             preCIds.addAll(BigTool.toIntList(campaignIds));
         } else if (StrUtil.isNotBlank(advIds)) {
             preCIds.addAll(campaignService.listIdByAdvIds(BigTool.toIntList(advIds)));
+            if (CollUtil.isEmpty(preCIds)) {
+                return R.data(new Page<>());
+            }
         }
         IPage<AdGroup> pages;
         if (CollUtil.isEmpty(preCIds)) {
