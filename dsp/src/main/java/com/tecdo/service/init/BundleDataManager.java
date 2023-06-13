@@ -1,6 +1,8 @@
 package com.tecdo.service.init;
 
 import com.google.common.base.MoreObjects;
+import com.google.common.cache.Cache;
+import com.google.common.cache.CacheBuilder;
 import com.tecdo.adm.api.doris.entity.BundleData;
 import com.tecdo.adm.api.doris.mapper.ReportMapper;
 import com.tecdo.common.util.Params;
@@ -17,6 +19,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -38,27 +41,29 @@ public class BundleDataManager {
   private State currentState = State.INIT;
   private long timerId;
 
-  private Set<String> impGtSizeSet;
-
-  private Map<String, BundleData> bundleDataMap;
-
   private final ReportMapper reportMapper;
 
-  @Value("${pac.timeout.load.db.default}")
+  private Cache<String, BundleData> cache;
+  private Set<String> impGtSizeSet;
+
+  @Value("${pac.timeout.load.bundle.data}")
   private long loadTimeout;
   @Value("${pac.interval.reload.bundle.data}")
   private long reloadInterval;
   @Value("${pac.bundle.test.cycle.day}")
   private int cycleTime;
-  @Value("${pac.bundle.test.size}")
-  private int size;
+  @Value("${pac.bundle.test.imp.size}")
+  private int impSize;
 
-  public Set<String> getImpGtSizeSet() {
-    return impGtSizeSet;
+  @Value("${pac.bundle.test.cache.max-size}")
+  private int maxSize;
+
+  public boolean isImpGtSize(String key) {
+    return impGtSizeSet.contains(key);
   }
 
-  public Map<String, BundleData> getBundleDataMap() {
-    return bundleDataMap;
+  public BundleData getBundleData(String key) {
+    return cache.getIfPresent(key);
   }
 
 
@@ -79,6 +84,7 @@ public class BundleDataManager {
   }
 
   public void init(Params params) {
+    cache = CacheBuilder.newBuilder().maximumSize(maxSize).build();
     messageQueue.putMessage(EventType.BUNDLE_DATA_LOAD, params);
   }
 
@@ -134,7 +140,7 @@ public class BundleDataManager {
             List<BundleData> dataImpCountGtSize =
               reportMapper.getDataImpCountGtSize(DateUtil.format(start.getTime(), "yyyy-MM-dd"),
                                                  DateUtil.format(end.getTime(), "yyyy-MM-dd"),
-                                                 size);
+                                                 impSize);
             params.put(ParamKey.BUNDLE_DATA_GT_SIZE_CACHE_KEY,
                        dataImpCountGtSize.stream().map(this::makeKey).collect(Collectors.toSet()));
             params.put(ParamKey.BUNDLE_DATA_CACHE_KEY,
@@ -157,25 +163,37 @@ public class BundleDataManager {
   }
 
   private void handleResponse(Params params) {
+    Map<String, BundleData> bundleDataMap = params.get(ParamKey.BUNDLE_DATA_CACHE_KEY);
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
+        cancelReloadTimeoutTimer();
         messageQueue.putMessage(EventType.ONE_DATA_READY);
         // set when init
         this.impGtSizeSet = params.get(ParamKey.BUNDLE_DATA_GT_SIZE_CACHE_KEY);
-        this.bundleDataMap = params.get(ParamKey.BUNDLE_DATA_CACHE_KEY);
-        // no break
+        bundleDataMap.forEach((key, v) -> {
+          v.setOldK(v.getK());
+          this.cache.put(key, v);
+        });
+        log.info(
+          "bundle data load success, impGtSizeSet size: {},bundleDataMap size:{},cache size:{}",
+          impGtSizeSet.size(),
+          bundleDataMap.size(),
+          cache.size());
+        startNextReloadTimer(params);
+        switchState(State.RUNNING);
+        break;
       case UPDATING:
         cancelReloadTimeoutTimer();
         this.impGtSizeSet = params.get(ParamKey.BUNDLE_DATA_GT_SIZE_CACHE_KEY);
-        Map<String, BundleData> bundleData = params.get(ParamKey.BUNDLE_DATA_CACHE_KEY);
-        bundleData.forEach((key, v) -> {
-          v.setOldK(this.bundleDataMap.getOrDefault(key, v).getK());
-          // todo 这里需要有淘汰机制，不然不断往里面加数据，可能会导致内存溢出
-          this.bundleDataMap.put(key, v);
+        bundleDataMap.forEach((key, v) -> {
+          v.setOldK(Optional.ofNullable(cache.getIfPresent(key)).orElse(v).getK());
+          this.cache.put(key, v);
         });
-        log.info("bundle data load success, impGtSizeSet size: {},bundleDataMap size:{}",
-                 impGtSizeSet.size(),
-                 bundleDataMap.size());
+        log.info(
+          "bundle data load success, impGtSizeSet size: {},bundleDataMap size:{},cache size:{}",
+          impGtSizeSet.size(),
+          bundleDataMap.size(),
+          cache.size());
         startNextReloadTimer(params);
         switchState(State.RUNNING);
         break;

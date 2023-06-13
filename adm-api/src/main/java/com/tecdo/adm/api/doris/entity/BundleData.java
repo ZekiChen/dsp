@@ -25,8 +25,6 @@ public class BundleData implements Serializable {
 
   private Double bidPrice;
 
-  private Double bidFloor;
-
   private Double k;
 
   private Double oldK;

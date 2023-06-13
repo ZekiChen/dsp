@@ -80,6 +80,7 @@ public class Task {
   private String cvrPredictUrl = SpringUtil.getProperty("pac.cvr-predict.url");
   private int needReceiveCount = 3;
   private int predictResCount = 0;
+  private String multiplier = SpringUtil.getProperty("pac.bundle.test.multiplier");
 
   private final AdManager adManager = SpringUtil.getBean(AdManager.class);
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
@@ -520,58 +521,54 @@ public class Task {
   }
 
   private BigDecimal doCalcPrice(AdDTOWrapper adDTOWrapper, String key) {
-    Map<String, BundleData> bundleDataMap = bundleDataManager.getBundleDataMap();
-    boolean needTest = !bundleDataManager.getImpGtSizeSet().contains(key);
+    BigDecimal finalPrice;
     AdDTO adDTO = adDTOWrapper.getAdDTO();
-    if (needTest && adDTO.getAdGroup().getBundleTestEnable()) {
-      BundleData bundleData = bundleDataMap.get(key);
-      if (bundleData != null) {
-        Double winRate = bundleData.getWinRate();
-        Double bidPrice = bundleData.getBidPrice();
-        if (winRate < 1) {
-          if (bidPrice < imp.getBidfloor()) {
-            BigDecimal newPrice =
-              BigDecimal.valueOf(imp.getBidfloor()).multiply(BigDecimal.valueOf(1.2));
-          } else {
-            BigDecimal newPrice = BigDecimal.valueOf(bidPrice).multiply(BigDecimal.valueOf(1.2));
-          }
+    BundleData bundleData = bundleDataManager.getBundleData(key);
+    boolean needTest = !bundleDataManager.isImpGtSize(key);
+    if (needTest && adDTO.getAdGroup().getBundleTestEnable() && bundleData != null) {
+      Double winRate = bundleData.getWinRate();
+      Double bidPrice = bundleData.getBidPrice();
+      if (winRate < affiliate.getRequireWinRate()) {
+        if (bidPrice < imp.getBidfloor()) {
+          finalPrice = BigDecimal.valueOf(imp.getBidfloor()).multiply(new BigDecimal(multiplier));
         } else {
-          BigDecimal newPrice = BigDecimal.valueOf(bidPrice)
-                                          .multiply(BigDecimal.valueOf(bundleData.getK()))
-                                          .divide(BigDecimal.valueOf(bundleData.getOldK()),
-                                                  RoundingMode.HALF_UP);
-
+          finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
         }
+      } else {
+        finalPrice = BigDecimal.valueOf(bidPrice)
+                               .multiply(BigDecimal.valueOf(bundleData.getK()))
+                               .divide(BigDecimal.valueOf(bundleData.getOldK()),
+                                       RoundingMode.HALF_UP);
+      }
+    } else {
+      BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTO.getAdGroup().getBidStrategy());
+      switch (bidStrategy) {
+        case CPC:
+          finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
+                                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                                 .multiply(BigDecimal.valueOf(1000));
+          break;
+        case CPA:
+          finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
+                                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
+                                 .multiply(BigDecimal.valueOf(1000));
+          break;
+        case DYNAMIC:
+          ThreadLocalRandom random = ThreadLocalRandom.current();
+          if (adDTO.getAdGroup().getBidProbability() > random.nextDouble(100)) {
+            finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getBidMultiplier())
+                                   .multiply(BigDecimal.valueOf(imp.getBidfloor()))
+                                   .min(BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice()));
+          } else {
+            finalPrice = BigDecimal.ZERO;
+          }
+          break;
+        case CPM:
+        default:
+          finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice());
       }
     }
-    BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTO.getAdGroup().getBidStrategy());
-    BigDecimal bidPrice;
-    switch (bidStrategy) {
-      case CPC:
-        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
-                             .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
-                             .multiply(BigDecimal.valueOf(1000));
-        break;
-      case CPA:
-        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
-                             .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
-                             .multiply(BigDecimal.valueOf(1000));
-        break;
-      case DYNAMIC:
-        ThreadLocalRandom random = ThreadLocalRandom.current();
-        if (adDTO.getAdGroup().getBidProbability() > random.nextDouble(100)) {
-          bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getBidMultiplier())
-                               .multiply(BigDecimal.valueOf(imp.getBidfloor()))
-                               .min(BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice()));
-        } else {
-          bidPrice = BigDecimal.ZERO;
-        }
-        break;
-      case CPM:
-      default:
-        bidPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice());
-    }
-    return bidPrice;
+    return finalPrice;
   }
 
   public void filerAdAndNotifySuccess(Map<Integer, AdDTOWrapper> adDTOMap) {
