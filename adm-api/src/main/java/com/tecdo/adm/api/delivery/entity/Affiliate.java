@@ -29,6 +29,6 @@ public class Affiliate extends BaseEntity {
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
     @TableField(fill = FieldFill.INSERT)
     private Integer status;
-
+    @ApiModelProperty("测试期胜率要求")
     private Double requireWinRate;
 }
