@@ -113,8 +113,8 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
     }
 
     @Override
-    public List<SimpleAdVO> listSimpleAd(Integer adGroupId) {
-        List<SimpleAdVO> vos = baseMapper.listSimpleAd(adGroupId);
+    public List<SimpleAdVO> listSimpleAd(List<Integer> adGroupIds) {
+        List<SimpleAdVO> vos = baseMapper.listSimpleAd(adGroupIds);
         vos.forEach(vo -> {
             AdTypeEnum adTypeEnum = AdTypeEnum.of(vo.getType());
             vo.setTypeName(adTypeEnum.getDesc().toLowerCase());

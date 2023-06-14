@@ -14,7 +14,7 @@ import java.util.List;
  **/
 public interface AdMapper extends BaseMapper<Ad> {
 
-    List<SimpleAdVO> listSimpleAd(@Param("adGroupId") Integer adGroupId);
+    List<SimpleAdVO> listSimpleAd(@Param("adGroupIds") List<Integer> adGroupIds);
 
     List<Integer> listIdByGroupIds(@Param("adGroupIds") List<Integer> adGroupIds);
 }

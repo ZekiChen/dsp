@@ -29,6 +29,8 @@ public class AdGroupVO extends AdGroup {
 	private String countries;
 	@ApiModelProperty("定向条件集")
 	List<TargetConditionVO> conditionVOs;
+	@ApiModelProperty("花费是否到达预算上限标识")
+	private boolean isCostFull;
 
 	public List<TargetCondition> listCondition() {
 		List<TargetCondition> conditions = conditionVOs.stream().map(e -> {

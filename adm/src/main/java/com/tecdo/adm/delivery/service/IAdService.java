@@ -24,7 +24,7 @@ public interface IAdService extends IService<Ad> {
 
     boolean updateBatch(BatchAdUpdateVO vo);
 
-    List<SimpleAdVO> listSimpleAd(Integer adGroupId);
+    List<SimpleAdVO> listSimpleAd(List<Integer> adGroupIds);
 
     List<Integer> listIdByGroupIds(List<Integer> adGroupIds);
 }

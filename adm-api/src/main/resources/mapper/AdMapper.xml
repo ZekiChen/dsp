@@ -20,7 +20,22 @@
     </resultMap>
 
     <select id="listSimpleAd" resultType="com.tecdo.adm.api.delivery.vo.SimpleAdVO">
-        select id,name,type,status from ad where group_id = #{adGroupId} and status != 2
+        SELECT
+            a.id,
+            a.NAME,
+            a.type,
+            a.STATUS,
+            c.width,
+            c.height
+        FROM
+            ad a
+            LEFT JOIN creative c ON a.image = c.id
+        WHERE
+            a.group_id IN
+            <foreach collection="adGroupIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            AND a.STATUS != 2
     </select>
 
     <select id="listIdByGroupIds" resultType="java.lang.Integer">

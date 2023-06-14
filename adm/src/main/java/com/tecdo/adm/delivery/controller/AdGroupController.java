@@ -7,15 +7,15 @@ import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
-import com.tecdo.adm.api.delivery.vo.AdGroupVO;
-import com.tecdo.adm.api.delivery.vo.BatchAdGroupUpdateVO;
-import com.tecdo.adm.api.delivery.vo.BundleAdGroupUpdateVO;
-import com.tecdo.adm.api.delivery.vo.SimpleAdGroupUpdateVO;
+import com.tecdo.adm.api.delivery.vo.*;
+import com.tecdo.adm.api.doris.entity.AdGroupCost;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.ICampaignService;
 import com.tecdo.adm.delivery.wrapper.AdGroupWrapper;
+import com.tecdo.adm.doris.IImpCostService;
 import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
+import com.tecdo.starter.mp.entity.IdEntity;
 import com.tecdo.starter.mp.support.PCondition;
 import com.tecdo.starter.mp.support.PQuery;
 import com.tecdo.starter.mp.vo.BaseVO;
@@ -28,10 +28,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.tecdo.common.constant.CacheConstant.AD_GROUP_CACHE;
@@ -47,6 +45,7 @@ public class AdGroupController {
 
     private final IAdGroupService service;
     private final ICampaignService campaignService;
+    private final IImpCostService impCostService;
 
     @PostMapping("/add")
     @ApiOperationSupport(order = 1)
@@ -124,7 +123,19 @@ public class AdGroupController {
                     BigTool.toStrList(affiliateIds),
                     BigTool.toStrList(countries));
         }
-        return R.data(AdGroupWrapper.build().pageVO(pages));
+        IPage<AdGroupVO> voPage = AdGroupWrapper.build().pageVO(pages);
+        List<AdGroupVO> records = voPage.getRecords();
+        if (CollUtil.isNotEmpty(records)) {
+            List<Integer> ids = records.stream().map(IdEntity::getId).collect(Collectors.toList());
+            List<AdGroupCost> impCosts = impCostService.listByGroupIds(ids);
+            Map<String, AdGroupCost> impCostMap = impCosts.stream()
+                    .collect(Collectors.toMap(AdGroupCost::getAdGroupId, Function.identity()));
+            records.forEach(e -> {
+                AdGroupCost impCost = impCostMap.getOrDefault(e.getId().toString(), null);
+                e.setCostFull(impCost != null && impCost.getSumSuccessPrice() / 1000 >= e.getDailyBudget());
+            });
+        }
+        return R.data(voPage);
     }
 
     @GetMapping("/list")
@@ -138,12 +149,12 @@ public class AdGroupController {
     @ApiOperationSupport(order = 7)
     @ApiOperation(value = "批量复制", notes = "传入表单参数")
     public R copy(@ApiParam("目标campaignId") @RequestParam Integer targetCampaignId,
-                  @ApiParam("源adGroupId") @RequestParam Integer sourceAdGroupId,
+                  @ApiParam("源adGroupIds") @RequestParam String sourceAdGroupIds,
                   @ApiParam("复制数量") @RequestParam Integer copyNum,
                   @ApiParam("目标adGroup状态") @RequestParam Integer targetAdGroupStatus,
                   @ApiParam("复制的adIds") @RequestParam(required = false) String sourceAdIds,
                   @ApiParam("目标ad状态") @RequestParam Integer targetAdStatus) {
-        return R.status(service.copy(targetCampaignId, sourceAdGroupId, copyNum, targetAdGroupStatus, sourceAdIds, targetAdStatus));
+        return R.status(service.copy(targetCampaignId, sourceAdGroupIds, copyNum, targetAdGroupStatus, sourceAdIds, targetAdStatus));
     }
 
     @PutMapping("/update/list-info")
@@ -191,5 +202,13 @@ public class AdGroupController {
     public R hourUpdateBatch(@Valid @RequestBody BundleAdGroupUpdateVO vo) {
         CacheUtil.clear(AD_GROUP_CACHE);
         return R.status(service.hourUpdateBatch(vo));
+    }
+
+    @PutMapping("/fqc-update-batch")
+    @ApiOperationSupport(order = 14)
+    @ApiOperation(value = "批量修改曝光/点击频控", notes = "传入Object")
+    public R fqcUpdateBatch(@Valid @RequestBody FqcAdGroupUpdateVO vo) {
+        CacheUtil.clear(AD_GROUP_CACHE);
+        return R.status(service.fqcUpdateBatch(vo));
     }
 }

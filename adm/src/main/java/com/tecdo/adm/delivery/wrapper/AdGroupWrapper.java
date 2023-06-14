@@ -2,6 +2,7 @@ package com.tecdo.adm.delivery.wrapper;
 
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
+import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
 import com.tecdo.adm.api.delivery.vo.TargetConditionVO;
@@ -27,6 +28,9 @@ public class AdGroupWrapper extends EntityWrapper<AdGroup, AdGroupVO> {
 	@Override
 	public AdGroupVO entityVO(AdGroup adGroup) {
 		AdGroupVO vo = Objects.requireNonNull(BeanUtil.copy(adGroup, AdGroupVO.class));
+		if (BidStrategyEnum.DYNAMIC.getType() == vo.getBidStrategy()) {
+			vo.setOptPrice(vo.getBidMultiplier());
+		}
 		vo.setCampaignName(CampaignCache.getCampaign(vo.getCampaignId()).getName());
 		List<TargetCondition> conditions = AdGroupCache.listCondition(vo.getId());
 		List<TargetConditionVO> conditionVOs = Objects.requireNonNull(BeanUtil.copy(conditions, TargetConditionVO.class));

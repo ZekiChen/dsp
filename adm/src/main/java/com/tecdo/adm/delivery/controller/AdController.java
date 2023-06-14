@@ -228,10 +228,10 @@ public class AdController {
         return R.status(service.updateBatch(vo));
     }
 
-    @GetMapping("/list/{adGroupId}")
+    @GetMapping("/list/{adGroupIds}")
     @ApiOperationSupport(order = 10)
-    @ApiOperation(value = "根据gId获取ad列表", notes = "传入adGroupId")
-    public R<List<SimpleAdVO>> listSimpleAd(@PathVariable Integer adGroupId) {
-        return R.data(service.listSimpleAd(adGroupId));
+    @ApiOperation(value = "根据gIds获取ad列表", notes = "传入adGroupIds")
+    public R<List<SimpleAdVO>> listSimpleAd(@PathVariable String adGroupIds) {
+        return R.data(service.listSimpleAd(BigTool.toIntList(adGroupIds)));
     }
 }

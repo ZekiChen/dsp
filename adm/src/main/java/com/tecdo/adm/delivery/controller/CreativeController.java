@@ -25,8 +25,8 @@ import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import javax.validation.Valid;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -65,11 +65,32 @@ public class CreativeController {
         return R.status(service.saveBatch(entities));
     }
 
-    @PutMapping("/update")
+    @SneakyThrows
+    @PostMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiOperationSupport(order = 2)
-    @ApiOperation(value = "修改", notes = "传入Creative")
-    public R update(@Valid @RequestBody Creative creative) {
+    @ApiOperation(value = "修改", notes = "传入素材")
+    public R update(@RequestPart(value = "file", required = false) MultipartFile file,
+                    @RequestParam("id") Integer id,
+                    @RequestParam(value = "name", required = false) String name,
+                    @RequestParam(value = "type", required = false) Integer type,
+                    @RequestParam(value = "width", required = false) Integer width,
+                    @RequestParam(value = "height", required = false) Integer height,
+                    @RequestParam(value = "catIab", required = false) String catIab,
+                    @RequestParam(value = "status", required = false) Integer status) {
         CacheUtil.clear(CREATIVE_CACHE);
+        Creative creative = new Creative();
+        creative.setId(id);
+        if (file != null) {
+            PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
+            creative.setUrl(pacFile.getUrl());
+        }
+        creative.setName(name);
+        creative.setType(type);
+        creative.setWidth(width);
+        creative.setHeight(height);
+        creative.setCatIab(catIab);
+        creative.setStatus(status);
+        creative.setUpdateTime(new Date());
         return R.status(service.updateById(creative));
     }
 
