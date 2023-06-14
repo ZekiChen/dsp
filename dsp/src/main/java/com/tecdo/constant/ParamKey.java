@@ -41,6 +41,6 @@ public interface ParamKey {
   // task-imp
   String ADS_TASK_RESPONSE = "ads-imp-key";
   String ADS_RECALL_RESPONSE = "ads-recall-response";
-  String ADS_P_CTR_RESPONSE = "ads-predict-ctr-response";
+  String ADS_PREDICT_RESPONSE = "ads-predict-response";
   String ADS_CALC_PRICE_RESPONSE = "ads-calc-price-response";
 }

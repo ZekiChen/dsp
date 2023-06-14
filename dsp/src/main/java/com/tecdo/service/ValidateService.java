@@ -205,7 +205,7 @@ public class ValidateService {
       return false;
     }
     // 没有设备id或者设备id非法
-    if (bidRequest.getDevice().getIfa() == null ||
+    if (bidRequest.getDevice().getIfa() == null || bidRequest.getDevice().getIfa().length() != 36 ||
         Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
       return false;
     }
