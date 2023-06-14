@@ -69,6 +69,10 @@ public class Controller implements MessageObserver {
       case AFF_COUNTRY_BUNDLE_LIST_LOAD_RESPONSE:
       case AFF_COUNTRY_BUNDLE_LIST_LOAD_ERROR:
       case AFF_COUNTRY_BUNDLE_LIST_LOAD_TIMEOUT:
+      case BUNDLE_DATA_LOAD:
+      case BUNDLE_DATA_LOAD_RESPONSE:
+      case BUNDLE_DATA_LOAD_ERROR:
+      case BUNDLE_DATA_LOAD_TIMEOUT:
       case ONE_DATA_READY:
       case NETTY_START:
       case RECEIVE_PING_REQUEST:

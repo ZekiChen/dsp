@@ -135,13 +135,13 @@ public class ValidateService {
       map.put("time_millis", System.currentTimeMillis());
       map.put("affiliate_id", affiliate.getId());
       map.put("affiliate_name", affiliate.getName());
-      map.put("bundle_id", bidRequest.getApp().getBundle());
+      map.put("bundle_id", FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()));
       map.put("os", FieldFormatHelper.osFormat(device.getOs()));
       map.put("osv", device.getOsv());
       map.put("ip", ip);
       map.put("ua", device.getUa());
       map.put("lang", FieldFormatHelper.languageFormat(device.getLanguage()));
-      map.put("device_id", FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()));
+      map.put("device_id", device.getIfa());
       map.put("device_make", FieldFormatHelper.deviceMakeFormat(device.getMake()));
       map.put("device_model", FieldFormatHelper.deviceModelFormat(device.getModel()));
       map.put("connection_type", device.getConnectiontype());
