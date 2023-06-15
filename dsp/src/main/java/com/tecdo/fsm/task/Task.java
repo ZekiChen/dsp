@@ -22,10 +22,8 @@ import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
-import com.tecdo.domain.biz.request.CtrRequest;
-import com.tecdo.domain.biz.request.CvrRequest;
-import com.tecdo.domain.biz.response.CtrResponse;
-import com.tecdo.domain.biz.response.CvrResponse;
+import com.tecdo.domain.biz.request.PredictRequest;
+import com.tecdo.domain.biz.response.PredictResponse;
 import com.tecdo.domain.openrtb.request.Banner;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
@@ -78,7 +76,11 @@ public class Task {
 
   private String ctrPredictUrl = SpringUtil.getProperty("pac.ctr-predict.url");
   private String cvrPredictUrl = SpringUtil.getProperty("pac.cvr-predict.url");
-  private int needReceiveCount = 3;
+  private String cvrEvent1PredictUrl = SpringUtil.getProperty("pac.cvr-event1-predict.url");
+  private String cvrEvent2PredictUrl = SpringUtil.getProperty("pac.cvr-event2-predict.url");
+  private String cvrEvent3PredictUrl = SpringUtil.getProperty("pac.cvr-event3-predict.url");
+  private String cvrEvent10PredictUrl = SpringUtil.getProperty("pac.cvr-event10-predict.url");
+  private int needReceiveCount = 0;
   private int predictResCount = 0;
   private String multiplier = SpringUtil.getProperty("pac.bundle.test.multiplier");
 
@@ -120,8 +122,9 @@ public class Task {
     this.affiliate = null;
     this.requestId = null;
     this.taskId = null;
-    eventTimerMap.clear();
-    currentState = SpringUtil.getBean(InitState.class);
+    this.eventTimerMap.clear();
+    this.currentState = SpringUtil.getBean(InitState.class);
+    this.needReceiveCount = 0;
     this.predictResCount = 0;
     this.resMap.clear();
     this.recorder.reset();
@@ -197,6 +200,10 @@ public class Task {
 
     Map<Integer, AdDTOWrapper> cpcMap = new HashMap<>();
     Map<Integer, AdDTOWrapper> cpaMap = new HashMap<>();
+    Map<Integer, AdDTOWrapper> cpa1Map = new HashMap<>();
+    Map<Integer, AdDTOWrapper> cpa2Map = new HashMap<>();
+    Map<Integer, AdDTOWrapper> cpa3Map = new HashMap<>();
+    Map<Integer, AdDTOWrapper> cpa10Map = new HashMap<>();
     Map<Integer, AdDTOWrapper> noNeedPredict = new HashMap<>();
     adDTOMap.forEach((k, v) -> {
       BidStrategyEnum strategyEnum = BidStrategyEnum.of(v.getAdDTO().getAdGroup().getBidStrategy());
@@ -207,164 +214,122 @@ public class Task {
         case CPA:
           cpaMap.put(k, v);
           break;
+        case CPA_EVENT1:
+          cpcMap.put(k, v);
+          cpa1Map.put(k, v);
+          break;
+        case CPA_EVENT2:
+          cpcMap.put(k, v);
+          cpa2Map.put(k, v);
+          break;
+        case CPA_EVENT3:
+          cpcMap.put(k, v);
+          cpa3Map.put(k, v);
+          break;
+        case CPA_EVENT10:
+          cpcMap.put(k, v);
+          cpa10Map.put(k, v);
+          break;
         case CPM:
         case DYNAMIC:
         default:
           noNeedPredict.put(k, v);
       }
     });
-    Params cpcParams = assignParams();
-    Params cpaParams = assignParams();
-    BidRequest bidRequest = this.bidRequest;
-    Imp imp = this.imp;
-    Integer affId = this.affiliate.getId();
-    if (cpcMap.isEmpty()) {
-      messageQueue.putMessage(EventType.PREDICT_FINISH,
-                              assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, cpcMap));
-    } else {
-      Cat.logMetricForDuration("ctr-batch-size", cpcMap.size());
-      threadPool.execute(() -> callCtr(cpcMap, cpcParams, bidRequest, imp, affId));
-    }
+    callAndMetricPredict(cpcMap, "ctr-batch-size", ctrPredictUrl);
+    callAndMetricPredict(cpaMap, "cvr-batch-size", cvrPredictUrl);
+    callAndMetricPredict(cpa1Map, "cvr-event1-batch-size", cvrEvent1PredictUrl);
+    callAndMetricPredict(cpa2Map, "cvr-event2-batch-size", cvrEvent2PredictUrl);
+    callAndMetricPredict(cpa3Map, "cvr-event3-batch-size", cvrEvent3PredictUrl);
+    callAndMetricPredict(cpa10Map, "cvr-event10-batch-size", cvrEvent10PredictUrl);
 
-    if (cpaMap.isEmpty()) {
-      messageQueue.putMessage(EventType.PREDICT_FINISH,
-                              assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, cpaMap));
-    } else {
-      Cat.logMetricForDuration("cvr-batch-size", cpaMap.size());
-      threadPool.execute(() -> callCvr(cpaMap, cpaParams, bidRequest, imp, affId));
-    }
-
+    this.needReceiveCount++;
     messageQueue.putMessage(EventType.PREDICT_FINISH,
-                            assignParams().put(ParamKey.ADS_P_CTR_RESPONSE, noNeedPredict));
+                            assignParams().put(ParamKey.ADS_PREDICT_RESPONSE, noNeedPredict));
   }
 
-  private void callCtr(Map<Integer, AdDTOWrapper> adDTOMap,
-                       Params params,
-                       BidRequest bidRequest,
-                       Imp imp,
-                       Integer affId) {
-    try {
-      HttpResult httpResult = buildAndCallCtr3Api(adDTOMap, bidRequest, imp, affId);
-      if (httpResult.isSuccessful()) {
-        R<List<CtrResponse>> result =
-          httpResult.getBody().toBean(new TypeRef<R<List<CtrResponse>>>() {
-          });
-        if (result == null || CollectionUtils.isEmpty(result.getData())) {
-          log.error("taskId: {},ctr response unexpected result: {}", taskId, result);
-          messageQueue.putMessage(EventType.PREDICT_ERROR, params);
-          return;
-        }
-        for (CtrResponse resp : result.getData()) {
-          AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
-          wrapper.setPCtr(resp.getPCtr());
-          wrapper.setPCtrVersion(result.getVersion());
-        }
-        params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
-        messageQueue.putMessage(EventType.PREDICT_FINISH, params);
-      } else {
-        log.error("taskId: {},ctr request status: {}, error:",
-                  taskId,
-                  httpResult.getStatus(),
-                  httpResult.getError());
-        messageQueue.putMessage(EventType.PREDICT_ERROR, params);
-      }
-    } catch (Exception e) {
-      log.error("taskId: {},ctr request cause a exception", taskId, e);
-      messageQueue.putMessage(EventType.PREDICT_ERROR, params);
+  private void callAndMetricPredict(Map<Integer, AdDTOWrapper> adDTOMap,
+                                    String metric,
+                                    String predictUrl) {
+
+    if (!adDTOMap.isEmpty()) {
+      this.needReceiveCount++;
+      BidRequest bidRequest = this.bidRequest;
+      Imp imp = this.imp;
+      Integer affId = this.affiliate.getId();
+      Cat.logMetricForDuration(metric, adDTOMap.size());
+      Params params = assignParams();
+      threadPool.execute(() -> doCallPredict(adDTOMap, params, bidRequest, imp, affId, predictUrl));
     }
   }
 
-  private void callCvr(Map<Integer, AdDTOWrapper> adDTOMap,
-                       Params params,
-                       BidRequest bidRequest,
-                       Imp imp,
-                       Integer affId) {
+  private void doCallPredict(Map<Integer, AdDTOWrapper> adDTOMap,
+                             Params params,
+                             BidRequest bidRequest,
+                             Imp imp,
+                             Integer affId,
+                             String predictUrl) {
     try {
-      HttpResult httpResult = buildAndCallCvr3Api(adDTOMap, bidRequest, imp, affId);
+      HttpResult httpResult = buildAndCallPredictApi(adDTOMap, bidRequest, imp, affId, predictUrl);
       if (httpResult.isSuccessful()) {
-        R<List<CvrResponse>> result =
-          httpResult.getBody().toBean(new TypeRef<R<List<CvrResponse>>>() {
+        R<List<PredictResponse>> result =
+          httpResult.getBody().toBean(new TypeRef<R<List<PredictResponse>>>() {
           });
         if (result == null || CollectionUtils.isEmpty(result.getData())) {
-          log.error("taskId: {},cvr response unexpected result: {}", taskId, result);
+          log.error("taskId: {},predict response unexpected result: {}", taskId, result);
           messageQueue.putMessage(EventType.PREDICT_ERROR, params);
           return;
         }
-        for (CvrResponse resp : result.getData()) {
+        for (PredictResponse resp : result.getData()) {
           AdDTOWrapper wrapper = adDTOMap.get(resp.getAdId());
+          if (resp.getPCtr() != null) {
+            wrapper.setPCtr(resp.getPCtr());
+            wrapper.setPCtrVersion(result.getVersion());
+          }
           if (resp.getPCvr() != null) {
             wrapper.setPCvr(resp.getPCvr());
-          } else {
-            wrapper.setPCvr(resp.getPCtcvrEvent1());
+            wrapper.setPCvrVersion(result.getVersion());
           }
-          wrapper.setPCvrVersion(result.getVersion());
         }
-        params.put(ParamKey.ADS_P_CTR_RESPONSE, adDTOMap);
+        params.put(ParamKey.ADS_PREDICT_RESPONSE, adDTOMap);
         messageQueue.putMessage(EventType.PREDICT_FINISH, params);
       } else {
-        log.error("taskId: {},cvr request status: {}, error:",
+        log.error("taskId: {},predict request status: {}, error:",
                   taskId,
                   httpResult.getStatus(),
                   httpResult.getError());
         messageQueue.putMessage(EventType.PREDICT_ERROR, params);
       }
     } catch (Exception e) {
-      log.error("taskId: {},cvr request cause a exception", taskId, e);
+      log.error("taskId: {},predict request cause a exception", taskId, e);
       messageQueue.putMessage(EventType.PREDICT_ERROR, params);
     }
   }
 
-  private HttpResult buildAndCallCtr3Api(Map<Integer, AdDTOWrapper> adDTOMap,
-                                         BidRequest bidRequest,
-                                         Imp imp,
-                                         Integer affId) {
-    List<CtrRequest> ctrRequests = //
+  private HttpResult buildAndCallPredictApi(Map<Integer, AdDTOWrapper> adDTOMap,
+                                            BidRequest bidRequest,
+                                            Imp imp,
+                                            Integer affId,
+                                            String predictUrl) {
+    List<PredictRequest> predictRequests = //
       adDTOMap.values()
               .stream()
-              .map(adDTOWrapper -> buildCtrRequest(bidRequest, imp, affId, adDTOWrapper.getAdDTO()))
+              .map(adDTOWrapper -> buildPredictRequest(bidRequest,
+                                                       imp,
+                                                       affId,
+                                                       adDTOWrapper.getAdDTO()))
               .collect(Collectors.toList());
     Map<String, Object> paramMap =
-      MapUtil.<String, Object>builder().put("data", ctrRequests).build();
+      MapUtil.<String, Object>builder().put("data", predictRequests).build();
 
     Map<String, List<AbTestConfig>> abTestConfigMap = abTestConfigManager.getAbTestConfigMap();
-    String url = ctrPredictUrl;
+    String url = predictUrl;
     for (Map.Entry<String, List<AbTestConfig>> entry : abTestConfigMap.entrySet()) {
       List<AbTestConfig> configList = entry.getValue();
       if (AbTestConfigHelper.execute(configList, bidRequest, affId)) {
         AbTestConfig config = configList.get(0);
         if (config.getWeight() > ThreadLocalRandom.current().nextDouble(100)) {
-          url = ctrPredictUrl + "/" + config.getPath();
-          break;
-        }
-      }
-    }
-
-    return OkHttps.sync(url)
-                  .bodyType(OkHttps.JSON)
-                  .setBodyPara(JsonHelper.toJSONString(paramMap))
-                  .post();
-  }
-
-  private HttpResult buildAndCallCvr3Api(Map<Integer, AdDTOWrapper> adDTOMap,
-                                         BidRequest bidRequest,
-                                         Imp imp,
-                                         Integer affId) {
-    List<CvrRequest> cvrRequests = //
-      adDTOMap.values()
-              .stream()
-              .map(adDTOWrapper -> buildCvrRequest(bidRequest, imp, affId, adDTOWrapper.getAdDTO()))
-              .collect(Collectors.toList());
-    Map<String, Object> paramMap =
-      MapUtil.<String, Object>builder().put("data", cvrRequests).build();
-
-    Map<String, List<AbTestConfig>> abTestConfigMap = abTestConfigManager.getAbTestConfigMap();
-    String url = cvrPredictUrl;
-    for (Map.Entry<String, List<AbTestConfig>> entry : abTestConfigMap.entrySet()) {
-      List<AbTestConfig> configList = entry.getValue();
-      if (AbTestConfigHelper.execute(configList, bidRequest, affId)) {
-        AbTestConfig config = configList.get(0);
-        if (config.getWeight() > ThreadLocalRandom.current().nextDouble(100)) {
-          url = cvrPredictUrl + "/" + config.getPath();
+          url = predictUrl + "/" + config.getPath();
           break;
         }
       }
@@ -375,7 +340,10 @@ public class Task {
                   .post();
   }
 
-  private CtrRequest buildCtrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
+  private PredictRequest buildPredictRequest(BidRequest bidRequest,
+                                             Imp imp,
+                                             Integer affId,
+                                             AdDTO adDTO) {
     Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
     // 版位的
     BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
@@ -389,94 +357,43 @@ public class Task {
     Device device = bidRequest.getDevice();
     GooglePlayApp googleApp =
       googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
-    return CtrRequest.builder()
-                     .adId(adDTO.getAd().getId())
-                     .affiliateId(affId)
-                     .adFormat(adType.getDesc())
-                     .adWidth(adWidth)
-                     .adHeight(adHeight)
-                     .os(FieldFormatHelper.osFormat(device.getOs()))
-                     .osv(device.getOsv())
-                     .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
-                     .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
-                     .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
-                     .connectionType(device.getConnectiontype())
-                     .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
-                     .carrier(device.getCarrier())
-                     .creativeId(creativeId)
-                     .bidFloor(Double.valueOf(imp.getBidfloor()))
-                     .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
-                                       .map(CampaignRtaInfo::getRtaFeature)
-                                       .orElse(-1))
-                     .packageName(adDTO.getCampaign().getPackageName())
-                     .category(adDTO.getCampaign().getCategory())
-                     .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
-                     .domain(bidRequest.getApp().getDomain())
-                     .instl(imp.getInstl())
-                     .cat(bidRequest.getApp().getCat())
-                     .ip(device.getIp())
-                     .ua(device.getUa())
-                     .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
-                     .deviceId(device.getIfa())
-                     .bundleIdCategory(googleApp.getCategoryList())
-                     .bundleIdTag(googleApp.getTagList())
-                     .bundleIdScore(googleApp.getScore())
-                     .bundleIdDownload(googleApp.getDownloads())
-                     .bundleIdReview(googleApp.getReviews())
-                     .tagId(imp.getTagid())
-                     .build();
-  }
-
-  private CvrRequest buildCvrRequest(BidRequest bidRequest, Imp imp, Integer affId, AdDTO adDTO) {
-    Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
-    // 版位的
-    BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
-    // 素材的
-    Creative creative = adDTO.getCreativeMap().get(creativeId);
-    AdTypeEnum adType = AdTypeEnum.of(adDTO.getAd().getType());
-    // 用版位大小
-    Integer adWidth = Integer.parseInt(bidCreative.getWidth());
-    Integer adHeight = Integer.parseInt(bidCreative.getHeight());
-
-    Device device = bidRequest.getDevice();
-    GooglePlayApp googleApp =
-      googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
-    return CvrRequest.builder()
-                     .adId(adDTO.getAd().getId())
-                     .affiliateId(affId)
-                     .adFormat(adType.getDesc())
-                     .adWidth(adWidth)
-                     .adHeight(adHeight)
-                     .os(FieldFormatHelper.osFormat(device.getOs()))
-                     .osv(device.getOsv())
-                     .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
-                     .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()))
-                     .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
-                     .connectionType(device.getConnectiontype())
-                     .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
-                     .carrier(device.getCarrier())
-                     .creativeId(creativeId)
-                     .bidFloor(Double.valueOf(imp.getBidfloor()))
-                     .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
-                                       .map(CampaignRtaInfo::getRtaFeature)
-                                       .orElse(-1))
-                     .packageName(adDTO.getCampaign().getPackageName())
-                     .category(adDTO.getCampaign().getCategory())
-                     .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
-                     .domain(bidRequest.getApp().getDomain())
-                     .instl(imp.getInstl())
-                     .cat(bidRequest.getApp().getCat())
-                     .ip(device.getIp())
-                     .ua(device.getUa())
-                     .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
-                     .deviceId(device.getIfa())
-                     .bundleIdCategory(googleApp.getCategoryList())
-                     .bundleIdTag(googleApp.getTagList())
-                     .bundleIdScore(googleApp.getScore())
-                     .bundleIdDownload(googleApp.getDownloads())
-                     .bundleIdReview(googleApp.getReviews())
-                     .tagId(imp.getTagid())
-                     .build();
+    return PredictRequest.builder()
+                         .adId(adDTO.getAd().getId())
+                         .affiliateId(affId)
+                         .adFormat(adType.getDesc())
+                         .adWidth(adWidth)
+                         .adHeight(adHeight)
+                         .os(FieldFormatHelper.osFormat(device.getOs()))
+                         .osv(device.getOsv())
+                         .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
+                         .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp()
+                                                                              .getBundle()))
+                         .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
+                         .connectionType(device.getConnectiontype())
+                         .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
+                         .carrier(device.getCarrier())
+                         .creativeId(creativeId)
+                         .bidFloor(Double.valueOf(imp.getBidfloor()))
+                         .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
+                                           .map(CampaignRtaInfo::getRtaFeature)
+                                           .orElse(-1))
+                         .packageName(adDTO.getCampaign().getPackageName())
+                         .category(adDTO.getCampaign().getCategory())
+                         .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
+                         .domain(bidRequest.getApp().getDomain())
+                         .instl(imp.getInstl())
+                         .cat(bidRequest.getApp().getCat())
+                         .ip(device.getIp())
+                         .ua(device.getUa())
+                         .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
+                         .deviceId(device.getIfa())
+                         .bundleIdCategory(googleApp.getCategoryList())
+                         .bundleIdTag(googleApp.getTagList())
+                         .bundleIdScore(googleApp.getScore())
+                         .bundleIdDownload(googleApp.getDownloads())
+                         .bundleIdReview(googleApp.getReviews())
+                         .tagId(imp.getTagid())
+                         .build();
   }
 
   public void savePredictResponse(Map<Integer, AdDTOWrapper> adDTOMap) {
@@ -562,6 +479,15 @@ public class Task {
           } else {
             finalPrice = BigDecimal.ZERO;
           }
+          break;
+        case CPA_EVENT1:
+        case CPA_EVENT2:
+        case CPA_EVENT3:
+        case CPA_EVENT10:
+          finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
+                                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
+                                 .multiply(BigDecimal.valueOf(1000));
           break;
         case CPM:
         default:

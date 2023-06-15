@@ -36,7 +36,7 @@ public class WaitForPredictState implements ITaskState {
   public void handleEvent(EventType eventType, Params params, Task task) {
     switch (eventType) {
       case PREDICT_FINISH:
-        task.savePredictResponse(params.get(ParamKey.ADS_P_CTR_RESPONSE));
+        task.savePredictResponse(params.get(ParamKey.ADS_PREDICT_RESPONSE));
         boolean receiveAllPredictResponse = task.isReceiveAllPredictResponse();
         if (receiveAllPredictResponse) {
           task.tick("task-calc-price");
