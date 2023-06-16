@@ -1,9 +1,9 @@
 package com.tecdo.adm.api.delivery.enums;
 
-import java.util.Arrays;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
+
+import java.util.Arrays;
 
 /**
  * 竞价策略
@@ -12,14 +12,14 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum BidStrategyEnum {
 
-  CPM(1, "cpm"),
-  CPC(2, "cpc"),
-  CPA(3, "cpa"),
-  DYNAMIC(4, "dynamic"),
-  CPA_EVENT1(5, "cpa_event1"),
-  CPA_EVENT2(6, "cpa_event2"),
-  CPA_EVENT3(7, "cpa_event3"),
-  CPA_EVENT10(8, "cpa_event10"),
+  CPM(1, "CPM"),
+  CPC(2, "TCPC"),
+  CPA(3, "TPCA(Imp-Event1)"),
+  DYNAMIC(4, "Base Price CPM"),
+  CPA_EVENT1(5, "TPCA(Click-Event1)"),
+  CPA_EVENT2(6, "TPCA(Click-Event2)"),
+  CPA_EVENT3(7, "TPCA(Click-Event3)"),
+  CPA_EVENT10(8, "TPCA(Click-Event10)"),
   OTHER(-1, "other");
 
   private final int type;
