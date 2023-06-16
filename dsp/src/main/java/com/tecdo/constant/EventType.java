@@ -57,6 +57,11 @@ public enum EventType {
   AFF_COUNTRY_BUNDLE_LIST_LOAD_ERROR(2003, "aff country bundle list load failure"),
   AFF_COUNTRY_BUNDLE_LIST_LOAD_TIMEOUT(2004, "aff country bundle list load timeout"),
 
+  BUNDLE_DATA_LOAD(2101, "bundle data load"),
+  BUNDLE_DATA_LOAD_RESPONSE(2102, "bundle data load response"),
+  BUNDLE_DATA_LOAD_ERROR(2103, "bundle data load failure"),
+  BUNDLE_DATA_LOAD_TIMEOUT(2104, "bundle data load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

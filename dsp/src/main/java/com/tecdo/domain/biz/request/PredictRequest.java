@@ -13,7 +13,7 @@ import lombok.Setter;
 @Setter
 @Getter
 @Builder
-public class CvrRequest implements Serializable {
+public class PredictRequest implements Serializable {
 
   /**
    * 用来区分参与预估的广告，不参与模型预估

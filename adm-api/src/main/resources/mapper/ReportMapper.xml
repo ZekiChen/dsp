@@ -50,4 +50,34 @@
             and country = #{country}
     </select>
 
+    <select id="getDataImpCountGtSize" resultType="com.tecdo.adm.api.doris.entity.BundleData">
+        SELECT country,
+               bundle_id      as bundle,
+               ad_format      as adFormat,
+               ad_width       as adWidth,
+               ad_height      as adHeight,
+               SUM(imp_count) AS impCount
+        FROM `pac_dsp_report`
+        WHERE report_date >= #{startDate}
+          AND report_date &lt; #{endDate}
+        GROUP BY country, bundle, adFormat, adWidth, adHeight
+        HAVING impCount >= #{size}
+    </select>
+
+    <select id="getBundleData" resultType="com.tecdo.adm.api.doris.entity.BundleData">
+        SELECT country,
+               bundle_id                                    as bundle,
+               ad_format                                    as adFormat,
+               ad_width                                     as adWidth,
+               ad_height                                    as adHeight,
+               SUM(win_count) / SUM(response_count)         AS winRate,
+               SUM(bid_price_total) / SUM(response_count)   AS bidPrice,
+               (SUM(win_count) / SUM(response_count)) /
+               (SUM(bid_price_total) / SUM(response_count)) AS k
+        FROM `pac_dsp_report`
+        WHERE report_hour = #{reportHour}
+        GROUP BY country, bundle, adFormat, adWidth, adHeight
+        HAVING winRate IS NOT NULL AND bidPrice IS NOT NULL
+    </select>
+
 </mapper>

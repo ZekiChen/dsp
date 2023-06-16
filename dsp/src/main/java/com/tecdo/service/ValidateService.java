@@ -156,34 +156,34 @@ public class ValidateService {
         return true;
     }
 
-    private boolean validateBidRequest(BidRequest bidRequest) {
-        // 目标渠道：目前只参与移动端流量的竞价
-        if (bidRequest.getApp() == null) {
-            return false;
-        }
-        // 设备信息都不传，不太合理
-        if (bidRequest.getDevice() == null) {
-            return false;
-        }
-        // 没有设备id或者设备id非法
-        if (bidRequest.getDevice().getIfa() == null ||
-                Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
-            return false;
-        }
-        // 没有国家信息
-        if (bidRequest.getDevice().getGeo() == null ||
-                bidRequest.getDevice().getGeo().getCountry() == null) {
-            return false;
-        }
-        // 没有bundle信息
-        if (StringUtils.isEmpty(bidRequest.getApp().getBundle())) {
-            return false;
-        }
-        // 展示位必须有
-        List<Imp> imp = bidRequest.getImp();
-        if (CollUtil.isEmpty(imp)) {
-            return false;
-        }
+  private boolean validateBidRequest(BidRequest bidRequest) {
+    // 目标渠道：目前只参与移动端流量的竞价
+    if (bidRequest.getApp() == null) {
+      return false;
+    }
+    // 设备信息都不传，不太合理
+    if (bidRequest.getDevice() == null) {
+      return false;
+    }
+    // 没有设备id或者设备id非法
+    if (bidRequest.getDevice().getIfa() == null || bidRequest.getDevice().getIfa().length() != 36 ||
+        Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
+      return false;
+    }
+    // 没有国家信息
+    if (bidRequest.getDevice().getGeo() == null ||
+        bidRequest.getDevice().getGeo().getCountry() == null) {
+      return false;
+    }
+    // 没有bundle信息
+    if (StringUtils.isEmpty(bidRequest.getApp().getBundle())) {
+      return false;
+    }
+    // 展示位必须有
+    List<Imp> imp = bidRequest.getImp();
+    if (CollUtil.isEmpty(imp)) {
+      return false;
+    }
 
         return true;
     }

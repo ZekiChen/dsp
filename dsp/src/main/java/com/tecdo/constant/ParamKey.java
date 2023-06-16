@@ -35,10 +35,12 @@ public interface ParamKey {
   String IP_TABLE_CACHE_KEY = "ip-table-key";
   String AF_AUDIENCE_SYNC_KEY = "af-audience-sync-key";
   String AFF_COUNTRY_BUNDLE_LIST_CACHE_KEY = "aff-country-bundle-list-cache-key";
+  String BUNDLE_DATA_GT_SIZE_CACHE_KEY = "bundle-data-gt-size-cache-key";
+  String BUNDLE_DATA_CACHE_KEY = "bundle-data-cache-key";
 
   // task-imp
   String ADS_TASK_RESPONSE = "ads-imp-key";
   String ADS_RECALL_RESPONSE = "ads-recall-response";
-  String ADS_P_CTR_RESPONSE = "ads-predict-ctr-response";
+  String ADS_PREDICT_RESPONSE = "ads-predict-response";
   String ADS_CALC_PRICE_RESPONSE = "ads-calc-price-response";
 }

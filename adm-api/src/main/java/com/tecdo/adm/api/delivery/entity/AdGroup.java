@@ -47,4 +47,6 @@ public class AdGroup extends BaseEntity {
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
     @TableField(fill = FieldFill.INSERT)
     private Integer status;
+    @ApiModelProperty("是否开启bundle测试期,1为开启，0为不开启")
+    private Boolean bundleTestEnable;
 }
