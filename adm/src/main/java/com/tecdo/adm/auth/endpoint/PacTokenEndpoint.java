@@ -82,6 +82,7 @@ public class PacTokenEndpoint {
         CacheUtil.clear(AD_CACHE);
         CacheUtil.clear(CREATIVE_CACHE);
         CacheUtil.clear(ADV_CACHE);
+        CacheUtil.clear(AFF_CACHE);
         CacheUtil.clear(DICT_CACHE);
         return Kv.create().set("success", "true").set("msg", "success");
     }

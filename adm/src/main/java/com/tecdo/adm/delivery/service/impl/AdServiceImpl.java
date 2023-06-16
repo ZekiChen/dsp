@@ -14,6 +14,7 @@ import com.tecdo.adm.api.delivery.vo.SimpleAdVO;
 import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.starter.log.exception.ServiceException;
 import com.tecdo.starter.mp.entity.BaseEntity;
+import com.tecdo.starter.mp.entity.StatusEntity;
 import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import com.tecdo.starter.tool.BigTool;
 import lombok.RequiredArgsConstructor;
@@ -128,6 +129,11 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
             return new ArrayList<>();
         }
         return baseMapper.listIdByGroupIds(adGroupIds);
+    }
+
+    @Override
+    public List<StatusEntity> listStatus(List<Integer> ids) {
+        return baseMapper.listStatus(ids);
     }
 
     private static void resetBaseEntity(BaseEntity entity) {

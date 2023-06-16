@@ -49,4 +49,11 @@
         and status != 2
     </select>
 
+    <select id="listStatus" resultType="com.tecdo.starter.mp.entity.StatusEntity">
+        select id,status from ad where id IN
+            <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+    </select>
+
 </mapper>

@@ -5,6 +5,7 @@ import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.vo.BatchAdUpdateVO;
 import com.tecdo.adm.api.delivery.vo.SimpleAdUpdateVO;
 import com.tecdo.adm.api.delivery.vo.SimpleAdVO;
+import com.tecdo.starter.mp.entity.StatusEntity;
 
 import java.util.List;
 
@@ -27,4 +28,6 @@ public interface IAdService extends IService<Ad> {
     List<SimpleAdVO> listSimpleAd(List<Integer> adGroupIds);
 
     List<Integer> listIdByGroupIds(List<Integer> adGroupIds);
+
+    List<StatusEntity> listStatus(List<Integer> ids);
 }
