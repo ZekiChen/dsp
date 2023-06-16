@@ -20,9 +20,11 @@ public class CampaignVO extends Campaign {
 	private String advName;
 	@ApiModelProperty("广告主类型")
 	private Integer advType;
-
 	@ApiModelProperty("Campaign RTA信息")
 	private CampaignRtaVO campaignRtaVO;
+	@ApiModelProperty("花费是否到达预算上限标识")
+	private boolean isCostFull;
+
 
 	public CampaignRtaVO getCampaignRtaVO() {
 		if (campaignRtaVO  != null) {

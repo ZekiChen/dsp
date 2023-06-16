@@ -3,12 +3,12 @@ package com.tecdo.adm.delivery.controller;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.Adv;
+import com.tecdo.adm.api.delivery.vo.SimpleAdvVO;
 import com.tecdo.adm.delivery.service.IAdvService;
 import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
 import com.tecdo.starter.mp.support.PCondition;
 import com.tecdo.starter.mp.support.PQuery;
-import com.tecdo.starter.mp.vo.BaseVO;
 import com.tecdo.starter.redis.CacheUtil;
 import com.tecdo.starter.tool.BigTool;
 import io.swagger.annotations.Api;
@@ -75,7 +75,7 @@ public class AdvController {
     @GetMapping("/list")
     @ApiOperationSupport(order = 6)
     @ApiOperation(value = "列表", notes = "无需传参")
-    public R<List<BaseVO>> list() {
+    public R<List<SimpleAdvVO>> list() {
         return R.data(service.listIdAndName());
     }
 }

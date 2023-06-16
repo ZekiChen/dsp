@@ -26,6 +26,8 @@ public class SimpleAdGroupUpdateVO extends IdEntity {
 	private Double dailyBudget;
 	@ApiModelProperty("备注")
 	private String remark;
+	@ApiModelProperty("底价乘数,只在bidStrategy=4时生效")
+	private Double bidMultiplier;
 	@ApiModelProperty("状态")
 	private Integer status;
 }

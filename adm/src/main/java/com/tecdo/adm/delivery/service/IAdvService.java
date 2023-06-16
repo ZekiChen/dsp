@@ -2,7 +2,7 @@ package com.tecdo.adm.delivery.service;
 
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tecdo.adm.api.delivery.entity.Adv;
-import com.tecdo.starter.mp.vo.BaseVO;
+import com.tecdo.adm.api.delivery.vo.SimpleAdvVO;
 
 import java.util.List;
 
@@ -11,5 +11,5 @@ import java.util.List;
  */
 public interface IAdvService extends IService<Adv> {
 
-    List<BaseVO> listIdAndName();
+    List<SimpleAdvVO> listIdAndName();
 }

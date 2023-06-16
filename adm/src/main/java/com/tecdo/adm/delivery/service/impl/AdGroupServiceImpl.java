@@ -12,15 +12,16 @@ import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
-import com.tecdo.adm.api.delivery.vo.AdGroupVO;
-import com.tecdo.adm.api.delivery.vo.BatchAdGroupUpdateVO;
-import com.tecdo.adm.api.delivery.vo.BundleAdGroupUpdateVO;
-import com.tecdo.adm.api.delivery.vo.SimpleAdGroupUpdateVO;
+import com.tecdo.adm.api.delivery.vo.*;
 import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.adm.delivery.service.ITargetConditionService;
+import com.tecdo.adm.log.service.IBizLogApiService;
+import com.tecdo.starter.log.exception.ServiceException;
 import com.tecdo.starter.mp.entity.BaseEntity;
+import com.tecdo.starter.mp.entity.IdEntity;
+import com.tecdo.starter.mp.entity.StatusEntity;
 import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import com.tecdo.starter.mp.vo.BaseVO;
 import com.tecdo.starter.tool.BigTool;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -41,6 +43,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     private final ITargetConditionService conditionService;
     private final IAdService adService;
+    private final IBizLogApiService bizLogApiService;
 
     @Override
     public boolean add(AdGroupVO vo) {
@@ -49,12 +52,24 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     @Override
     public boolean edit(AdGroupVO vo) {
-        if (vo.getId() != null && updateById(vo)) {
-            conditionService.deleteByAdGroupIds(Collections.singletonList(vo.getId()));
-            conditionService.saveBatch(vo.listCondition());
-            return true;
+        if (vo.getId() != null) {
+            logByUpdate(vo);
+            if (updateById(vo)) {
+                conditionService.deleteByAdGroupIds(Collections.singletonList(vo.getId()));
+                conditionService.saveBatch(vo.listCondition());
+                return true;
+            }
         }
         return false;
+    }
+
+    private void logByUpdate(AdGroupVO afterVO) {
+        AdGroup adGroup = getById(afterVO.getId());
+        AdGroupVO beforeVO = Objects.requireNonNull(com.tecdo.starter.tool.util.BeanUtil.copy(adGroup, AdGroupVO.class));
+        List<TargetCondition> conditions = conditionService.listCondition(afterVO.getId());
+        List<TargetConditionVO> conditionVOs = Objects.requireNonNull(com.tecdo.starter.tool.util.BeanUtil.copy(conditions, TargetConditionVO.class));
+        beforeVO.setConditionVOs(conditionVOs);
+        bizLogApiService.logByUpdateAdGroup(beforeVO, afterVO);
     }
 
     @Override
@@ -69,6 +84,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     public boolean logicDelete(List<Integer> ids) {
         if (CollUtil.isEmpty(ids)) return true;
         Date date = new Date();
+        List<StatusEntity> adStatusList = adService.listStatus(ids);
         List<AdGroup> entities = ids.stream().map(id -> {
             AdGroup entity = new AdGroup();
             entity.setId(id);
@@ -79,6 +95,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         updateBatchById(entities);
         List<Integer> adIds = adService.listIdByGroupIds(ids);
         adService.logicDelete(adIds);
+        bizLogApiService.logByDeleteAdGroup(ids, adStatusList);
         return true;
     }
 
@@ -101,22 +118,31 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     @Override
     @Transactional
-    public boolean copy(Integer targetCampaignId, Integer sourceAdGroupId, Integer copyNum,
+    public boolean copy(Integer targetCampaignId, String sourceAdGroupIds, Integer copyNum,
                         Integer targetAdGroupStatus, String sourceAdIds, Integer targetAdStatus) {
-        AdGroup sourceAdGroup = AdGroupCache.getAdGroup(sourceAdGroupId);
-        List<TargetCondition> sourceConditions = AdGroupCache.listCondition(sourceAdGroupId);
-        if (copyNum < 1 || sourceAdGroup == null || CollUtil.isEmpty(sourceConditions)) {
-            return false;
+        if (copyNum < 1) {
+            throw new ServiceException("copy num must bigger than 0!");
         }
-        replaceAdGroup(sourceAdGroup, targetCampaignId, targetAdGroupStatus);
-        List<AdGroup> targetAdGroups = copyAdGroups(sourceAdGroup, copyNum);
-        saveBatch(targetAdGroups);
-        List<TargetCondition> targetConditions = replaceAndCopyConditions(targetAdGroups, sourceConditions);
-        conditionService.saveBatch(targetConditions);
-        if (StrUtil.isNotBlank(sourceAdIds)) {
-            List<Ad> sourceAds = adService.listByIds(BigTool.toIntList(sourceAdIds));
-            List<Ad> targetAds = replaceAndCopyAds(targetAdGroups, sourceAds, targetAdStatus);
-            adService.saveBatch(targetAds);
+        List<String> sourceAdGroupIdList = BigTool.toStrList(sourceAdGroupIds);
+        List<AdGroup> sourceAdGroups = listByIds(sourceAdGroupIdList);
+        if (CollUtil.isEmpty(sourceAdGroups)) {
+            throw new ServiceException("source ad group is not exist!");
+        }
+        for (AdGroup sourceAdGroup : sourceAdGroups) {
+            List<TargetCondition> sourceConditions = AdGroupCache.listCondition(sourceAdGroup.getId());
+            if (CollUtil.isEmpty(sourceConditions)) {
+                throw new ServiceException("source conditions is empty!");
+            }
+            replaceAdGroup(sourceAdGroup, targetCampaignId, targetAdGroupStatus);
+            List<AdGroup> targetAdGroups = copyAdGroups(sourceAdGroup, copyNum);
+            saveBatch(targetAdGroups);
+            List<TargetCondition> targetConditions = replaceAndCopyConditions(targetAdGroups, sourceConditions);
+            conditionService.saveBatch(targetConditions);
+            if (StrUtil.isNotBlank(sourceAdIds)) {
+                List<Ad> sourceAds = adService.listByIds(BigTool.toIntList(sourceAdIds));
+                List<Ad> targetAds = replaceAndCopyAds(targetAdGroups, sourceAds, targetAdStatus);
+                adService.saveBatch(targetAds);
+            }
         }
         return true;
     }
@@ -127,14 +153,22 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         if (entity == null) {
             return false;
         }
+        logByUpdateListInfo(vo, entity);
+        return updateById(entity);
+    }
+
+    private void logByUpdateListInfo(SimpleAdGroupUpdateVO vo, AdGroup entity) {
+        AdGroupVO beforeVO = Objects.requireNonNull(BeanUtil.copyProperties(entity, AdGroupVO.class));
         entity.setName(vo.getName());
         entity.setDailyBudget(vo.getDailyBudget());
         entity.setBidStrategy(vo.getBidStrategy());
         entity.setOptPrice(vo.getOptPrice());
+        entity.setBidMultiplier(vo.getBidMultiplier());
         entity.setRemark(vo.getRemark());
         entity.setStatus(vo.getStatus());
         entity.setUpdateTime(new Date());
-        return updateById(entity);
+        AdGroupVO afterVO = Objects.requireNonNull(BeanUtil.copyProperties(entity, AdGroupVO.class));
+        bizLogApiService.logByUpdateAdGroupDirect(beforeVO, afterVO);
     }
 
     @Override
@@ -151,11 +185,15 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
                 .eq(TargetCondition::getAdGroupId, condition.getAdGroupId())
                 .eq(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc());
-        conditionService.remove(wrapper);
+        TargetCondition before = conditionService.getOne(wrapper);
+        if (before != null) {
+            conditionService.remove(wrapper);
+        }
         if (StrUtil.isNotBlank(condition.getValue())) {
             condition.setAttribute(ConditionEnum.BUNDLE.getDesc());
             conditionService.save(condition);
         }
+        bizLogApiService.logByUpdateAdGroupBundle(before, condition);
         return true;
     }
 
@@ -234,6 +272,8 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     @Override
     public boolean updateBatch(BatchAdGroupUpdateVO vo) {
+        List<Integer> adGroupIds = vo.getAdGroupIds();
+        Map<Integer, AdGroup> beAdGroupMap = listByIds(adGroupIds).stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
         List<AdGroup> adGroups = vo.getAdGroupIds().stream().map(id -> {
             AdGroup entity = new AdGroup();
             entity.setId(id);
@@ -245,6 +285,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             return entity;
         }).collect(Collectors.toList());
         updateBatchById(adGroups);
+        bizLogApiService.logByUpdateBatch(beAdGroupMap, vo);
         return true;
     }
 
@@ -267,7 +308,11 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
                 .in(TargetCondition::getAdGroupId, adGroupIds)
                 .in(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc());
-        conditionService.remove(wrapper);
+        Map<Integer, TargetCondition> beConditonMap = conditionService.list(wrapper).stream()
+                .collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
+        if (!beConditonMap.isEmpty()) {
+            conditionService.remove(wrapper);
+        }
         if (StrUtil.isNotBlank(vo.getValue())) {
             List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
                 TargetCondition condition = new TargetCondition();
@@ -279,6 +324,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             }).collect(Collectors.toList());
             conditionService.saveBatch(conditions);
         }
+        bizLogApiService.logByUpdateBatchCondition("Bundle", beConditonMap, vo);
         return true;
     }
 
@@ -288,7 +334,11 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
                 .in(TargetCondition::getAdGroupId, adGroupIds)
                 .in(TargetCondition::getAttribute, ConditionEnum.HOUR.getDesc());
-        conditionService.remove(wrapper);
+        Map<Integer, TargetCondition> beConditonMap = conditionService.list(wrapper).stream()
+                .collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
+        if (!beConditonMap.isEmpty()) {
+            conditionService.remove(wrapper);
+        }
         if (StrUtil.isNotBlank(vo.getValue())) {
             List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
                 TargetCondition condition = new TargetCondition();
@@ -299,6 +349,65 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
                 return condition;
             }).collect(Collectors.toList());
             conditionService.saveBatch(conditions);
+        }
+        bizLogApiService.logByUpdateBatchCondition("Hour", beConditonMap, vo);
+        return true;
+    }
+
+    @Override
+    public boolean fqcUpdateBatch(FqcAdGroupUpdateVO vo) {
+        List<Integer> adGroupIds = vo.getAdGroupIds();
+        if (vo.getIsImpUpdate()) {
+            LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
+                    .in(TargetCondition::getAdGroupId, adGroupIds)
+                    .in(TargetCondition::getAttribute, ConditionEnum.IMP_FREQUENCY.getDesc());
+            Map<Integer, TargetCondition> beConditonMap = conditionService.list(wrapper).stream()
+                    .collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
+            if (!beConditonMap.isEmpty()) {
+                conditionService.remove(wrapper);
+            }
+            if (StrUtil.isNotBlank(vo.getImpValue())) {
+                List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
+                    TargetCondition condition = new TargetCondition();
+                    condition.setAdGroupId(id);
+                    condition.setAttribute(ConditionEnum.IMP_FREQUENCY.getDesc());
+                    condition.setOperation(vo.getOperation());
+                    condition.setValue(vo.getImpValue());
+                    return condition;
+                }).collect(Collectors.toList());
+                conditionService.saveBatch(conditions);
+            }
+            BundleAdGroupUpdateVO bundleUpdateVO = new BundleAdGroupUpdateVO();
+            bundleUpdateVO.setAdGroupIds(adGroupIds);
+            bundleUpdateVO.setOperation(vo.getOperation());
+            bundleUpdateVO.setValue(vo.getImpValue());
+            bizLogApiService.logByUpdateBatchCondition("Imp Frequency", beConditonMap, bundleUpdateVO);
+        }
+        if (vo.getIsClickUpdate()) {
+            LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
+                    .in(TargetCondition::getAdGroupId, adGroupIds)
+                    .in(TargetCondition::getAttribute, ConditionEnum.CLICK_FREQUENCY.getDesc());
+            Map<Integer, TargetCondition> beConditonMap = conditionService.list(wrapper).stream()
+                    .collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
+            if (!beConditonMap.isEmpty()) {
+                conditionService.remove(wrapper);
+            }
+            if (StrUtil.isNotBlank(vo.getClickValue())) {
+                List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
+                    TargetCondition condition = new TargetCondition();
+                    condition.setAdGroupId(id);
+                    condition.setAttribute(ConditionEnum.CLICK_FREQUENCY.getDesc());
+                    condition.setOperation(vo.getOperation());
+                    condition.setValue(vo.getClickValue());
+                    return condition;
+                }).collect(Collectors.toList());
+                conditionService.saveBatch(conditions);
+            }
+            BundleAdGroupUpdateVO bundleUpdateVO = new BundleAdGroupUpdateVO();
+            bundleUpdateVO.setAdGroupIds(adGroupIds);
+            bundleUpdateVO.setOperation(vo.getOperation());
+            bundleUpdateVO.setValue(vo.getClickValue());
+            bizLogApiService.logByUpdateBatchCondition("Click Frequency", beConditonMap, bundleUpdateVO);
         }
         return true;
     }

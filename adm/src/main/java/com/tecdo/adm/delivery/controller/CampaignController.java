@@ -1,15 +1,19 @@
 package com.tecdo.adm.delivery.controller;
 
+import cn.hutool.core.collection.CollUtil;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.Campaign;
 import com.tecdo.adm.api.delivery.vo.BaseCampaignVO;
 import com.tecdo.adm.api.delivery.vo.CampaignVO;
 import com.tecdo.adm.api.delivery.vo.SimpleCampaignUpdateVO;
+import com.tecdo.adm.api.doris.entity.AdGroupCost;
 import com.tecdo.adm.delivery.service.ICampaignService;
 import com.tecdo.adm.delivery.wrapper.CampaignWrapper;
+import com.tecdo.adm.doris.IImpCostService;
 import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
+import com.tecdo.starter.mp.entity.IdEntity;
 import com.tecdo.starter.mp.support.PCondition;
 import com.tecdo.starter.mp.support.PQuery;
 import com.tecdo.starter.mp.vo.BaseVO;
@@ -23,6 +27,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 import static com.tecdo.common.constant.CacheConstant.AD_GROUP_CACHE;
 import static com.tecdo.common.constant.CacheConstant.CAMPAIGN_CACHE;
@@ -37,6 +43,7 @@ import static com.tecdo.common.constant.CacheConstant.CAMPAIGN_CACHE;
 public class CampaignController {
 
     private final ICampaignService service;
+    private final IImpCostService impCostService;
 
     @PostMapping("/add")
     @ApiOperationSupport(order = 1)
@@ -83,7 +90,20 @@ public class CampaignController {
                 BigTool.toIntList(advIds),
                 BigTool.toIntList(adGroupIds), adGroupName,
                 BigTool.toIntList(adIds), adName);
-        return R.data(CampaignWrapper.build().pageVO(pages));
+        IPage<CampaignVO> voPage = CampaignWrapper.build().pageVO(pages);
+        List<CampaignVO> records = voPage.getRecords();
+        if (CollUtil.isNotEmpty(records)) {
+            List<Integer> ids = records.stream().map(IdEntity::getId).collect(Collectors.toList());
+            List<AdGroupCost> impCosts = impCostService.listByCampaignIds(ids);
+            Map<String, Double> impCostMap = impCosts.stream()
+                    .collect(Collectors.groupingBy(AdGroupCost::getCampaignId,
+                            Collectors.summingDouble(AdGroupCost::getSumSuccessPrice)));
+            records.forEach(e -> {
+                Double campaignCost = impCostMap.getOrDefault(e.getId().toString(), 0d);
+                e.setCostFull(campaignCost / 1000 >= e.getDailyBudget());
+            });
+        }
+        return R.data(voPage);
     }
 
     @GetMapping("/list")

@@ -22,6 +22,10 @@ public class SimpleAdVO extends IdEntity {
 	private Integer type;
 	@ApiModelProperty(value = "广告类型名称")
 	private String typeName;
+	@ApiModelProperty("素材宽度")
+	private Integer width;
+	@ApiModelProperty("素材高度")
+	private Integer height;
 	@ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
 	private Integer status;
 }

@@ -4,10 +4,7 @@ import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
-import com.tecdo.adm.api.delivery.vo.AdGroupVO;
-import com.tecdo.adm.api.delivery.vo.BatchAdGroupUpdateVO;
-import com.tecdo.adm.api.delivery.vo.BundleAdGroupUpdateVO;
-import com.tecdo.adm.api.delivery.vo.SimpleAdGroupUpdateVO;
+import com.tecdo.adm.api.delivery.vo.*;
 import com.tecdo.starter.mp.vo.BaseVO;
 
 import java.util.List;
@@ -30,7 +27,7 @@ public interface IAdGroupService extends IService<AdGroup> {
 
     List<AdGroup> listByCampaignIds(List<Integer> campaignIds);
 
-    boolean copy(Integer targetCampaignId, Integer sourceAdGroupId, Integer copyNum,
+    boolean copy(Integer targetCampaignId, String sourceAdGroupIds, Integer copyNum,
                  Integer targetAdGroupStatus, String sourceAdIds, Integer targetAdStatus);
 
     boolean editListInfo(SimpleAdGroupUpdateVO vo);
@@ -58,4 +55,6 @@ public interface IAdGroupService extends IService<AdGroup> {
 
     boolean bundleUpdateBatch(BundleAdGroupUpdateVO vo);
     boolean hourUpdateBatch(BundleAdGroupUpdateVO vo);
+
+    boolean fqcUpdateBatch(FqcAdGroupUpdateVO vo);
 }
