@@ -84,7 +84,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     public boolean logicDelete(List<Integer> ids) {
         if (CollUtil.isEmpty(ids)) return false;
         Date date = new Date();
-        List<StatusEntity> adStatusList = listStatus(ids);
+        List<StatusEntity> adGroupStatusList = listStatus(ids);
         List<AdGroup> entities = ids.stream().map(id -> {
             AdGroup entity = new AdGroup();
             entity.setId(id);
@@ -95,7 +95,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         updateBatchById(entities);
         List<Integer> adIds = adService.listIdByGroupIds(ids);
         adService.logicDelete(adIds);
-        bizLogApiService.logByDeleteAdGroup(ids, adStatusList);
+        bizLogApiService.logByDeleteAdGroup(ids, adGroupStatusList);
         return true;
     }
 
