@@ -82,9 +82,9 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     @Override
     public boolean logicDelete(List<Integer> ids) {
-        if (CollUtil.isEmpty(ids)) return true;
+        if (CollUtil.isEmpty(ids)) return false;
         Date date = new Date();
-        List<StatusEntity> adStatusList = adService.listStatus(ids);
+        List<StatusEntity> adStatusList = listStatus(ids);
         List<AdGroup> entities = ids.stream().map(id -> {
             AdGroup entity = new AdGroup();
             entity.setId(id);
@@ -410,6 +410,10 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             bizLogApiService.logByUpdateBatchCondition("Click Frequency", beConditonMap, bundleUpdateVO);
         }
         return true;
+    }
+
+    public List<StatusEntity> listStatus(List<Integer> ids) {
+        return baseMapper.listStatus(ids);
     }
 
     private static List<Ad> replaceAndCopyAds(List<AdGroup> targetAdGroups, List<Ad> sourceAds, Integer targetAdStatus) {

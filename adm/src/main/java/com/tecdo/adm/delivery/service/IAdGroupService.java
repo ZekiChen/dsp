@@ -5,6 +5,7 @@ import com.baomidou.mybatisplus.extension.service.IService;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.vo.*;
+import com.tecdo.starter.mp.entity.StatusEntity;
 import com.tecdo.starter.mp.vo.BaseVO;
 
 import java.util.List;
@@ -57,4 +58,5 @@ public interface IAdGroupService extends IService<AdGroup> {
     boolean hourUpdateBatch(BundleAdGroupUpdateVO vo);
 
     boolean fqcUpdateBatch(FqcAdGroupUpdateVO vo);
+    List<StatusEntity> listStatus(List<Integer> ids);
 }
