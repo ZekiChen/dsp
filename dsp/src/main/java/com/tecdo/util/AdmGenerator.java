@@ -22,6 +22,35 @@ import java.util.Objects;
 
 public class AdmGenerator {
 
+  public static String forceBannerAdm(String clickUrl,
+                                      String deepLink,
+                                      String imgUrl,
+                                      List<String> impTrackUrl,
+                                      List<String> clickTrackUrl,
+                                      String impInfoUrl,
+                                      String forceLink) {
+    String finalClickUrl = StringUtils.firstNonBlank(deepLink, clickUrl);
+    StringBuilder impDivListBuilder = new StringBuilder();
+    String impDivTemplate = "<img src=\"{impTrack}\" style=\"display:none\"/>";
+    for (String s : impTrackUrl) {
+      impDivListBuilder.append(impDivTemplate.replace("{impTrack}", s));
+    }
+    StringBuilder clickTrackBuilder = new StringBuilder();
+    for (String s : clickTrackUrl) {
+      clickTrackBuilder.append("\"").append(s).append("\"").append(",");
+    }
+    clickTrackBuilder.delete(clickTrackBuilder.length() - 1, clickTrackBuilder.length());
+
+    String admTemplate = StringConfigUtil.getForceBannerTemplate();
+    String adm = admTemplate.replace(FormatKey.CLICK_URL, finalClickUrl)
+                            .replace(FormatKey.FORCE_URL, forceLink)
+                            .replace(FormatKey.IMG_URL, imgUrl)
+                            .replace(FormatKey.IMP_DIV_LIST, impDivListBuilder.toString())
+                            .replace(FormatKey.CLICK_TRACK_URL_LIST, clickTrackBuilder.toString())
+                            .replace(FormatKey.IMP_INFO_URL, impInfoUrl);
+    return adm;
+  }
+
   public static String bannerAdm(String clickUrl,
                                  String deepLink,
                                  String imgUrl,

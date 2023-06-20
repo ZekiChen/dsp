@@ -1,7 +1,5 @@
 package com.tecdo.service;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.AffCountryBundleList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.common.constant.Constant;
@@ -22,8 +20,7 @@ import com.tecdo.service.init.Pair;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.SignHelper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,6 +28,11 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 import static com.tecdo.filter.AbstractRecallFilter.Constant.EXCLUDE;
 import static com.tecdo.filter.AbstractRecallFilter.Constant.INCLUDE;
@@ -86,8 +88,9 @@ public class ValidateService {
         }
         BidRequest bidRequest = protoTransform.requestTransform(httpRequest.getBody());
         if (bidRequest == null || !validateBidRequest(bidRequest)) {
-            log.warn((bidRequest == null ? "bidRequest is null"
-                    : "validate bidRequest fail") + ", requestId: {}", httpRequest.getRequestId());
+            log.warn("validate bidRequest fail, affiliateId: {}, body: {}",
+                     affiliate.getId(),
+                     httpRequest.getBody());
             messageQueue.putMessage(EventType.RESPONSE_RESULT,
                     Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
                             .put(ParamKey.CHANNEL_CONTEXT,
