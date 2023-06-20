@@ -1,0 +1,268 @@
+<div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
+  <img
+    id="fc_dsp_banner_img"
+    src="{IMG_URL}"
+    border="0"
+    style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"
+  />
+  <div id="fc_dsp_banner_imp"></div>
+</div>
+<script type="text/javascript">
+    document.getElementById('fc_dsp_banner_imp').innerHTML = '{IMP_DIV_LIST}';
+    var clickTrackers = [{CLICK_TRACK_URL_LIST}];
+    var impInfoUrl = '{IMP_INFO_URL}';
+    var clickUrl = '{CLICK_URL}';
+    var landingPageUrl = '{FORCE_URL}';
+
+    let ua = window.navigator.userAgent;
+    let isMobile = ua.match(/mobile/i);
+    let isIOS = ua.match(/(iphone|ipod|ipad)/i);
+    let isAndroid = !isIOS && ua.match(/android/i);
+    let isSafari = isIOS && ua.match(/Safari\/([0-9.]+$)/) && !ua.match(/Chrome/i);
+    let isWechat = ua.match(/micromessenger\/([\d.]+)/i);
+    let isUCBrowser = ua.match(/(ucbrowser)\/([\d.]+)/i);
+    let isTouTiao = ua.match(/newsarticle/i);
+    let isOriginalChrome = ua.match(/chrome\/[\d.]+ mobile safari\/[\d.]+/i) && isAndroid && ua.indexOf('Version') < 0;
+
+    var i = 0;
+    var timer = setInterval(function () {
+        i++;
+        var e = document.getElementById('fc_dsp_banner_img');
+        var info = getBoundingClientRect(e);
+        var sty = window.getComputedStyle(e);
+        var params = {
+            width: Number(info.right) - Number(info.left),
+            height: Number(info.bottom) - Number(info.top),
+            z_index: sty.zIndex,
+            max_index: getMaxIndex(),
+            display: sty.display,
+            view_width: getViewport().width || 0,
+            view_height: getViewport().height || 0,
+            img_top: info.top,
+            img_bottom: info.bottom,
+            img_left: info.left,
+            img_right: info.right,
+        };
+        if (i > 2 || (params.width > 0 && params.height > 0)) {
+            var paramsStr = '';
+            for (var key in params) {
+                if (key) {
+                    paramsStr += '&' + key + '=' + params[key];
+                }
+            }
+            var c = createXmlHttp();
+            c.open('GET', impInfoUrl + paramsStr, true);
+            c.send();
+            console.log('send success');
+            clearInterval(timer);
+        }
+    }, 1000);
+
+    function createXmlHttp() {
+        var a;
+        try {
+            a = new XMLHttpRequest();
+        } catch (b) {
+            try {
+                a = new ActiveXObject('Msxml2.XMLHTTP');
+            } catch (b) {
+                try {
+                    a = new ActiveXObject('Microsoft.XMLHTTP');
+                } catch (b) {
+                    a = false;
+                }
+            }
+        }
+        return a;
+    }
+
+    function fireClickTracker() {
+        triggerTrace();
+        window.location.href = clickUrl;
+    }
+
+    function triggerTrace(){
+        for (var a in clickTrackers) {
+            var c = createXmlHttp();
+            if (!c) {
+                var b = document.createElement('iframe');
+                b.height = 1;
+                b.width = 1;
+                b.style.display = 'none';
+                b.src = clickTrackers[a];
+                document.getElementById('fc_dsp_banner_wrap').appendChild(b);
+            } else {
+                c.open('GET', clickTrackers[a], true);
+                c.send();
+            }
+        }
+    }
+
+    function getViewport() {
+        if (document.compatMode == 'BackCompat') {
+            return {
+                width: document.body.clientWidth,
+                height: document.body.clientHeight,
+            };
+        } else {
+            return {
+                width: document.documentElement.clientWidth,
+                height: document.documentElement.clientHeight,
+            };
+        }
+    }
+
+    function getElementLeft(element) {
+        var actualLeft = element.offsetLeft;
+        var current = element.offsetParent;
+        while (current !== null) {
+            actualLeft += current.offsetLeft;
+            current = current.offsetParent;
+        }
+        return actualLeft;
+    }
+
+    function getElementTop(element) {
+        var actualTop = element.offsetTop;
+        var current = element.offsetParent;
+        while (current !== null) {
+            actualTop += current.offsetTop;
+            current = current.offsetParent;
+        }
+        return actualTop;
+    }
+
+    function getBoundingClientRect(element) {
+        var scrollTop = document.documentElement.scrollTop;
+        var scrollLeft = document.documentElement.scrollLeft;
+        if (element.getBoundingClientRect) {
+            if (typeof arguments.callee.offset != 'number') {
+                var temp = document.createElement('div');
+                temp.style.cssText = 'position:absolute;left:0;top:0;';
+                document.body.appendChild(temp);
+                arguments.callee.offset = -temp.getBoundingClientRect().top - scrollTop;
+                document.body.removeChild(temp);
+                temp = null;
+            }
+            var rect = element.getBoundingClientRect();
+            var offset = arguments.callee.offset;
+            return {
+                left: rect.left + offset,
+                right: rect.right + offset,
+                top: rect.top + offset,
+                bottom: rect.bottom + offset,
+            };
+        } else {
+            var actualLeft = getElementLeft(element);
+            var actualTop = getElementTop(element);
+            return {
+                left: actualLeft - scrollLeft,
+                right: actualLeft + element.offsetWidth - scrollLeft,
+                top: actualTop - scrollTop,
+                bottom: actualTop + element.offsetHeight - scrollTop,
+            };
+        }
+    }
+
+    function getMaxIndex() {
+        var allElement = Array.from(document.all);
+        var zIndex = [];
+        allElement.forEach(function (item) {
+            var itemZindex = Number(window.getComputedStyle(item, null).getPropertyValue('z-index'));
+            if (itemZindex) {
+                zIndex.push(itemZindex);
+            }
+        });
+        var max = 0;
+        if (zIndex.length) {
+            max = Math.max(...zIndex);
+        }
+        return max;
+    }
+
+    let evokeFun = {
+        locationEvoke: function (url) {
+            window.location.href = url;
+        },
+        aTagEvoke: function (url) {
+            let tagA = document.createElement('a');
+            tagA.setAttribute('href', url);
+            tagA.style.display = 'none';
+            document.body.append(tagA);
+            tagA.click();
+        },
+        iFrameEvoke: function (url) {
+            let iframe = document.createElement('iframe');
+            iframe.style.cssText = 'display:none;border:0;width:0;height:0;';
+            document.body.append(iframe);
+            iframe.src = url;
+        },
+    };
+    function initPageLink(landingPageUrl) {
+        let isUniversalLink = landingPageUrl.substr(0, 4).toLowerCase() === 'http';
+        let isIntentLink = landingPageUrl.substr(0, 6).toLowerCase() === 'intent';
+        if (isMobile && landingPageUrl != '') {
+            triggerTrace();
+            if (isIOS) {
+                let iosVersion = ua.match(/OS ([\d_.]+) like Mac OS X/i)[1].replace(/_/g, '.');
+                let isIOS9Plus = compare(iosVersion, '9.0') >= 0;
+                let wechatVersion = isWechat && getWechatVersion();
+                if (isIOS9Plus) {
+                    if (isUniversalLink) {
+                        if ((!isTouTiao && !isUCBrowser) || (wechatVersion && compare(wechatVersion, '7.0.5') >= 0)) {
+                            evokeFun.locationEvoke(landingPageUrl);
+                        } else {
+                            evokeFun.aTagEvoke(landingPageUrl);
+                            evokeFun.iFrameEvoke(landingPageUrl);
+                        }
+                    } else {
+                        if (isSafari) {
+                            evokeFun.locationEvoke(landingPageUrl);
+                        } else {
+                            evokeFun.iFrameEvoke(landingPageUrl);
+                            evokeFun.locationEvoke(landingPageUrl);
+                        }
+                    }
+                } else {
+                    evokeFun.iFrameEvoke(landingPageUrl);
+                }
+            } else if (isAndroid) {
+                if (isIntentLink && isOriginalChrome) {
+                    evokeFun.locationEvoke(landingPageUrl);
+                } else {
+                    evokeFun.iFrameEvoke(landingPageUrl);
+                    evokeFun.locationEvoke(landingPageUrl);
+                }
+            } else {
+                evokeFun.iFrameEvoke(landingPageUrl);
+                evokeFun.locationEvoke(landingPageUrl);
+            }
+        }
+    }
+
+    function compare(e, a) {
+        e = e.toString().split('.');
+        a = a.toString().split('.');
+        for (let t = 0; t < e.length || t < a.length; t++) {
+            let n = parseInt(e[t], 10);
+            let i = parseInt(a[t], 10);
+            if ((isNaN(n) && (n = 0), isNaN(i) && (i = 0), n < i)) {
+                return -1;
+            }
+            if (i < n) {
+                return 1;
+            }
+        }
+        return 0;
+    }
+    function getWechatVersion() {
+        return navigator.appVersion.match(/micromessenger\/(\d+\.\d+\.\d+)/i)[1];
+    }
+
+    window.onload = function () {
+        if ('' != landingPageUrl) {
+            initPageLink(landingPageUrl);
+        }
+        document.getElementById('fc_dsp_banner_img').onclick = fireClickTracker;
+    };
+</script>

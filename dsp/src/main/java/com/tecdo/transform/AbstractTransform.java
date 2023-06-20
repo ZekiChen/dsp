@@ -1,7 +1,5 @@
 package com.tecdo.transform;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
@@ -28,8 +26,15 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 
 @Component
 public abstract class AbstractTransform implements IProtoTransform {
@@ -49,6 +54,20 @@ public abstract class AbstractTransform implements IProtoTransform {
   public abstract boolean buildAdmObject();
 
   public abstract boolean useLossUrl();
+
+  public abstract boolean forceBannerEnable();
+
+  @Override
+  public ResponseTypeEnum getResponseType(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
+    AdDTO adDTO = wrapper.getAdDTO();
+    String forceLink = adDTO.getAdGroup().getForceLink();
+    if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
+      if (forceBannerEnable() && StringUtils.isNotBlank(forceLink)) {
+        return ResponseTypeEnum.FORCE;
+      }
+    }
+    return ResponseTypeEnum.NORMAL;
+  }
 
   @Override
   public BidRequest requestTransform(String req) {
@@ -156,19 +175,32 @@ public abstract class AbstractTransform implements IProtoTransform {
                                    .collect(Collectors.toList());
 
 
-    String clickUrl = StrUtil.isNotBlank(wrapper.getLandingPage()) ?
-            AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper.getBidId(), sign) :
-            urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
+    String clickUrl = StrUtil.isNotBlank(wrapper.getLandingPage())
+      ? AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper.getBidId(), sign)
+      : urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
     String deepLink =
       urlFormat(adDTO.getAdGroup().getDeeplink(), sign, wrapper, bidRequest, affiliate);
     deepLink = deepLinkFormat(deepLink);
+    String forceLink =
+      urlFormat(adDTO.getAdGroup().getForceLink(), sign, wrapper, bidRequest, affiliate);
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
-      adm = AdmGenerator.bannerAdm(clickUrl,
-                                   deepLink,
-                                   adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
-                                   impTrackList,
-                                   clickTrackList,
-                                   urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate));
+      if (ResponseTypeEnum.FORCE.equals(getResponseType(wrapper, bidRequest, affiliate))) {
+        adm = //
+          AdmGenerator.forceBannerAdm(clickUrl,
+                                      deepLink,
+                                      adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
+                                      impTrackList,
+                                      clickTrackList,
+                                      urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
+                                      forceLink);
+      } else {
+        adm = AdmGenerator.bannerAdm(clickUrl,
+                                     deepLink,
+                                     adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
+                                     impTrackList,
+                                     clickTrackList,
+                                     urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate));
+      }
     }
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
       List<Imp> impList = bidRequest.getImp();

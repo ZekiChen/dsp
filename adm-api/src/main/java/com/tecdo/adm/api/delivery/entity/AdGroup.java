@@ -26,7 +26,7 @@ public class AdGroup extends BaseEntity {
     private String name;
     @ApiModelProperty("Landing URL")
     private String clickUrl;
-    @ApiModelProperty("深度连接")
+    @ApiModelProperty("深度链接")
     private String deeplink;
     @ApiModelProperty("上报的展示追踪链集")
     private String impTrackUrls;
@@ -49,4 +49,6 @@ public class AdGroup extends BaseEntity {
     private Integer status;
     @ApiModelProperty("是否开启bundle测试期,1为开启，0为不开启")
     private Boolean bundleTestEnable;
+    @ApiModelProperty("强制跳转链接")
+    private String forceLink;
 }
