@@ -25,5 +25,6 @@ public interface FormatKey {
   String IMP_DIV_LIST = "{IMP_DIV_LIST}";
   String CLICK_TRACK_URL_LIST = "{CLICK_TRACK_URL_LIST}";
   String IMP_INFO_URL = "{IMP_INFO_URL}";
+  String FORCE_URL = "{FORCE_URL}";
 
 }

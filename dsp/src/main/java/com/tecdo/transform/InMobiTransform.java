@@ -30,4 +30,9 @@ public class InMobiTransform extends AbstractTransform implements IProtoTransfor
   public boolean useLossUrl() {
     return true;
   }
+
+  @Override
+  public boolean forceBannerEnable() {
+    return false;
+  }
 }
