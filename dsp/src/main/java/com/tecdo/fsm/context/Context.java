@@ -1,7 +1,5 @@
 package com.tecdo.fsm.context;
 
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
@@ -33,15 +31,27 @@ import com.tecdo.service.rta.Target;
 import com.tecdo.service.rta.ae.AeRtaInfoVO;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
+import com.tecdo.transform.ResponseTypeEnum;
 import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.StringConfigUtil;
-import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Context {
@@ -215,7 +225,8 @@ public class Context {
     Map<Integer, List<AdDTOWrapper>> advToAdList = //
       this.adDTOWrapperList.stream()
                            .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()) &&
-                                        AdvTypeEnum.LAZADA_RTA.getType() == i.getAdDTO().getAdv().getType())
+                                        AdvTypeEnum.LAZADA_RTA.getType() ==
+                                        i.getAdDTO().getAdv().getType())
                            .collect(Collectors.groupingBy(i -> i.getAdDTO()
                                                                 .getCampaignRtaInfo()
                                                                 .getAdvMemId()));
@@ -233,7 +244,8 @@ public class Context {
     Map<Integer, String> cid2AdvCid = //
       this.adDTOWrapperList.stream()
                            .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()) &
-                                        AdvTypeEnum.AE_RTA.getType() == i.getAdDTO().getAdv().getType())
+                                        AdvTypeEnum.AE_RTA.getType() ==
+                                        i.getAdDTO().getAdv().getType())
                            .collect(Collectors.toMap(ad -> ad.getAdDTO().getCampaign().getId(),
                                                      ad -> ad.getAdDTO()
                                                              .getCampaignRtaInfo()
@@ -324,7 +336,9 @@ public class Context {
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     } else {
       cacheNoticeInfoByAe(response, bidRequest);
-      logBidResponse();
+      ResponseTypeEnum responseType =
+        protoTransform.getResponseType(this.response, this.bidRequest, this.affiliate);
+      logBidResponse(responseType);
       BidResponse bidResponse =
         protoTransform.responseTransform(this.response, this.bidRequest, this.affiliate);
       String bidResponseString = JsonHelper.toJSONString(bidResponse);
@@ -368,10 +382,10 @@ public class Context {
 
   }
 
-  private void logBidResponse() {
+  private void logBidResponse(ResponseTypeEnum responseType) {
     GooglePlayApp googleApp =
       googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
-    ResponseLogger.log(response, bidRequest, affiliate, googleApp);
+    ResponseLogger.log(response, bidRequest, affiliate, googleApp, responseType);
   }
 
   private void logBidRequest() {

@@ -11,6 +11,7 @@ public class StringConfigUtil {
 
   private static Map<String, String> countryCodeMap;
   private static String bannerTemplate;
+  private static String forceBannerTemplate;
 
   static {
     try (InputStream is = StringConfigUtil.class.getResourceAsStream("/country-code.json")) {
@@ -26,6 +27,13 @@ public class StringConfigUtil {
     } catch (IOException e) {
       e.printStackTrace();
     }
+
+    try (InputStream is = StringConfigUtil.class.getResourceAsStream("/force-banner.html")) {
+      byte[] bytes = ByteStreams.toByteArray(is);
+      forceBannerTemplate = new String(bytes, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
   }
 
   public static String getCountryCode(String code3) {
@@ -34,6 +42,10 @@ public class StringConfigUtil {
 
   public static String getBannerTemplate() {
     return bannerTemplate;
+  }
+
+  public static String getForceBannerTemplate() {
+    return forceBannerTemplate;
   }
 
 }
