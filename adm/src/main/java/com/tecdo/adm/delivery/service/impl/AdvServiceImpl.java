@@ -19,4 +19,9 @@ public class AdvServiceImpl extends ServiceImpl<AdvMapper, Adv> implements IAdvS
     public List<SimpleAdvVO> listIdAndName() {
         return baseMapper.listIdAndName();
     }
+
+    @Override
+    public Adv getByCampaignId(Integer campaignId) {
+        return baseMapper.getByCampaignId(campaignId);
+    }
 }

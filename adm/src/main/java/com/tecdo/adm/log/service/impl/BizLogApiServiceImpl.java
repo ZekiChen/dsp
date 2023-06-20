@@ -3,13 +3,11 @@ package com.tecdo.adm.log.service.impl;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
+import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
-import com.tecdo.adm.api.delivery.vo.AdGroupVO;
-import com.tecdo.adm.api.delivery.vo.BatchAdGroupUpdateVO;
-import com.tecdo.adm.api.delivery.vo.BundleAdGroupUpdateVO;
-import com.tecdo.adm.api.delivery.vo.TargetConditionVO;
+import com.tecdo.adm.api.delivery.vo.*;
 import com.tecdo.adm.api.log.entity.BizLogApi;
 import com.tecdo.adm.api.log.enums.BizTypeEnum;
 import com.tecdo.adm.api.log.enums.OptTypeEnum;
@@ -136,8 +134,8 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
     }
 
     @Override
-    public void logByDeleteAdGroup(List<Integer> ids, List<StatusEntity> adStatusList) {
-        Map<Integer, StatusEntity> beAdStatusMap = adStatusList.stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
+    public void logByDeleteAdGroup(List<Integer> ids, List<StatusEntity> adGroupStatusList) {
+        Map<Integer, StatusEntity> beStatusMap = adGroupStatusList.stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
         threadPool.execute(() -> {
             List<BizLogApi> bizLogApis = ids.stream().map(id -> {
                 BizLogApi bizLogApi = new BizLogApi();
@@ -145,7 +143,7 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                 bizLogApi.setOptType(OptTypeEnum.DELETE.getType());
                 bizLogApi.setBizType(BizTypeEnum.AD_GROUP.getType());
                 bizLogApi.setTitle("Ad Group Delete");
-                bizLogApi.setContent("Status: " + BaseStatusEnum.of(beAdStatusMap.get(id).getStatus()).getDesc() + " -> " + BaseStatusEnum.DELETE.getDesc());
+                bizLogApi.setContent("Status: " + BaseStatusEnum.of(beStatusMap.get(id).getStatus()).getDesc() + " -> " + BaseStatusEnum.DELETE.getDesc());
                 bizLogApi.setCreator("admin");
                 return bizLogApi;
             }).collect(Collectors.toList());
@@ -254,7 +252,7 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
     }
 
     @Override
-    public void logByUpdateBatch(Map<Integer, AdGroup> beAdGroupMap, BatchAdGroupUpdateVO afterVO) {
+    public void logByUpdateBatchAdGroup(Map<Integer, AdGroup> beAdGroupMap, BatchAdGroupUpdateVO afterVO) {
         threadPool.execute(() -> {
             List<BizLogApi> bizLogApis = afterVO.getAdGroupIds().stream().map(id -> {
                 StringBuilder sb = new StringBuilder();
@@ -329,4 +327,269 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             }
         });
     }
+
+    // =====================================================================================================
+    @Override
+    public void logByUpdateCampaign(CampaignVO beforeVO, CampaignVO afterVO) {
+        threadPool.execute(() -> {
+            String advName = beforeVO.getAdvName();
+            Integer advType = beforeVO.getAdvType();
+            Integer advId = beforeVO.getAdvId();
+            String name = beforeVO.getName();
+            Double budget = beforeVO.getDailyBudget();
+            String packageName = beforeVO.getPackageName();
+            String category = beforeVO.getCategory();
+            String domain = beforeVO.getDomain();
+            String remark = beforeVO.getRemark();
+            Integer status = beforeVO.getStatus();
+            CampaignRtaVO campaignRtaVO = beforeVO.getCampaignRtaVO();
+
+            StringBuilder sb = new StringBuilder();
+            if (afterVO.getAdvId() != null && !afterVO.getAdvId().equals(advId)) {
+                sb.append("Adv Name: ").append(advName).append(" -> ").append(afterVO.getAdvName()).append("\n");
+            }
+            if (afterVO.getAdvType() != null && !afterVO.getAdvType().equals(advType)) {
+                sb.append("Adv Type: ").append(advType).append(" -> ").append(afterVO.getAdvType()).append("\n");
+            }
+            if (StrUtil.isNotBlank(afterVO.getName()) && !afterVO.getName().equals(name)) {
+                sb.append("Campaign Name: ").append(name).append(" -> ").append(afterVO.getName()).append("\n");
+            }
+            if (afterVO.getDailyBudget() != null && !afterVO.getDailyBudget().equals(budget)) {
+                sb.append("Budget: ").append(budget).append(" -> ").append(afterVO.getDailyBudget()).append("\n");
+            }
+            if (StrUtil.isNotBlank(afterVO.getPackageName()) && !afterVO.getPackageName().equals(packageName)) {
+                sb.append("Bundle: ").append(packageName).append(" -> ").append(afterVO.getPackageName()).append("\n");
+            }
+            if (StrUtil.isNotBlank(afterVO.getCategory()) && !afterVO.getCategory().equals(category)) {
+                sb.append("APP Categories: ").append(category).append(" -> ").append(afterVO.getCategory()).append("\n");
+            }
+            if (StrUtil.isNotBlank(afterVO.getDomain()) && !afterVO.getDomain().equals(domain)) {
+                sb.append("Domain: ").append(domain).append(" -> ").append(afterVO.getDomain()).append("\n");
+            }
+            if (StrUtil.isNotBlank(afterVO.getRemark()) && !afterVO.getCategory().equals(remark)) {
+                sb.append("Remark: ").append(remark).append(" -> ").append(afterVO.getRemark()).append("\n");
+            }
+            if (afterVO.getStatus() != null && !afterVO.getStatus().equals(status)) {
+                sb.append("Status: ").append(BaseStatusEnum.of(status).getDesc()).append(" -> ")
+                        .append(BaseStatusEnum.of(afterVO.getStatus()).getDesc()).append("\n");
+            }
+            CampaignRtaVO afterCampaignRta = afterVO.getCampaignRtaVO();
+            if (!(campaignRtaVO == null && afterCampaignRta == null)) {
+                if (campaignRtaVO == null) {
+                    campaignRtaVO = new CampaignRtaVO();
+                }
+                if (afterCampaignRta == null) {
+                    afterCampaignRta = new CampaignRtaVO();
+                }
+                String advCampaignId = campaignRtaVO.getAdvCampaignId();
+                Integer advMemId = campaignRtaVO.getAdvMemId();
+                Integer rtaFeature = campaignRtaVO.getRtaFeature();
+                String channel = campaignRtaVO.getChannel();
+                if (StrUtil.isNotBlank(afterCampaignRta.getAdvCampaignId()) && !afterCampaignRta.getAdvCampaignId().equals(advCampaignId)) {
+                    sb.append("Adv Campaign Id: ").append(advCampaignId).append(" -> ").append(afterCampaignRta.getAdvCampaignId()).append("\n");
+                }
+                if (afterCampaignRta.getAdvMemId() != null && !afterCampaignRta.getAdvMemId().equals(advMemId)) {
+                    sb.append("Adv Mem Id: ").append(advMemId).append(" -> ").append(afterCampaignRta.getAdvMemId()).append("\n");
+                }
+                if (afterCampaignRta.getRtaFeature() != null && !afterCampaignRta.getRtaFeature().equals(rtaFeature)) {
+                    sb.append("Rta Feature: ").append(rtaFeature).append(" -> ").append(afterCampaignRta.getRtaFeature()).append("\n");
+                }
+                if (StrUtil.isNotBlank(afterCampaignRta.getChannel()) && !afterCampaignRta.getChannel().equals(channel)) {
+                    sb.append("AE Channel: ").append(channel).append(" -> ").append(afterCampaignRta.getChannel()).append("\n");
+                }
+            }
+            if (sb.length() > 0) {
+                BizLogApi bizLogApi = new BizLogApi();
+                bizLogApi.setBizId(beforeVO.getId());
+                bizLogApi.setOptType(OptTypeEnum.UPDATE.getType());
+                bizLogApi.setBizType(BizTypeEnum.CAMPAIGN.getType());
+                bizLogApi.setTitle("Campaign Update");
+                bizLogApi.setContent(sb.substring(0, sb.length() - 1));
+                bizLogApi.setCreator("admin");
+                save(bizLogApi);
+            }
+        });
+    }
+
+    @Override
+    public void logByDeleteCampaign(List<Integer> ids, List<StatusEntity> campaignStatusList) {
+        Map<Integer, StatusEntity> beStatusMap = campaignStatusList.stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
+        threadPool.execute(() -> {
+            List<BizLogApi> bizLogApis = ids.stream().map(id -> {
+                BizLogApi bizLogApi = new BizLogApi();
+                bizLogApi.setBizId(id);
+                bizLogApi.setOptType(OptTypeEnum.DELETE.getType());
+                bizLogApi.setBizType(BizTypeEnum.CAMPAIGN.getType());
+                bizLogApi.setTitle("Campaign Delete");
+                bizLogApi.setContent("Status: " + BaseStatusEnum.of(beStatusMap.get(id).getStatus()).getDesc() + " -> " + BaseStatusEnum.DELETE.getDesc());
+                bizLogApi.setCreator("admin");
+                return bizLogApi;
+            }).collect(Collectors.toList());
+            saveBatch(bizLogApis);
+        });
+    }
+
+    @Override
+    public void logByUpdateCampaignDirect(CampaignVO beforeVO, CampaignVO afterVO) {
+        threadPool.execute(() -> {
+            String name = beforeVO.getName();
+            Double budget = beforeVO.getDailyBudget();
+            String remark = beforeVO.getRemark();
+            Integer status = beforeVO.getStatus();
+
+            StringBuilder sb = new StringBuilder();
+            if (StrUtil.isNotBlank(afterVO.getName()) && !afterVO.getName().equals(name)) {
+                sb.append("Campaign Name: ").append(name).append(" -> ").append(afterVO.getName()).append("\n");
+            }
+            if (afterVO.getDailyBudget() != null && !afterVO.getDailyBudget().equals(budget)) {
+                sb.append("Budget: ").append(budget).append(" -> ").append(afterVO.getDailyBudget()).append("\n");
+            }
+            if (StrUtil.isNotBlank(afterVO.getRemark()) && !afterVO.getRemark().equals(remark)) {
+                sb.append("Remark: ").append(remark).append(" -> ").append(afterVO.getRemark()).append("\n");
+            }
+            if (afterVO.getStatus() != null && !afterVO.getStatus().equals(status)) {
+                sb.append("Status: ").append(BaseStatusEnum.of(status).getDesc()).append(" -> ")
+                        .append(BaseStatusEnum.of(afterVO.getStatus()).getDesc()).append("\n");
+            }
+            if (sb.length() > 0) {
+                BizLogApi bizLogApi = new BizLogApi();
+                bizLogApi.setBizId(beforeVO.getId());
+                bizLogApi.setOptType(OptTypeEnum.UPDATE.getType());
+                bizLogApi.setBizType(BizTypeEnum.CAMPAIGN.getType());
+                bizLogApi.setTitle("Campaign Update Directly");
+                bizLogApi.setContent(sb.substring(0, sb.length() - 1));
+                bizLogApi.setCreator("admin");
+                save(bizLogApi);
+            }
+        });
+    }
+
+    // ===============================================================================================
+    @Override
+    public void logByUpdateAd(AdVO beforeVO, AdVO afterVO) {
+        threadPool.execute(() -> {
+            Integer groupId = beforeVO.getGroupId();
+            String name = beforeVO.getName();
+            Integer type = beforeVO.getType();
+            Integer image = beforeVO.getImage();
+            Integer icon = beforeVO.getIcon();
+            Integer video = beforeVO.getVideo();
+//            String imageUrl = beforeVO.getImageUrl();
+//            String iconUrl = beforeVO.getIconUrl();
+//            String videoUrl = beforeVO.getVideoUrl();
+            String title = beforeVO.getTitle();
+            String description = beforeVO.getDescription();
+            String cta = beforeVO.getCta();
+            String remark = beforeVO.getRemark();
+            Integer status = beforeVO.getStatus();
+
+            StringBuilder sb = new StringBuilder();
+            if (afterVO.getGroupId() != null && !afterVO.getGroupId().equals(groupId)) {
+                sb.append("Ad Group Id: ").append(groupId).append(" -> ").append(afterVO.getGroupId()).append("\n");
+            }
+            if (StrUtil.isNotBlank(afterVO.getName()) && !afterVO.getName().equals(name)) {
+                sb.append("Ad Name: ").append(name).append(" -> ").append(afterVO.getName()).append("\n");
+            }
+            if (afterVO.getType() != null && !afterVO.getType().equals(type)) {
+                sb.append("Ad Format: ").append(type).append(" -> ").append(afterVO.getType()).append("\n");
+            }
+            if (afterVO.getImage() != null && !afterVO.getImage().equals(image)) {
+                sb.append("Image Creative Id: ").append(image).append(" -> ").append(afterVO.getImage()).append("\n");
+            }
+            if (afterVO.getIcon() != null && !afterVO.getIcon().equals(icon)) {
+                sb.append("Icon Creative Id: ").append(icon).append(" -> ").append(afterVO.getIcon()).append("\n");
+            }
+            if (afterVO.getVideo() != null && !afterVO.getVideo().equals(video)) {
+                sb.append("Video Creative Id: ").append(video).append(" -> ").append(afterVO.getVideo()).append("\n");
+            }
+//            if (StrUtil.isNotBlank(afterVO.getImageUrl()) && !afterVO.getImageUrl().equals(imageUrl)) {
+//                sb.append("Image Url: ").append(imageUrl).append(" -> ").append(afterVO.getImageUrl()).append("\n");
+//            }
+//            if (StrUtil.isNotBlank(afterVO.getIconUrl()) && !afterVO.getName().equals(iconUrl)) {
+//                sb.append("Icon Url: ").append(iconUrl).append(" -> ").append(afterVO.getIconUrl()).append("\n");
+//            }
+//            if (StrUtil.isNotBlank(afterVO.getVideoUrl()) && !afterVO.getVideoUrl().equals(videoUrl)) {
+//                sb.append("Video Url: ").append(videoUrl).append(" -> ").append(afterVO.getVideoUrl()).append("\n");
+//            }
+            if (StrUtil.isNotBlank(afterVO.getTitle()) && !afterVO.getTitle().equals(title)) {
+                sb.append("Title: ").append(title).append(" -> ").append(afterVO.getTitle()).append("\n");
+            }
+            if (StrUtil.isNotBlank(afterVO.getDescription()) && !afterVO.getDescription().equals(description)) {
+                sb.append("Description: ").append(description).append(" -> ").append(afterVO.getDescription()).append("\n");
+            }
+            if (StrUtil.isNotBlank(afterVO.getCta()) && !afterVO.getCta().equals(cta)) {
+                sb.append("CTA: ").append(cta).append(" -> ").append(afterVO.getCta()).append("\n");
+            }
+            if (StrUtil.isNotBlank(afterVO.getRemark()) && !afterVO.getRemark().equals(remark)) {
+                sb.append("Remark: ").append(remark).append(" -> ").append(afterVO.getRemark()).append("\n");
+            }
+            if (afterVO.getStatus() != null && !afterVO.getStatus().equals(status)) {
+                sb.append("Status: ").append(BaseStatusEnum.of(status).getDesc()).append(" -> ")
+                        .append(BaseStatusEnum.of(afterVO.getStatus()).getDesc()).append("\n");
+            }
+            if (sb.length() > 0) {
+                BizLogApi bizLogApi = new BizLogApi();
+                bizLogApi.setBizId(beforeVO.getId());
+                bizLogApi.setOptType(OptTypeEnum.UPDATE.getType());
+                bizLogApi.setBizType(BizTypeEnum.AD.getType());
+                bizLogApi.setTitle("Ad Update");
+                bizLogApi.setContent(sb.substring(0, sb.length() - 1));
+                bizLogApi.setCreator("admin");
+                save(bizLogApi);
+            }
+        });
+    }
+
+    @Override
+    public void logByDeleteAd(List<Integer> ids, List<StatusEntity> adStatusList) {
+        Map<Integer, StatusEntity> beStatusMap = adStatusList.stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
+        threadPool.execute(() -> {
+            List<BizLogApi> bizLogApis = ids.stream().map(id -> {
+                BizLogApi bizLogApi = new BizLogApi();
+                bizLogApi.setBizId(id);
+                bizLogApi.setOptType(OptTypeEnum.DELETE.getType());
+                bizLogApi.setBizType(BizTypeEnum.AD.getType());
+                bizLogApi.setTitle("Ad Delete");
+                bizLogApi.setContent("Status: " + BaseStatusEnum.of(beStatusMap.get(id).getStatus()).getDesc() + " -> " + BaseStatusEnum.DELETE.getDesc());
+                bizLogApi.setCreator("admin");
+                return bizLogApi;
+            }).collect(Collectors.toList());
+            saveBatch(bizLogApis);
+        });
+    }
+
+    @Override
+    public void logByUpdateBatchAd(Map<Integer, Ad> beAdMap, BatchAdUpdateVO afterVO) {
+        threadPool.execute(() -> {
+            List<BizLogApi> bizLogApis = afterVO.getAdIds().stream().map(id -> {
+                StringBuilder sb = new StringBuilder();
+                BizLogApi bizLogApi = new BizLogApi();
+                bizLogApi.setBizId(id);
+                bizLogApi.setOptType(OptTypeEnum.UPDATE.getType());
+                bizLogApi.setBizType(BizTypeEnum.AD_GROUP.getType());
+                bizLogApi.setTitle("Ad Batch Update Title / Description / CTA / Status");
+                if (afterVO.getTitle() != null) {
+                    sb.append("Title: ").append(beAdMap.get(id).getTitle()).append(" -> ").append(afterVO.getTitle()).append("\n");
+                }
+                if (afterVO.getDescription() != null) {
+                    sb.append("Description: ").append(beAdMap.get(id).getDescription()).append(" -> ").append(afterVO.getDescription()).append("\n");
+                }
+                if (afterVO.getCta() != null) {
+                    sb.append("CTA: ").append(beAdMap.get(id).getCta()).append(" -> ").append(afterVO.getCta()).append("\n");
+                }
+                if (afterVO.getStatus() != null) {
+                    sb.append("Status: ").append(BaseStatusEnum.of(beAdMap.get(id).getStatus()).getDesc()).append(" -> ")
+                            .append(BaseStatusEnum.of(afterVO.getStatus()).getDesc()).append("\n");
+                }
+                bizLogApi.setCreator("admin");
+                bizLogApi.setContent(sb.length() > 0 ? sb.substring(0, sb.length() - 1) : null);
+                return bizLogApi;
+            }).collect(Collectors.toList());
+            bizLogApis = bizLogApis.stream().filter(e -> e.getContent() != null).collect(Collectors.toList());
+            if (CollUtil.isNotEmpty(bizLogApis)) {
+                saveBatch(bizLogApis);
+            }
+        });
+    }
+
 }

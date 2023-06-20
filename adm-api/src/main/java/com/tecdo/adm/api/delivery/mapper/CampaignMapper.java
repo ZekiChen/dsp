@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tecdo.adm.api.delivery.dto.SimpleCampaignDTO;
 import com.tecdo.adm.api.delivery.entity.Campaign;
+import com.tecdo.starter.mp.entity.StatusEntity;
 import com.tecdo.starter.mp.vo.BaseVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -28,4 +29,6 @@ public interface CampaignMapper extends BaseMapper<Campaign> {
                                @Param("adName") String adName);
 
     List<Integer> listIdByAdvIds(@Param("advIds") List<Integer> advIds);
+
+    List<StatusEntity> listStatus(@Param("ids") List<Integer> ids);
 }

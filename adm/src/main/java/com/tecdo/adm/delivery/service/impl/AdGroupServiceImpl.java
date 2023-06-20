@@ -153,11 +153,6 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         if (entity == null) {
             return false;
         }
-        logByUpdateListInfo(vo, entity);
-        return updateById(entity);
-    }
-
-    private void logByUpdateListInfo(SimpleAdGroupUpdateVO vo, AdGroup entity) {
         AdGroupVO beforeVO = Objects.requireNonNull(BeanUtil.copyProperties(entity, AdGroupVO.class));
         entity.setName(vo.getName());
         entity.setDailyBudget(vo.getDailyBudget());
@@ -169,6 +164,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         entity.setUpdateTime(new Date());
         AdGroupVO afterVO = Objects.requireNonNull(BeanUtil.copyProperties(entity, AdGroupVO.class));
         bizLogApiService.logByUpdateAdGroupDirect(beforeVO, afterVO);
+        return updateById(entity);
     }
 
     @Override
@@ -285,7 +281,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             return entity;
         }).collect(Collectors.toList());
         updateBatchById(adGroups);
-        bizLogApiService.logByUpdateBatch(beAdGroupMap, vo);
+        bizLogApiService.logByUpdateBatchAdGroup(beAdGroupMap, vo);
         return true;
     }
 

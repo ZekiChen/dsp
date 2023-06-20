@@ -12,4 +12,7 @@ import java.util.List;
 public interface IAdvService extends IService<Adv> {
 
     List<SimpleAdvVO> listIdAndName();
+
+    Adv getByCampaignId(Integer campaignId);
+
 }
