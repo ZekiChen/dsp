@@ -1,5 +1,7 @@
 package com.tecdo.transform;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
@@ -20,21 +22,14 @@ import com.tecdo.util.AdmGenerator;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 
 @Component
 public abstract class AbstractTransform implements IProtoTransform {
@@ -46,6 +41,9 @@ public abstract class AbstractTransform implements IProtoTransform {
   private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
   private final String AUCTION_LOSS_PARAM = "&loss_code=${AUCTION_LOSS}";
   private final String impInfoUrl = SpringUtil.getProperty("pac.notice.imp-info-url");
+
+  @Value("${pac.ae.rta.deeplink.ratio}")
+  private Double aeDeeplinkRatio;
 
   public abstract String deepLinkFormat(String deepLink);
 
@@ -174,15 +172,25 @@ public abstract class AbstractTransform implements IProtoTransform {
                                    .map(i -> urlFormat(i, sign, wrapper, bidRequest, affiliate))
                                    .collect(Collectors.toList());
 
+    String clickUrl;
+    if (StrUtil.isNotBlank(wrapper.getLandingPage())) {
+      String landingPage = StrUtil.isNotBlank(wrapper.getDeeplink())
+              && Math.random() * 100 < aeDeeplinkRatio
+              ? wrapper.getDeeplink()
+              : wrapper.getLandingPage();
+      clickUrl = AeHelper.landingPageFormat(landingPage, wrapper.getBidId(), sign);
+      wrapper.setUseDeeplink(true);
+    } else {
+      clickUrl = urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
+    }
 
-    String clickUrl = StrUtil.isNotBlank(wrapper.getLandingPage())
-      ? AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper.getBidId(), sign)
-      : urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
     String deepLink =
       urlFormat(adDTO.getAdGroup().getDeeplink(), sign, wrapper, bidRequest, affiliate);
     deepLink = deepLinkFormat(deepLink);
+
     String forceLink =
       urlFormat(adDTO.getAdGroup().getForceLink(), sign, wrapper, bidRequest, affiliate);
+
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
       if (ResponseTypeEnum.FORCE.equals(getResponseType(wrapper, bidRequest, affiliate))) {
         adm = //
@@ -202,6 +210,7 @@ public abstract class AbstractTransform implements IProtoTransform {
                                      urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate));
       }
     }
+
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
       List<Imp> impList = bidRequest.getImp();
       Imp imp = impList.stream()

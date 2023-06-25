@@ -74,5 +74,7 @@ public class AdDTOWrapper {
    * 落地页，目前AE RTA会用到
    */
   private String landingPage;
+  private String deeplink;
+  private boolean useDeeplink;
 
 }
