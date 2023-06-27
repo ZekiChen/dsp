@@ -62,6 +62,11 @@ public enum EventType {
   BUNDLE_DATA_LOAD_ERROR(2103, "bundle data load failure"),
   BUNDLE_DATA_LOAD_TIMEOUT(2104, "bundle data load timeout"),
 
+  CHEATING_DATA_LOAD(2201, "cheating data load"),
+  CHEATING_DATA_LOAD_RESPONSE(2202, "cheating data load response"),
+  CHEATING_DATA_LOAD_ERROR(2203, "cheating data load failure"),
+  CHEATING_DATA_LOAD_TIMEOUT(2204, "cheating data load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

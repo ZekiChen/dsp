@@ -14,6 +14,7 @@ import com.tecdo.service.init.AfAudienceSyncManager;
 import com.tecdo.service.init.AffCountryBundleListManager;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.service.init.BundleDataManager;
+import com.tecdo.service.init.CheatingDataManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.IpTableManager;
 import com.tecdo.service.init.RtaInfoManager;
@@ -55,10 +56,12 @@ public class LifeCycleManager {
   private AffCountryBundleListManager affCountryBundleListManager;
   @Autowired
   private BundleDataManager bundleDataManager;
+  @Autowired
+  private CheatingDataManager cheatingDataManager;
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 10;
+  private final int needInitCount = 11;
 
   @Value("${server.port}")
   private int serverPort;
@@ -146,6 +149,12 @@ public class LifeCycleManager {
       case BUNDLE_DATA_LOAD_ERROR:
       case BUNDLE_DATA_LOAD_TIMEOUT:
         bundleDataManager.handleEvent(eventType, params);
+        break;
+      case CHEATING_DATA_LOAD:
+      case CHEATING_DATA_LOAD_RESPONSE:
+      case CHEATING_DATA_LOAD_ERROR:
+      case CHEATING_DATA_LOAD_TIMEOUT:
+        cheatingDataManager.handleEvent(eventType, params);
         break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();

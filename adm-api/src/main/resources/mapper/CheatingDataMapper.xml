@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tecdo.adm.api.doris.mapper.CheatingDataMapper">
+
+  <select id="getCheatingData" resultType="com.tecdo.adm.api.doris.entity.CheatingData">
+    SELECT hash_code as hashCode,
+           `type`,
+           cheat_key as cheatKey,
+           reason
+    FROM `cheating`
+    WHERE hash_code > #{hashCode}
+    order by hash_code
+    limit #{batchSize}
+  </select>
+
+</mapper>
