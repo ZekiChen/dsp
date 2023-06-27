@@ -21,4 +21,5 @@ public class AeRtaInfoVO implements Serializable {
     private String materialType;
 
     private String landingPage;
+    private String deeplink;
 }

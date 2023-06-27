@@ -22,6 +22,9 @@ public class AeRtaInfoVO implements Serializable {
     @JSONField(name = "landing_page")
     private String landingPage;
 
+    @JSONField(name = "deep_link")
+    private String deeplink;
+
     @JSONField(name = "product_list")
     private List<AeRtaProductInfoVO> productList;
 
@@ -55,6 +58,14 @@ public class AeRtaInfoVO implements Serializable {
 
     public void setLandingPage(String landingPage) {
         this.landingPage = landingPage;
+    }
+
+    public String getDeeplink() {
+        return deeplink;
+    }
+
+    public void setDeeplink(String deeplink) {
+        this.deeplink = deeplink;
     }
 
     public List<AeRtaProductInfoVO> getProductList() {

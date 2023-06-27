@@ -1,5 +1,6 @@
 package com.tecdo.log;
 
+import cn.hutool.core.date.DateUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
@@ -16,14 +17,11 @@ import com.tecdo.transform.ResponseTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Optional;
-
-import cn.hutool.core.date.DateUtil;
 
 /**
  * 构建 ResponseLog 并持久化至本地文件中
@@ -129,6 +127,7 @@ public class ResponseLogger {
                       .bApp(bidRequest.getBapp())
                       .bCat(bidRequest.getBcat())
                       .responseType(responseType.getType())
+                      .useDeeplink(wrapper.isUseDeeplink() ? 1 : 0)
                       .build();
   }
 }
