@@ -84,7 +84,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     public boolean logicDelete(List<Integer> ids) {
         if (CollUtil.isEmpty(ids)) return false;
         Date date = new Date();
-        List<StatusEntity> adStatusList = listStatus(ids);
+        List<StatusEntity> adGroupStatusList = listStatus(ids);
         List<AdGroup> entities = ids.stream().map(id -> {
             AdGroup entity = new AdGroup();
             entity.setId(id);
@@ -95,7 +95,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         updateBatchById(entities);
         List<Integer> adIds = adService.listIdByGroupIds(ids);
         adService.logicDelete(adIds);
-        bizLogApiService.logByDeleteAdGroup(ids, adStatusList);
+        bizLogApiService.logByDeleteAdGroup(ids, adGroupStatusList);
         return true;
     }
 
@@ -153,11 +153,6 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         if (entity == null) {
             return false;
         }
-        logByUpdateListInfo(vo, entity);
-        return updateById(entity);
-    }
-
-    private void logByUpdateListInfo(SimpleAdGroupUpdateVO vo, AdGroup entity) {
         AdGroupVO beforeVO = Objects.requireNonNull(BeanUtil.copyProperties(entity, AdGroupVO.class));
         entity.setName(vo.getName());
         entity.setDailyBudget(vo.getDailyBudget());
@@ -169,6 +164,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         entity.setUpdateTime(new Date());
         AdGroupVO afterVO = Objects.requireNonNull(BeanUtil.copyProperties(entity, AdGroupVO.class));
         bizLogApiService.logByUpdateAdGroupDirect(beforeVO, afterVO);
+        return updateById(entity);
     }
 
     @Override
@@ -285,7 +281,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             return entity;
         }).collect(Collectors.toList());
         updateBatchById(adGroups);
-        bizLogApiService.logByUpdateBatch(beAdGroupMap, vo);
+        bizLogApiService.logByUpdateBatchAdGroup(beAdGroupMap, vo);
         return true;
     }
 

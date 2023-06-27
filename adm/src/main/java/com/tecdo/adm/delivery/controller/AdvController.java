@@ -78,4 +78,11 @@ public class AdvController {
     public R<List<SimpleAdvVO>> list() {
         return R.data(service.listIdAndName());
     }
+
+    @GetMapping("/info/{campaignId}")
+    @ApiOperationSupport(order = 7)
+    @ApiOperation(value = "根据cId获取Adv", notes = "传入campaignId")
+    public R<Adv> getByCampaignId(@PathVariable("campaignId") Integer campaignId) {
+        return R.data(service.getByCampaignId(campaignId));
+    }
 }

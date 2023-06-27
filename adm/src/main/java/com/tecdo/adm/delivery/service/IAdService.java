@@ -30,4 +30,6 @@ public interface IAdService extends IService<Ad> {
     List<Integer> listIdByGroupIds(List<Integer> adGroupIds);
 
     List<StatusEntity> listStatus(List<Integer> ids);
+
+    boolean edit(Ad entity);
 }

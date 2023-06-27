@@ -64,7 +64,7 @@ public class AdController {
     @ApiOperation(value = "修改", notes = "传入Ad")
     public R update(@Valid @RequestBody Ad ad) {
         CacheUtil.clear(AD_CACHE);
-        return R.status(service.updateById(ad));
+        return R.status(service.edit(ad));
     }
 
     @DeleteMapping("/remove")
