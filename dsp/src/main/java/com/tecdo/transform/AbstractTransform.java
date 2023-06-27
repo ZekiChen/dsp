@@ -183,7 +183,6 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     String deepLink =
             urlFormat(adDTO.getAdGroup().getDeeplink(), sign, wrapper, bidRequest, affiliate);
-    deepLink = deepLinkFormat(deepLink);
 
     String clickUrl;
     if (StrUtil.isNotBlank(wrapper.getLandingPage())) {  // 当前流量命中 AE RTA 受众
@@ -195,6 +194,7 @@ public abstract class AbstractTransform implements IProtoTransform {
     } else {
       clickUrl = urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
     }
+    deepLink = deepLinkFormat(deepLink);
 
     String forceLink =
       urlFormat(adDTO.getAdGroup().getForceLink(), sign, wrapper, bidRequest, affiliate);
