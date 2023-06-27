@@ -1,6 +1,8 @@
 package com.tecdo;
 
 
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
@@ -17,7 +19,8 @@ import com.tecdo.service.rta.ae.AeRtaProductInfoVO;
 import com.tecdo.starter.redis.PacRedis;
 import com.tecdo.util.AeSignHelper;
 import com.tecdo.util.JsonHelper;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -26,22 +29,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
-
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -251,6 +243,9 @@ public class Ae {
             // 目前我们一个竞价请求对应只出价一个曝光展示位，所以每次都只曝光第一个商品（AE推荐）
             // 因此，这里先只替换第一条 landingPage 的主体宏，提升性能，且存回对象上一层的landingPage
             vo.setLandingPage(productList.get(0).getLandingPage().replace(PID_PLACEHOLDER, PID));
+            if (StringUtils.isNotBlank(productList.get(0).getDeeplink())) {
+              vo.setDeeplink(productList.get(0).getDeeplink().replace(PID_PLACEHOLDER, PID));
+            }
             // 由于其他参数目前我们也没有用到，包括AE返回的素材，因此这部分也暂时不写回缓存
             vo.setProductList(null);
           }
@@ -258,6 +253,9 @@ public class Ae {
         case STATIC:
         case INSTALL:
           vo.setLandingPage(vo.getLandingPage().replace(PID_PLACEHOLDER, PID));
+          if (StringUtils.isNotBlank(vo.getDeeplink())) {
+            vo.setDeeplink(vo.getDeeplink().replace(PID_PLACEHOLDER, PID));
+          }
           break;
         case UNKNOWN:
           log.error("unknown material type: {}", vo.getMaterialType());

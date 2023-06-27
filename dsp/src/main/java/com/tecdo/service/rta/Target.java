@@ -11,5 +11,6 @@ public class Target {
   private boolean target;
   private String token;  // Lazada
   private String landingPage;  // AE
+  private String deeplink;  // AE
 
 }

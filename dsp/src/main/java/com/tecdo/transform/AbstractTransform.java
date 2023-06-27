@@ -1,5 +1,7 @@
 package com.tecdo.transform;
 
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
@@ -20,21 +22,14 @@ import com.tecdo.util.AdmGenerator;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 
 @Component
 public abstract class AbstractTransform implements IProtoTransform {
@@ -46,6 +41,9 @@ public abstract class AbstractTransform implements IProtoTransform {
   private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
   private final String AUCTION_LOSS_PARAM = "&loss_code=${AUCTION_LOSS}";
   private final String impInfoUrl = SpringUtil.getProperty("pac.notice.imp-info-url");
+
+  @Value("${pac.ae.rta.deeplink.ratio}")
+  private Double aeDeeplinkRatio;
 
   public abstract String deepLinkFormat(String deepLink);
 
@@ -101,31 +99,35 @@ public abstract class AbstractTransform implements IProtoTransform {
     String bidId = wrapper.getBidId();
     Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
     Creative creative = adDTO.getCreativeMap().get(creativeId);
-    BidResponse bidResponse = new BidResponse();
-    bidResponse.setId(bidRequest.getId());
-    bidResponse.setBidid(bidId);
+
     Bid bid = new Bid();
     bid.setId(bidId);
     bid.setImpid(wrapper.getImpId());
     bid.setPrice(wrapper.getBidPrice().floatValue());
+
     String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
     String winUrl =
       urlFormat(this.winUrl, sign, wrapper, bidRequest, affiliate) + AUCTION_PRICE_PARAM;
+    // 判断当前 ADX 是否支持 loss notice，支持则将回调的 loss ep 设置至 lurl
     if (useLossUrl()) {
       String lossUrl =
         urlFormat(this.lossUrl, sign, wrapper, bidRequest, affiliate) + AUCTION_LOSS_PARAM;
       bid.setLurl(lossUrl);
     }
+    // 判断当前 ADX 是使用 计费通知burl/胜出通知nurl，将回调的 win ep 设置至 burl/nurl
     if (useBurl()) {
       bid.setBurl(SignHelper.urlAddSign(winUrl, sign));
     } else {
       bid.setNurl(SignHelper.urlAddSign(winUrl, sign));
     }
+
+    // 如果当前 native 流量来自 inmobi ，则使用 inmobi 的专用字段 admobject 填充 adm 信息
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType()) && buildAdmObject()) {
       bid.setAdmobject(buildAdm(wrapper, bidRequest, affiliate));
     } else {
       bid.setAdm((String) buildAdm(wrapper, bidRequest, affiliate));
     }
+
     bid.setAdid(String.valueOf(adDTO.getAd().getId()));
     bid.setAdomain(Collections.singletonList(adDTO.getCampaign().getDomain()));
     bid.setBundle(adDTO.getCampaign().getPackageName());
@@ -141,15 +143,19 @@ public abstract class AbstractTransform implements IProtoTransform {
     SeatBid seatBid = new SeatBid();
     seatBid.setBid(Collections.singletonList(bid));
     seatBid.setSeat("agency");
+
+    BidResponse bidResponse = new BidResponse();
+    bidResponse.setId(bidRequest.getId());
+    bidResponse.setBidid(bidId);
     bidResponse.setSeatbid(Collections.singletonList(seatBid));
     return bidResponse;
-
   }
 
   private Object buildAdm(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
     AdDTO adDTO = wrapper.getAdDTO();
-    Object adm = null;
     String impTrackUrls = adDTO.getAdGroup().getImpTrackUrls();
+
+    // 构建展示追踪链
     List<String> impTrackList = new ArrayList<>();
     String systemImpTrack = this.impUrl + AUCTION_PRICE_PARAM;
     String sign = SignHelper.digest(wrapper.getBidId(), adDTO.getCampaign().getId().toString());
@@ -162,6 +168,7 @@ public abstract class AbstractTransform implements IProtoTransform {
                                .map(i -> urlFormat(i, sign, wrapper, bidRequest, affiliate))
                                .collect(Collectors.toList());
 
+    // 构建点击追踪链
     String clickTrackUrls = adDTO.getAdGroup().getClickTrackUrls();
     List<String> clickTrackList = new ArrayList<>();
     String systemClickTrack = this.clickUrl;
@@ -174,15 +181,26 @@ public abstract class AbstractTransform implements IProtoTransform {
                                    .map(i -> urlFormat(i, sign, wrapper, bidRequest, affiliate))
                                    .collect(Collectors.toList());
 
-
-    String clickUrl = StrUtil.isNotBlank(wrapper.getLandingPage())
-      ? AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper.getBidId(), sign)
-      : urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
     String deepLink =
-      urlFormat(adDTO.getAdGroup().getDeeplink(), sign, wrapper, bidRequest, affiliate);
+            urlFormat(adDTO.getAdGroup().getDeeplink(), sign, wrapper, bidRequest, affiliate);
+
+    String clickUrl;
+    if (StrUtil.isNotBlank(wrapper.getLandingPage())) {  // 当前流量命中 AE RTA 受众
+      clickUrl = AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper.getBidId(), sign);
+      if (StrUtil.isNotBlank(wrapper.getDeeplink()) && Math.random() * 100 < aeDeeplinkRatio) {
+        deepLink = AeHelper.landingPageFormat(wrapper.getDeeplink(), wrapper.getBidId(), sign);
+        wrapper.setUseDeeplink(true);
+      }
+    } else {
+      clickUrl = urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
+    }
     deepLink = deepLinkFormat(deepLink);
+
     String forceLink =
       urlFormat(adDTO.getAdGroup().getForceLink(), sign, wrapper, bidRequest, affiliate);
+
+    // 构建 banner 流量的 adm 信息
+    Object adm = null;
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
       if (ResponseTypeEnum.FORCE.equals(getResponseType(wrapper, bidRequest, affiliate))) {
         adm = //
@@ -202,6 +220,8 @@ public abstract class AbstractTransform implements IProtoTransform {
                                      urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate));
       }
     }
+
+    // 构建 native 流量的 adm 信息
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
       List<Imp> impList = bidRequest.getImp();
       Imp imp = impList.stream()
@@ -229,6 +249,7 @@ public abstract class AbstractTransform implements IProtoTransform {
         }
       }
     }
+
     return adm;
   }
 

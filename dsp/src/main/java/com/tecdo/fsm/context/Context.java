@@ -1,5 +1,7 @@
 package com.tecdo.fsm.context;
 
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
@@ -36,22 +38,11 @@ import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.StringConfigUtil;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Context {
@@ -129,7 +120,7 @@ public class Context {
 
   public void handleBidRequest() {
     String bidRequestString = JsonHelper.toJSONString(bidRequest);
-    log.info("contextId: {}, bid request is:{}", requestId, bidRequestString);
+    log.info("contextId: {}, affiliateId: {}, bid request is:{}", requestId, affiliate.getId(), bidRequestString);
     List<Imp> impList = bidRequest.getImp();
     impList.forEach(imp -> {
       Task task = taskPool.get();
@@ -265,6 +256,7 @@ public class Context {
       target.setAdvType(AdvTypeEnum.AE_RTA.getType());
       target.setTarget(vo.getTarget());
       target.setLandingPage(vo.getLandingPage());  // cache sink 已经处理过了，取该层即可
+      target.setDeeplink(vo.getDeeplink());
       return new AbstractMap.SimpleEntry<>(campaignId, target);
     }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }
@@ -293,6 +285,7 @@ public class Context {
             break;
           case AE_RTA:
             ad.setLandingPage(t.getLandingPage());
+            ad.setDeeplink(t.getDeeplink());
             break;
         }
       });
@@ -338,9 +331,9 @@ public class Context {
       cacheNoticeInfoByAe(response, bidRequest);
       ResponseTypeEnum responseType =
         protoTransform.getResponseType(this.response, this.bidRequest, this.affiliate);
-      logBidResponse(responseType);
       BidResponse bidResponse =
         protoTransform.responseTransform(this.response, this.bidRequest, this.affiliate);
+      logBidResponse(responseType);
       String bidResponseString = JsonHelper.toJSONString(bidResponse);
       log.info("contextId: {}, bid response is:{}", requestId, bidResponseString);
       params.put(ParamKey.RESPONSE_BODY, bidResponseString);
