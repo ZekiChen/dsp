@@ -22,6 +22,7 @@ import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
+import com.tecdo.log.AeRtaLogger;
 import com.tecdo.log.RequestLogger;
 import com.tecdo.log.ResponseLogger;
 import com.tecdo.server.request.HttpRequest;
@@ -247,7 +248,6 @@ public class Context {
       cacheService.getRtaCache().getAeRtaResponse(advCampaignIds, deviceId);
     Map<String, AeRtaInfoVO> advCId2AeRtaVOMap =
       aeRtaInfoVOs.stream().collect(Collectors.toMap(AeRtaInfoVO::getAdvCampaignId, e -> e));
-
     return cid2AdvCid.entrySet().stream().map(entry -> {
       Integer campaignId = entry.getKey();
       String advCampaignId = entry.getValue();
@@ -257,6 +257,7 @@ public class Context {
       target.setTarget(vo.getTarget());
       target.setLandingPage(vo.getLandingPage());  // cache sink 已经处理过了，取该层即可
       target.setDeeplink(vo.getDeeplink());
+      AeRtaLogger.log(vo);
       return new AbstractMap.SimpleEntry<>(campaignId, target);
     }).collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
   }

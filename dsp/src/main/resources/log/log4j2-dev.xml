@@ -67,6 +67,10 @@
         <Logger name="validate_request_log" level="INFO" additivity="false">
             <AppenderRef ref="VALIDATE_REQUEST_LOG"/>
         </Logger>
+
+        <Logger name="ae_rta_true_log" level="INFO" additivity="false">
+            <AppenderRef ref="AE_RTA_TRUE_LOG"/>
+        </Logger>
     </Loggers>
 
 </Configuration>

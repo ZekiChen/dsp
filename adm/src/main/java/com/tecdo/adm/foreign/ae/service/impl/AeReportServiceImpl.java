@@ -21,6 +21,7 @@ import com.tecdo.starter.mp.entity.IdEntity;
 import com.tecdo.starter.tool.util.BeanUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.lang.NonNull;
 import org.springframework.stereotype.Service;
 
@@ -37,6 +38,9 @@ import java.util.stream.Collectors;
 public class AeReportServiceImpl implements IAeReportService {
 
     private final ReportMapper reportMapper;
+
+    @Value("${ae.force.click.report.switch}")
+    private boolean isForceClickReport;
 
     @Override
     public AeDataVO<AeReportVO> listAdvCampaignDailyReport(AeDailyCostVO vo) {
@@ -72,6 +76,14 @@ public class AeReportServiceImpl implements IAeReportService {
                     Double cost = adsDi.getImpSuccessPriceTotal();
                     Long imps = adsDi.getImpCount();
                     Long clicks = adsDi.getClickCount();
+
+                    // ae force click 7~11%
+                    if (isForceClickReport && imps != null && clicks != null) {
+                        if (clicks != 0 && (double) clicks / imps >= 0.11) {
+                            double random = Math.random() * 0.04 + 0.07;
+                            clicks = (long) (imps * random);
+                        }
+                    }
 
                     AeReportVO aeReport = AeReportVO.builder()
                             .campaignId(dto.getCampaignRtaInfo().getAdvCampaignId())

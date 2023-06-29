@@ -246,6 +246,23 @@
         </Filters>
     </RollingFile>
 
+    <RollingFile name="AE_RTA_TRUE_LOG" fileName="${BUSINESS_LOG_HOME}/ae-rta-true.log"
+                 filePattern="${BUSINESS_LOG_HOME}/ae-rta-true-%d{yyyy-MM-dd-HH}.log">
+        <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+        </Policies>
+        <DefaultRolloverStrategy>
+            <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                <IfFileName glob="ae-rta-true-*.log"/>
+                <IfAccumulatedFileSize exceeds="10GB"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
     <CatLog4j2Appender name="CatLog4j2Appender">
         <PatternLayout pattern="${ENCODER_PATTERN}"/>
     </CatLog4j2Appender>
