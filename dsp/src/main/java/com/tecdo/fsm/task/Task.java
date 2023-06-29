@@ -452,10 +452,14 @@ public class Task {
           finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
         }
       } else {
-        finalPrice = BigDecimal.valueOf(bidPrice)
-                               .multiply(BigDecimal.valueOf(bundleData.getK()))
-                               .divide(BigDecimal.valueOf(bundleData.getOldK()),
-                                       RoundingMode.HALF_UP);
+        if (bundleData.getOldK() == 0 || bundleData.getK() == 0) {
+          finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
+        } else {
+          finalPrice = BigDecimal.valueOf(bidPrice)
+                                 .multiply(BigDecimal.valueOf(bundleData.getK()))
+                                 .divide(BigDecimal.valueOf(bundleData.getOldK()),
+                                         RoundingMode.HALF_UP);
+        }
       }
     } else {
       BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTO.getAdGroup().getBidStrategy());
