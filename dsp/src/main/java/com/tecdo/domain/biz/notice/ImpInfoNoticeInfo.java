@@ -33,6 +33,7 @@ public class ImpInfoNoticeInfo extends NoticeInfo {
         info.setAdId(httpRequest.getParamAsInt(RequestKeyByImpInfo.AD_ID));
         info.setCreativeId(httpRequest.getParamAsInt(RequestKeyByImpInfo.CREATIVE_ID));
         info.setDeviceId(httpRequest.getParamAsStr(RequestKeyByImpInfo.DEVICE_ID));
+        info.setAffiliateId(httpRequest.getParamAsInt(RequestKeyByImpInfo.AFFILIATE_ID));
 
         info.setWidth(httpRequest.getParamAsStr(RequestKeyByImpInfo.WIDTH));
         info.setHeight(httpRequest.getParamAsStr(RequestKeyByImpInfo.HEIGHT));

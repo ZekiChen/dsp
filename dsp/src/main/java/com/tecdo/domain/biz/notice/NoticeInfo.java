@@ -3,10 +3,11 @@ package com.tecdo.domain.biz.notice;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.ValidateCode;
-import lombok.Getter;
-import lombok.Setter;
 
 import java.io.Serializable;
+
+import lombok.Getter;
+import lombok.Setter;
 
 /**
  * 将出价的 bidId - NoticeInfo 写入缓存，用于通知请求回调时读取使用
@@ -22,6 +23,7 @@ public class NoticeInfo implements Serializable {
     private Integer adId;
     private Integer creativeId;
     private String deviceId;
+    private Integer affiliateId;
 
     // ================ 以下部分非 bid response 时携带 ================
     private String bidSuccessPrice;
@@ -67,6 +69,7 @@ public class NoticeInfo implements Serializable {
         info.setAdId(httpRequest.getParamAsInt(RequestKey.AD_ID));
         info.setCreativeId(httpRequest.getParamAsInt(RequestKey.CREATIVE_ID));
         info.setDeviceId(httpRequest.getParamAsStr(RequestKey.DEVICE_ID));
+        info.setAffiliateId(httpRequest.getParamAsInt(RequestKey.AFFILIATE_ID));
         info.setEventType(httpRequest.getParamAsStr(RequestKey.EVENT_TYPE));
         info.setBidSuccessPrice(httpRequest.getParamAsStr(RequestKey.BID_SUCCESS_PRICE));
         info.setLossCode(httpRequest.getParamAsInt(RequestKey.LOSS_CODE));

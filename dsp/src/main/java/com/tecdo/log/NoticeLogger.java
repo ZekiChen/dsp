@@ -43,6 +43,7 @@ public class NoticeLogger {
         map.put("ad_group_id", info.getAdGroupId());
         map.put("ad_id", info.getAdId());
         map.put("creative_id", info.getCreativeId());
+        map.put("affiliate_id", info.getAffiliateId());
 
         map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
                 new BigDecimal(bidSuccessPrice).doubleValue() : 0d);
@@ -61,6 +62,7 @@ public class NoticeLogger {
         map.put("ad_group_id", info.getAdGroupId());
         map.put("ad_id", info.getAdId());
         map.put("creative_id", info.getCreativeId());
+        map.put("affiliate_id", info.getAffiliateId());
 
         map.put("loss_code", info.getLossCode());
 
@@ -77,6 +79,7 @@ public class NoticeLogger {
         map.put("ad_group_id", info.getAdGroupId());
         map.put("ad_id", info.getAdId());
         map.put("creative_id", info.getCreativeId());
+        map.put("affiliate_id", info.getAffiliateId());
 
         map.put("referer", httpRequest.getHeader(HttpHeaders.REFERER));
         map.put("ua_from_imp", httpRequest.getHeader(HttpHeaders.USER_AGENT));
@@ -98,6 +101,7 @@ public class NoticeLogger {
         map.put("ad_group_id", info.getAdGroupId());
         map.put("ad_id", info.getAdId());
         map.put("creative_id", info.getCreativeId());
+        map.put("affiliate_id", info.getAffiliateId());
 
         map.put("referer", httpRequest.getHeader(HttpHeaders.REFERER));
         map.put("ua_from_click", httpRequest.getHeader(HttpHeaders.USER_AGENT));
@@ -152,6 +156,7 @@ public class NoticeLogger {
         map.put("ad_group_id", info.getAdGroupId());
         map.put("ad_id", info.getAdId());
         map.put("creative_id", info.getCreativeId());
+        map.put("affiliate_id", info.getAffiliateId());
 
         map.put("referer", httpRequest.getHeader(HttpHeaders.REFERER));
         map.put("ua", httpRequest.getHeader(HttpHeaders.USER_AGENT));
