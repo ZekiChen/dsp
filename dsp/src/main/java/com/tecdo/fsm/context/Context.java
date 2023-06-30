@@ -1,7 +1,5 @@
 package com.tecdo.fsm.context;
 
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
@@ -39,11 +37,22 @@ import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.StringConfigUtil;
-import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
+import java.util.AbstractMap;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Context {
@@ -412,6 +421,7 @@ public class Context {
       info.setAdId(ad.getId());
       info.setCreativeId(CreativeHelper.getCreativeId(ad));
       info.setDeviceId(bidRequest.getDevice().getIfa());
+      info.setAffiliateId(affiliate.getId());
       cacheService.getNoticeCache().setNoticeInfo(adDTOWrapper.getBidId(), info);
     }
   }

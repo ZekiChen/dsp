@@ -12,6 +12,7 @@ public interface RequestKeyByImpInfo {
   String AD_ID = "ad_id";
   String CREATIVE_ID = "creative_id";
   String DEVICE_ID = "device_id";
+  String AFFILIATE_ID = "affiliate_id";
 
   String WIDTH = "width";
   String HEIGHT = "height";
