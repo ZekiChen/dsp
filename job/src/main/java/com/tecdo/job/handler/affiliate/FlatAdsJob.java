@@ -60,25 +60,25 @@ public class FlatAdsJob {
             FlatAdsResponse response = result.getBody().toBean(FlatAdsResponse.class);
             List<FlatAdsReportVO> reportVOs = response.getData();
             if (CollUtil.isEmpty(reportVOs)) {
-                logError("call FlatAds report error, data is empty, date: {}" + stdYesterday);
+                XxlJobHelper.log("call FlatAds report error, data is empty, date: {}" + stdYesterday);
                 return;
             }
             FlatAdsReportVO reportVO = reportVOs.get(0);
             Long flatAdsImp = reportVO.getImpression();
             Double flatAdsCost = reportVO.getGrossRevenue();
             if (flatAdsCost == null || flatAdsImp == null) {
-                logError("call FlatAds report cost or imp is null, date: " + stdYesterday);
+                XxlJobHelper.log("call FlatAds report error, data is empty, date: {}" + stdYesterday);
                 return;
             }
             SpentDTO dspSpent = doGetReportSpentForFlatAds();
             if (dspSpent == null) {
-                logError("get report spent for flatAds is null, date: " + stdYesterday);
+                XxlJobHelper.log("get report spent for flatAds is null, date: " + stdYesterday);
                 return;
             }
             long dspImp = dspSpent.getImp() != null ? dspSpent.getImp() : 0L;
             double dspCost = dspSpent.getCost() != null ? dspSpent.getCost() : 0d;
             if (dspImp == 0L || dspCost == 0d) {
-                logError("get report imp/cost for flatAds is 0, date: " + stdYesterday);
+                XxlJobHelper.log("get report imp/cost for flatAds is 0, date: " + stdYesterday);
                 return;
             }
             double impGap = Math.abs((double) (dspImp - flatAdsImp) / dspImp) * 100;

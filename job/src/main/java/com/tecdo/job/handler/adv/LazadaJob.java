@@ -75,11 +75,11 @@ public class LazadaJob {
 
         List<RtaInfo> rtaInfos = rtaInfoMapper.selectList(Wrappers.query());
         LambdaQueryWrapper<Adv> wrapper = Wrappers.<Adv>lambdaQuery()
-                .eq(Adv::getType, AdvTypeEnum.LAZADA_RTA)
-                .eq(Adv::getStatus, BaseStatusEnum.ACTIVE);
+                .eq(Adv::getType, AdvTypeEnum.LAZADA_RTA.getType())
+                .eq(Adv::getStatus, BaseStatusEnum.ACTIVE.getType());
         List<Integer> advIds = advMapper.selectList(wrapper).stream().map(IdEntity::getId).collect(Collectors.toList());
         if (CollUtil.isEmpty(advIds)) {
-            log.info("load db and then: advIds is empty");
+            XxlJobHelper.log("load db and then: advIds is empty");
             return;
         }
         List<Integer> campaignIds = campaignMapper.listIdByAdvIds(advIds);
@@ -101,16 +101,16 @@ public class LazadaJob {
             try {
                 LazopResponse response = client.execute(request);
                 if (response == null || StrUtil.isEmpty(response.getBody())) {
-                    log.error("call lazada report api error, response is empty");
+                    XxlJobHelper.log("call lazada report api error, response is empty");
                     continue;
                 }
                 if (!"0".equals(response.getCode())) {
-                    log.error("call lazada report api fail, code: " + response.getCode());
+                    XxlJobHelper.log("call lazada report api fail, code: " + response.getCode());
                     continue;
                 }
                 LazadaResponse<LazadaReportVO> resp = JSON.parseObject(response.getBody(), new TypeReference<LazadaResponse<LazadaReportVO>>() {});
                 if (resp.getData() == null || CollUtil.isEmpty(resp.getData().getData())) {
-                    log.error("LazadaPage is null or data is empty");
+                    XxlJobHelper.log("LazadaPage is null or data is empty");
                     continue;
                 }
                 // 一个国家的近三天数据
@@ -127,19 +127,19 @@ public class LazadaJob {
                     Long advEvent2 = reportVO.getEvent2();
                     Long advEvent3 = reportVO.getEvent3();
                     if (advEvent1 == null || advEvent2 == null || advEvent3 == null) {
-                        logError("event for lazada exist null, date: " + date + ", country: " + country);
+                        XxlJobHelper.log("event for lazada exist null, date: " + date + ", country: " + country);
                         return;
                     }
                     ReportEventDTO eventDTO = reportMapper.getRepostEventForLazada(date, country, campaignIds);
                     if (eventDTO == null) {
-                        log.info("get report eventDTO for lazada is null, date: " + date + ", country: " + country);
+                        XxlJobHelper.log("get report eventDTO for lazada is null, date: " + date + ", country: " + country);
                         continue;
                     }
                     long dspEvent1 = eventDTO.getEvent1() != null ? eventDTO.getEvent1() : 0L;
                     long dspEvent2 = eventDTO.getEvent2() != null ? eventDTO.getEvent2() : 0L;
                     long dspEvent3 = eventDTO.getEvent3() != null ? eventDTO.getEvent3() : 0L;
                     if (dspEvent1 == 0L || dspEvent2 == 0L || dspEvent3 == 0L) {
-                        log.info("get report event for lazada has 0, date: " + date + ", country: " + country);
+                        XxlJobHelper.log("get report event for lazada has 0, date: " + date + ", country: " + country);
                         continue;
                     }
                     double event1Gap = Math.abs((double) (dspEvent1 - advEvent1) / dspEvent1) * 100;
@@ -175,7 +175,7 @@ public class LazadaJob {
                         WeChatRobotUtils.sendTextMsg(MONITOR_GROUP, msg);
                     }
                 } catch (Exception e) {
-                    logError("flatAdsGap: send text msg error: " + e.getMessage(), true);
+                    logError("lazadaJob: send text msg error: " + e.getMessage(), true);
                     return;
                 }
                 updateLastPeriod(entities);
