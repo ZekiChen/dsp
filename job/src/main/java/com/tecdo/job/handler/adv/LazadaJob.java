@@ -17,10 +17,11 @@ import com.tecdo.adm.api.delivery.dto.ReportEventDTO;
 import com.tecdo.adm.api.delivery.entity.Adv;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
+import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
 import com.tecdo.adm.api.delivery.mapper.AdvMapper;
 import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
 import com.tecdo.adm.api.delivery.mapper.RtaInfoMapper;
-import com.tecdo.adm.api.doris.mapper.ReportMapper;
+import com.tecdo.adm.api.doris.mapper.PostbackMapper;
 import com.tecdo.common.util.WeChatRobotUtils;
 import com.tecdo.job.domain.entity.ReportAdvGap;
 import com.tecdo.job.domain.vo.lazada.LazadaReportVO;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.tecdo.job.util.MonitorGroupHelper.MONITOR_GROUP;
 import static com.tecdo.job.util.MonitorGroupHelper.logError;
@@ -61,10 +63,11 @@ public class LazadaJob {
     @Value("${pac.dsp.adv.gap}")
     private Double gap;
 
-    private final ReportMapper reportMapper;
+    private final PostbackMapper postbackMapper;
     private final IReportAdvGapService reportAdvGapService;
     private final RtaInfoMapper rtaInfoMapper;
     private final CampaignMapper campaignMapper;
+    private final AdGroupMapper adGroupMapper;
     private final AdvMapper advMapper;
 
     @XxlJob("lazadaGap")
@@ -130,7 +133,10 @@ public class LazadaJob {
                         XxlJobHelper.log("event for lazada exist null, date: " + date + ", country: " + country);
                         return;
                     }
-                    ReportEventDTO eventDTO = reportMapper.getRepostEventForLazada(date, country, campaignIds);
+
+                    List<Integer> adGroupIds = adGroupMapper.listIdByCountryAndCIds(country, campaignIds);
+                    List<String> createTimes = convertCreateTime(date);
+                    ReportEventDTO eventDTO = postbackMapper.getRepostEventForLazada(createTimes, adGroupIds);
                     if (eventDTO == null) {
                         XxlJobHelper.log("get report eventDTO for lazada is null, date: " + date + ", country: " + country);
                         continue;
@@ -226,5 +232,11 @@ public class LazadaJob {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private List<String> convertCreateTime(String date) {
+        return IntStream.rangeClosed(0, 23)
+                .mapToObj(i -> String.format("%s_%02d", date, i))
+                .collect(Collectors.toList());
     }
 }
