@@ -34,4 +34,6 @@ public interface AdGroupMapper extends BaseMapper<AdGroup> {
     List<Integer> listIdByCampaignIds(@Param("campaignIds") List<Integer> campaignIds);
 
     List<StatusEntity> listStatus(@Param("ids") List<Integer> ids);
+
+    List<Integer> listIdByCountryAndCIds(@Param("country") String country, @Param("campaignIds") List<Integer> campaignIds);
 }
