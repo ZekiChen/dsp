@@ -38,20 +38,26 @@ public class AdWrapper extends EntityWrapper<Ad, AdVO> {
 			Creative image;
 			switch (adType) {
 				case BANNER:
-					image = CreativeCache.getCreative(vo.getImage());
-					vo.setImageUrl(image.getUrl());
-					vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
+					if (vo.getImage() != null) {
+						image = CreativeCache.getCreative(vo.getImage());
+						vo.setImageUrl(image.getUrl());
+						vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
+					}
 					break;
 				case NATIVE:
-					image = CreativeCache.getCreative(vo.getImage());
-					Creative icon = CreativeCache.getCreative(vo.getIcon());
-					vo.setImageUrl(image.getUrl());
-					vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
-					vo.setIconUrl(icon.getUrl());
-					vo.setIconSize("w" + icon.getWidth() + "h" + icon.getHeight());
+					if (vo.getImage() != null && vo.getIcon() != null) {
+						image = CreativeCache.getCreative(vo.getImage());
+						Creative icon = CreativeCache.getCreative(vo.getIcon());
+						vo.setImageUrl(image.getUrl());
+						vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
+						vo.setIconUrl(icon.getUrl());
+						vo.setIconSize("w" + icon.getWidth() + "h" + icon.getHeight());
+					}
 					break;
 				case VIDEO:
-					vo.setVideoUrl(CreativeCache.getCreative(vo.getVideo()).getUrl());
+					if (vo.getVideo() != null) {
+						vo.setVideoUrl(CreativeCache.getCreative(vo.getVideo()).getUrl());
+					}
 					break;
 				case AUDIO:
 					throw new ServiceException("AD type not supported yet!");
