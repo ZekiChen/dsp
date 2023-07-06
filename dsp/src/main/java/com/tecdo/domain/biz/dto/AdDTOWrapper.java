@@ -1,5 +1,6 @@
 package com.tecdo.domain.biz.dto;
 
+import com.tecdo.transform.ResponseTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -76,5 +77,7 @@ public class AdDTOWrapper {
   private String landingPage;
   private String deeplink;
   private boolean useDeeplink;
+
+  private ResponseTypeEnum responseTypeEnum = ResponseTypeEnum.NORMAL;
 
 }
