@@ -40,8 +40,10 @@ public class AePbInfoVO implements Serializable {
     private String bidId;
     @JsonProperty("rtaSubId2")
     private String sign;
-    private String rtaSubId3;
-    private String rtaSubId4;
+    @JsonProperty("rtaSubId3")
+    private String campaignId;
+    @JsonProperty("rtaSubId4")
+    private String adGroupId;
     private String rtaSubId5;
 
     @JsonProperty("campaignId")
