@@ -1,6 +1,5 @@
 package com.tecdo.redis;
 
-import com.tecdo.domain.biz.notice.NoticeInfo;
 import com.tecdo.service.CacheService;
 import com.tecdo.service.rta.ae.AeRtaInfoVO;
 import com.tecdo.starter.redis.PacRedis;
@@ -34,20 +33,6 @@ public class RedisTest {
     public void test_PacRedis_protostuff_deserialize() {
         AeRtaInfoVO vo = pacRedis.get("test");
         System.out.println(vo);
-    }
-
-    @Test
-    public void test_PacRedis_protostuff_field_ignore_or_not() {
-        NoticeInfo info = new NoticeInfo();
-        info.setCampaignId(123);
-        info.setAdGroupId(456);
-        info.setAdId(789);
-        info.setCreativeId(101112);
-        info.setDeviceId("123asdas1");
-        cacheService.getNoticeCache().setNoticeInfo("bid666", info);
-
-        NoticeInfo noticeInfo = cacheService.getNoticeCache().getNoticeInfo("bid666");
-        System.out.println(noticeInfo);
     }
 
     @Test

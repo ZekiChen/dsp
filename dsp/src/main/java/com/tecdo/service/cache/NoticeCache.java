@@ -2,7 +2,6 @@ package com.tecdo.service.cache;
 
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.common.constant.CacheConstant;
-import com.tecdo.domain.biz.notice.NoticeInfo;
 import com.tecdo.starter.redis.PacRedis;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -25,8 +24,6 @@ public class NoticeCache {
     private final static String HAS_LOSS_CACHE = "has-loss";
     private final static String HAS_IMP_CACHE = "has-imp";
     private final static String HAS_CLICK_CACHE = "has-click";
-
-    private final static String BID_ID_CACHE = "bidId:v2";
 
     @Value("${pac.notice.expire.click}")
     private long clickExpire;
@@ -94,17 +91,4 @@ public class NoticeCache {
         return pacRedis.exists(key);
     }
 
-    public void setNoticeInfo(String bidId, NoticeInfo noticeInfo) {
-        String key = CacheConstant.NOTICE_CACHE
-                .concat(StrUtil.COLON).concat(BID_ID_CACHE)
-                .concat(StrUtil.COLON).concat(bidId);
-        pacRedis.setIfAbsent(key, noticeInfo, pbExpire, TimeUnit.SECONDS);
-    }
-
-    public NoticeInfo getNoticeInfo(String bidId) {
-        String key = CacheConstant.NOTICE_CACHE
-                .concat(StrUtil.COLON).concat(BID_ID_CACHE)
-                .concat(StrUtil.COLON).concat(bidId);
-        return pacRedis.get(key);
-    }
 }

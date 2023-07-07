@@ -191,9 +191,10 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     String clickUrl;
     if (StrUtil.isNotBlank(wrapper.getLandingPage())) {  // 当前流量命中 AE RTA 受众
-      clickUrl = AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper, sign);
+      String deviceId = bidRequest.getDevice().getIfa();
+      clickUrl = AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper, sign, deviceId, affiliate.getId());
       if (StrUtil.isNotBlank(wrapper.getDeeplink()) && Math.random() * 100 < aeDeeplinkRatio) {
-        deepLink = AeHelper.landingPageFormat(wrapper.getDeeplink(), wrapper, sign);
+        deepLink = AeHelper.landingPageFormat(wrapper.getDeeplink(), wrapper, sign, deviceId, affiliate.getId());
         wrapper.setUseDeeplink(true);
       } else {
         forceLink = clickUrl;
