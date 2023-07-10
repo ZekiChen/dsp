@@ -12,6 +12,6 @@ public interface IProtoTransform {
 
   BidResponse responseTransform(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate);
 
-  ResponseTypeEnum getResponseType(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate);
+  ResponseTypeEnum getResponseType(String forceLink, AdDTOWrapper wrapper);
 
 }

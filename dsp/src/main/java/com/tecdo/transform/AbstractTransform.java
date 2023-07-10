@@ -56,9 +56,8 @@ public abstract class AbstractTransform implements IProtoTransform {
   public abstract boolean forceBannerEnable();
 
   @Override
-  public ResponseTypeEnum getResponseType(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
+  public ResponseTypeEnum getResponseType(String forceLink, AdDTOWrapper wrapper) {
     AdDTO adDTO = wrapper.getAdDTO();
-    String forceLink = adDTO.getAdGroup().getForceLink();
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())
             && forceBannerEnable()
             && adDTO.getAdGroup().getForceJumpEnable()
@@ -207,7 +206,7 @@ public abstract class AbstractTransform implements IProtoTransform {
     // 构建 banner 流量的 adm 信息
     Object adm = null;
     if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
-      if (ResponseTypeEnum.FORCE.equals(getResponseType(wrapper, bidRequest, affiliate))) {
+      if (ResponseTypeEnum.FORCE.equals(getResponseType(forceLink, wrapper))) {
         adm = //
           AdmGenerator.forceBannerAdm(clickUrl,
                                       deepLink,
