@@ -17,10 +17,11 @@ import com.tecdo.adm.api.delivery.dto.ReportEventDTO;
 import com.tecdo.adm.api.delivery.entity.Adv;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
+import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
 import com.tecdo.adm.api.delivery.mapper.AdvMapper;
 import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
 import com.tecdo.adm.api.delivery.mapper.RtaInfoMapper;
-import com.tecdo.adm.api.doris.mapper.ReportMapper;
+import com.tecdo.adm.api.doris.mapper.PostbackMapper;
 import com.tecdo.common.util.WeChatRobotUtils;
 import com.tecdo.job.domain.entity.ReportAdvGap;
 import com.tecdo.job.domain.vo.lazada.LazadaReportVO;
@@ -42,6 +43,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.tecdo.job.util.MonitorGroupHelper.MONITOR_GROUP;
 import static com.tecdo.job.util.MonitorGroupHelper.logError;
@@ -61,10 +63,11 @@ public class LazadaJob {
     @Value("${pac.dsp.adv.gap}")
     private Double gap;
 
-    private final ReportMapper reportMapper;
+    private final PostbackMapper postbackMapper;
     private final IReportAdvGapService reportAdvGapService;
     private final RtaInfoMapper rtaInfoMapper;
     private final CampaignMapper campaignMapper;
+    private final AdGroupMapper adGroupMapper;
     private final AdvMapper advMapper;
 
     @XxlJob("lazadaGap")
@@ -75,11 +78,11 @@ public class LazadaJob {
 
         List<RtaInfo> rtaInfos = rtaInfoMapper.selectList(Wrappers.query());
         LambdaQueryWrapper<Adv> wrapper = Wrappers.<Adv>lambdaQuery()
-                .eq(Adv::getType, AdvTypeEnum.LAZADA_RTA)
-                .eq(Adv::getStatus, BaseStatusEnum.ACTIVE);
+                .eq(Adv::getType, AdvTypeEnum.LAZADA_RTA.getType())
+                .eq(Adv::getStatus, BaseStatusEnum.ACTIVE.getType());
         List<Integer> advIds = advMapper.selectList(wrapper).stream().map(IdEntity::getId).collect(Collectors.toList());
         if (CollUtil.isEmpty(advIds)) {
-            log.info("load db and then: advIds is empty");
+            XxlJobHelper.log("load db and then: advIds is empty");
             return;
         }
         List<Integer> campaignIds = campaignMapper.listIdByAdvIds(advIds);
@@ -101,16 +104,16 @@ public class LazadaJob {
             try {
                 LazopResponse response = client.execute(request);
                 if (response == null || StrUtil.isEmpty(response.getBody())) {
-                    log.error("call lazada report api error, response is empty");
+                    XxlJobHelper.log("call lazada report api error, response is empty");
                     continue;
                 }
                 if (!"0".equals(response.getCode())) {
-                    log.error("call lazada report api fail, code: " + response.getCode());
+                    XxlJobHelper.log("call lazada report api fail, code: " + response.getCode());
                     continue;
                 }
                 LazadaResponse<LazadaReportVO> resp = JSON.parseObject(response.getBody(), new TypeReference<LazadaResponse<LazadaReportVO>>() {});
                 if (resp.getData() == null || CollUtil.isEmpty(resp.getData().getData())) {
-                    log.error("LazadaPage is null or data is empty");
+                    XxlJobHelper.log("LazadaPage is null or data is empty");
                     continue;
                 }
                 // 一个国家的近三天数据
@@ -127,19 +130,22 @@ public class LazadaJob {
                     Long advEvent2 = reportVO.getEvent2();
                     Long advEvent3 = reportVO.getEvent3();
                     if (advEvent1 == null || advEvent2 == null || advEvent3 == null) {
-                        logError("event for lazada exist null, date: " + date + ", country: " + country);
+                        XxlJobHelper.log("event for lazada exist null, date: " + date + ", country: " + country);
                         return;
                     }
-                    ReportEventDTO eventDTO = reportMapper.getRepostEventForLazada(date, country, campaignIds);
+
+                    List<Integer> adGroupIds = adGroupMapper.listIdByCountryAndCIds(country, campaignIds);
+                    List<String> createTimes = convertCreateTime(date);
+                    ReportEventDTO eventDTO = postbackMapper.getRepostEventForLazada(createTimes, adGroupIds);
                     if (eventDTO == null) {
-                        log.info("get report eventDTO for lazada is null, date: " + date + ", country: " + country);
+                        XxlJobHelper.log("get report eventDTO for lazada is null, date: " + date + ", country: " + country);
                         continue;
                     }
                     long dspEvent1 = eventDTO.getEvent1() != null ? eventDTO.getEvent1() : 0L;
                     long dspEvent2 = eventDTO.getEvent2() != null ? eventDTO.getEvent2() : 0L;
                     long dspEvent3 = eventDTO.getEvent3() != null ? eventDTO.getEvent3() : 0L;
                     if (dspEvent1 == 0L || dspEvent2 == 0L || dspEvent3 == 0L) {
-                        log.info("get report event for lazada has 0, date: " + date + ", country: " + country);
+                        XxlJobHelper.log("get report event for lazada has 0, date: " + date + ", country: " + country);
                         continue;
                     }
                     double event1Gap = Math.abs((double) (dspEvent1 - advEvent1) / dspEvent1) * 100;
@@ -175,7 +181,7 @@ public class LazadaJob {
                         WeChatRobotUtils.sendTextMsg(MONITOR_GROUP, msg);
                     }
                 } catch (Exception e) {
-                    logError("flatAdsGap: send text msg error: " + e.getMessage(), true);
+                    logError("lazadaJob: send text msg error: " + e.getMessage(), true);
                     return;
                 }
                 updateLastPeriod(entities);
@@ -226,5 +232,11 @@ public class LazadaJob {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private List<String> convertCreateTime(String date) {
+        return IntStream.rangeClosed(0, 23)
+                .mapToObj(i -> String.format("%s_%02d", date, i))
+                .collect(Collectors.toList());
     }
 }

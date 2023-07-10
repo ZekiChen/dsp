@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
+import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
 import com.tecdo.adm.api.delivery.vo.*;
@@ -47,12 +48,16 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     @Override
     public boolean add(AdGroupVO vo) {
+        vo.setForceLink(vo.getClickUrl());  // 测试时发现 deeplink 无法实现强跳
         return save(vo) && conditionService.saveBatch(vo.listCondition());
     }
 
     @Override
     public boolean edit(AdGroupVO vo) {
         if (vo.getId() != null) {
+            if (StrUtil.isNotBlank(vo.getClickUrl())) {
+                vo.setForceLink(vo.getClickUrl());
+            }
             logByUpdate(vo);
             if (updateById(vo)) {
                 conditionService.deleteByAdGroupIds(Collections.singletonList(vo.getId()));
@@ -269,18 +274,26 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     @Override
     public boolean updateBatch(BatchAdGroupUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
-        Map<Integer, AdGroup> beAdGroupMap = listByIds(adGroupIds).stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
-        List<AdGroup> adGroups = vo.getAdGroupIds().stream().map(id -> {
+        List<AdGroup> adGroups = listByIds(adGroupIds);
+        if (vo.getBidMultiplier() != null) {
+            boolean match = adGroups.stream().anyMatch(e -> BidStrategyEnum.DYNAMIC.getType() != e.getBidStrategy());
+            if (match) {
+                throw new ServiceException("batch update bid multiplier does not allow non-BPC Strategy");
+            }
+        }
+        Map<Integer, AdGroup> beAdGroupMap = adGroups.stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
+        List<AdGroup> updateAdGroups = vo.getAdGroupIds().stream().map(id -> {
             AdGroup entity = new AdGroup();
             entity.setId(id);
             entity.setStatus(vo.getStatus());
             entity.setOptPrice(vo.getOptPrice());
             entity.setBidStrategy(vo.getBidStrategy());
             entity.setDailyBudget(vo.getDailyBudget());
+            entity.setBidMultiplier(vo.getBidMultiplier());
             entity.setUpdateTime(new Date());
             return entity;
         }).collect(Collectors.toList());
-        updateBatchById(adGroups);
+        updateBatchById(updateAdGroups);
         bizLogApiService.logByUpdateBatchAdGroup(beAdGroupMap, vo);
         return true;
     }

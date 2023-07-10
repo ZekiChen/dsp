@@ -26,6 +26,8 @@ public class BatchAdGroupUpdateVO implements Serializable {
 	private Integer bidStrategy;
 	@ApiModelProperty("日预算")
 	private Double dailyBudget;
+	@ApiModelProperty("底价乘数,只在bidStrategy=4时生效")
+	private Double bidMultiplier;
 	@ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
 	private Integer status;
 }

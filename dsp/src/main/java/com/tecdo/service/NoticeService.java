@@ -1,6 +1,7 @@
 package com.tecdo.service;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.dto.CampaignDTO;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.*;
@@ -57,11 +58,13 @@ public class NoticeService {
             return;
         }
         for (AePbInfoVO aePbInfoVO : aePbDataVO.getData()) {
-            NoticeInfo info = cacheService.getNoticeCache().getNoticeInfo(aePbInfoVO.getBidId());
-            if (info == null) {
+            String campaignToCreativeId = aePbInfoVO.getCampaignToCreativeId();
+            if (StrUtil.isBlank(campaignToCreativeId)
+                    || campaignToCreativeId.split("_").length != 4) {
                 ResponseHelper.aeParamError(messageQueue, params, httpRequest);
                 return;
             }
+            NoticeInfo info = buildAeBaseInfo(campaignToCreativeId);
             CampaignDTO campaignDTO = adManager.getCampaignDTOMap().get(info.getCampaignId());
             if (campaignDTO == null
                     || campaignDTO.getCampaignRtaInfo() == null
@@ -69,6 +72,8 @@ public class NoticeService {
                 ResponseHelper.aeParamError(messageQueue, params, httpRequest);
                 return;
             }
+            info.setDeviceId(aePbInfoVO.getDeviceId());
+            info.setAffiliateId(Integer.valueOf(aePbInfoVO.getAffiliateId()));
             info.setBidId(aePbInfoVO.getBidId());
             info.setSign(aePbInfoVO.getSign());
             info.setIsRealtime(aePbInfoVO.getIsRealtime());
@@ -95,6 +100,16 @@ public class NoticeService {
         }
         infos.forEach(info -> logValidateSucceed(eventType, httpRequest, info));
         ResponseHelper.aeOK(messageQueue, params, httpRequest);
+    }
+
+    private static NoticeInfo buildAeBaseInfo(String campaignToCreativeId) {
+        String[] strArr = campaignToCreativeId.split("_");
+        NoticeInfo info = new NoticeInfo();
+        info.setCampaignId(Integer.valueOf(strArr[0]));
+        info.setAdGroupId(Integer.valueOf(strArr[1]));
+        info.setAdId(Integer.valueOf(strArr[2]));
+        info.setCreativeId(Integer.valueOf(strArr[3]));
+        return info;
     }
 
     private void impInfoHandle(EventType eventType, Params params, HttpRequest httpRequest) {

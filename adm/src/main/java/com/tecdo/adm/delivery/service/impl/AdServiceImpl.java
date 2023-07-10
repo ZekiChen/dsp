@@ -22,6 +22,7 @@ import com.tecdo.starter.mp.entity.StatusEntity;
 import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import com.tecdo.starter.tool.BigTool;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
@@ -31,6 +32,7 @@ import java.util.stream.Collectors;
 /**
  * Created by Zeki on 2023/3/6
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdService {
@@ -70,6 +72,8 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
             return false;
         }
         List<Ad> sourceAds = listByIds(BigTool.toIntList(sourceAdIds));
+        List<Integer> sIds = sourceAds.stream().map(IdEntity::getId).collect(Collectors.toList());
+        log.info("batch copy ad, source ad id list: {}", sIds);
         List<Ad> targetAds = targetAdGroupIds.stream()
                 .flatMap(groupId -> sourceAds.stream()
                         .map(sourceAd -> {
@@ -80,6 +84,8 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
                             return targetAd;
                         }))
                 .collect(Collectors.toList());
+        List<Integer> tIds = targetAds.stream().map(IdEntity::getId).collect(Collectors.toList());
+        log.info("batch copy ad, target ad id list: {}", tIds);
         saveBatch(targetAds);
         return true;
     }

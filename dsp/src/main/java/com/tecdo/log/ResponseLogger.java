@@ -13,7 +13,6 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
-import com.tecdo.transform.ResponseTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
@@ -35,18 +34,16 @@ public class ResponseLogger {
   public static void log(AdDTOWrapper wrapper,
                          BidRequest bidRequest,
                          Affiliate affiliate,
-                         GooglePlayApp googlePlayApp,
-                         ResponseTypeEnum responseType) {
+                         GooglePlayApp googlePlayApp) {
     ResponseLog responseLog =
-      buildResponseLog(wrapper, bidRequest, affiliate, googlePlayApp, responseType);
+      buildResponseLog(wrapper, bidRequest, affiliate, googlePlayApp);
     responseLogger.info(JsonHelper.toJSONString(responseLog));
   }
 
   private static ResponseLog buildResponseLog(AdDTOWrapper wrapper,
                                               BidRequest bidRequest,
                                               Affiliate affiliate,
-                                              GooglePlayApp googlePlayApp,
-                                              ResponseTypeEnum responseType) {
+                                              GooglePlayApp googlePlayApp) {
     Integer creativeId = CreativeHelper.getCreativeId(wrapper.getAdDTO().getAd());
     Imp imp = bidRequest.getImp()
                         .stream()
@@ -126,7 +123,7 @@ public class ResponseLogger {
                       .bAdv(bidRequest.getBadv())
                       .bApp(bidRequest.getBapp())
                       .bCat(bidRequest.getBcat())
-                      .responseType(responseType.getType())
+                      .responseType(wrapper.getResponseTypeEnum().getType())
                       .useDeeplink(wrapper.isUseDeeplink() ? 1 : 0)
                       .build();
   }

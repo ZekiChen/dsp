@@ -1,7 +1,8 @@
 package com.tecdo.fsm.context;
 
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
-import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
@@ -13,7 +14,6 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
-import com.tecdo.domain.biz.notice.NoticeInfo;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.domain.openrtb.response.BidResponse;
@@ -31,27 +31,14 @@ import com.tecdo.service.rta.Target;
 import com.tecdo.service.rta.ae.AeRtaInfoVO;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
-import com.tecdo.transform.ResponseTypeEnum;
 import com.tecdo.util.ActionConsumeRecorder;
-import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.StringConfigUtil;
+import lombok.extern.slf4j.Slf4j;
 
-import java.util.AbstractMap;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 public class Context {
@@ -336,12 +323,9 @@ public class Context {
       params.put(ParamKey.HTTP_CODE, HttpCode.NOT_BID);
       params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
     } else {
-      cacheNoticeInfoByAe(response, bidRequest);
-      ResponseTypeEnum responseType =
-        protoTransform.getResponseType(this.response, this.bidRequest, this.affiliate);
       BidResponse bidResponse =
         protoTransform.responseTransform(this.response, this.bidRequest, this.affiliate);
-      logBidResponse(responseType);
+      logBidResponse();
       String bidResponseString = JsonHelper.toJSONString(bidResponse);
       log.info("contextId: {}, bid response is:{}", requestId, bidResponseString);
       params.put(ParamKey.RESPONSE_BODY, bidResponseString);
@@ -383,10 +367,10 @@ public class Context {
 
   }
 
-  private void logBidResponse(ResponseTypeEnum responseType) {
+  private void logBidResponse() {
     GooglePlayApp googleApp =
       googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
-    ResponseLogger.log(response, bidRequest, affiliate, googleApp, responseType);
+    ResponseLogger.log(response, bidRequest, affiliate, googleApp);
   }
 
   private void logBidRequest() {
@@ -407,21 +391,6 @@ public class Context {
                         rtaRequestTrue,
                         googleApp);
     });
-  }
-
-  private void cacheNoticeInfoByAe(AdDTOWrapper adDTOWrapper, BidRequest bidRequest) {
-    Integer advType = adDTOWrapper.getAdDTO().getAdv().getType();
-    if (AdvTypeEnum.AE_RTA.getType() == advType) {
-      Ad ad = adDTOWrapper.getAdDTO().getAd();
-      NoticeInfo info = new NoticeInfo();
-      info.setCampaignId(adDTOWrapper.getAdDTO().getCampaign().getId());
-      info.setAdGroupId(adDTOWrapper.getAdDTO().getAdGroup().getId());
-      info.setAdId(ad.getId());
-      info.setCreativeId(CreativeHelper.getCreativeId(ad));
-      info.setDeviceId(bidRequest.getDevice().getIfa());
-      info.setAffiliateId(affiliate.getId());
-      cacheService.getNoticeCache().setNoticeInfo(adDTOWrapper.getBidId(), info);
-    }
   }
 
   public void tick(String action) {

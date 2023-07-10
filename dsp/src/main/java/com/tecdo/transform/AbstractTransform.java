@@ -59,10 +59,13 @@ public abstract class AbstractTransform implements IProtoTransform {
   public ResponseTypeEnum getResponseType(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
     AdDTO adDTO = wrapper.getAdDTO();
     String forceLink = adDTO.getAdGroup().getForceLink();
-    if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
-      if (forceBannerEnable() && StringUtils.isNotBlank(forceLink)) {
+    if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())
+            && forceBannerEnable()
+            && adDTO.getAdGroup().getForceJumpEnable()
+            && StringUtils.isNotBlank(forceLink)
+            && Math.random() < adDTO.getAdGroup().getForceJumpRatio()) {
+        wrapper.setResponseTypeEnum(ResponseTypeEnum.FORCE);
         return ResponseTypeEnum.FORCE;
-      }
     }
     return ResponseTypeEnum.NORMAL;
   }
@@ -183,21 +186,23 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     String deepLink =
             urlFormat(adDTO.getAdGroup().getDeeplink(), sign, wrapper, bidRequest, affiliate);
+    String forceLink =
+            urlFormat(adDTO.getAdGroup().getForceLink(), sign, wrapper, bidRequest, affiliate);
 
     String clickUrl;
     if (StrUtil.isNotBlank(wrapper.getLandingPage())) {  // 当前流量命中 AE RTA 受众
-      clickUrl = AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper.getBidId(), sign);
+      String deviceId = bidRequest.getDevice().getIfa();
+      clickUrl = AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper, sign, deviceId, affiliate.getId());
       if (StrUtil.isNotBlank(wrapper.getDeeplink()) && Math.random() * 100 < aeDeeplinkRatio) {
-        deepLink = AeHelper.landingPageFormat(wrapper.getDeeplink(), wrapper.getBidId(), sign);
+        deepLink = AeHelper.landingPageFormat(wrapper.getDeeplink(), wrapper, sign, deviceId, affiliate.getId());
         wrapper.setUseDeeplink(true);
+      } else {
+        forceLink = clickUrl;
       }
     } else {
       clickUrl = urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
     }
     deepLink = deepLinkFormat(deepLink);
-
-    String forceLink =
-      urlFormat(adDTO.getAdGroup().getForceLink(), sign, wrapper, bidRequest, affiliate);
 
     // 构建 banner 流量的 adm 信息
     Object adm = null;

@@ -49,6 +49,10 @@ public class AdGroup extends BaseEntity {
     private Integer status;
     @ApiModelProperty("是否开启bundle测试期,1为开启，0为不开启")
     private Boolean bundleTestEnable;
+    @ApiModelProperty("强制跳转开关")
+    private Boolean forceJumpEnable;
+    @ApiModelProperty("强制跳转比例")
+    private Double forceJumpRatio;
     @ApiModelProperty("强制跳转链接")
     private String forceLink;
 }
