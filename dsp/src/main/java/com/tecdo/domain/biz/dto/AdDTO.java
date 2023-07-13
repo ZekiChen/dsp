@@ -6,7 +6,6 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
-import java.util.List;
 import java.util.Map;
 
 /**
@@ -35,9 +34,9 @@ public class AdDTO implements Serializable {
   private AdGroup adGroup;
 
   /**
-   * group关联的定向条件集
+   * group关联的定向条件集  attribute - condition
    */
-  private List<TargetCondition> conditions;
+  private Map<String, TargetCondition> conditionMap;
 
   /**
    * 广告所属的 campaign 信息

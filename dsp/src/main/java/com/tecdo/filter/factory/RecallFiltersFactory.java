@@ -2,6 +2,7 @@ package com.tecdo.filter.factory;
 
 import cn.hutool.core.collection.CollUtil;
 import com.tecdo.filter.*;
+import com.tecdo.filter.util.FilterChainHelper;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -10,13 +11,15 @@ import java.util.List;
 
 /**
  * 广告召回 对象工厂
- *
+ * <p>
  * Created by Zeki on 2023/1/3
  **/
 @Getter
 @Component
 @RequiredArgsConstructor
 public class RecallFiltersFactory {
+
+    private List<AbstractRecallFilter> filterChain;
 
     private final AffiliateFilter affiliateFilter;
     private final AppBundleFilter appBundleFilter;
@@ -38,21 +41,28 @@ public class RecallFiltersFactory {
      * 获取广告召回流程所需的全部过滤器集
      */
     public List<AbstractRecallFilter> createFilters() {
-        return CollUtil.newArrayList(affiliateFilter,
-                                     affiliateBlockedAdFilter,
-                                     timePeriodFilter,
-                                     deviceCountryFilter,
-                                     deviceOSFilter,
-                                     deviceOSVFilter,
-                                     creativeFormatFilter,
-                                     deviceMakeFilter,
-                                     connectTypeFilter,
-                                     deviceLangFilter,
-                                     appBundleFilter,
-                                     budgetFilter,
-                                     afAudienceFilter,
-                                     impFrequencyFilter,
-                                     clickFrequencyFilter
-                                     );
+        if (filterChain == null) {
+            List<AbstractRecallFilter> filters = CollUtil.newArrayList(
+                    affiliateFilter,
+                    affiliateBlockedAdFilter,
+                    timePeriodFilter,
+                    deviceCountryFilter,
+                    deviceOSFilter,
+                    deviceOSVFilter,
+                    creativeFormatFilter,
+                    deviceMakeFilter,
+                    connectTypeFilter,
+                    deviceLangFilter,
+                    appBundleFilter,
+                    budgetFilter,
+                    afAudienceFilter,
+                    impFrequencyFilter,
+                    clickFrequencyFilter
+            );
+            FilterChainHelper.assemble(filters);
+            filterChain = filters;
+        }
+        return filterChain;
     }
+
 }

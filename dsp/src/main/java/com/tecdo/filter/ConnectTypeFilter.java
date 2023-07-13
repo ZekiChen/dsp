@@ -17,11 +17,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class ConnectTypeFilter extends AbstractRecallFilter {
 
-    private static final String CONNECT_ATTR = ConditionEnum.CONNECTION_TYPE.getDesc();
+    private static final String ATTRIBUTE = ConditionEnum.CONNECTION_TYPE.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditions().stream().filter(e -> CONNECT_ATTR.equals(e.getAttribute())).findFirst().orElse(null);
+        TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
         if (condition == null) {
             return true;
         }
