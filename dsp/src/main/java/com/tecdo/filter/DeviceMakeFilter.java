@@ -18,11 +18,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeviceMakeFilter extends AbstractRecallFilter {
 
-    private static final String MAKE_ATTR = ConditionEnum.DEVICE_MAKE.getDesc();
+    private static final String ATTRIBUTE = ConditionEnum.DEVICE_MAKE.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditions().stream().filter(e -> MAKE_ATTR.equals(e.getAttribute())).findFirst().orElse(null);
+        TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
         if (condition == null) {
             return true;
         }

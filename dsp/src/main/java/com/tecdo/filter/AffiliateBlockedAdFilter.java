@@ -15,11 +15,11 @@ import java.util.List;
 @Component
 public class AffiliateBlockedAdFilter extends AbstractRecallFilter {
 
-    private static final String ATTR = ConditionEnum.AFFILIATE_BLOCKED_AD.getDesc();
+    private static final String ATTRIBUTE = ConditionEnum.AFFILIATE_BLOCKED_AD.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditions().stream().filter(e -> ATTR.equals(e.getAttribute())).findFirst().orElse(null);
+        TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
         // 目前默认不开启这个过滤
         if (condition == null) {
             return true;
