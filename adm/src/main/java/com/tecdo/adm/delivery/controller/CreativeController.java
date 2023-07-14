@@ -116,8 +116,10 @@ public class CreativeController {
     @GetMapping("/page")
     @ApiOperationSupport(order = 5)
     @ApiOperation(value = "分页", notes = "传入Creative")
-    public R<IPage<CreativeVO>> page(Creative creative, PQuery query) {
+    public R<IPage<CreativeVO>> page(Creative creative, PQuery query,
+                                     @RequestParam(value = "ids", required = false) String ids) {
         LambdaQueryWrapper<Creative> wrapper = Wrappers.lambdaQuery();
+        wrapper.in(StrUtil.isNotBlank(ids), Creative::getId, BigTool.toIntList(ids));
         wrapper.like(StrUtil.isNotBlank(creative.getName()), Creative::getName, creative.getName());
         wrapper.eq(creative.getType() != null, Creative::getType, creative.getType());
         wrapper.eq(creative.getWidth() != null, Creative::getWidth, creative.getWidth());
