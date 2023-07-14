@@ -4,7 +4,7 @@ import cn.hutool.core.collection.CollUtil;
 import com.tecdo.filter.*;
 import com.tecdo.filter.util.FilterChainHelper;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -16,10 +16,9 @@ import java.util.List;
  **/
 @Getter
 @Component
-@RequiredArgsConstructor
 public class RecallFiltersFactory {
 
-    private List<AbstractRecallFilter> filterChain;
+    private final List<AbstractRecallFilter> filterChain;
 
     private final AffiliateFilter affiliateFilter;
     private final AppBundleFilter appBundleFilter;
@@ -37,32 +36,65 @@ public class RecallFiltersFactory {
     private final AfAudienceFilter afAudienceFilter;
     private final AffiliateBlockedAdFilter affiliateBlockedAdFilter;
 
+    @Autowired
+    public RecallFiltersFactory(AffiliateFilter affiliateFilter,
+                                AppBundleFilter appBundleFilter,
+                                ConnectTypeFilter connectTypeFilter,
+                                DeviceLangFilter deviceLangFilter,
+                                CreativeFormatFilter creativeFormatFilter,
+                                DeviceCountryFilter deviceCountryFilter,
+                                DeviceMakeFilter deviceMakeFilter,
+                                DeviceOSFilter deviceOSFilter,
+                                DeviceOSVFilter deviceOSVFilter,
+                                TimePeriodFilter timePeriodFilter,
+                                BudgetFilter budgetFilter,
+                                ImpFrequencyFilter impFrequencyFilter,
+                                ClickFrequencyFilter clickFrequencyFilter,
+                                AfAudienceFilter afAudienceFilter,
+                                AffiliateBlockedAdFilter affiliateBlockedAdFilter) {
+
+        this.affiliateFilter = affiliateFilter;
+        this.appBundleFilter = appBundleFilter;
+        this.connectTypeFilter = connectTypeFilter;
+        this.deviceLangFilter = deviceLangFilter;
+        this.creativeFormatFilter = creativeFormatFilter;
+        this.deviceCountryFilter = deviceCountryFilter;
+        this.deviceMakeFilter = deviceMakeFilter;
+        this.deviceOSFilter = deviceOSFilter;
+        this.deviceOSVFilter = deviceOSVFilter;
+        this.timePeriodFilter = timePeriodFilter;
+        this.budgetFilter = budgetFilter;
+        this.impFrequencyFilter = impFrequencyFilter;
+        this.clickFrequencyFilter = clickFrequencyFilter;
+        this.afAudienceFilter = afAudienceFilter;
+        this.affiliateBlockedAdFilter = affiliateBlockedAdFilter;
+
+        List<AbstractRecallFilter> filters = CollUtil.newArrayList(
+                affiliateFilter,
+                affiliateBlockedAdFilter,
+                timePeriodFilter,
+                deviceCountryFilter,
+                deviceOSFilter,
+                deviceOSVFilter,
+                creativeFormatFilter,
+                deviceMakeFilter,
+                connectTypeFilter,
+                deviceLangFilter,
+                appBundleFilter,
+                budgetFilter,
+                afAudienceFilter,
+                impFrequencyFilter,
+                clickFrequencyFilter
+        );
+        FilterChainHelper.assemble(filters);
+        this.filterChain = filters;
+    }
+
     /**
      * 获取广告召回流程所需的全部过滤器集
      */
     public List<AbstractRecallFilter> createFilters() {
-        if (filterChain == null) {
-            List<AbstractRecallFilter> filters = CollUtil.newArrayList(
-                    affiliateFilter,
-                    affiliateBlockedAdFilter,
-                    timePeriodFilter,
-                    deviceCountryFilter,
-                    deviceOSFilter,
-                    deviceOSVFilter,
-                    creativeFormatFilter,
-                    deviceMakeFilter,
-                    connectTypeFilter,
-                    deviceLangFilter,
-                    appBundleFilter,
-                    budgetFilter,
-                    afAudienceFilter,
-                    impFrequencyFilter,
-                    clickFrequencyFilter
-            );
-            FilterChainHelper.assemble(filters);
-            filterChain = filters;
-        }
-        return filterChain;
+        return this.filterChain;
     }
 
 }
