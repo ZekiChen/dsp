@@ -18,11 +18,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class AppBundleFilter extends AbstractRecallFilter {
 
-    private static final String BUNDLE_ATTR = ConditionEnum.BUNDLE.getDesc();
+    private static final String ATTRIBUTE = ConditionEnum.BUNDLE.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditions().stream().filter(e -> BUNDLE_ATTR.equals(e.getAttribute())).findFirst().orElse(null);
+        TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
         if (condition == null) {
             return true;
         }

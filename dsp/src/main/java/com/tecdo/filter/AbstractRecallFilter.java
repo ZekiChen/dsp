@@ -1,15 +1,11 @@
 package com.tecdo.filter;
 
+import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.adm.api.delivery.entity.Affiliate;
-
 import lombok.Getter;
 import lombok.Setter;
-
-import java.util.HashSet;
-import java.util.Set;
 
 /**
  * 广告召回 抽象类
@@ -31,19 +27,6 @@ public abstract class AbstractRecallFilter {
         String EXCLUDE = "exclude";  // 不包含，value为数组
         String CONTAINS = "contains";  // 不包含，value为数组
         String NOT_CONTAINS = "not_contains";  // 不包含，value为数组
-    }
-
-    private static final Set<String> OPERATION_SET = new HashSet<>();
-
-    static {
-        OPERATION_SET.add(Constant.EQ);
-        OPERATION_SET.add(Constant.GT);
-        OPERATION_SET.add(Constant.LT);
-        OPERATION_SET.add(Constant.GTE);
-        OPERATION_SET.add(Constant.LTE);
-        OPERATION_SET.add(Constant.BETWEEN);
-        OPERATION_SET.add(Constant.INCLUDE);
-        OPERATION_SET.add(Constant.EXCLUDE);
     }
 
     /**

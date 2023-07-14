@@ -20,6 +20,7 @@ import javax.annotation.Nullable;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * 对 广告召回所有过滤器 进行测试
@@ -74,7 +75,7 @@ public class RecallFilterTest {
 
     @Test
     public void test_ImpFrequencyFilter_and_ClickFrequencyFilter() {
-        adDTO.setConditions(buildConditions("example-condition/conditions-frequency.json"));
+        adDTO.setConditionMap(buildConditions("example-condition/conditions-frequency.json"));
         ImpFrequencyFilter impFilter = filtersFactory.getImpFrequencyFilter();
         ClickFrequencyFilter clickFilter = filtersFactory.getClickFrequencyFilter();
         bidRequest.getImp().forEach(imp -> impFilter.doFilter(bidRequest, imp, adDTO, affiliate));
@@ -126,15 +127,16 @@ public class RecallFilterTest {
                 .ad(buidAd())
                 .creativeMap(buildCreativeMap("example-creative/creatives.json"))
                 .adGroup(buildAdGroup())
-                .conditions(buildConditions("example-condition/conditions.json"))
+                .conditionMap(buildConditions("example-condition/conditions.json"))
                 .campaign(buildCampaign())
                 .campaignRtaInfo(buildCampaignRtaInfo())
                 .build();
     }
 
-    private List<TargetCondition> buildConditions(String resourcePath) {
+    private Map<String, TargetCondition> buildConditions(String resourcePath) {
         String json = ResourceUtil.readUtf8Str(resourcePath);
-        return JSON.parseArray(json, TargetCondition.class);
+        List<TargetCondition> conditions = JSON.parseArray(json, TargetCondition.class);
+        return conditions.stream().collect(Collectors.toMap(TargetCondition::getAttribute, e -> e));
     }
 
     private Ad buidAd() {

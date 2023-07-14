@@ -19,13 +19,13 @@ import org.springframework.stereotype.Component;
 @Component
 @RequiredArgsConstructor
 public class AfAudienceFilter  extends AbstractRecallFilter{
-    private static final String AUDIENCE_AF = ConditionEnum.AUDIENCE_AF.getDesc();
+    private static final String ATTRIBUTE = ConditionEnum.AUDIENCE_AF.getDesc();
 
     private final CacheService cacheService;
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditions().stream().filter(v-> AUDIENCE_AF.equals(v.getAttribute())).findFirst().orElse(null);
+        TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
         if (condition == null) {
             return true;
         }

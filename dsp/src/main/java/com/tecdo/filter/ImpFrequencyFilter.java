@@ -15,17 +15,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ImpFrequencyFilter extends AbstractRecallFilter {
 
-  private static final String IMP_FREQUENCY_ATTR = ConditionEnum.IMP_FREQUENCY.getDesc();
+  private static final String ATTRIBUTE = ConditionEnum.IMP_FREQUENCY.getDesc();
 
   private final CacheService cacheService;
 
   @Override
   public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-    TargetCondition condition = adDTO.getConditions()
-                                     .stream()
-                                     .filter(e -> IMP_FREQUENCY_ATTR.equals(e.getAttribute()))
-                                     .findFirst()
-                                     .orElse(null);
+    TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
     if (condition == null) {
       return true;
     }

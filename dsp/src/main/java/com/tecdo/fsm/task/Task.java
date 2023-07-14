@@ -1,6 +1,5 @@
 package com.tecdo.fsm.task;
 
-import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
@@ -148,6 +147,7 @@ public class Task {
 
   public void listRecallAd() {
     Params params = assignParams();
+    // to solve when timeout,imp will set to null,then imp.getId() will cause null point exception
     BidRequest bidRequest = this.bidRequest;
     Imp imp = this.imp;
     Affiliate affiliate = this.affiliate;
@@ -172,18 +172,9 @@ public class Task {
                                                     Imp imp,
                                                     Affiliate affiliate) {
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
-    FilterChainHelper.assemble(filters);
-
     Map<Integer, AdDTOWrapper> resMap = new HashMap<>();
     for (AdDTO adDTO : adManager.getAdDTOMap().values()) {
-      // 该 AD 没有定投需求，过滤掉
-      if (CollUtil.isEmpty(adDTO.getConditions())) {
-        log.warn("ad: {} doesn't have condition, filter", adDTO.getAd().getId());
-        continue;
-      }
-      // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
       if (FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate)) {
-        // when timeout,imp will set to null,then imp.getId() will cause null point exception
         resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), taskId, adDTO));
       }
     }
