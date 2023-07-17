@@ -41,6 +41,12 @@ public class CheatingDataManager {
   private BloomFilter<CharSequence> ipFilter;
   private BloomFilter<CharSequence> deviceIdFilter;
 
+  /**
+   * TODO
+   *  数据边查询边插入到布隆过滤器，减少内存占用；需要先查询每个reason的数据来初始化过滤器；
+   *  按照reason来区分布隆过滤器；需要根据reason保留是否启用过滤的配置
+   */
+
   @Value("${pac.timeout.load.cheating.data}")
   private long loadTimeout;
   @Value("${pac.interval.reload.cheating.data}")
