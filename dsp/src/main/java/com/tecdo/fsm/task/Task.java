@@ -172,13 +172,12 @@ public class Task {
                                                     Imp imp,
                                                     Affiliate affiliate) {
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
-    Map<Integer, AdDTOWrapper> resMap = new HashMap<>();
-    for (AdDTO adDTO : adManager.getAdDTOMap().values()) {
-      if (FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate)) {
-        resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), taskId, adDTO));
-      }
-    }
-    return resMap;
+    return adManager.getAdDTOMap().values().parallelStream()
+            .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate))
+            .collect(Collectors.toMap(
+                    adDTO -> adDTO.getAd().getId(),
+                    adDTO -> new AdDTOWrapper(imp.getId(), taskId, adDTO)
+            ));
   }
 
 
