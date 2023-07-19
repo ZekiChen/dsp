@@ -27,6 +27,11 @@
             <AppenderRef ref="STDOUT" level="INFO"/>
             <AppenderRef ref="CatLog4j2Appender"/>
         </Root>
+
+        <Logger name="ddj_log" level="INFO" additivity="false">
+            <AppenderRef ref="DDJ_LOG"/>
+        </Logger>
+
     </Loggers>
 
 </Configuration>

@@ -178,6 +178,23 @@
         </Filters>
     </RollingFile>
 
+    <RollingFile name="DDJ_LOG" fileName="${BUSINESS_LOG_HOME}/ddj.log"
+                 filePattern="${BUSINESS_LOG_HOME}/ddj-%d{yyyy-MM-dd-HH}.log">
+        <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+        </Policies>
+        <DefaultRolloverStrategy>
+            <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                <IfFileName glob="ddj-*.log"/>
+                <IfLastModified age="360H"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
     <CatLog4j2Appender name="CatLog4j2Appender">
         <PatternLayout pattern="${ENCODER_PATTERN}"/>
     </CatLog4j2Appender>

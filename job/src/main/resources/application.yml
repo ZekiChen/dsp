@@ -23,3 +23,7 @@ spring:
           url: ${data-center.datasource.doris-ads.url}
           username: ${data-center.datasource.doris-ads.username}
           password: ${data-center.datasource.doris-ads.password}
+        mysql-ddj:
+          url: ${pac.datasource.ddj.url}
+          username: ${pac.datasource.ddj.username}
+          password: ${pac.datasource.ddj.password}
