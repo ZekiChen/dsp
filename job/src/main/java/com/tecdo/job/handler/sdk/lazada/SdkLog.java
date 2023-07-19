@@ -1,4 +1,4 @@
-package com.tecdo.job.handler.ddj.lazada;
+package com.tecdo.job.handler.sdk.lazada;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -11,7 +11,7 @@ import lombok.Setter;
 @Builder
 @Getter
 @Setter
-public class DDJLog implements Serializable {
+public class SdkLog implements Serializable {
 
   @JsonProperty("click_id")
   private String clickId;

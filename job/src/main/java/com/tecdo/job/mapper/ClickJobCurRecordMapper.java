@@ -8,7 +8,7 @@ import org.apache.ibatis.annotations.Insert;
 import org.apache.ibatis.annotations.Select;
 import org.apache.ibatis.annotations.Update;
 
-@DS("mysql-ddj")
+@DS("mysql-sdk")
 public interface ClickJobCurRecordMapper extends BaseMapper<ClickJobCurRecord> {
 
   @Select(

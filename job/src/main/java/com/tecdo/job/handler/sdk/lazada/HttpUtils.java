@@ -1,4 +1,4 @@
-package com.tecdo.job.handler.ddj.lazada;
+package com.tecdo.job.handler.sdk.lazada;
 
 import com.tecdo.core.launch.thread.ThreadFactoryHelper;
 import com.xxl.job.core.context.XxlJobHelper;

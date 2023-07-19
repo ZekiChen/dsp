@@ -28,8 +28,8 @@
             <AppenderRef ref="CatLog4j2Appender"/>
         </Root>
 
-        <Logger name="ddj_log" level="INFO" additivity="false">
-            <AppenderRef ref="DDJ_LOG"/>
+        <Logger name="sdk_log" level="INFO" additivity="false">
+            <AppenderRef ref="SDK_LOG"/>
         </Logger>
 
     </Loggers>

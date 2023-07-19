@@ -1,4 +1,4 @@
-package com.tecdo.job.handler.ddj.lazada;
+package com.tecdo.job.handler.sdk.lazada;
 
 import com.tecdo.job.domain.entity.DeviceRecall;
 import com.tecdo.job.util.JsonHelper;
@@ -6,16 +6,16 @@ import com.tecdo.job.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class DDJLogger {
+public class SdkLogger {
 
-  private final static Logger ddjLogger = LoggerFactory.getLogger("ddj_log");
+  private final static Logger sdkLogger = LoggerFactory.getLogger("sdk_log");
 
   public static void log(DeviceRecall deviceRecall, String clickId) {
-    ddjLogger.info(JsonHelper.toJSONString(buildDDJLog(deviceRecall, clickId)));
+    sdkLogger.info(JsonHelper.toJSONString(buildSdkLog(deviceRecall, clickId)));
   }
 
-  private static DDJLog buildDDJLog(DeviceRecall deviceRecall, String clickId) {
-    return DDJLog.builder()
+  private static SdkLog buildSdkLog(DeviceRecall deviceRecall, String clickId) {
+    return SdkLog.builder()
                  .clickId(clickId)
                  .deviceId(deviceRecall.getDeviceId())
                  .recallTag(deviceRecall.getRecallTag())

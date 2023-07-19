@@ -1,4 +1,4 @@
-package com.tecdo.job.handler.ddj.lazada;
+package com.tecdo.job.handler.sdk.lazada;
 
 import com.google.common.base.MoreObjects;
 import com.google.common.net.HttpHeaders;
@@ -98,7 +98,7 @@ public class LazadaWorker {
     HttpUtils.asyncRequest(url, header);
     requestCount++;
     count++;
-    DDJLogger.log(device, clickId);
+    SdkLogger.log(device, clickId);
   }
 
   private String encode(String s) throws UnsupportedEncodingException {

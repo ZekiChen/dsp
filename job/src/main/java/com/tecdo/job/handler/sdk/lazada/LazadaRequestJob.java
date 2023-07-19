@@ -1,4 +1,4 @@
-package com.tecdo.job.handler.ddj.lazada;
+package com.tecdo.job.handler.sdk.lazada;
 
 import com.tecdo.job.domain.entity.DeviceRecall;
 import com.tecdo.job.mapper.ClickJobCurRecordMapper;
@@ -27,12 +27,12 @@ public class LazadaRequestJob {
 
   private final ClickJobCurRecordMapper curRecordMapper;
 
-  @Value("${pac.ddj.query-batch-size:10000}")
+  @Value("${pac.sdk.query-batch-size:10000}")
   private int BATCH_SIZE;
-  @Value("${pac.ddj.query-max-loop-count:2}")
+  @Value("${pac.sdk.query-max-loop-count:2}")
   private int MAX_LOOP_COUNt;
 
-  @XxlJob("ddj-lazada")
+  @XxlJob("sdk-lazada")
   public void handle() throws InterruptedException, UnsupportedEncodingException {
 
     String param = XxlJobHelper.getJobParam();
