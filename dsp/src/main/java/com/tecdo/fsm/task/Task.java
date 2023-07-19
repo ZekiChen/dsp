@@ -172,7 +172,7 @@ public class Task {
                                                     Imp imp,
                                                     Affiliate affiliate) {
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
-    return adManager.getAdDTOMap().values().parallelStream()
+    return adManager.getAdDTOMap().values().stream()
             .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate))
             .collect(Collectors.toMap(
                     adDTO -> adDTO.getAd().getId(),
