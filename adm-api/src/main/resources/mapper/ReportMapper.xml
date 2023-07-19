@@ -41,7 +41,7 @@
                ad_width       as adWidth,
                ad_height      as adHeight,
                SUM(imp_count) AS impCount
-        FROM `pac_dsp_report`
+        FROM `pac_dsp_report_for_auto_explore`
         WHERE report_date >= #{startDate}
           AND report_date &lt; #{endDate}
         GROUP BY country, bundle, adFormat, adWidth, adHeight
@@ -59,7 +59,7 @@
                (SUM(win_count) / SUM(response_count)) /
                (SUM(bid_price_total) / SUM(response_count)) AS k
         FROM `pac_dsp_report`
-        WHERE report_hour = #{reportHour}
+        WHERE report_date = date(#{reportHour}) and report_hour = #{reportHour}
         GROUP BY country, bundle, adFormat, adWidth, adHeight
         HAVING winRate IS NOT NULL AND bidPrice IS NOT NULL
     </select>

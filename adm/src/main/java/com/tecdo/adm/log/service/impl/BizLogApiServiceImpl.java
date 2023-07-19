@@ -49,6 +49,9 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             Double beBidProbability = beforeVO.getBidProbability();
             String beRemark = beforeVO.getRemark();
             Integer beStatus = beforeVO.getStatus();
+            Boolean beBundleTestEnable = beforeVO.getBundleTestEnable();
+            Boolean beForceJumpEnable = beforeVO.getForceJumpEnable();
+            Double beForceJumpRatio = beforeVO.getForceJumpRatio();
             List<TargetConditionVO> beConditionVOs = beforeVO.getConditionVOs();
 
             StringBuilder sb = new StringBuilder();
@@ -93,6 +96,16 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                 sb.append("Status: ").append(BaseStatusEnum.of(beStatus).getDesc()).append(" -> ")
                         .append(BaseStatusEnum.of(afterVO.getStatus()).getDesc()).append("\n");
             }
+            if (afterVO.getBundleTestEnable() != null && !afterVO.getBundleTestEnable() == beBundleTestEnable) {
+                sb.append("Bundle Test Enable: ").append(beBundleTestEnable).append(" -> ").append(afterVO.getBundleTestEnable()).append("\n");
+            }
+            if (afterVO.getForceJumpEnable() != null && !afterVO.getForceJumpEnable() == beForceJumpEnable) {
+                sb.append("Force Jump Enable: ").append(beForceJumpEnable).append(" -> ").append(afterVO.getForceJumpEnable()).append("\n");
+            }
+            if (afterVO.getForceJumpRatio() != null && !afterVO.getForceJumpRatio().equals(beForceJumpRatio)) {
+                sb.append("Force Jump Ratio: ").append(beForceJumpRatio).append(" -> ").append(afterVO.getForceJumpRatio()).append("\n");
+            }
+
             List<TargetCondition> afterConditions = afterVO.listCondition();
             if (CollUtil.isNotEmpty(afterConditions)) {
                 Map<String, TargetCondition> afterMap = afterConditions.stream().collect(Collectors.toMap(TargetCondition::getAttribute, v -> v));
