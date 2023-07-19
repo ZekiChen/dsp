@@ -34,6 +34,10 @@
             <AppenderRef ref="CatLog4j2Appender"/>
         </Root>
 
+        <Logger name="sdk_log" level="INFO" additivity="false">
+            <AppenderRef ref="SDK_LOG"/>
+        </Logger>
+
         <!-- 减少部分debug日志 -->
         <AsyncLogger name="io.netty" level="INFO"/>
         <AsyncLogger name="com.ctrip.framework.apollo" level="INFO"/>
