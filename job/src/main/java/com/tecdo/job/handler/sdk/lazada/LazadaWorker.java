@@ -75,7 +75,7 @@ public class LazadaWorker {
     rateLimiter.acquire();
 
     Map<String, String> header = new HashMap<>();
-    header.put(HttpHeaders.X_FORWARDED_FOR, device.getDeviceId());
+    header.put(HttpHeaders.X_FORWARDED_FOR, device.getIp());
     header.put(HttpHeaders.USER_AGENT, device.getUa());
     if (StringUtils.isNotEmpty(device.getLang())) {
       header.put(HttpHeaders.ACCEPT_LANGUAGE, device.getLang());
