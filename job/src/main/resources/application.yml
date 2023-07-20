@@ -27,3 +27,7 @@ spring:
           url: ${pac.datasource.sdk.url}
           username: ${pac.datasource.sdk.username}
           password: ${pac.datasource.sdk.password}
+        doris-ods:
+          url: ${data-center.datasource.doris-ods.url}
+          username: ${data-center.datasource.doris-ods.username}
+          password: ${data-center.datasource.doris-ods.password}

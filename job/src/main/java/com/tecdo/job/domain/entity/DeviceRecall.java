@@ -34,6 +34,6 @@ public class DeviceRecall {
 
   private String lang;
 
-  private boolean status;
+  private int status;
 
 }
