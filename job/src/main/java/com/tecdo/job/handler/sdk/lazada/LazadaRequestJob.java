@@ -51,11 +51,12 @@ public class LazadaRequestJob {
     int affSubCount = ((Number) config.get("affSubCount")).intValue();
     int rateLimit = ((Number) config.get("rateLimit")).intValue();
     int time = ((Number) config.getOrDefault("time", -2)).intValue();
+    long cycleTimeMillis = ((Number) config.getOrDefault("cycleTimeMillis", 604800000)).longValue();
 
     Calendar calendar = Calendar.getInstance();
     calendar.add(Calendar.DATE, time);
     long timeInMillis = calendar.getTimeInMillis();
-    int recallTag = (int) (timeInMillis / 604800000);
+    int recallTag = (int) (timeInMillis / cycleTimeMillis);
 
     LazadaWorker requestWorker = new LazadaWorker(rateLimit, affSubCount);
 
