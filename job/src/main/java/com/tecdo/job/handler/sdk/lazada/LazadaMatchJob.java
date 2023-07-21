@@ -56,6 +56,7 @@ public class LazadaMatchJob {
     String packageName = (String) config.get("packageName");
     String recallType = (String) config.get("recallType");
     int time = ((Number) config.getOrDefault("time", -6)).intValue();
+    long cycleTimeMillis = ((Number) config.getOrDefault("cycleTimeMillis", 604800000)).longValue();
 
     String advCampaignId = (String) config.get("advCampaignId");
     String advMemId = (String) config.get("advMemId");
@@ -65,7 +66,7 @@ public class LazadaMatchJob {
     Calendar calendar = Calendar.getInstance();
     calendar.add(Calendar.DATE, time);
     long timeInMillis = calendar.getTimeInMillis();
-    int recallTag = (int) (timeInMillis / 604800000);
+    int recallTag = (int) (timeInMillis / cycleTimeMillis);
 
     Long dbOffset = timeInMillis;
 
