@@ -16,11 +16,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class AffiliateFilter extends AbstractRecallFilter {
 
-    private static final String AFF_ATTR = ConditionEnum.AFFILIATE.getDesc();
+    private static final String ATTRIBUTE = ConditionEnum.AFFILIATE.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditions().stream().filter(e -> AFF_ATTR.equals(e.getAttribute())).findFirst().orElse(null);
+        TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
         // 该 AD 不存在需要当前 filter 处理的条件，即该 AD 对目标渠道没有要求
         if (condition == null) {
             return true;

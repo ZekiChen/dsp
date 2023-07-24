@@ -1,5 +1,7 @@
 package com.tecdo.fsm.task;
 
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
@@ -36,16 +38,13 @@ import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.CacheService;
-import com.tecdo.service.init.AbTestConfigManager;
-import com.tecdo.service.init.AdManager;
-import com.tecdo.service.init.BundleDataManager;
-import com.tecdo.service.init.GooglePlayAppManager;
-import com.tecdo.service.init.RtaInfoManager;
+import com.tecdo.service.init.*;
 import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
-
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
@@ -56,12 +55,6 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
@@ -83,17 +76,18 @@ public class Task {
   private int needReceiveCount = 0;
   private int predictResCount = 0;
   private String multiplier = SpringUtil.getProperty("pac.bundle.test.multiplier");
+  private String maxPrice = SpringUtil.getProperty("pac.bid-price.max-limit");
 
   private final AdManager adManager = SpringUtil.getBean(AdManager.class);
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
   private final AbTestConfigManager abTestConfigManager =
-    SpringUtil.getBean(AbTestConfigManager.class);
+          SpringUtil.getBean(AbTestConfigManager.class);
   private final GooglePlayAppManager googlePlayAppManager =
-    SpringUtil.getBean(GooglePlayAppManager.class);
+          SpringUtil.getBean(GooglePlayAppManager.class);
   private final BundleDataManager bundleDataManager = SpringUtil.getBean(BundleDataManager.class);
   private final CacheService cacheService = SpringUtil.getBean(CacheService.class);
   private final RecallFiltersFactory filtersFactory =
-    SpringUtil.getBean(RecallFiltersFactory.class);
+          SpringUtil.getBean(RecallFiltersFactory.class);
   private final ThreadPool threadPool = SpringUtil.getBean(ThreadPool.class);
   private final SoftTimer softTimer = SpringUtil.getBean(SoftTimer.class);
   private final MessageQueue messageQueue = SpringUtil.getBean(MessageQueue.class);
@@ -153,6 +147,7 @@ public class Task {
 
   public void listRecallAd() {
     Params params = assignParams();
+    // to solve when timeout,imp will set to null,then imp.getId() will cause null point exception
     BidRequest bidRequest = this.bidRequest;
     Imp imp = this.imp;
     Affiliate affiliate = this.affiliate;
@@ -162,9 +157,9 @@ public class Task {
         messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
       } catch (Exception e) {
         log.error(
-          "taskId: {},list recall ad error,  so this request will not participate in bidding",
-          taskId,
-          e);
+                "taskId: {},list recall ad error,  so this request will not participate in bidding",
+                taskId,
+                e);
         messageQueue.putMessage(EventType.ADS_RECALL_ERROR, params);
       }
     });
@@ -177,22 +172,12 @@ public class Task {
                                                     Imp imp,
                                                     Affiliate affiliate) {
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
-    FilterChainHelper.assemble(filters);
-
-    Map<Integer, AdDTOWrapper> resMap = new HashMap<>();
-    for (AdDTO adDTO : adManager.getAdDTOMap().values()) {
-      // 该 AD 没有定投需求，过滤掉
-      if (CollUtil.isEmpty(adDTO.getConditions())) {
-        log.warn("ad: {} doesn't have condition, filter", adDTO.getAd().getId());
-        continue;
-      }
-      // 有定投需求，校验：每个 AD 都需要被所有 filter 判断一遍
-      if (FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate)) {
-        // when timeout,imp will set to null,then imp.getId() will cause null point exception
-        resMap.put(adDTO.getAd().getId(), new AdDTOWrapper(imp.getId(), taskId, adDTO));
-      }
-    }
-    return resMap;
+    return adManager.getAdDTOMap().values().stream()
+            .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate))
+            .collect(Collectors.toMap(
+                    adDTO -> adDTO.getAd().getId(),
+                    adDTO -> new AdDTOWrapper(imp.getId(), taskId, adDTO)
+            ));
   }
 
 
@@ -245,7 +230,7 @@ public class Task {
 
     this.needReceiveCount++;
     messageQueue.putMessage(EventType.PREDICT_FINISH,
-                            assignParams().put(ParamKey.ADS_PREDICT_RESPONSE, noNeedPredict));
+            assignParams().put(ParamKey.ADS_PREDICT_RESPONSE, noNeedPredict));
   }
 
   private void callAndMetricPredict(Map<Integer, AdDTOWrapper> adDTOMap,
@@ -273,8 +258,8 @@ public class Task {
       HttpResult httpResult = buildAndCallPredictApi(adDTOMap, bidRequest, imp, affId, predictUrl);
       if (httpResult.isSuccessful()) {
         R<List<PredictResponse>> result =
-          httpResult.getBody().toBean(new TypeRef<R<List<PredictResponse>>>() {
-          });
+                httpResult.getBody().toBean(new TypeRef<R<List<PredictResponse>>>() {
+                });
         if (result == null || CollectionUtils.isEmpty(result.getData())) {
           log.error("taskId: {},predict response unexpected result: {}", taskId, result);
           messageQueue.putMessage(EventType.PREDICT_ERROR, params);
@@ -295,9 +280,9 @@ public class Task {
         messageQueue.putMessage(EventType.PREDICT_FINISH, params);
       } else {
         log.error("taskId: {},predict request status: {}, error:",
-                  taskId,
-                  httpResult.getStatus(),
-                  httpResult.getError());
+                taskId,
+                httpResult.getStatus(),
+                httpResult.getError());
         messageQueue.putMessage(EventType.PREDICT_ERROR, params);
       }
     } catch (Exception e) {
@@ -312,15 +297,15 @@ public class Task {
                                             Integer affId,
                                             String predictUrl) {
     List<PredictRequest> predictRequests = //
-      adDTOMap.values()
-              .stream()
-              .map(adDTOWrapper -> buildPredictRequest(bidRequest,
-                                                       imp,
-                                                       affId,
-                                                       adDTOWrapper.getAdDTO()))
-              .collect(Collectors.toList());
+            adDTOMap.values()
+                    .stream()
+                    .map(adDTOWrapper -> buildPredictRequest(bidRequest,
+                            imp,
+                            affId,
+                            adDTOWrapper.getAdDTO()))
+                    .collect(Collectors.toList());
     Map<String, Object> paramMap =
-      MapUtil.<String, Object>builder().put("data", predictRequests).build();
+            MapUtil.<String, Object>builder().put("data", predictRequests).build();
 
     Map<String, List<AbTestConfig>> abTestConfigMap = abTestConfigManager.getAbTestConfigMap();
     String url = predictUrl;
@@ -335,9 +320,9 @@ public class Task {
       }
     }
     return OkHttps.sync(url)
-                  .bodyType(OkHttps.JSON)
-                  .setBodyPara(JsonHelper.toJSONString(paramMap))
-                  .post();
+            .bodyType(OkHttps.JSON)
+            .setBodyPara(JsonHelper.toJSONString(paramMap))
+            .post();
   }
 
   private PredictRequest buildPredictRequest(BidRequest bidRequest,
@@ -356,44 +341,44 @@ public class Task {
 
     Device device = bidRequest.getDevice();
     GooglePlayApp googleApp =
-      googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
+            googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
     return PredictRequest.builder()
-                         .adId(adDTO.getAd().getId())
-                         .affiliateId(affId)
-                         .adFormat(adType.getDesc())
-                         .adWidth(adWidth)
-                         .adHeight(adHeight)
-                         .os(FieldFormatHelper.osFormat(device.getOs()))
-                         .osv(device.getOsv())
-                         .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
-                         .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp()
-                                                                              .getBundle()))
-                         .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
-                         .connectionType(device.getConnectiontype())
-                         .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
-                         .carrier(device.getCarrier())
-                         .creativeId(creativeId)
-                         .bidFloor(Double.valueOf(imp.getBidfloor()))
-                         .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
-                                           .map(CampaignRtaInfo::getRtaFeature)
-                                           .orElse(-1))
-                         .packageName(adDTO.getCampaign().getPackageName())
-                         .category(adDTO.getCampaign().getCategory())
-                         .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
-                         .domain(bidRequest.getApp().getDomain())
-                         .instl(imp.getInstl())
-                         .cat(bidRequest.getApp().getCat())
-                         .ip(device.getIp())
-                         .ua(device.getUa())
-                         .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
-                         .deviceId(device.getIfa())
-                         .bundleIdCategory(googleApp.getCategoryList())
-                         .bundleIdTag(googleApp.getTagList())
-                         .bundleIdScore(googleApp.getScore())
-                         .bundleIdDownload(googleApp.getDownloads())
-                         .bundleIdReview(googleApp.getReviews())
-                         .tagId(imp.getTagid())
-                         .build();
+            .adId(adDTO.getAd().getId())
+            .affiliateId(affId)
+            .adFormat(adType.getDesc())
+            .adWidth(adWidth)
+            .adHeight(adHeight)
+            .os(FieldFormatHelper.osFormat(device.getOs()))
+            .osv(device.getOsv())
+            .deviceMake(FieldFormatHelper.deviceMakeFormat(device.getMake()))
+            .bundleId(FieldFormatHelper.bundleIdFormat(bidRequest.getApp()
+                    .getBundle()))
+            .country(FieldFormatHelper.countryFormat(device.getGeo().getCountry()))
+            .connectionType(device.getConnectiontype())
+            .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
+            .carrier(device.getCarrier())
+            .creativeId(creativeId)
+            .bidFloor(Double.valueOf(imp.getBidfloor()))
+            .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
+                    .map(CampaignRtaInfo::getRtaFeature)
+                    .orElse(-1))
+            .packageName(adDTO.getCampaign().getPackageName())
+            .category(adDTO.getCampaign().getCategory())
+            .pos(Optional.ofNullable(imp.getBanner()).map(Banner::getPos).orElse(0))
+            .domain(bidRequest.getApp().getDomain())
+            .instl(imp.getInstl())
+            .cat(bidRequest.getApp().getCat())
+            .ip(device.getIp())
+            .ua(device.getUa())
+            .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
+            .deviceId(device.getIfa())
+            .bundleIdCategory(googleApp.getCategoryList())
+            .bundleIdTag(googleApp.getTagList())
+            .bundleIdScore(googleApp.getScore())
+            .bundleIdDownload(googleApp.getDownloads())
+            .bundleIdReview(googleApp.getReviews())
+            .tagId(imp.getTagid())
+            .build();
   }
 
   public void savePredictResponse(Map<Integer, AdDTOWrapper> adDTOMap) {
@@ -423,18 +408,18 @@ public class Task {
     Device device = bidRequest.getDevice();
     BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
     return FieldFormatHelper.countryFormat(device.getGeo().getCountry())
-                            .concat("_")
-                            .concat(FieldFormatHelper.bundleIdFormat(bidRequest.getApp()
-                                                                               .getBundle()))
-                            .concat("_")
-                            .concat(Optional.ofNullable(bidCreative.getType())
-                                            .map(AdTypeEnum::of)
-                                            .map(AdTypeEnum::getDesc)
-                                            .orElse(""))
-                            .concat("_")
-                            .concat(MoreObjects.firstNonNull(bidCreative.getWidth(), ""))
-                            .concat("_")
-                            .concat(MoreObjects.firstNonNull(bidCreative.getHeight(), ""));
+            .concat("_")
+            .concat(FieldFormatHelper.bundleIdFormat(bidRequest.getApp()
+                    .getBundle()))
+            .concat("_")
+            .concat(Optional.ofNullable(bidCreative.getType())
+                    .map(AdTypeEnum::of)
+                    .map(AdTypeEnum::getDesc)
+                    .orElse(""))
+            .concat("_")
+            .concat(MoreObjects.firstNonNull(bidCreative.getWidth(), ""))
+            .concat("_")
+            .concat(MoreObjects.firstNonNull(bidCreative.getHeight(), ""));
   }
 
   private BigDecimal doCalcPrice(AdDTOWrapper adDTOWrapper, String key) {
@@ -452,30 +437,34 @@ public class Task {
           finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
         }
       } else {
-        finalPrice = BigDecimal.valueOf(bidPrice)
-                               .multiply(BigDecimal.valueOf(bundleData.getK()))
-                               .divide(BigDecimal.valueOf(bundleData.getOldK()),
-                                       RoundingMode.HALF_UP);
+        if (bundleData.getOldK() == 0 || bundleData.getK() == 0) {
+          finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
+        } else {
+          finalPrice = BigDecimal.valueOf(bidPrice)
+                  .multiply(BigDecimal.valueOf(bundleData.getK()))
+                  .divide(BigDecimal.valueOf(bundleData.getOldK()),
+                          RoundingMode.HALF_UP);
+        }
       }
     } else {
       BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTO.getAdGroup().getBidStrategy());
       switch (bidStrategy) {
         case CPC:
           finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
-                                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
-                                 .multiply(BigDecimal.valueOf(1000));
+                  .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                  .multiply(BigDecimal.valueOf(1000));
           break;
         case CPA:
           finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
-                                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
-                                 .multiply(BigDecimal.valueOf(1000));
+                  .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
+                  .multiply(BigDecimal.valueOf(1000));
           break;
         case DYNAMIC:
           ThreadLocalRandom random = ThreadLocalRandom.current();
           if (adDTO.getAdGroup().getBidProbability() > random.nextDouble(100)) {
             finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getBidMultiplier())
-                                   .multiply(BigDecimal.valueOf(imp.getBidfloor()))
-                                   .min(BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice()));
+                    .multiply(BigDecimal.valueOf(imp.getBidfloor()))
+                    .min(BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice()));
           } else {
             finalPrice = BigDecimal.ZERO;
           }
@@ -485,14 +474,18 @@ public class Task {
         case CPA_EVENT3:
         case CPA_EVENT10:
           finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
-                                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
-                                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
-                                 .multiply(BigDecimal.valueOf(1000));
+                  .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                  .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
+                  .multiply(BigDecimal.valueOf(1000));
           break;
         case CPM:
         default:
           finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice());
       }
+    }
+    BigDecimal maxPrice = new BigDecimal(this.maxPrice);
+    if (finalPrice.compareTo(maxPrice) > 0) {
+      finalPrice = maxPrice;
     }
     return finalPrice;
   }
@@ -500,11 +493,11 @@ public class Task {
   public void filerAdAndNotifySuccess(Map<Integer, AdDTOWrapper> adDTOMap) {
     // 过滤掉出价低于底价的广告
     adDTOMap = adDTOMap.values()
-                       .stream()
-                       .filter(e -> e.getBidPrice()
-                                     .compareTo(BigDecimal.valueOf(Optional.of(imp.getBidfloor())
-                                                                           .orElse(0f))) > 0)
-                       .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
+            .stream()
+            .filter(e -> e.getBidPrice()
+                    .compareTo(BigDecimal.valueOf(Optional.of(imp.getBidfloor())
+                            .orElse(0f))) > 0)
+            .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
     Params params = assignParams().put(ParamKey.ADS_TASK_RESPONSE, adDTOMap);
     messageQueue.putMessage(EventType.BID_TASK_FINISH, params);
     record();

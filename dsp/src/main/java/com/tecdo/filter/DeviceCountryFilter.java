@@ -19,11 +19,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeviceCountryFilter extends AbstractRecallFilter {
 
-    private static final String COUNTRY_ATTR = ConditionEnum.DEVICE_COUNTRY.getDesc();
+    private static final String ATTRIBUTE = ConditionEnum.DEVICE_COUNTRY.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditions().stream().filter(e -> COUNTRY_ATTR.equals(e.getAttribute())).findFirst().orElse(null);
+        TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
         if (condition == null) {
             return true;
         }

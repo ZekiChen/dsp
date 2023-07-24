@@ -1,6 +1,9 @@
 package com.tecdo.adm.delivery.controller;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.Adv;
 import com.tecdo.adm.api.delivery.vo.SimpleAdvVO;
@@ -67,8 +70,14 @@ public class AdvController {
     @GetMapping("/page")
     @ApiOperationSupport(order = 5)
     @ApiOperation(value = "分页", notes = "传入ad")
-    public R<IPage<Adv>> page(Adv adv, PQuery query) {
-        IPage<Adv> pages = service.page(PCondition.getPage(query), PCondition.getQueryWrapper(adv));
+    public R<IPage<Adv>> page(Adv adv, PQuery query,
+                              @RequestParam(value = "ids", required = false) String ids) {
+        LambdaQueryWrapper<Adv> wrapper = Wrappers.lambdaQuery();
+        wrapper.in(StrUtil.isNotBlank(ids), Adv::getId, BigTool.toIntList(ids));
+        wrapper.like(StrUtil.isNotBlank(adv.getName()), Adv::getName, adv.getName());
+        wrapper.eq(adv.getType() != null, Adv::getType, adv.getType());
+        wrapper.eq(adv.getStatus() != null, Adv::getStatus, adv.getStatus());
+        IPage<Adv> pages = service.page(PCondition.getPage(query), wrapper);
         return R.data(pages);
     }
 
@@ -77,5 +86,12 @@ public class AdvController {
     @ApiOperation(value = "列表", notes = "无需传参")
     public R<List<SimpleAdvVO>> list() {
         return R.data(service.listIdAndName());
+    }
+
+    @GetMapping("/info/{campaignId}")
+    @ApiOperationSupport(order = 7)
+    @ApiOperation(value = "根据cId获取Adv", notes = "传入campaignId")
+    public R<Adv> getByCampaignId(@PathVariable("campaignId") Integer campaignId) {
+        return R.data(service.getByCampaignId(campaignId));
     }
 }

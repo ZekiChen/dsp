@@ -16,17 +16,13 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ClickFrequencyFilter extends AbstractRecallFilter {
 
-  private static final String CLICK_FREQUENCY_ATTR = ConditionEnum.CLICK_FREQUENCY.getDesc();
+  private static final String ATTRIBUTE = ConditionEnum.CLICK_FREQUENCY.getDesc();
 
   private final CacheService cacheService;
 
   @Override
   public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-    TargetCondition condition = adDTO.getConditions()
-                                     .stream()
-                                     .filter(e -> CLICK_FREQUENCY_ATTR.equals(e.getAttribute()))
-                                     .findFirst()
-                                     .orElse(null);
+    TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
     if (condition == null) {
       return true;
     }

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tecdo.adm.api.doris.mapper.PostbackMapper">
+
+    <select id="getRepostEventForLazada" resultType="com.tecdo.adm.api.delivery.dto.ReportEventDTO">
+        SELECT
+            sum(event1) as event1,
+            sum(event2) as event2,
+            sum(event3) as event3
+        FROM
+            pac_dsp_postback
+        WHERE
+            create_time in
+            <foreach collection="createTimes" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+            and ad_group_id in
+            <foreach collection="adGroupIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+    </select>
+
+</mapper>

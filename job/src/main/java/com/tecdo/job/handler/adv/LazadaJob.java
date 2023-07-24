@@ -6,6 +6,7 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lazada.lazop.api.LazopClient;
@@ -13,16 +14,22 @@ import com.lazada.lazop.api.LazopRequest;
 import com.lazada.lazop.api.LazopResponse;
 import com.lazada.lazop.util.ApiException;
 import com.tecdo.adm.api.delivery.dto.ReportEventDTO;
+import com.tecdo.adm.api.delivery.entity.Adv;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
+import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
+import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
+import com.tecdo.adm.api.delivery.mapper.AdvMapper;
 import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
 import com.tecdo.adm.api.delivery.mapper.RtaInfoMapper;
-import com.tecdo.adm.api.doris.mapper.ReportMapper;
+import com.tecdo.adm.api.doris.mapper.PostbackMapper;
 import com.tecdo.common.util.WeChatRobotUtils;
 import com.tecdo.job.domain.entity.ReportAdvGap;
 import com.tecdo.job.domain.vo.lazada.LazadaReportVO;
 import com.tecdo.job.domain.vo.lazada.LazadaResponse;
 import com.tecdo.job.service.mvc.IReportAdvGapService;
 import com.tecdo.job.util.StringConfigUtil;
+import com.tecdo.starter.mp.entity.IdEntity;
+import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
@@ -33,10 +40,10 @@ import org.springframework.stereotype.Component;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 import static com.tecdo.job.util.MonitorGroupHelper.MONITOR_GROUP;
 import static com.tecdo.job.util.MonitorGroupHelper.logError;
@@ -56,10 +63,12 @@ public class LazadaJob {
     @Value("${pac.dsp.adv.gap}")
     private Double gap;
 
-    private final ReportMapper reportMapper;
+    private final PostbackMapper postbackMapper;
     private final IReportAdvGapService reportAdvGapService;
     private final RtaInfoMapper rtaInfoMapper;
     private final CampaignMapper campaignMapper;
+    private final AdGroupMapper adGroupMapper;
+    private final AdvMapper advMapper;
 
     @XxlJob("lazadaGap")
     public void lazadaGap() {
@@ -68,7 +77,15 @@ public class LazadaJob {
         String startDay = DateUtil.offsetDay(DateUtil.yesterday(), -2).toDateStr();
 
         List<RtaInfo> rtaInfos = rtaInfoMapper.selectList(Wrappers.query());
-        List<Integer> campaignIds = campaignMapper.listIdByAdvIds(Collections.singletonList(1));
+        LambdaQueryWrapper<Adv> wrapper = Wrappers.<Adv>lambdaQuery()
+                .eq(Adv::getType, AdvTypeEnum.LAZADA_RTA.getType())
+                .eq(Adv::getStatus, BaseStatusEnum.ACTIVE.getType());
+        List<Integer> advIds = advMapper.selectList(wrapper).stream().map(IdEntity::getId).collect(Collectors.toList());
+        if (CollUtil.isEmpty(advIds)) {
+            XxlJobHelper.log("load db and then: advIds is empty");
+            return;
+        }
+        List<Integer> campaignIds = campaignMapper.listIdByAdvIds(advIds);
 
         for (RtaInfo rtaInfo : rtaInfos) {
             LazopClient client = new LazopClient(lazadaReportUrl, rtaInfo.getAppKey(), rtaInfo.getAppSecret());
@@ -87,16 +104,16 @@ public class LazadaJob {
             try {
                 LazopResponse response = client.execute(request);
                 if (response == null || StrUtil.isEmpty(response.getBody())) {
-                    logError("call lazada report api error, response is empty");
+                    XxlJobHelper.log("call lazada report api error, response is empty");
                     continue;
                 }
                 if (!"0".equals(response.getCode())) {
-                    logError("call lazada report api fail, code: " + response.getCode());
+                    XxlJobHelper.log("call lazada report api fail, code: " + response.getCode());
                     continue;
                 }
                 LazadaResponse<LazadaReportVO> resp = JSON.parseObject(response.getBody(), new TypeReference<LazadaResponse<LazadaReportVO>>() {});
                 if (resp.getData() == null || CollUtil.isEmpty(resp.getData().getData())) {
-                    logError("LazadaPage is null or data is empty");
+                    XxlJobHelper.log("LazadaPage is null or data is empty");
                     continue;
                 }
                 // 一个国家的近三天数据
@@ -113,19 +130,22 @@ public class LazadaJob {
                     Long advEvent2 = reportVO.getEvent2();
                     Long advEvent3 = reportVO.getEvent3();
                     if (advEvent1 == null || advEvent2 == null || advEvent3 == null) {
-                        logError("event for lazada exist null, date: " + date + ", country: " + country);
+                        XxlJobHelper.log("event for lazada exist null, date: " + date + ", country: " + country);
                         return;
                     }
-                    ReportEventDTO eventDTO = reportMapper.getRepostEventForLazada(date, country, campaignIds);
+
+                    List<Integer> adGroupIds = adGroupMapper.listIdByCountryAndCIds(country, campaignIds);
+                    List<String> createTimes = convertCreateTime(date);
+                    ReportEventDTO eventDTO = postbackMapper.getRepostEventForLazada(createTimes, adGroupIds);
                     if (eventDTO == null) {
-                        logError("get report eventDTO for lazada is null, date: " + date + ", country: " + country);
+                        XxlJobHelper.log("get report eventDTO for lazada is null, date: " + date + ", country: " + country);
                         continue;
                     }
                     long dspEvent1 = eventDTO.getEvent1() != null ? eventDTO.getEvent1() : 0L;
                     long dspEvent2 = eventDTO.getEvent2() != null ? eventDTO.getEvent2() : 0L;
                     long dspEvent3 = eventDTO.getEvent3() != null ? eventDTO.getEvent3() : 0L;
                     if (dspEvent1 == 0L || dspEvent2 == 0L || dspEvent3 == 0L) {
-                        logError("get report event for lazada has 0, date: " + date + ", country: " + country);
+                        XxlJobHelper.log("get report event for lazada has 0, date: " + date + ", country: " + country);
                         continue;
                     }
                     double event1Gap = Math.abs((double) (dspEvent1 - advEvent1) / dspEvent1) * 100;
@@ -161,10 +181,10 @@ public class LazadaJob {
                         WeChatRobotUtils.sendTextMsg(MONITOR_GROUP, msg);
                     }
                 } catch (Exception e) {
-                    logError("flatAdsGap: send text msg error: " + e.getMessage(), true);
+                    logError("lazadaJob: send text msg error: " + e.getMessage(), true);
                     return;
                 }
-                updateLastWeek(entities);
+                updateLastPeriod(entities);
             } catch (ApiException e) {
                 logError("call lazada report api error: " + e.getMessage());
                 return;
@@ -172,7 +192,7 @@ public class LazadaJob {
         }
     }
 
-    private void updateLastWeek(List<ReportAdvGap> entities) {
+    private void updateLastPeriod(List<ReportAdvGap> entities) {
         ReportAdvGap entity = entities.get(0);
         List<String> dates = entities.stream().map(ReportAdvGap::getCreateDate).collect(Collectors.toList());
         LambdaUpdateWrapper<ReportAdvGap> wrapper = Wrappers.<ReportAdvGap>lambdaUpdate()
@@ -212,5 +232,11 @@ public class LazadaJob {
         } catch (ParseException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    private List<String> convertCreateTime(String date) {
+        return IntStream.rangeClosed(0, 23)
+                .mapToObj(i -> String.format("%s_%02d", date, i))
+                .collect(Collectors.toList());
     }
 }

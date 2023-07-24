@@ -9,24 +9,24 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.util.ConditionHelper;
 import com.tecdo.service.CacheService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 @Component
 @RequiredArgsConstructor
 public class ImpFrequencyFilter extends AbstractRecallFilter {
 
-  private static final String IMP_FREQUENCY_ATTR = ConditionEnum.IMP_FREQUENCY.getDesc();
+  private static final String ATTRIBUTE = ConditionEnum.IMP_FREQUENCY.getDesc();
 
   private final CacheService cacheService;
 
+  @Value("${pac.recall.filter.imp-frequency.enabled}")
+  private boolean filterEnabled;
+
   @Override
   public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-    TargetCondition condition = adDTO.getConditions()
-                                     .stream()
-                                     .filter(e -> IMP_FREQUENCY_ATTR.equals(e.getAttribute()))
-                                     .findFirst()
-                                     .orElse(null);
-    if (condition == null) {
+    TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
+    if (!filterEnabled || condition == null) {
       return true;
     }
     Integer campaignId = adDTO.getCampaign().getId();

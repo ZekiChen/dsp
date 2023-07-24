@@ -23,7 +23,7 @@ public class BizLogApiWrapper extends EntityWrapper<BizLogApi, BizLogApiVO> {
 	@Override
 	public BizLogApiVO entityVO(BizLogApi entity) {
 		BizLogApiVO vo = Objects.requireNonNull(BeanUtil.copy(entity, BizLogApiVO.class));
-		vo.setOptTypeName(OptTypeEnum.of(vo.getBizType()).getDesc());
+		vo.setOptTypeName(OptTypeEnum.of(vo.getOptType()).getDesc());
 		vo.setBizTypeName(BizTypeEnum.of(vo.getBizType()).getDesc());
 		return vo;
 	}

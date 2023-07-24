@@ -1,5 +1,6 @@
 package com.tecdo.log;
 
+import cn.hutool.core.date.DateUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
@@ -12,18 +13,14 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.doris.GooglePlayApp;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
-import com.tecdo.transform.ResponseTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
-
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.Date;
 import java.util.Optional;
-
-import cn.hutool.core.date.DateUtil;
 
 /**
  * 构建 ResponseLog 并持久化至本地文件中
@@ -37,18 +34,16 @@ public class ResponseLogger {
   public static void log(AdDTOWrapper wrapper,
                          BidRequest bidRequest,
                          Affiliate affiliate,
-                         GooglePlayApp googlePlayApp,
-                         ResponseTypeEnum responseType) {
+                         GooglePlayApp googlePlayApp) {
     ResponseLog responseLog =
-      buildResponseLog(wrapper, bidRequest, affiliate, googlePlayApp, responseType);
+      buildResponseLog(wrapper, bidRequest, affiliate, googlePlayApp);
     responseLogger.info(JsonHelper.toJSONString(responseLog));
   }
 
   private static ResponseLog buildResponseLog(AdDTOWrapper wrapper,
                                               BidRequest bidRequest,
                                               Affiliate affiliate,
-                                              GooglePlayApp googlePlayApp,
-                                              ResponseTypeEnum responseType) {
+                                              GooglePlayApp googlePlayApp) {
     Integer creativeId = CreativeHelper.getCreativeId(wrapper.getAdDTO().getAd());
     Imp imp = bidRequest.getImp()
                         .stream()
@@ -128,7 +123,8 @@ public class ResponseLogger {
                       .bAdv(bidRequest.getBadv())
                       .bApp(bidRequest.getBapp())
                       .bCat(bidRequest.getBcat())
-                      .responseType(responseType.getType())
+                      .responseType(wrapper.getResponseTypeEnum().getType())
+                      .useDeeplink(wrapper.isUseDeeplink() ? 1 : 0)
                       .build();
   }
 }

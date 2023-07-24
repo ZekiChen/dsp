@@ -1,6 +1,9 @@
 package com.tecdo.adm.delivery.controller;
 
+import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.github.xiaoymin.knife4j.annotations.ApiOperationSupport;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.vo.CreativeSpecVO;
@@ -113,8 +116,18 @@ public class CreativeController {
     @GetMapping("/page")
     @ApiOperationSupport(order = 5)
     @ApiOperation(value = "分页", notes = "传入Creative")
-    public R<IPage<CreativeVO>> page(Creative creative, PQuery query) {
-        IPage<Creative> pages = service.page(PCondition.getPage(query), PCondition.getQueryWrapper(creative));
+    public R<IPage<CreativeVO>> page(Creative creative, PQuery query,
+                                     @RequestParam(value = "ids", required = false) String ids) {
+        LambdaQueryWrapper<Creative> wrapper = Wrappers.lambdaQuery();
+        wrapper.in(StrUtil.isNotBlank(ids), Creative::getId, BigTool.toIntList(ids));
+        wrapper.like(StrUtil.isNotBlank(creative.getName()), Creative::getName, creative.getName());
+        wrapper.eq(creative.getType() != null, Creative::getType, creative.getType());
+        wrapper.eq(creative.getWidth() != null, Creative::getWidth, creative.getWidth());
+        wrapper.eq(creative.getHeight() != null, Creative::getHeight, creative.getHeight());
+        wrapper.eq(StrUtil.isNotBlank(creative.getUrl()), Creative::getUrl, creative.getUrl());
+        wrapper.eq(StrUtil.isNotBlank(creative.getCatIab()), Creative::getCatIab, creative.getCatIab());
+        wrapper.eq(creative.getStatus() != null, Creative::getStatus, creative.getStatus());
+        IPage<Creative> pages = service.page(PCondition.getPage(query), wrapper);
         return R.data(CreativeWrapper.build().pageVO(pages));
     }
 

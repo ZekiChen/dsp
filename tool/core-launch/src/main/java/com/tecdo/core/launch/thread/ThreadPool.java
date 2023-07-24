@@ -1,6 +1,11 @@
 package com.tecdo.core.launch.thread;
 
-import java.util.concurrent.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 public class ThreadPool {
 
@@ -30,4 +35,7 @@ public class ThreadPool {
     return getExecutor().submit(runnable);
   }
 
+  public <T> Future<T> submit(Callable<T> callable) {
+    return getExecutor().submit(callable);
+  }
 }

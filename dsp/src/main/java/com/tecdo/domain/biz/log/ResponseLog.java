@@ -2,13 +2,12 @@ package com.tecdo.domain.biz.log;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.tecdo.transform.ResponseTypeEnum;
-
-import java.io.Serializable;
-import java.util.List;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
+import java.util.List;
 
 /**
  * 成功 BidResponse 才会记录的响应日志
@@ -293,7 +292,8 @@ public class ResponseLog implements Serializable {
      */
     @JsonProperty("landing_page")
     private String landingPage;
-
+    @JsonProperty("use_deeplink")
+    private Integer useDeeplink;
 
     @JsonProperty("badv")
     private List<String> bAdv;

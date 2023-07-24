@@ -18,11 +18,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeviceOSFilter extends AbstractRecallFilter {
 
-    private static final String OS_ATTR = ConditionEnum.DEVICE_OS.getDesc();
+    private static final String ATTRIBUTE = ConditionEnum.DEVICE_OS.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditions().stream().filter(e -> OS_ATTR.equals(e.getAttribute())).findFirst().orElse(null);
+        TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
         if (condition == null) {
             return true;
         }

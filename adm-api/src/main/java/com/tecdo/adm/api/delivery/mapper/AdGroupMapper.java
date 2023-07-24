@@ -3,6 +3,7 @@ package com.tecdo.adm.api.delivery.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
+import com.tecdo.starter.mp.entity.StatusEntity;
 import com.tecdo.starter.mp.vo.BaseVO;
 import org.apache.ibatis.annotations.Param;
 
@@ -31,4 +32,8 @@ public interface AdGroupMapper extends BaseMapper<AdGroup> {
     List<Integer> listIdByAdvIds(@Param("advIds") List<Integer> advIds);
 
     List<Integer> listIdByCampaignIds(@Param("campaignIds") List<Integer> campaignIds);
+
+    List<StatusEntity> listStatus(@Param("ids") List<Integer> ids);
+
+    List<Integer> listIdByCountryAndCIds(@Param("country") String country, @Param("campaignIds") List<Integer> campaignIds);
 }

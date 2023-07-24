@@ -3,6 +3,7 @@ package com.tecdo.adm.api.delivery.mapper;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tecdo.adm.api.delivery.entity.Adv;
 import com.tecdo.adm.api.delivery.vo.SimpleAdvVO;
+import org.apache.ibatis.annotations.Param;
 
 import java.util.List;
 
@@ -12,4 +13,6 @@ import java.util.List;
 public interface AdvMapper extends BaseMapper<Adv> {
 
     List<SimpleAdvVO> listIdAndName();
+
+    Adv getByCampaignId(@Param("campaignId") Integer campaignId);
 }

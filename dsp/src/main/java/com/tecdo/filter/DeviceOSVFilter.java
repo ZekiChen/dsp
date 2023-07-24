@@ -18,11 +18,11 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeviceOSVFilter extends AbstractRecallFilter {
 
-    private static final String OSV_ATTR = ConditionEnum.DEVICE_OSV.getDesc();
+    private static final String ATTRIBUTE = ConditionEnum.DEVICE_OSV.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditions().stream().filter(e -> OSV_ATTR.equals(e.getAttribute())).findFirst().orElse(null);
+        TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
         if (condition == null) {
             return true;
         }

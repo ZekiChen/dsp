@@ -8,29 +8,36 @@ import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.adm.api.delivery.mapper.AdMapper;
+import com.tecdo.adm.api.delivery.vo.AdVO;
 import com.tecdo.adm.api.delivery.vo.BatchAdUpdateVO;
 import com.tecdo.adm.api.delivery.vo.SimpleAdUpdateVO;
 import com.tecdo.adm.api.delivery.vo.SimpleAdVO;
 import com.tecdo.adm.delivery.service.IAdService;
+import com.tecdo.adm.delivery.wrapper.AdWrapper;
+import com.tecdo.adm.log.service.IBizLogApiService;
 import com.tecdo.starter.log.exception.ServiceException;
 import com.tecdo.starter.mp.entity.BaseEntity;
+import com.tecdo.starter.mp.entity.IdEntity;
 import com.tecdo.starter.mp.entity.StatusEntity;
 import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import com.tecdo.starter.tool.BigTool;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
  * Created by Zeki on 2023/3/6
  */
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdService {
+
+    private final IBizLogApiService bizLogApiService;
 
     @Override
     public List<Ad> listByAdGroupId(Integer adGroupId) {
@@ -44,8 +51,9 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
 
     @Override
     public boolean logicDelete(List<Integer> adIds) {
-        if (CollUtil.isEmpty(adIds)) return true;
+        if (CollUtil.isEmpty(adIds)) return false;
         Date date = new Date();
+        List<StatusEntity> adStatusList = listStatus(adIds);
         List<Ad> entities = adIds.stream().map(id -> {
             Ad entity = new Ad();
             entity.setId(id);
@@ -54,6 +62,7 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
             return entity;
         }).collect(Collectors.toList());
         updateBatchById(entities);
+        bizLogApiService.logByDeleteAd(adIds, adStatusList);
         return true;
     }
 
@@ -63,6 +72,8 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
             return false;
         }
         List<Ad> sourceAds = listByIds(BigTool.toIntList(sourceAdIds));
+        List<Integer> sIds = sourceAds.stream().map(IdEntity::getId).collect(Collectors.toList());
+        log.info("batch copy ad, source ad id list: {}", sIds);
         List<Ad> targetAds = targetAdGroupIds.stream()
                 .flatMap(groupId -> sourceAds.stream()
                         .map(sourceAd -> {
@@ -73,6 +84,8 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
                             return targetAd;
                         }))
                 .collect(Collectors.toList());
+        List<Integer> tIds = targetAds.stream().map(IdEntity::getId).collect(Collectors.toList());
+        log.info("batch copy ad, target ad id list: {}", tIds);
         saveBatch(targetAds);
         return true;
     }
@@ -83,21 +96,25 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
         if (entity == null) {
             return false;
         }
+        AdVO beforeVO = Objects.requireNonNull(com.tecdo.starter.tool.util.BeanUtil.copy(entity, AdVO.class));
         entity.setName(vo.getName());
         entity.setRemark(vo.getRemark());
         entity.setUpdateTime(new Date());
+        AdVO afterVO = Objects.requireNonNull(com.tecdo.starter.tool.util.BeanUtil.copy(entity, AdVO.class));
+        bizLogApiService.logByUpdateAd(beforeVO, afterVO);
         return updateById(entity);
     }
 
     @Override
     public boolean updateBatch(BatchAdUpdateVO vo) {
+        List<Ad> ads = listByIds(vo.getAdIds());
         if (StrUtil.isNotBlank(vo.getDescription()) || StrUtil.isNotBlank(vo.getCta()) || StrUtil.isNotBlank(vo.getTitle())) {
-            List<Ad> ads = listByIds(vo.getAdIds());
             boolean exist = ads.stream().anyMatch(e -> AdTypeEnum.NATIVE.getType() != e.getType());
             if (exist) {
                 throw new ServiceException("您当前的批量操作包含非native的ad！");
             }
         }
+        Map<Integer, Ad> beAdMap = ads.stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
         Date date = new Date();
         List<Ad> entities = vo.getAdIds().stream().map(id -> {
             Ad entity = new Ad();
@@ -110,6 +127,7 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
             return entity;
         }).collect(Collectors.toList());
         updateBatchById(entities);
+        bizLogApiService.logByUpdateBatchAd(beAdMap, vo);
         return true;
     }
 
@@ -134,6 +152,19 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
     @Override
     public List<StatusEntity> listStatus(List<Integer> ids) {
         return baseMapper.listStatus(ids);
+    }
+
+    @Override
+    public boolean edit(Ad entity) {
+        logByUpdate(entity);
+        return updateById(entity);
+    }
+
+    private void logByUpdate(Ad after) {
+        Ad before = getById(after.getId());
+        AdVO beforeVO = AdWrapper.build().entityVO(before);
+        AdVO afterVO = AdWrapper.build().entityVO(after);
+        bizLogApiService.logByUpdateAd(beforeVO, afterVO);
     }
 
     private static void resetBaseEntity(BaseEntity entity) {

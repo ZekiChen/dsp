@@ -6,4 +6,9 @@
         select id, type, name from adv where status != 2
     </select>
 
+    <select id="getByCampaignId" resultType="com.tecdo.adm.api.delivery.entity.Adv">
+        select adv.* from adv left join campaign c on adv.id = c.adv_id
+        where c.id = #{campaignId}
+    </select>
+
 </mapper>

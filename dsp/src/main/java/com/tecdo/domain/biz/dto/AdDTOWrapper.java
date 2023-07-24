@@ -1,5 +1,6 @@
 package com.tecdo.domain.biz.dto;
 
+import com.tecdo.transform.ResponseTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -74,5 +75,9 @@ public class AdDTOWrapper {
    * 落地页，目前AE RTA会用到
    */
   private String landingPage;
+  private String deeplink;
+  private boolean useDeeplink;
+
+  private ResponseTypeEnum responseTypeEnum = ResponseTypeEnum.NORMAL;
 
 }

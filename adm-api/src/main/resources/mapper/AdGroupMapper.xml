@@ -152,4 +152,26 @@
         and status != 2
     </select>
 
+    <select id="listStatus" resultType="com.tecdo.starter.mp.entity.StatusEntity">
+        select id,status from ad_group where id IN
+            <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+    </select>
+
+    <select id="listIdByCountryAndCIds" resultType="java.lang.Integer">
+        SELECT t.ad_group_id FROM target_condition t WHERE ad_group_id in (
+            SELECT id from ad_group WHERE campaign_id in
+            <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        )
+        and t.attribute = 'device_country' and
+        CASE t.operation
+            WHEN 'include' THEN FIND_IN_SET(#{country}, t.`value`)
+            WHEN 'exclude' THEN NOT FIND_IN_SET(#{country}, t.`value`)
+            WHEN 'eq' THEN t.`value` = #{country}
+        END
+    </select>
+
 </mapper>

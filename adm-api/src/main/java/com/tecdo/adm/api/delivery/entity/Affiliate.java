@@ -1,6 +1,7 @@
 package com.tecdo.adm.api.delivery.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tecdo.starter.mp.entity.BaseEntity;
@@ -30,5 +31,6 @@ public class Affiliate extends BaseEntity {
     @TableField(fill = FieldFill.INSERT)
     private Integer status;
     @ApiModelProperty("测试期胜率要求")
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
     private Double requireWinRate;
 }

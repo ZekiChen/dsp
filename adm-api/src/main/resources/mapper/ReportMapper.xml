@@ -7,7 +7,7 @@
             campaign_id as campaignId,
             sum( imp_count ) as impCount,
             sum( click_count ) as clickCount,
-            sum( imp_success_price_total ) / 1000 as impSuccessPriceTotal
+            sum( price_total ) / 1000 as impSuccessPriceTotal
         FROM
             pac_dsp_report
         WHERE
@@ -26,28 +26,12 @@
     <select id="getReportSpentForFlatAds" resultType="com.tecdo.adm.api.delivery.dto.SpentDTO">
         SELECT
             sum(imp_count) as imp,
-            sum(imp_success_price_total)/1000 as cost
+            sum(price_total)/1000 as cost
         FROM
             pac_dsp_report
         WHERE
             affiliate_id = #{affId}
             and report_date = #{createDate}
-    </select>
-
-    <select id="getRepostEventForLazada" resultType="com.tecdo.adm.api.delivery.dto.ReportEventDTO">
-        SELECT
-            sum(event1_count) as event1,
-            sum(event2_count) as event2,
-            sum(event3_count) as event3
-        FROM
-            pac_dsp_report
-        WHERE
-            campaign_id in
-            <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
-                #{item}
-            </foreach>
-            and report_date = #{date}
-            and country = #{country}
     </select>
 
     <select id="getDataImpCountGtSize" resultType="com.tecdo.adm.api.doris.entity.BundleData">
@@ -57,7 +41,7 @@
                ad_width       as adWidth,
                ad_height      as adHeight,
                SUM(imp_count) AS impCount
-        FROM `pac_dsp_report`
+        FROM `pac_dsp_report_for_auto_explore`
         WHERE report_date >= #{startDate}
           AND report_date &lt; #{endDate}
         GROUP BY country, bundle, adFormat, adWidth, adHeight
@@ -75,7 +59,7 @@
                (SUM(win_count) / SUM(response_count)) /
                (SUM(bid_price_total) / SUM(response_count)) AS k
         FROM `pac_dsp_report`
-        WHERE report_hour = #{reportHour}
+        WHERE report_date = date(#{reportHour}) and report_hour = #{reportHour}
         GROUP BY country, bundle, adFormat, adWidth, adHeight
         HAVING winRate IS NOT NULL AND bidPrice IS NOT NULL
     </select>
