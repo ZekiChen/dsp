@@ -4,18 +4,18 @@
 <mapper namespace="com.tecdo.adm.api.doris.mapper.CheatingDataMapper">
 
   <select id="getCheatingData" resultType="com.tecdo.adm.api.doris.entity.CheatingData">
-    SELECT hash_code as hashCode,
-           cheat_key as cheatKey,
-           reason
+    SELECT distinct hash_code as hashCode,
+                    cheat_key as cheatKey
     FROM `cheating`
     WHERE hash_code > #{hashCode}
       and end_time > #{endTime}
+      and reason = #{reason}
     order by hash_code
       limit #{batchSize}
   </select>
 
   <select id="selectSize" resultType="com.tecdo.adm.api.doris.entity.CheatingDataSize">
-    SELECT reason, COUNT(1) as dataSize
+    SELECT reason, COUNT(DISTINCT cheat_key) as dataSize
     FROM `cheating`
     WHERE end_time > #{endTime}
     GROUP BY reason

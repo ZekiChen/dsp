@@ -5,6 +5,7 @@ import com.tecdo.adm.api.doris.entity.CheatingDataSize;
 import com.tecdo.adm.api.doris.mapper.CheatingDataMapper;
 import com.tecdo.common.constant.CacheConstant;
 import com.tecdo.core.launch.thread.ThreadPool;
+import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 
 import org.redisson.api.RBloomFilter;
@@ -12,6 +13,8 @@ import org.redisson.api.RedissonClient;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.io.PrintWriter;
+import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Date;
@@ -53,9 +56,8 @@ public class CheatingCacheLoader {
   public void load() {
     log.info("start");
     try {
-      List<CheatingData> cheatingData;
-      Long hashCode = 0L;
-      String now = DateUtil.format(new Date(), "yyyy-MM-dd");
+      List<CheatingData> cheatingData = new ArrayList<>();
+      String now = DateUtil.format(new Date(), "yyyy-MM-dd HH");
 
       List<CheatingDataSize> reasonCount = mapper.selectSize(now);
 
@@ -65,38 +67,57 @@ public class CheatingCacheLoader {
                                              e -> getBloomFilter(makeKey(e.getReason()),
                                                                  e.getDataSize())));
       long totalCost = 0;
-      do {
-        cheatingData = mapper.getCheatingData(hashCode, now, batchSize);
-        hashCode = cheatingData.stream()
-                               .map(CheatingData::getHashCode)
-                               .max(Long::compareTo)
-                               .orElse(Long.MAX_VALUE);
-        log.info("hashCode:{}", hashCode);
+      for (Map.Entry<String, RBloomFilter<String>> entry : collect.entrySet()) {
+        String reason = entry.getKey();
+        RBloomFilter<String> filter = entry.getValue();
+        Long hashCode = 0L;
+        do {
+          try {
+            cheatingData = mapper.getCheatingData(hashCode, now, reason, batchSize);
+          } catch (Exception e) {
+            StringWriter stringWriter = new StringWriter();
+            e.printStackTrace(new PrintWriter(stringWriter));
+            String errorMsg = stringWriter.toString();
+            XxlJobHelper.log("load cheating data meet error:{}", errorMsg);
+          }
+          hashCode = cheatingData.stream()
+                                 .map(CheatingData::getHashCode)
+                                 .max(Long::compareTo)
+                                 .orElse(Long.MAX_VALUE);
 
-        long A = System.currentTimeMillis();
-        List<Future<Boolean>> futureList = new ArrayList<>();
-        for (CheatingData item : cheatingData) {
-          RBloomFilter<String> filter = collect.get(item.getReason());
-          if (filter != null) {
+          long A = System.currentTimeMillis();
+          List<Future<Boolean>> futureList = new ArrayList<>();
+          for (CheatingData item : cheatingData) {
             Future<Boolean> future = threadPool.submit(() -> filter.add(item.getCheatKey()));
             futureList.add(future);
             if (futureList.size() >= redisBatchSize) {
               for (Future<Boolean> i : futureList) {
-                i.get(TIMEOUT, TimeUnit.MILLISECONDS);
+                try {
+                  i.get(TIMEOUT, TimeUnit.MILLISECONDS);
+                } catch (Exception e) {
+                  StringWriter stringWriter = new StringWriter();
+                  e.printStackTrace(new PrintWriter(stringWriter));
+                  String errorMsg = stringWriter.toString();
+                  XxlJobHelper.log("put into bloomFilter meet error:{}", errorMsg);
+                }
               }
               futureList.clear();
             }
           }
-        }
-
-        for (Future<Boolean> future : futureList) {
-          future.get(TIMEOUT, TimeUnit.MILLISECONDS);
-        }
-
-        totalCost = totalCost + (System.currentTimeMillis() - A) / 1000;
-        log.info("put into bloom filter cost:{} ms", (System.currentTimeMillis() - A));
-      } while (cheatingData.size() > 0);
-
+          for (Future<Boolean> future : futureList) {
+            try {
+              future.get(TIMEOUT, TimeUnit.MILLISECONDS);
+            } catch (Exception e) {
+              StringWriter stringWriter = new StringWriter();
+              e.printStackTrace(new PrintWriter(stringWriter));
+              String errorMsg = stringWriter.toString();
+              XxlJobHelper.log("put into bloomFilter meet error:{}", errorMsg);
+            }
+          }
+          totalCost = totalCost + (System.currentTimeMillis() - A) / 1000;
+          log.info("put into bloom filter cost:{} ms", (System.currentTimeMillis() - A));
+        } while (cheatingData.size() > 0);
+      }
       log.info("put into bloom filter total cost: " + totalCost);
 
       // set expire

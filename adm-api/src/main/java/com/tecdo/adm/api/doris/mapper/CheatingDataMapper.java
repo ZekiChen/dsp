@@ -14,6 +14,7 @@ public interface CheatingDataMapper extends BaseMapper<CheatingData> {
 
   List<CheatingData> getCheatingData(@Param("hashCode") Long hashCode,
                                      @Param("endTime") String endTime,
+                                     @Param("reason") String reason,
                                      @Param("batchSize") Integer batchSize);
 
   List<CheatingDataSize> selectSize(@Param("endTime") String endTime);
