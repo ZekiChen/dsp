@@ -9,10 +9,7 @@ import lombok.Data;
 @TableName("cheating")
 public class CheatingData {
 
-  private Integer hashCode;
-
-  @TableField("`type`")
-  private String type;
+  private Long hashCode;
 
   private String cheatKey;
 

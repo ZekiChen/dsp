@@ -5,13 +5,20 @@
 
   <select id="getCheatingData" resultType="com.tecdo.adm.api.doris.entity.CheatingData">
     SELECT hash_code as hashCode,
-           `type`,
            cheat_key as cheatKey,
            reason
     FROM `cheating`
     WHERE hash_code > #{hashCode}
+      and end_time > #{endTime}
     order by hash_code
-    limit #{batchSize}
+      limit #{batchSize}
+  </select>
+
+  <select id="selectSize" resultType="com.tecdo.adm.api.doris.entity.CheatingDataSize">
+    SELECT reason, COUNT(1) as dataSize
+    FROM `cheating`
+    WHERE end_time > #{endTime}
+    GROUP BY reason
   </select>
 
 </mapper>

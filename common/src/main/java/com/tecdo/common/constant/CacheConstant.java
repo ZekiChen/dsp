@@ -16,6 +16,8 @@ public interface CacheConstant {
 
 	String AUDIENCE_CACHE = "pac:dsp:audience";
 
+	String CF_CACHE = "pac:dsp:cheating:filter";
+
 	// delivery
 	String CAMPAIGN_CACHE = "pac:adm:campaign";
 	String AD_GROUP_CACHE = "pac:adm:adGroup";
