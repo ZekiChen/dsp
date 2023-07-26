@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<VAST version="4.0">
+    <Ad id="{AD_ID}">
+        <InLine>
+            <AdSystem>BrainX</AdSystem>
+            <AdTitle><![CDATA[{VIDEO_NAME}]]></AdTitle>
+            {IMP_TRACK_LIST}
+            <Creatives>
+                <Creative>
+                    <Linear>
+                        <Duration>{VIDEO_DURATION}</Duration>
+                        <VideoClicks>
+                            <ClickThrough>
+                                <![CDATA[{LANDING_PAGE}]]>
+                            </ClickThrough>
+                            {CLICK_TRACK_LIST}
+                        </VideoClicks>
+                        <MediaFiles>
+                            <MediaFile delivery="progressive" type="{MIME_TYPE}" width="{WIDTH}" height="{HEIGHT}">
+                                <![CDATA[{VIDEO_URL}]]>
+                            </MediaFile>
+                        </MediaFiles>
+                    </Linear>
+                </Creative>
+            </Creatives>
+        </InLine>
+    </Ad>
+</VAST>

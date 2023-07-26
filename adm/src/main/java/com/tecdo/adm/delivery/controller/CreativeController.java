@@ -58,6 +58,8 @@ public class CreativeController {
             PacFile pacFile = ossTemplate.uploadFile(files[i].getOriginalFilename(), files[i].getInputStream());
             Creative creative = new Creative();
             creative.setUrl(pacFile.getUrl());
+            creative.setSuffix(paramMap.get("suffix" + i));
+            creative.setDuration(Integer.parseInt(paramMap.get("duration" + i)));
             creative.setName(paramMap.get("name" + i));
             creative.setType(Integer.parseInt(paramMap.get("type" + i)));
             creative.setWidth(Integer.parseInt(paramMap.get("width" + i)));

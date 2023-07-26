@@ -27,4 +27,13 @@ public interface FormatKey {
   String IMP_INFO_URL = "{IMP_INFO_URL}";
   String FORCE_URL = "{FORCE_URL}";
 
+  String VIDEO_NAME = "{VIDEO_NAME}";
+  String VIDEO_URL = "{VIDEO_URL}";
+  String VIDEO_DURATION = "{VIDEO_DURATION}";
+  String LANDING_PAGE = "{LANDING_PAGE}";
+  String MIME_TYPE = "{MIME_TYPE}";
+  String WIDTH = "{WIDTH}";
+  String HEIGHT = "{HEIGHT}";
+  String IMP_TRACK_LIST = "{IMP_TRACK_LIST}";
+  String CLICK_TRACK_LIST = "{CLICK_TRACK_LIST}";
 }
