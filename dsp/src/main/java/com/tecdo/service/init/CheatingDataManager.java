@@ -3,8 +3,6 @@ package com.tecdo.service.init;
 import com.google.common.base.Charsets;
 import com.google.common.hash.BloomFilter;
 import com.google.common.hash.Funnels;
-import com.tecdo.adm.api.doris.entity.CheatingData;
-import com.tecdo.adm.api.doris.mapper.CheatingDataMapper;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
@@ -12,14 +10,19 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.InputStream;
+import java.util.Calendar;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
+import cn.hutool.core.date.DateUtil;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,10 +39,13 @@ public class CheatingDataManager {
   private State currentState = State.INIT;
   private long timerId;
 
-  private final CheatingDataMapper mapper;
+  private Map<String, BloomFilter<CharSequence>> filterMap;
 
-  private BloomFilter<CharSequence> ipFilter;
-  private BloomFilter<CharSequence> deviceIdFilter;
+  @Value("${pac.cheating.filter-name-list:}")
+  private String enableFilter;
+
+  @Value("${pac.cheating.base-dir:~/data/}")
+  private String baseDir;
 
   /**
    * TODO
@@ -47,23 +53,27 @@ public class CheatingDataManager {
    *  按照reason来区分布隆过滤器；需要根据reason保留是否启用过滤的配置
    */
 
-  @Value("${pac.timeout.load.cheating.data}")
+  @Value("${pac.timeout.load.cheating.data:60000}")
   private long loadTimeout;
-  @Value("${pac.interval.reload.cheating.data}")
+  @Value("${pac.interval.reload.cheating.data:1800000}")
   private long reloadInterval;
 
-  @Value("${pac.cheating.data.load.batch-size}")
-  private int batchSize;
+  public boolean contains(String filterName, String key) {
+    return Optional.ofNullable(filterMap.get(filterName))
+                   .map(i -> i.mightContain(key))
+                   .orElse(true);
 
-  @Value("${pac.cheating.data.fpp}")
-  private double fpp;
-
-  public boolean ipCheck(String ip) {
-    return !ipFilter.mightContain(ip);
   }
 
-  public boolean deviceIdCheck(String deviceId) {
-    return !deviceIdFilter.mightContain(deviceId);
+  public Pair<Boolean, String> check(String key) {
+    for (Map.Entry<String, BloomFilter<CharSequence>> entry : filterMap.entrySet()) {
+      String reason = entry.getKey();
+      BloomFilter<CharSequence> filter = entry.getValue();
+      if (filter.mightContain(key)) {
+        return Pair.of(true, reason);
+      }
+    }
+    return Pair.of(false, null);
   }
 
 
@@ -128,36 +138,41 @@ public class CheatingDataManager {
       case RUNNING:
         threadPool.execute(() -> {
           try {
-            List<CheatingData> total = new ArrayList<>();
-            List<CheatingData> cheatingData;
-            Integer hashCode = 0;
-            do {
-              cheatingData = mapper.getCheatingData(hashCode, batchSize);
-              hashCode = cheatingData.stream()
-                                     .map(CheatingData::getHashCode)
-                                     .max(Integer::compareTo)
-                                     .orElse(Integer.MAX_VALUE);
-              total.addAll(cheatingData);
-            } while (cheatingData.size() > 0);
-            Map<String, List<CheatingData>> collect =
-              total.stream().collect(Collectors.groupingBy(CheatingData::getType));
-            List<CheatingData> ipData = collect.get("IP");
-            List<CheatingData> deviceData = collect.get("DEVICE_ID");
-            BloomFilter ipFilter =
-              BloomFilter.create(Funnels.stringFunnel(Charsets.UTF_8), ipData.size(), fpp);
-            BloomFilter deviceIdFilter =
-              BloomFilter.create(Funnels.stringFunnel(Charsets.UTF_8), deviceData.size(), fpp);
-            for (CheatingData data : ipData) {
-              ipFilter.put(data.getCheatKey());
+            Map<String, BloomFilter<CharSequence>> filterMap = new HashMap<>();
+            if (StringUtils.isEmpty(enableFilter)) {
+              params.put(ParamKey.CHEATING_DATA_FILTER, filterMap);
+              messageQueue.putMessage(EventType.CHEATING_DATA_LOAD_RESPONSE, params);
+              return;
             }
-            for (CheatingData data : deviceData) {
-              deviceIdFilter.put(data.getCheatKey());
+            // 按照配置启用的过滤器从磁盘中加载持久化的过滤器
+            // 默认加载当前的过滤器，如果不存在，则加载昨天的过滤器,如果昨天也没有这个过滤器，则跳过
+            for (String filterName : enableFilter.split(",")) {
+              Calendar calendar = Calendar.getInstance();
+              String fileName =
+                baseDir + DateUtil.format(calendar.getTime(), "yyyyMMdd") + "/" + filterName;
+              File f = new File(fileName);
+              BloomFilter<CharSequence> filter = null;
+              if (f.exists()) {
+                InputStream in = new FileInputStream(f);
+                filter = BloomFilter.readFrom(in, Funnels.stringFunnel(Charsets.UTF_8));
+              } else {
+                calendar.add(Calendar.DATE, -1);
+                fileName =
+                  baseDir + DateUtil.format(calendar.getTime(), "yyyyMMdd") + "/" + filterName;
+                f = new File(fileName);
+                if (f.exists()) {
+                  InputStream in = new FileInputStream(f);
+                  filter = BloomFilter.readFrom(in, Funnels.stringFunnel(Charsets.UTF_8));
+                }
+              }
+              if (filter != null) {
+                filterMap.put(filterName, filter);
+              }
             }
-            params.put(ParamKey.CHEATING_DATA_CACHE_KEY_IP, ipFilter);
-            params.put(ParamKey.CHEATING_DATA_CACHE_KEY_DID, deviceIdFilter);
+            params.put(ParamKey.CHEATING_DATA_FILTER, filterMap);
             messageQueue.putMessage(EventType.CHEATING_DATA_LOAD_RESPONSE, params);
           } catch (Exception e) {
-            log.error("cheating data load failure from db", e);
+            log.error("cheating data load failure from volume", e);
             messageQueue.putMessage(EventType.CHEATING_DATA_LOAD_ERROR, params);
           }
         });
@@ -174,16 +189,14 @@ public class CheatingDataManager {
       case WAIT_INIT_RESPONSE:
         messageQueue.putMessage(EventType.ONE_DATA_READY);
         cancelReloadTimeoutTimer();
-        this.ipFilter = params.get(ParamKey.CHEATING_DATA_CACHE_KEY_IP);
-        this.deviceIdFilter = params.get(ParamKey.CHEATING_DATA_CACHE_KEY_DID);
+        this.filterMap = params.get(ParamKey.CHEATING_DATA_FILTER);
         log.info("cheating data load success");
         startNextReloadTimer(params);
         switchState(State.RUNNING);
         break;
       case UPDATING:
         cancelReloadTimeoutTimer();
-        this.ipFilter = params.get(ParamKey.CHEATING_DATA_CACHE_KEY_IP);
-        this.deviceIdFilter = params.get(ParamKey.CHEATING_DATA_CACHE_KEY_DID);
+        this.filterMap = params.get(ParamKey.CHEATING_DATA_FILTER);
         log.info("cheating data load success");
         startNextReloadTimer(params);
         switchState(State.RUNNING);

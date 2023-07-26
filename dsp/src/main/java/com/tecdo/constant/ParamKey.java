@@ -38,8 +38,7 @@ public interface ParamKey {
   String BUNDLE_DATA_GT_SIZE_CACHE_KEY = "bundle-data-gt-size-cache-key";
   String BUNDLE_DATA_CACHE_KEY = "bundle-data-cache-key";
 
-  String CHEATING_DATA_CACHE_KEY_IP = "cheating-data-cache-key-IP";
-  String CHEATING_DATA_CACHE_KEY_DID = "cheating-data-cache-key-DID";
+  String CHEATING_DATA_FILTER = "cheating-data-filter";
 
   // task-imp
   String ADS_TASK_RESPONSE = "ads-imp-key";

@@ -184,6 +184,7 @@ public class LifeCycleManager {
         afAudienceSyncManager.init(params);
         affCountryBundleListManager.init(params);
         bundleDataManager.init(params);
+        cheatingDataManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:
