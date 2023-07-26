@@ -116,15 +116,20 @@ public class CheatingCacheLoader {
           }
           totalCost = totalCost + (System.currentTimeMillis() - A) / 1000;
           log.info("put into bloom filter cost:{} ms", (System.currentTimeMillis() - A));
+          XxlJobHelper.log("put into bloom filter cost:{} ms", (System.currentTimeMillis() - A));
         } while (cheatingData.size() > 0);
       }
       log.info("put into bloom filter total cost: " + totalCost);
+      XxlJobHelper.log("put into bloom filter total cost: " + totalCost);
 
       // set expire
       collect.values().forEach(f -> f.expire(2, TimeUnit.HOURS));
 
     } catch (Exception e) {
-      e.printStackTrace();
+      StringWriter stringWriter = new StringWriter();
+      e.printStackTrace(new PrintWriter(stringWriter));
+      String errorMsg = stringWriter.toString();
+      XxlJobHelper.log("meet error:{}", errorMsg);
     }
   }
 
