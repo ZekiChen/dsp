@@ -6,7 +6,6 @@ import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
 import com.alibaba.fastjson.JSON;
 import com.alibaba.fastjson.TypeReference;
-import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.lazada.lazop.api.LazopClient;
@@ -14,34 +13,29 @@ import com.lazada.lazop.api.LazopRequest;
 import com.lazada.lazop.api.LazopResponse;
 import com.lazada.lazop.util.ApiException;
 import com.tecdo.adm.api.delivery.dto.ReportEventDTO;
-import com.tecdo.adm.api.delivery.entity.Adv;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
-import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
 import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
-import com.tecdo.adm.api.delivery.mapper.AdvMapper;
 import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
 import com.tecdo.adm.api.delivery.mapper.RtaInfoMapper;
 import com.tecdo.adm.api.doris.mapper.PostbackMapper;
 import com.tecdo.common.util.WeChatRobotUtils;
 import com.tecdo.job.domain.entity.ReportAdvGap;
+import com.tecdo.job.domain.enums.IdentityEnum;
 import com.tecdo.job.domain.vo.lazada.LazadaReportVO;
 import com.tecdo.job.domain.vo.lazada.LazadaResponse;
 import com.tecdo.job.service.mvc.IReportAdvGapService;
 import com.tecdo.job.util.StringConfigUtil;
-import com.tecdo.starter.mp.entity.IdEntity;
-import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -68,25 +62,40 @@ public class LazadaJob {
     private final RtaInfoMapper rtaInfoMapper;
     private final CampaignMapper campaignMapper;
     private final AdGroupMapper adGroupMapper;
-    private final AdvMapper advMapper;
 
     @XxlJob("lazadaGap")
     public void lazadaGap() {
         XxlJobHelper.log("重跑过去三天数据，落库lazada和报表gap，超过阈值则告警");
-        String yesterday = DateUtil.yesterday().toDateStr();
         String startDay = DateUtil.offsetDay(DateUtil.yesterday(), -2).toDateStr();
+        String endDay = DateUtil.yesterday().toDateStr();
 
-        List<RtaInfo> rtaInfos = rtaInfoMapper.selectList(Wrappers.query());
-        LambdaQueryWrapper<Adv> wrapper = Wrappers.<Adv>lambdaQuery()
-                .eq(Adv::getType, AdvTypeEnum.LAZADA_RTA.getType())
-                .eq(Adv::getStatus, BaseStatusEnum.ACTIVE.getType());
-        List<Integer> advIds = advMapper.selectList(wrapper).stream().map(IdEntity::getId).collect(Collectors.toList());
-        if (CollUtil.isEmpty(advIds)) {
-            XxlJobHelper.log("load db and then: advIds is empty");
-            return;
+        Map<String, List<RtaInfo>> rtaInfoMap = rtaInfoMapper.selectList(Wrappers.query())
+                .stream().collect(Collectors.groupingBy(RtaInfo::getAppKey));
+
+        for (Map.Entry<String, List<RtaInfo>> entry : rtaInfoMap.entrySet()) {
+            List<Integer> advIds;
+            IdentityEnum identity = Objects.requireNonNull(getIdentity(entry.getKey()));
+            List<RtaInfo> rtaInfos = entry.getValue();
+            switch (identity) {
+                case MS:
+                    advIds = CollUtil.newArrayList(1, 15, 22);
+                    break;
+                case LIQUID:
+                    advIds = CollUtil.newArrayList(19);
+                    break;
+                default:
+                    continue;
+            }
+            List<Integer> campaignIds = campaignMapper.listIdByAdvIds(advIds);
+            if (CollUtil.isNotEmpty(campaignIds)) {
+                doGapCheck(identity, rtaInfos, startDay, endDay, campaignIds,
+                        StringUtils.collectionToCommaDelimitedString(advIds));
+            }
         }
-        List<Integer> campaignIds = campaignMapper.listIdByAdvIds(advIds);
+    }
 
+    public void doGapCheck(IdentityEnum identity, List<RtaInfo> rtaInfos, String startDay, String endDay,
+                           List<Integer> campaignIds, String advIds) {
         for (RtaInfo rtaInfo : rtaInfos) {
             LazopClient client = new LazopClient(lazadaReportUrl, rtaInfo.getAppKey(), rtaInfo.getAppSecret());
             LazopRequest request = new LazopRequest();
@@ -96,7 +105,7 @@ public class LazadaJob {
             request.addApiParameter("page", "1");
             request.addApiParameter("page_size", "10");
             request.addApiParameter("start_date", startDay);
-            request.addApiParameter("end_date", yesterday);
+            request.addApiParameter("end_date", endDay);
             request.addApiParameter("campaign_type", "Retargeting");
             request.addApiParameter("sort_column", "date");
             request.addApiParameter("sort_type", "desc");
@@ -121,7 +130,7 @@ public class LazadaJob {
                 String country = StringConfigUtil.getCountryCode3(reportVOs.get(0).getCountry());
                 List<ReportAdvGap> entities = new ArrayList<>();
                 String msg = "报表与广告主gap差异监控\n"
-                        + "广告主：Lazada\n"
+                        + "广告主：Lazada-" + identity.getDesc() + "\n"
                         + "国家：" + country + "\n";
                 boolean send = false;
                 for (LazadaReportVO reportVO : reportVOs) {
@@ -133,7 +142,6 @@ public class LazadaJob {
                         XxlJobHelper.log("event for lazada exist null, date: " + date + ", country: " + country);
                         return;
                     }
-
                     List<Integer> adGroupIds = adGroupMapper.listIdByCountryAndCIds(country, campaignIds);
                     List<String> createTimes = convertCreateTime(date);
                     ReportEventDTO eventDTO = postbackMapper.getRepostEventForLazada(createTimes, adGroupIds);
@@ -169,7 +177,7 @@ public class LazadaJob {
                                 + "报表event3：" + dspEvent3 + "\n"
                                 + "event3 gap：" + event3GapStr + "%\n\n";
                     }
-                    ReportAdvGap entity = buildDspAdvGap(1, date, country,
+                    ReportAdvGap entity = buildDspAdvGap(advIds, identity.getType(), date, country,
                             advEvent1, dspEvent1, event1GapStr,
                             advEvent2, dspEvent2, event2GapStr,
                             advEvent3, dspEvent3, event3GapStr);
@@ -193,23 +201,27 @@ public class LazadaJob {
     }
 
     private void updateLastPeriod(List<ReportAdvGap> entities) {
-        ReportAdvGap entity = entities.get(0);
-        List<String> dates = entities.stream().map(ReportAdvGap::getCreateDate).collect(Collectors.toList());
-        LambdaUpdateWrapper<ReportAdvGap> wrapper = Wrappers.<ReportAdvGap>lambdaUpdate()
-                .eq(ReportAdvGap::getAdvId, entity.getAdvId())
-                .in(ReportAdvGap::getCreateDate, dates)
-                .eq(ReportAdvGap::getCountry, entity.getCountry());
-        reportAdvGapService.remove(wrapper);
-        reportAdvGapService.saveBatch(entities);
+        if (CollUtil.isNotEmpty(entities)) {
+            ReportAdvGap entity = entities.get(0);
+            List<String> dates = entities.stream().map(ReportAdvGap::getCreateDate).collect(Collectors.toList());
+            LambdaUpdateWrapper<ReportAdvGap> wrapper = Wrappers.<ReportAdvGap>lambdaUpdate()
+                    .eq(ReportAdvGap::getAdvId, entity.getAdvId())
+                    .eq(ReportAdvGap::getIdentity, entity.getIdentity())
+                    .in(ReportAdvGap::getCreateDate, dates)
+                    .eq(ReportAdvGap::getCountry, entity.getCountry());
+            reportAdvGapService.remove(wrapper);
+            reportAdvGapService.saveBatch(entities);
+        }
     }
 
-    private static ReportAdvGap buildDspAdvGap(Integer advId, String createDate, String country,
+    private static ReportAdvGap buildDspAdvGap(String advIds, Integer identity, String createDate, String country,
                                                Long advEvent1, Long dspEvent1, String event1GapStr,
                                                Long advEvent2, Long dspEvent2, String event2GapStr,
                                                Long advEvent3, Long dspEvent3, String event3GapStr) {
         ReportAdvGap entity = new ReportAdvGap();
         entity.setCreateDate(createDate);
-        entity.setAdvId(advId);
+        entity.setAdvId(advIds);
+        entity.setIdentity(identity);
         entity.setCountry(country);
         entity.setAdvEvent1(advEvent1);
         entity.setDspEvent1(dspEvent1);
@@ -238,5 +250,16 @@ public class LazadaJob {
         return IntStream.rangeClosed(0, 23)
                 .mapToObj(i -> String.format("%s_%02d", date, i))
                 .collect(Collectors.toList());
+    }
+
+    private IdentityEnum getIdentity(String appKey) {
+        switch (appKey) {
+            case "125611":
+                return IdentityEnum.MS;
+            case "118432":
+                return IdentityEnum.LIQUID;
+            default:
+                return null;
+        }
     }
 }
