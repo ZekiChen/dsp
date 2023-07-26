@@ -1,7 +1,5 @@
 package com.tecdo.fsm.task;
 
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
@@ -38,23 +36,34 @@ import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.CacheService;
-import com.tecdo.service.init.*;
+import com.tecdo.service.init.AbTestConfigManager;
+import com.tecdo.service.init.AdManager;
+import com.tecdo.service.init.BundleDataManager;
+import com.tecdo.service.init.GooglePlayAppManager;
+import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.concurrent.Future;
 import java.util.concurrent.ThreadLocalRandom;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
@@ -77,6 +86,8 @@ public class Task {
   private int predictResCount = 0;
   private String multiplier = SpringUtil.getProperty("pac.bundle.test.multiplier");
   private String maxPrice = SpringUtil.getProperty("pac.bid-price.max-limit");
+  private int recallTimeout = Integer.parseInt(SpringUtil.getProperty("pac.timeout.task.ad.recall"));
+  private int recallBatchSize = Integer.parseInt(SpringUtil.getProperty("pac.task.ad.recall.batch-size"));
 
   private final AdManager adManager = SpringUtil.getBean(AdManager.class);
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
@@ -172,12 +183,47 @@ public class Task {
                                                     Imp imp,
                                                     Affiliate affiliate) {
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
-    return adManager.getAdDTOMap().values().stream()
-            .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate))
-            .collect(Collectors.toMap(
-                    adDTO -> adDTO.getAd().getId(),
-                    adDTO -> new AdDTOWrapper(imp.getId(), taskId, adDTO)
-            ));
+    Map<Integer, AdDTO> adDTOMap = adManager.getAdDTOMap();
+    List<Future<AdDTOWrapper>> futureList = new ArrayList<>();
+    Map<Integer, AdDTOWrapper> res = new HashMap<>();
+    for (AdDTO adDTO : adDTOMap.values()) {
+      // 在线程池中处理多个ad的recall
+      Future<AdDTOWrapper> future = threadPool.submit(() -> {
+        boolean match =
+          FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate);
+        if (match) {
+          return new AdDTOWrapper(imp.getId(), taskId, adDTO);
+        } else {
+          return null;
+        }
+      });
+      futureList.add(future);
+      // 批量处理线程池的任务，减少线程池堆积
+      if (futureList.size() >= recallBatchSize) {
+        for (Future<AdDTOWrapper> i : futureList) {
+          try {
+            AdDTOWrapper wrapper = i.get(recallTimeout, TimeUnit.MILLISECONDS);
+            if (wrapper != null) {
+              res.put(wrapper.getAdDTO().getAd().getId(), wrapper);
+            }
+          } catch (Exception ignore) {
+            // 单个ad召回失败不影响其他ad召回
+          }
+        }
+        futureList.clear();
+      }
+    }
+    // 处理剩下的任务，如果有的话
+    for (Future<AdDTOWrapper> i : futureList) {
+      try {
+        AdDTOWrapper wrapper = i.get(recallTimeout, TimeUnit.MILLISECONDS);
+        if (wrapper != null) {
+          res.put(wrapper.getAdDTO().getAd().getId(), wrapper);
+        }
+      } catch (Exception ignore) {
+      }
+    }
+    return res;
   }
 
 
