@@ -82,6 +82,9 @@ public class CheatingDataLoader {
         BloomFilter<CharSequence> filter = entry.getValue();
         String fileName = baseDir + DateUtil.format(new Date(), "yyyyMMdd") + "/" + reason;
         File f = new File(fileName);
+        if (!f.getParentFile().exists()) {
+          f.getParentFile().mkdirs();
+        }
         OutputStream out = new FileOutputStream(f);
         filter.writeTo(out);
       }
