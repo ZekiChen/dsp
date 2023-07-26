@@ -1,6 +1,7 @@
 package com.tecdo.job.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
+import com.tecdo.job.domain.enums.IdentityEnum;
 import com.tecdo.starter.mp.entity.IdEntity;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -22,9 +23,14 @@ public class ReportAdvGap extends IdEntity {
 	 */
 	private String createDate;
 	/**
-	 * 广告主ID
+	 * 广告主ID集
 	 */
-	private Integer advId;
+	private String advId;
+	/**
+	 * 主体
+	 * @see IdentityEnum
+	 */
+	private Integer identity;
 	/**
 	 * 国家二字码
 	 */
