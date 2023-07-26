@@ -5,7 +5,6 @@ dependencies {
     implementation project(':tool:core-launch')
     implementation project(':tool:starter-mybatis')
     implementation project(':tool:starter-xxljob')
-    implementation project(':tool:starter-redis')
 
     implementation libraries.netty
     
@@ -14,7 +13,6 @@ dependencies {
     implementation 'com.alibaba:druid-spring-boot-starter'
     implementation 'mysql:mysql-connector-java'
     implementation 'com.baomidou:dynamic-datasource-spring-boot-starter'
-    implementation 'org.redisson:redisson:3.8.2'
 
     implementation 'com.lazada:lazop-api-sdk'
 }
