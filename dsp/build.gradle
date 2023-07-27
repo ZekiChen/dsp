@@ -14,7 +14,6 @@ dependencies {
     implementation 'mysql:mysql-connector-java'
     implementation 'com.baomidou:dynamic-datasource-spring-boot-starter'
     implementation 'org.redisson:redisson:3.8.2'
-    implementation 'org.roaringbitmap:RoaringBitmap:0.9.44'
 
 }
 
