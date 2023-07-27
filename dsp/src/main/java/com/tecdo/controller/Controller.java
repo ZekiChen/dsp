@@ -8,9 +8,11 @@ import com.tecdo.service.LifeCycleManager;
 import com.tecdo.service.NoticeService;
 import com.tecdo.service.ValidateService;
 import com.tecdo.util.HttpResponseHelper;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * Created by Zeki on 2022/12/27
@@ -73,6 +75,10 @@ public class Controller implements MessageObserver {
       case BUNDLE_DATA_LOAD_RESPONSE:
       case BUNDLE_DATA_LOAD_ERROR:
       case BUNDLE_DATA_LOAD_TIMEOUT:
+      case CHEATING_DATA_LOAD:
+      case CHEATING_DATA_LOAD_RESPONSE:
+      case CHEATING_DATA_LOAD_ERROR:
+      case CHEATING_DATA_LOAD_TIMEOUT:
       case ONE_DATA_READY:
       case NETTY_START:
       case RECEIVE_PING_REQUEST:
@@ -88,7 +94,7 @@ public class Controller implements MessageObserver {
       case RECEIVE_PB_NOTICE:
       case RECEIVE_IMP_INFO_NOTICE:
       case RECEIVE_LOSS_NOTICE:
-        noticeService.handleEvent(eventType,params);
+        noticeService.handleEvent(eventType, params);
         break;
       // context
       case RECEIVE_BID_REQUEST:
@@ -101,7 +107,7 @@ public class Controller implements MessageObserver {
       case SORT_AD_RESPONSE:
       case WAIT_SORT_AD_TIMEOUT:
       case BID_REQUEST_COMPLETE:
-      // task
+        // task
       case TASK_START:
       case ADS_RECALL_FINISH:
       case ADS_RECALL_ERROR:

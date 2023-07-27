@@ -15,6 +15,7 @@ import com.tecdo.log.ValidateLogger;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.init.AffCountryBundleListManager;
 import com.tecdo.service.init.AffiliateManager;
+import com.tecdo.service.init.CheatingDataManager;
 import com.tecdo.service.init.IpTableManager;
 import com.tecdo.service.init.Pair;
 import com.tecdo.transform.IProtoTransform;
@@ -45,6 +46,7 @@ public class ValidateService {
     private final AffiliateManager affiliateManager;
     private final IpTableManager ipTableManager;
     private final AffCountryBundleListManager affCountryBundleListManager;
+    private final CheatingDataManager cheatingDataManager;
 
     private final MessageQueue messageQueue;
     private final CacheService cacheService;
@@ -60,6 +62,12 @@ public class ValidateService {
 
     @Value("${pac.request.validate}")
     private boolean needValidateRequest;
+
+    @Value("${pac.request.validate.filter-device:}")
+    private String deviceFilter;
+
+    @Value("${pac.request.validate.filter-ip:}")
+    private String ipFilter;
 
     public void validateBidRequest(HttpRequest httpRequest) {
         String token = httpRequest.getParamAsStr(RequestKey.TOKEN);
@@ -106,7 +114,7 @@ public class ValidateService {
                     affiliate.getId(),
                     country,
                     bundle);
-            ValidateLogger.log("black", bidRequest, affiliate);
+            ValidateLogger.log("black", bidRequest, affiliate, true);
             messageQueue.putMessage(EventType.RESPONSE_RESULT,
                     Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
                             .put(ParamKey.CHANNEL_CONTEXT,
@@ -115,16 +123,44 @@ public class ValidateService {
         }
 
         String ip = bidRequest.getDevice().getIp();
+        String deviceId = bidRequest.getDevice().getIfa();
+
+        Pair<Boolean, String> ipCheatCheck = cheatingDataManager.check(ip);
+        Pair<Boolean, String> deviceCheatCheck = cheatingDataManager.check(deviceId);
+        if (ipCheatCheck.left) {
+            if (ipFilter.contains(ipCheatCheck.right)) {
+                ValidateLogger.log(ipCheatCheck.right, bidRequest, affiliate, true);
+                messageQueue.putMessage(EventType.RESPONSE_RESULT,
+                                        Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
+                                              .put(ParamKey.CHANNEL_CONTEXT,
+                                                   httpRequest.getChannelContext()));
+                return;
+            }
+            ValidateLogger.log(ipCheatCheck.right, bidRequest, affiliate, false);
+        }
+        if (deviceCheatCheck.left) {
+            if (deviceFilter.contains(deviceCheatCheck.right)) {
+                ValidateLogger.log(deviceCheatCheck.right, bidRequest, affiliate, true);
+                messageQueue.putMessage(EventType.RESPONSE_RESULT,
+                                        Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
+                                              .put(ParamKey.CHANNEL_CONTEXT,
+                                                   httpRequest.getChannelContext()));
+                return;
+            }
+            ValidateLogger.log(deviceCheatCheck.right, bidRequest, affiliate, false);
+        }
+
         Pair<Boolean, String> blocked = ipTableManager.ipCheck(ip);
         if (blocked.left) {
-            ValidateLogger.log(blocked.right, bidRequest, affiliate);
             if (needValidateRequest) {
+                ValidateLogger.log(blocked.right, bidRequest, affiliate, true);
                 messageQueue.putMessage(EventType.RESPONSE_RESULT,
                         Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
                                 .put(ParamKey.CHANNEL_CONTEXT,
                                         httpRequest.getChannelContext()));
                 return;
             }
+            ValidateLogger.log(blocked.right, bidRequest, affiliate, false);
         }
 
         messageQueue.putMessage(EventType.RECEIVE_BID_REQUEST,
