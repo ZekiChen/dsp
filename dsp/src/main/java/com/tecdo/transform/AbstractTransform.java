@@ -1,7 +1,5 @@
 package com.tecdo.transform;
 
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
@@ -9,6 +7,7 @@ import com.tecdo.constant.FormatKey;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.domain.openrtb.request.n.NativeRequest;
 import com.tecdo.domain.openrtb.request.n.NativeRequestWrapper;
@@ -22,14 +21,23 @@ import com.tecdo.util.AdmGenerator;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.JsonHelper;
 import com.tecdo.util.SignHelper;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.net.URLEncoder;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 
 @Component
 public abstract class AbstractTransform implements IProtoTransform {
@@ -268,6 +276,7 @@ public abstract class AbstractTransform implements IProtoTransform {
     if (sign != null) {
       url = url.replace(FormatKey.SIGN, sign);
     }
+    Device device = bidRequest.getDevice();
     url = url.replace(FormatKey.BID_ID, response.getBidId())
              .replace(FormatKey.IMP_ID, response.getImpId())
              .replace(FormatKey.CAMPAIGN_ID,
@@ -278,12 +287,13 @@ public abstract class AbstractTransform implements IProtoTransform {
              .replace(FormatKey.AD_ID, String.valueOf(response.getAdDTO().getAd().getId()))
              .replace(FormatKey.CREATIVE_ID,
                       String.valueOf(CreativeHelper.getCreativeId(response.getAdDTO().getAd())))
-             .replace(FormatKey.DEVICE_ID, bidRequest.getDevice().getIfa())
-             .replace(FormatKey.IP, encode(bidRequest.getDevice().getIp()))
-             .replace(FormatKey.COUNTRY, bidRequest.getDevice().getGeo().getCountry())
-             .replace(FormatKey.OS, bidRequest.getDevice().getOs())
-             .replace(FormatKey.DEVICE_MAKE, encode(bidRequest.getDevice().getMake()))
-             .replace(FormatKey.DEVICE_MODEL, encode(bidRequest.getDevice().getModel()))
+             .replace(FormatKey.DEVICE_ID, device.getIfa())
+             .replace(FormatKey.IP,
+                      encode(Optional.ofNullable(device.getIp()).orElse(device.getIpv6())))
+             .replace(FormatKey.COUNTRY, device.getGeo().getCountry())
+             .replace(FormatKey.OS, device.getOs())
+             .replace(FormatKey.DEVICE_MAKE, encode(device.getMake()))
+             .replace(FormatKey.DEVICE_MODEL, encode(device.getModel()))
              .replace(FormatKey.AD_FORMAT,
                       AdTypeEnum.of(response.getAdDTO().getAd().getType()).getDesc())
              .replace(FormatKey.BUNDLE, encode(bidRequest.getApp().getBundle()))
