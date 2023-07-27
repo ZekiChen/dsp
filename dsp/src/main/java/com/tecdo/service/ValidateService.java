@@ -213,7 +213,7 @@ public class ValidateService {
       return false;
     }
     // 缺少ip信息，过滤
-    if (StringUtils.isEmpty(bidRequest.getDevice().getIp()) ||
+    if (StringUtils.isEmpty(bidRequest.getDevice().getIp()) &&
       StringUtils.isEmpty(bidRequest.getDevice().getIpv6())) {
       return false;
     }
