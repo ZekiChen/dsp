@@ -12,6 +12,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 
 import cn.hutool.core.date.DateUtil;
 
@@ -32,7 +33,7 @@ public class ValidateLogger {
         map.put("bundle_id", FieldFormatHelper.bundleIdFormat(bidRequest.getApp().getBundle()));
         map.put("os", FieldFormatHelper.osFormat(device.getOs()));
         map.put("osv", device.getOsv());
-        map.put("ip", bidRequest.getDevice().getIp());
+        map.put("ip", Optional.ofNullable(device.getIp()).orElse(device.getIpv6()));
         map.put("ua", device.getUa());
         map.put("lang", FieldFormatHelper.languageFormat(device.getLanguage()));
         map.put("device_id", device.getIfa());

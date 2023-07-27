@@ -182,48 +182,15 @@ public class Task {
   private Map<Integer, AdDTOWrapper> doListRecallAd(BidRequest bidRequest,
                                                     Imp imp,
                                                     Affiliate affiliate) {
+    // todo 20230727并行召回存在问题，回滚
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
-    Map<Integer, AdDTO> adDTOMap = adManager.getAdDTOMap();
-    List<Future<AdDTOWrapper>> futureList = new ArrayList<>();
-    Map<Integer, AdDTOWrapper> res = new HashMap<>();
-    for (AdDTO adDTO : adDTOMap.values()) {
-      // 在线程池中处理多个ad的recall
-      Future<AdDTOWrapper> future = threadPool.submit(() -> {
-        boolean match =
-          FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate);
-        if (match) {
-          return new AdDTOWrapper(imp.getId(), taskId, adDTO);
-        } else {
-          return null;
-        }
-      });
-      futureList.add(future);
-      // 批量处理线程池的任务，减少线程池堆积
-      if (futureList.size() >= recallBatchSize) {
-        for (Future<AdDTOWrapper> i : futureList) {
-          try {
-            AdDTOWrapper wrapper = i.get(recallTimeout, TimeUnit.MILLISECONDS);
-            if (wrapper != null) {
-              res.put(wrapper.getAdDTO().getAd().getId(), wrapper);
-            }
-          } catch (Exception ignore) {
-            // 单个ad召回失败不影响其他ad召回
-          }
-        }
-        futureList.clear();
-      }
-    }
-    // 处理剩下的任务，如果有的话
-    for (Future<AdDTOWrapper> i : futureList) {
-      try {
-        AdDTOWrapper wrapper = i.get(recallTimeout, TimeUnit.MILLISECONDS);
-        if (wrapper != null) {
-          res.put(wrapper.getAdDTO().getAd().getId(), wrapper);
-        }
-      } catch (Exception ignore) {
-      }
-    }
-    return res;
+    return adManager.getAdDTOMap().values().stream()
+                    .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate))
+                    .collect(Collectors.toMap(
+                      adDTO -> adDTO.getAd().getId(),
+                      adDTO -> new AdDTOWrapper(imp.getId(), taskId, adDTO)
+                    ));
+
   }
 
 
@@ -414,7 +381,7 @@ public class Task {
             .domain(bidRequest.getApp().getDomain())
             .instl(imp.getInstl())
             .cat(bidRequest.getApp().getCat())
-            .ip(device.getIp())
+            .ip(Optional.ofNullable(device.getIp()).orElse(device.getIpv6()))
             .ua(device.getUa())
             .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
             .deviceId(device.getIfa())
