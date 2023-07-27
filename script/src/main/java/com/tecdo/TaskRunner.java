@@ -17,10 +17,24 @@ public class TaskRunner implements CommandLineRunner {
 
   private final Ae ae;
 
+  private final CheatingDataLoader cheatingDataLoader;
+
   @Override
   public void run(String... args) throws Exception {
     threadPool.execute(() -> {
-      ae.run(args);
+      if (args == null || args.length <= 0) {
+        System.exit(0);
+      } else {
+        switch (args[0]) {
+          case TaskName.AE:
+            ae.run(args);
+            break;
+          case TaskName.CHEATING_DATA_LOADER:
+            cheatingDataLoader.run();
+            break;
+          default:
+        }
+      }
       System.exit(0);
     });
   }

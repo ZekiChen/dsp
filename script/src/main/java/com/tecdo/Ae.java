@@ -1,8 +1,6 @@
 package com.tecdo;
 
 
-import cn.hutool.core.date.DateTime;
-import cn.hutool.core.date.DateUtil;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
@@ -19,8 +17,7 @@ import com.tecdo.service.rta.ae.AeRtaProductInfoVO;
 import com.tecdo.starter.redis.PacRedis;
 import com.tecdo.util.AeSignHelper;
 import com.tecdo.util.JsonHelper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.slf4j.Logger;
@@ -29,11 +26,22 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.Duration;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Future;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
+
+import cn.hutool.core.date.DateTime;
+import cn.hutool.core.date.DateUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
@@ -110,12 +118,12 @@ public class Ae {
     String start = startAndEndTime[0];
     String end = startAndEndTime[1];
     DateUtil.format(new Date(), "yyyy-MM-dd_HH");
-    if (args != null && args.length > 0) {
-      country = args[0];
+    if (args != null && args.length == 2) {
+      country = args[1];
     }
-    if (args != null && args.length == 3) {
-      start = args[1];
-      end = args[2];
+    if (args != null && args.length == 4) {
+      start = args[2];
+      end = args[3];
     }
     List<String> timeRange = getTimeRange(start, end);
     RateLimiter rateLimiter = RateLimiter.create(maxQps);

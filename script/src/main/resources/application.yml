@@ -1,10 +1,10 @@
 # Apollo 配置
 app:
-  id: pac-dsp-script
+  id: pac-dsp
 apollo:
   cluster: default
   bootstrap:
-    namespaces: application,infrastructure
+    namespaces: application,infrastructure,script
     enabled: true
     eagerLoad:
       enabled: true
