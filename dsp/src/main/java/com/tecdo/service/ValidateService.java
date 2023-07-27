@@ -63,10 +63,10 @@ public class ValidateService {
     @Value("${pac.request.validate}")
     private boolean needValidateRequest;
 
-    @Value("${pac.cheating.filter-device:}")
+    @Value("${pac.request.validate.filter-device:}")
     private String deviceFilter;
 
-    @Value("${pac.cheating.filter-ip:}")
+    @Value("${pac.request.validate.filter-ip:}")
     private String ipFilter;
 
     public void validateBidRequest(HttpRequest httpRequest) {

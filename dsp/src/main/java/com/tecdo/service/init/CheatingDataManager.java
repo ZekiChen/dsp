@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.util.Calendar;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Optional;
 
 import cn.hutool.core.date.DateUtil;
 import lombok.AllArgsConstructor;
@@ -42,28 +41,15 @@ public class CheatingDataManager {
   private Map<String, BloomFilter<CharSequence>> filterMap;
 
   @Value("${pac.cheating.filter-name-list:}")
-  private String enableFilter;
+  private String filterNameList;
 
   @Value("${pac.cheating.base-dir:~/data/}")
   private String baseDir;
-
-  /**
-   * TODO
-   *  数据边查询边插入到布隆过滤器，减少内存占用；需要先查询每个reason的数据来初始化过滤器；
-   *  按照reason来区分布隆过滤器；需要根据reason保留是否启用过滤的配置
-   */
 
   @Value("${pac.timeout.load.cheating.data:60000}")
   private long loadTimeout;
   @Value("${pac.interval.reload.cheating.data:1800000}")
   private long reloadInterval;
-
-  public boolean contains(String filterName, String key) {
-    return Optional.ofNullable(filterMap.get(filterName))
-                   .map(i -> i.mightContain(key))
-                   .orElse(true);
-
-  }
 
   public Pair<Boolean, String> check(String key) {
     for (Map.Entry<String, BloomFilter<CharSequence>> entry : filterMap.entrySet()) {
@@ -139,14 +125,14 @@ public class CheatingDataManager {
         threadPool.execute(() -> {
           try {
             Map<String, BloomFilter<CharSequence>> filterMap = new HashMap<>();
-            if (StringUtils.isEmpty(enableFilter)) {
+            if (StringUtils.isEmpty(filterNameList)) {
               params.put(ParamKey.CHEATING_DATA_FILTER, filterMap);
               messageQueue.putMessage(EventType.CHEATING_DATA_LOAD_RESPONSE, params);
               return;
             }
             // 按照配置启用的过滤器从磁盘中加载持久化的过滤器
             // 默认加载当前的过滤器，如果不存在，则加载昨天的过滤器,如果昨天也没有这个过滤器，则跳过
-            for (String filterName : enableFilter.split(",")) {
+            for (String filterName : filterNameList.split(",")) {
               Calendar calendar = Calendar.getInstance();
               String fileName =
                 baseDir + DateUtil.format(calendar.getTime(), "yyyyMMdd") + "/" + filterName;
