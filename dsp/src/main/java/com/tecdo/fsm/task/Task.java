@@ -55,7 +55,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.concurrent.Future;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -86,8 +86,8 @@ public class Task {
   private int predictResCount = 0;
   private String multiplier = SpringUtil.getProperty("pac.bundle.test.multiplier");
   private String maxPrice = SpringUtil.getProperty("pac.bid-price.max-limit");
-  private int recallTimeout = Integer.parseInt(SpringUtil.getProperty("pac.timeout.task.ad.recall"));
-  private int recallBatchSize = Integer.parseInt(SpringUtil.getProperty("pac.task.ad.recall.batch-size"));
+  private int recallTimeout =
+    Integer.parseInt(SpringUtil.getProperty("pac.timeout.task.ad.recall"));
 
   private final AdManager adManager = SpringUtil.getBean(AdManager.class);
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
@@ -156,7 +156,7 @@ public class Task {
     currentState.handleEvent(eventType, params, this);
   }
 
-  public void listRecallAd() {
+  public void listRecallAd(boolean recallBatchEnable) {
     Params params = assignParams();
     // to solve when timeout,imp will set to null,then imp.getId() will cause null point exception
     BidRequest bidRequest = this.bidRequest;
@@ -164,13 +164,19 @@ public class Task {
     Affiliate affiliate = this.affiliate;
     threadPool.execute(() -> {
       try {
-        params.put(ParamKey.ADS_RECALL_RESPONSE, doListRecallAd(bidRequest, imp, affiliate));
+        Map<Integer, AdDTOWrapper> res;
+        if (recallBatchEnable) {
+          res = doListRecallAdBatch(bidRequest, imp, affiliate);
+        } else {
+          res = doListRecallAd(bidRequest, imp, affiliate);
+        }
+        params.put(ParamKey.ADS_RECALL_RESPONSE, res);
         messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
       } catch (Exception e) {
         log.error(
-                "taskId: {},list recall ad error,  so this request will not participate in bidding",
-                taskId,
-                e);
+          "taskId: {},list recall ad error,  so this request will not participate in bidding",
+          taskId,
+          e);
         messageQueue.putMessage(EventType.ADS_RECALL_ERROR, params);
       }
     });
@@ -182,15 +188,67 @@ public class Task {
   private Map<Integer, AdDTOWrapper> doListRecallAd(BidRequest bidRequest,
                                                     Imp imp,
                                                     Affiliate affiliate) {
-    // todo 20230727并行召回存在问题，回滚
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
-    return adManager.getAdDTOMap().values().stream()
-                    .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate))
-                    .collect(Collectors.toMap(
-                      adDTO -> adDTO.getAd().getId(),
-                      adDTO -> new AdDTOWrapper(imp.getId(), taskId, adDTO)
-                    ));
+    return adManager.getAdDTOMap()
+                    .values()
+                    .stream()
+                    .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0),
+                                                                     adDTO,
+                                                                     bidRequest,
+                                                                     imp,
+                                                                     affiliate))
+                    .collect(Collectors.toMap(adDTO -> adDTO.getAd().getId(),
+                                              adDTO -> new AdDTOWrapper(imp.getId(),
+                                                                        taskId,
+                                                                        adDTO)));
 
+  }
+
+  private Map<Integer, AdDTOWrapper> doListRecallAdBatch(BidRequest bidRequest,
+                                                         Imp imp,
+                                                         Affiliate affiliate) {
+    List<AbstractRecallFilter> filters = filtersFactory.createFilters();
+    Map<Integer, AdDTO> adDTOMap = adManager.getAdDTOMap();
+    List<CompletableFuture<AdDTOWrapper>> futureList = new ArrayList<>();
+    Map<Integer, AdDTOWrapper> res = new HashMap<>();
+    for (AdDTO adDTO : adDTOMap.values()) {
+      // 在线程池中处理多个ad的recall
+      CompletableFuture<AdDTOWrapper> future = CompletableFuture.supplyAsync(() -> {
+        boolean match =
+          FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate);
+        if (match) {
+          return new AdDTOWrapper(imp.getId(), taskId, adDTO);
+        } else {
+          return null;
+        }
+      }, threadPool.getExecutor());
+      futureList.add(future);
+    }
+
+    // 合并为一个future
+    CompletableFuture<List<AdDTOWrapper>> total = sequence(futureList);
+    try {
+      List<AdDTOWrapper> adDTOWrappers = total.get(recallTimeout, TimeUnit.MILLISECONDS);
+      for (AdDTOWrapper wrapper : adDTOWrappers) {
+        if (wrapper != null) {
+          res.put(wrapper.getAdDTO().getAd().getId(), wrapper);
+        }
+      }
+    } catch (Exception e) {
+      // 超时,取消任务,如果整个任务或者部分任务还在缓存队列中，这里的取消是有用的
+      total.cancel(false);
+      for (CompletableFuture<AdDTOWrapper> future : futureList) {
+        future.cancel(false);
+      }
+    }
+    return res;
+  }
+
+  private <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> com) {
+    return CompletableFuture.allOf(com.toArray(new CompletableFuture<?>[0]))
+                            .thenApply(v -> com.stream()
+                                               .map(CompletableFuture::join)
+                                               .collect(Collectors.toList()));
   }
 
 
