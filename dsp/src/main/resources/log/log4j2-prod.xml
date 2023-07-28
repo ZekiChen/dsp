@@ -73,6 +73,10 @@
         <Logger name="validate_request_log" level="INFO" additivity="false">
             <AppenderRef ref="VALIDATE_REQUEST_LOG"/>
         </Logger>
+
+        <Logger name="sdk_pb_log" level="INFO" additivity="false">
+            <AppenderRef ref="SDK_PB_LOG"/>
+        </Logger>
     </Loggers>
 
 </Configuration>

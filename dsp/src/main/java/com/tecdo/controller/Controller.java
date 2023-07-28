@@ -6,6 +6,7 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.fsm.ContextManager;
 import com.tecdo.service.LifeCycleManager;
 import com.tecdo.service.NoticeService;
+import com.tecdo.service.SDKNoticeService;
 import com.tecdo.service.ValidateService;
 import com.tecdo.util.HttpResponseHelper;
 
@@ -29,6 +30,8 @@ public class Controller implements MessageObserver {
   private ValidateService validateService;
   @Autowired
   private NoticeService noticeService;
+  @Autowired
+  private SDKNoticeService sdkNoticeService;
 
 
   @Override
@@ -95,6 +98,9 @@ public class Controller implements MessageObserver {
       case RECEIVE_IMP_INFO_NOTICE:
       case RECEIVE_LOSS_NOTICE:
         noticeService.handleEvent(eventType, params);
+        break;
+      case RECEIVE_SDK_PB_NOTICE:
+        sdkNoticeService.handelEvent(eventType, params);
         break;
       // context
       case RECEIVE_BID_REQUEST:
