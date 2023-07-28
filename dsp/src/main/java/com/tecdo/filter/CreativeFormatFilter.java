@@ -1,24 +1,19 @@
 package com.tecdo.filter;
 
+import cn.hutool.core.collection.CollUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
-import com.tecdo.domain.openrtb.request.Banner;
-import com.tecdo.domain.openrtb.request.BidRequest;
-import com.tecdo.domain.openrtb.request.Format;
-import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.domain.openrtb.request.Native;
-import com.tecdo.domain.openrtb.request.Video;
+import com.tecdo.domain.openrtb.request.*;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
+import com.tecdo.enums.biz.VideoMimeEnum;
+import com.tecdo.enums.biz.VideoProtocolEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
-import com.tecdo.filter.util.ConditionHelper;
-
 import org.springframework.stereotype.Component;
 
+import java.util.List;
 import java.util.Objects;
-
-import cn.hutool.core.collection.CollUtil;
 
 /**
  * 物料格式 过滤
@@ -63,18 +58,6 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     }
                     return hitFlag;
                 }
-            case VIDEO:
-                Video video = imp.getVideo();
-                if (video == null || video.getW() == null || video.getH() == null) {
-                    return false;
-                }
-                if (adDTO.getAd().getVideo() == null ||
-                    adDTO.getCreativeMap().get(adDTO.getAd().getVideo()) == null) {
-                    return false;
-                }
-                creative = adDTO.getCreativeMap().get(adDTO.getAd().getVideo());
-                return ConditionHelper.compare(video.getW().toString(), Constant.EQ, creative.getWidth().toString())
-                        && ConditionHelper.compare(video.getH().toString(), Constant.EQ, creative.getHeight().toString());
             case NATIVE:
                 Native native1 = imp.getNative1();
                 if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
@@ -134,6 +117,42 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     }
                 }
                 return hitFlag;
+            case VIDEO:
+                Video video = imp.getVideo();
+                if (video == null || video.getW() == null || video.getH() == null) {
+                    return false;
+                }
+                List<String> mimes = video.getMimes();
+                List<Integer> protocols = video.getProtocols();
+                Integer videoId = adDTO.getAd().getVideo();
+                if (videoId == null
+                        || adDTO.getCreativeMap().get(videoId) == null
+                        || CollUtil.isEmpty(mimes)
+                        || CollUtil.isEmpty(protocols)) {
+                    return false;
+                }
+                creative = adDTO.getCreativeMap().get(videoId);
+                switch (VideoMimeEnum.of(creative.getSuffix())) {
+                    case MP4:
+                        boolean mimeSupport = mimes.stream().anyMatch(s -> VideoMimeEnum.MP4.getMime().equals(s));
+                        if (!mimeSupport) {
+                            return false;
+                        }
+                        break;
+                    case OTHER:
+                        return false;
+                }
+                Integer minDuration = video.getMinduration();
+                Integer maxDuration = video.getMaxduration();
+                Integer duration = creative.getDuration();
+                if ((minDuration != null && duration < minDuration)
+                        || (maxDuration != null && duration > maxDuration)) {
+                    return false;
+                }
+                if ((float) creative.getWidth() / creative.getHeight() != (float) video.getW() / video.getH()) {
+                    return false;
+                }
+                return protocols.stream().anyMatch(type -> VideoProtocolEnum.VAST_4.getType() == type);
         }
         return true;
     }

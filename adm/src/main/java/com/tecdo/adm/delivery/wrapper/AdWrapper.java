@@ -56,7 +56,10 @@ public class AdWrapper extends EntityWrapper<Ad, AdVO> {
 					break;
 				case VIDEO:
 					if (vo.getVideo() != null) {
-						vo.setVideoUrl(CreativeCache.getCreative(vo.getVideo()).getUrl());
+						Creative video = CreativeCache.getCreative(vo.getVideo());
+						vo.setVideoUrl(video.getUrl());
+						vo.setDuration(video.getDuration());
+						vo.setVideoSize("w" + video.getWidth() + "h" + video.getHeight());
 					}
 					break;
 				case AUDIO:

@@ -1,24 +1,21 @@
 package com.tecdo.util;
 
+import cn.hutool.core.date.DateUtil;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.constant.FormatKey;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.n.NativeRequest;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
-import com.tecdo.domain.openrtb.response.n.Data;
-import com.tecdo.domain.openrtb.response.n.Img;
-import com.tecdo.domain.openrtb.response.n.Link;
-import com.tecdo.domain.openrtb.response.n.NativeResponse;
-import com.tecdo.domain.openrtb.response.n.NativeResponseAsset;
-import com.tecdo.domain.openrtb.response.n.Title;
+import com.tecdo.domain.openrtb.response.n.*;
+import com.tecdo.enums.biz.VideoMimeEnum;
 import com.tecdo.enums.openrtb.DataAssetTypeEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
-
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class AdmGenerator {
 
@@ -153,6 +150,30 @@ public class AdmGenerator {
     nativeResponse.setLink(link);
 
     return nativeResponse;
+  }
+
+  public static String videoAdm(Integer adId, Creative creative,
+                                String clickUrl, String deepLink,
+                                List<String> impTrackUrl, List<String> clickTrackUrl) {
+    String impTemplate = "<Impression><![CDATA[{IMP_TRACK}]]></Impression>";
+    String impTracks = impTrackUrl.stream()
+            .map(s -> impTemplate.replace("{IMP_TRACK}", s)).collect(Collectors.joining());
+
+    String clickTemplate = "<ClickTracking><![CDATA[{CLICK_TRACK}]]></ClickTracking>";
+    String clickTracks = clickTrackUrl.stream()
+            .map(s -> clickTemplate.replace("{CLICK_TRACK}", s)).collect(Collectors.joining());
+
+    return StringConfigUtil.getVideoVast4Template()
+            .replace(FormatKey.AD_ID, adId.toString())
+            .replace(FormatKey.VIDEO_NAME, creative.getName() + "." + creative.getSuffix())
+            .replace(FormatKey.VIDEO_URL, creative.getUrl())
+            .replace(FormatKey.VIDEO_DURATION, DateUtil.secondToTime(creative.getDuration()))
+            .replace(FormatKey.LANDING_PAGE, StringUtils.firstNonBlank(deepLink, clickUrl))
+            .replace(FormatKey.MIME_TYPE, VideoMimeEnum.of(creative.getSuffix()).getMime())
+            .replace(FormatKey.WIDTH, creative.getWidth().toString())
+            .replace(FormatKey.HEIGHT, creative.getHeight().toString())
+            .replace(FormatKey.CLICK_TRACK_LIST, clickTracks)
+            .replace(FormatKey.IMP_TRACK_LIST, impTracks);
   }
 
 }

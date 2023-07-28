@@ -16,6 +16,7 @@ import com.tecdo.domain.openrtb.response.BidResponse;
 import com.tecdo.domain.openrtb.response.SeatBid;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
 import com.tecdo.domain.openrtb.response.n.NativeResponseWrapper;
+import com.tecdo.enums.biz.VideoProtocolEnum;
 import com.tecdo.service.rta.ae.AeHelper;
 import com.tecdo.util.AdmGenerator;
 import com.tecdo.util.CreativeHelper;
@@ -149,6 +150,9 @@ public abstract class AbstractTransform implements IProtoTransform {
     bid.setH(creative.getHeight());
     bid.setCid(String.valueOf(adDTO.getCampaign().getId()));
     bid.setCrid(String.valueOf(creativeId));
+    if (AdTypeEnum.VIDEO.getType() == creative.getType()) {
+      bid.setProtocol(VideoProtocolEnum.VAST_4.getType());
+    }
 
     SeatBid seatBid = new SeatBid();
     seatBid.setBid(Collections.singletonList(bid));
@@ -170,7 +174,7 @@ public abstract class AbstractTransform implements IProtoTransform {
     String systemImpTrack = this.impUrl + AUCTION_PRICE_PARAM;
     String sign = SignHelper.digest(wrapper.getBidId(), adDTO.getCampaign().getId().toString());
     impTrackList.add(SignHelper.urlAddSign(systemImpTrack, sign));
-    if (impTrackUrls != null) {
+    if (StrUtil.isNotBlank(impTrackUrls)) {
       String[] split = impTrackUrls.split(",");
       impTrackList.addAll(Arrays.asList(split));
     }
@@ -183,7 +187,7 @@ public abstract class AbstractTransform implements IProtoTransform {
     List<String> clickTrackList = new ArrayList<>();
     String systemClickTrack = this.clickUrl;
     clickTrackList.add(SignHelper.urlAddSign(systemClickTrack, sign));
-    if (clickTrackUrls != null) {
+    if (StrUtil.isNotBlank(clickTrackUrls)) {
       String[] split = clickTrackUrls.split(",");
       clickTrackList.addAll(Arrays.asList(split));
     }
@@ -213,53 +217,59 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     // 构建 banner 流量的 adm 信息
     Object adm = null;
-    if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())) {
-      if (ResponseTypeEnum.FORCE.equals(getResponseType(forceLink, wrapper))) {
-        adm = //
-          AdmGenerator.forceBannerAdm(clickUrl,
-                                      deepLink,
-                                      adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
-                                      impTrackList,
-                                      clickTrackList,
-                                      urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
-                                      forceLink);
-      } else {
-        adm = AdmGenerator.bannerAdm(clickUrl,
-                                     deepLink,
-                                     adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
-                                     impTrackList,
-                                     clickTrackList,
-                                     urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate));
-      }
-    }
-
-    // 构建 native 流量的 adm 信息
-    if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType())) {
-      List<Imp> impList = bidRequest.getImp();
-      Imp imp = impList.stream()
-                       .filter(i -> Objects.equals(i.getId(), wrapper.getImpId()))
-                       .findFirst()
-                       .get();
-      NativeResponse nativeResponse = //
-        AdmGenerator.nativeAdm(imp.getNative1().getNativeRequest(),
-                               adDTO,
-                               clickUrl,
-                               deepLink,
-                               impTrackList,
-                               clickTrackList);
-      if (buildAdmObject()) {
-        NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
-        nativeResponseWrapper.setNativeResponse(nativeResponse);
-        adm = nativeResponseWrapper;
-      } else {
-        if (imp.getNative1().getNativeRequestWrapper() != null) {
+    switch (AdTypeEnum.of(adDTO.getAd().getType())) {
+      case BANNER:
+        if (ResponseTypeEnum.FORCE.equals(getResponseType(forceLink, wrapper))) {
+          adm = //
+                  AdmGenerator.forceBannerAdm(clickUrl,
+                          deepLink,
+                          adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
+                          impTrackList,
+                          clickTrackList,
+                          urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
+                          forceLink);
+        } else {
+          adm = AdmGenerator.bannerAdm(clickUrl,
+                  deepLink,
+                  adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
+                  impTrackList,
+                  clickTrackList,
+                  urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate));
+        }
+        break;
+      case NATIVE:
+        List<Imp> impList = bidRequest.getImp();
+        Imp imp = impList.stream()
+                .filter(i -> Objects.equals(i.getId(), wrapper.getImpId()))
+                .findFirst()
+                .get();
+        NativeResponse nativeResponse = //
+                AdmGenerator.nativeAdm(imp.getNative1().getNativeRequest(),
+                        adDTO,
+                        clickUrl,
+                        deepLink,
+                        impTrackList,
+                        clickTrackList);
+        if (buildAdmObject()) {
           NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
           nativeResponseWrapper.setNativeResponse(nativeResponse);
-          adm = JsonHelper.toJSONString(nativeResponseWrapper);
+          adm = nativeResponseWrapper;
         } else {
-          adm = JsonHelper.toJSONString(nativeResponse);
+          if (imp.getNative1().getNativeRequestWrapper() != null) {
+            NativeResponseWrapper nativeResponseWrapper = new NativeResponseWrapper();
+            nativeResponseWrapper.setNativeResponse(nativeResponse);
+            adm = JsonHelper.toJSONString(nativeResponseWrapper);
+          } else {
+            adm = JsonHelper.toJSONString(nativeResponse);
+          }
         }
-      }
+        break;
+      case VIDEO:
+        adm = AdmGenerator.videoAdm(adDTO.getAd().getId(),
+                adDTO.getCreativeMap().get(adDTO.getAd().getVideo()),
+                clickUrl, deepLink,
+                impTrackList, clickTrackList);
+        break;
     }
 
     return adm;

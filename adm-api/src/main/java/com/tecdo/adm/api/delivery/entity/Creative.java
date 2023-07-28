@@ -30,6 +30,10 @@ public class Creative extends BaseEntity {
     private Integer height;
     @ApiModelProperty("素材URL")
     private String url;
+    @ApiModelProperty("素材后缀")
+    private String suffix;
+    @ApiModelProperty("音频/视频时长")
+    private Integer duration;
     @ApiModelProperty(value = "素材IAB类别", notes = "ContentCategoryEnum")
     private String catIab;
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
