@@ -32,4 +32,9 @@ public class AdVO extends Ad {
 	private String imageSize;
 	@ApiModelProperty("图标大小")
 	private String iconSize;
+	@ApiModelProperty("视频大小")
+	private String videoSize;
+
+	@ApiModelProperty("音频/视频时长")
+	private Integer duration;
 }
