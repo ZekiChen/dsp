@@ -10,6 +10,7 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.log.ValidateLogger;
 import com.tecdo.server.request.HttpRequest;
@@ -29,6 +30,7 @@ import org.springframework.stereotype.Service;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
@@ -122,11 +124,10 @@ public class ValidateService {
             return;
         }
 
-        String ip = bidRequest.getDevice().getIp();
-        String deviceId = bidRequest.getDevice().getIfa();
+        Device device = bidRequest.getDevice();
+        String ip = Optional.ofNullable(device.getIp()).orElse(device.getIpv6());
 
         Pair<Boolean, String> ipCheatCheck = cheatingDataManager.check(ip);
-        Pair<Boolean, String> deviceCheatCheck = cheatingDataManager.check(deviceId);
         if (ipCheatCheck.left) {
             if (ipFilter.contains(ipCheatCheck.right)) {
                 ValidateLogger.log(ipCheatCheck.right, bidRequest, affiliate, true);
@@ -138,6 +139,8 @@ public class ValidateService {
             }
             ValidateLogger.log(ipCheatCheck.right, bidRequest, affiliate, false);
         }
+
+        Pair<Boolean, String> deviceCheatCheck = cheatingDataManager.check(device.getIfa());
         if (deviceCheatCheck.left) {
             if (deviceFilter.contains(deviceCheatCheck.right)) {
                 ValidateLogger.log(deviceCheatCheck.right, bidRequest, affiliate, true);
@@ -207,6 +210,11 @@ public class ValidateService {
     // 没有设备id或者设备id非法
     if (bidRequest.getDevice().getIfa() == null || bidRequest.getDevice().getIfa().length() != 36 ||
         Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
+      return false;
+    }
+    // 缺少ip信息，过滤
+    if (StringUtils.isEmpty(bidRequest.getDevice().getIp()) &&
+      StringUtils.isEmpty(bidRequest.getDevice().getIpv6())) {
       return false;
     }
     // 没有国家信息
