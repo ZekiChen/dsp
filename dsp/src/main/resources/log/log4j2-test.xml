@@ -74,6 +74,10 @@
             <AppenderRef ref="VALIDATE_REQUEST_LOG"/>
         </Logger>
 
+        <Logger name="sdk_pb_log" level="INFO" additivity="false">
+            <AppenderRef ref="SDK_PB_LOG"/>
+        </Logger>
+
         <!-- 减少部分debug日志 -->
         <AsyncLogger name="io.netty" level="INFO"/>
         <AsyncLogger name="com.ctrip.framework.apollo" level="INFO"/>

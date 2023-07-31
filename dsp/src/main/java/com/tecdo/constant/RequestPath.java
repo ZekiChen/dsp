@@ -18,4 +18,6 @@ public interface RequestPath {
   String IMP_INFO = "/imp-info";
   String LOSS = "/loss";
 
+  String SDK_PB = "/sdk/pb";
+
 }

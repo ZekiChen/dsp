@@ -71,6 +71,9 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
       case RequestPath.LOSS:
         eventType = EventType.RECEIVE_LOSS_NOTICE;
         break;
+      case RequestPath.SDK_PB:
+        eventType = EventType.RECEIVE_SDK_PB_NOTICE;
+        break;
       default:
         eventType = EventType.RESPONSE_RESULT;
         params.put(ParamKey.HTTP_CODE, HttpCode.NOT_FOUND);

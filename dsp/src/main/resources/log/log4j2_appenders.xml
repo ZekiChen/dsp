@@ -246,6 +246,23 @@
         </Filters>
     </RollingFile>
 
+    <RollingFile name="SDK_PB_LOG" fileName="${BUSINESS_LOG_HOME}/sdk-pb.log"
+                 filePattern="${BUSINESS_LOG_HOME}/sdk-pb-%d{yyyy-MM-dd-HH}.log">
+        <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+        </Policies>
+        <DefaultRolloverStrategy>
+            <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                <IfFileName glob="sdk-pb-*.log"/>
+                <IfLastModified age="360H"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
     <CatLog4j2Appender name="CatLog4j2Appender">
         <PatternLayout pattern="${ENCODER_PATTERN}"/>
     </CatLog4j2Appender>
