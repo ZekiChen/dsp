@@ -15,9 +15,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 
+import cn.hutool.core.date.DateUtil;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
@@ -43,6 +45,8 @@ public class SDKNoticeService {
     if (StringUtils.isNotEmpty(clickId) && clickId.length() == 45) {
       Map<String, Object> res = new HashMap<>();
       res.put("click_id", clickId);
+      res.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
+      res.put("time_millis", System.currentTimeMillis());
       sdkPbLog.info(JsonHelper.toJSONString(res));
     }
     ResponseHelper.ok(messageQueue, params, httpRequest);
