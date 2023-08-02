@@ -14,6 +14,7 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum VideoProtocolEnum {
 
+    VAST_3(3, "VAST 3.0"),
     VAST_4(7, "VAST 4.0"),
     OTHER(0, "OTHER"),
     ;
