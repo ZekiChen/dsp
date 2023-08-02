@@ -18,7 +18,7 @@ public interface DeviceRecallMapper extends BaseMapper<DeviceRecall> {
   List<DeviceRecall> query(String country,
                            String os,
                            String packageName,
-                           String recallType,
+                           Integer recallType,
                            Integer recallTag,
                            Long offset,
                            Integer size);
@@ -30,7 +30,7 @@ public interface DeviceRecallMapper extends BaseMapper<DeviceRecall> {
   List<DeviceRecall> queryForUpdate(String country,
                                     String os,
                                     String packageName,
-                                    String recallType,
+                                    Integer recallType,
                                     Integer recallTag,
                                     Long offset,
                                     Integer size);

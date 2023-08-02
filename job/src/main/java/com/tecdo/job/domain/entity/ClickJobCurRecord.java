@@ -16,7 +16,7 @@ public class ClickJobCurRecord {
 
   private String packageName;
 
-  private String recallType;
+  private Integer recallType;
 
   private Long cur;
 

@@ -45,7 +45,7 @@ public class LazadaRequestJob {
     String country = (String) config.get("country");
     String os = (String) config.get("os");
     String packageName = (String) config.get("packageName");
-    String recallType = (String) config.get("recallType");
+    Integer recallType = ((Number) config.get("recallType")).intValue();
     String url = (String) config.get("url");
     int totalCount = ((Number) config.get("totalCount")).intValue();
     int affSubCount = ((Number) config.get("affSubCount")).intValue();
