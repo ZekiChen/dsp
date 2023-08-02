@@ -14,7 +14,7 @@ public class DeviceRecall {
 
   private String deviceId;
 
-  private String recallType;
+  private Integer recallType;
 
   private String country;
 

@@ -23,7 +23,7 @@ public class SdkLog implements Serializable {
   private Integer recallTag;
 
   @JsonProperty("recall_type")
-  private String recallType;
+  private Integer recallType;
 
   private String country;
 

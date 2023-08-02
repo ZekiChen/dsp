@@ -54,7 +54,7 @@ public class LazadaMatchJob {
     String countryCode2 = (String) config.get("countryCode2");
     String os = (String) config.get("os");
     String packageName = (String) config.get("packageName");
-    String recallType = (String) config.get("recallType");
+    Integer recallType = ((Number) config.get("recallType")).intValue();
     int time = ((Number) config.getOrDefault("time", -6)).intValue();
     long cycleTimeMillis = ((Number) config.getOrDefault("cycleTimeMillis", 604800000)).longValue();
 

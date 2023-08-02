@@ -33,7 +33,7 @@ public class TempRequestJob {
   private int MAX_LOOP_COUNt;
 
   private String dbPackageName = "temp";
-  private String dbRecallType = "-1";
+  private Integer dbRecallType = -1;
 
   @XxlJob("sdk-click-temp")
   public void handle() throws InterruptedException, UnsupportedEncodingException {
@@ -48,7 +48,7 @@ public class TempRequestJob {
     String country = (String) config.get("country");
     String os = (String) config.get("os");
     String packageName = (String) config.get("packageName");
-    String recallType = (String) config.get("recallType");
+    Integer recallType = ((Number) config.get("recallType")).intValue();
     String url = (String) config.get("url");
     int totalCount = ((Number) config.get("totalCount")).intValue();
     int affSubCount = ((Number) config.get("affSubCount")).intValue();
