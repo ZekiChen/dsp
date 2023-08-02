@@ -194,6 +194,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             condition.setAttribute(ConditionEnum.BUNDLE.getDesc());
             conditionService.save(condition);
         }
+        batchUpdateTime(Collections.singletonList(condition.getAdGroupId()));
         bizLogApiService.logByUpdateAdGroupBundle(before, condition);
         return true;
     }
@@ -333,6 +334,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             }).collect(Collectors.toList());
             conditionService.saveBatch(conditions);
         }
+        batchUpdateTime(adGroupIds);
         bizLogApiService.logByUpdateBatchCondition("Bundle", beConditonMap, vo);
         return true;
     }
@@ -359,6 +361,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             }).collect(Collectors.toList());
             conditionService.saveBatch(conditions);
         }
+        batchUpdateTime(adGroupIds);
         bizLogApiService.logByUpdateBatchCondition("Hour", beConditonMap, vo);
         return true;
     }
@@ -418,7 +421,19 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             bundleUpdateVO.setValue(vo.getClickValue());
             bizLogApiService.logByUpdateBatchCondition("Click Frequency", beConditonMap, bundleUpdateVO);
         }
+        batchUpdateTime(adGroupIds);
         return true;
+    }
+
+    private void batchUpdateTime(List<Integer> adGroupIds) {
+        if (CollUtil.isNotEmpty(adGroupIds)) {
+            List<AdGroup> adGroups = adGroupIds.stream().map(id -> {
+                AdGroup adGroup = new AdGroup();
+                adGroup.setId(id);
+                return adGroup;
+            }).collect(Collectors.toList());
+            updateBatchById(adGroups);
+        }
     }
 
     public List<StatusEntity> listStatus(List<Integer> ids) {

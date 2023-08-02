@@ -152,8 +152,9 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 if ((float) creative.getWidth() / creative.getHeight() != (float) video.getW() / video.getH()) {
                     return false;
                 }
-                return protocols.stream().anyMatch(type -> VideoProtocolEnum.VAST_4.getType() == type);
+                return protocols.stream().anyMatch(type -> VideoProtocolEnum.of(type) != VideoProtocolEnum.OTHER);
         }
         return true;
     }
+
 }
