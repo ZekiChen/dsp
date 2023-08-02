@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class LazadaRequestJob {
+public class TempRequestJob {
 
   private final DeviceRecallMapper deviceRecallMapper;
 
@@ -32,7 +32,10 @@ public class LazadaRequestJob {
   @Value("${pac.sdk.query-max-loop-count:2}")
   private int MAX_LOOP_COUNt;
 
-  @XxlJob("sdk-lazada")
+  private String dbPackageName = "temp";
+  private String dbRecallType = "-1";
+
+  @XxlJob("sdk-click-temp")
   public void handle() throws InterruptedException, UnsupportedEncodingException {
 
     String param = XxlJobHelper.getJobParam();
@@ -73,11 +76,13 @@ public class LazadaRequestJob {
 
     List<DeviceRecall> query = deviceRecallMapper.query(country,
                                                         os,
-                                                        packageName,
-                                                        recallType,
+                                                        dbPackageName,
+                                                        dbRecallType,
                                                         recallTag,
                                                         dbOffset,
                                                         Math.min(BATCH_SIZE, totalCount - count));
+    // set packageName and recallType to log
+    query.forEach(i->{i.setPackageName(packageName);i.setRecallType(recallType);});
 
     while (totalCount > count && MAX_LOOP_COUNt > loopCount) {
 
@@ -98,11 +103,13 @@ public class LazadaRequestJob {
 
         query = deviceRecallMapper.query(country,
                                          os,
-                                         packageName,
-                                         recallType,
+                                         dbPackageName,
+                                         dbRecallType,
                                          recallTag,
                                          dbOffset,
                                          Math.min(BATCH_SIZE, totalCount - count));
+        // set packageName and recallType to log
+        query.forEach(i->{i.setPackageName(packageName);i.setRecallType(recallType);});
         // update id offset after every query
         curRecordMapper.updateCur(country, os, packageName, recallType, dbOffset);
       } catch (Exception e) {
@@ -110,5 +117,4 @@ public class LazadaRequestJob {
       }
     }
   }
-
 }

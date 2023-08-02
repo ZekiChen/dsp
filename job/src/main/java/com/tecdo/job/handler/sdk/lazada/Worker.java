@@ -19,7 +19,7 @@ import java.util.stream.IntStream;
 
 import cn.hutool.core.util.IdUtil;
 
-public class LazadaWorker {
+public class Worker {
 
   private final int QUEUE_LIMIT = 40000;
   private final int NEED_SLEEP_QUEUE_COUNT = 20000;
@@ -32,7 +32,7 @@ public class LazadaWorker {
   private final RateLimiter rateLimiter;
   private final List<String> affSub;
 
-  public LazadaWorker(int rateLimit, int affSubCount) {
+  public Worker(int rateLimit, int affSubCount) {
     requestCount = 0L;
     rateLimiter = RateLimiter.create(rateLimit);
     affSub = IntStream.range(0, affSubCount)
