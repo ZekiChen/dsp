@@ -1,5 +1,6 @@
 package com.tecdo.service.init;
 
+import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.StringUtils;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
@@ -10,18 +11,20 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
-import com.tecdo.entity.doris.GooglePlayApp;
-import com.tecdo.mapper.doris.GooglePlayAppMapper;
+import com.tecdo.adm.api.doris.entity.GooglePlayApp;
+import com.tecdo.adm.api.doris.mapper.GooglePlayAppMapper;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Slf4j
 @Service
@@ -38,6 +41,8 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
   private long timerId;
 
   private Map<String, GooglePlayApp> googlePlayAppMap;
+  private Map<String, List<String>> categoryBundleMap;
+  private Map<String, List<String>> tagBundleMap;
 
   @Value("${pac.timeout.load.db.default}")
   private long loadTimeout;
@@ -52,6 +57,14 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
 
   public GooglePlayApp getGoogleAppOrEmpty(String bundleId) {
     return googlePlayAppMap.getOrDefault(bundleId, EMPTY);
+  }
+
+  public List<String> listByCategory(String category) {
+    return categoryBundleMap.get(category);
+  }
+
+  public List<String> listByTag(String tag) {
+    return tagBundleMap.get(tag);
   }
 
   @AllArgsConstructor
@@ -128,6 +141,32 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
                       }
                       return i;
                     }, (o, n) -> n));
+
+            List<GooglePlayApp> googlePlayApps = list.stream()
+                    .filter(e -> StrUtil.isAllNotBlank(e.getCategorys(), e.getTags()))
+                    .collect(Collectors.toList());
+            Map<String, List<String>> categoryBundleMap = googlePlayApps.stream()
+                    .flatMap(e -> Stream.of(e.getCategorys().split(StrUtil.COMMA)))
+                    .distinct()
+                    .collect(Collectors.toMap(k -> k, v -> new ArrayList<>()));
+            categoryBundleMap.forEach((category, bundles) -> googlePlayApps.forEach(e -> {
+                if (Arrays.asList(e.getCategorys().split(StrUtil.COMMA)).contains(category)) {
+                    bundles.add(e.getBundleId());
+                }
+            }));
+
+            Map<String, List<String>> tagBundleMap = googlePlayApps.stream()
+                    .flatMap(e -> Stream.of(e.getTags().split(StrUtil.COMMA)))
+                    .distinct()
+                    .collect(Collectors.toMap(k -> k, v -> new ArrayList<>()));
+            tagBundleMap.forEach((tag, bundles) -> googlePlayApps.forEach(e -> {
+                if (Arrays.asList(e.getTags().split(StrUtil.COMMA)).contains(tag)) {
+                    bundles.add(e.getBundleId());
+                }
+            }));
+
+            params.put(ParamKey.GP_APP_CATEGORY_CACHE_KEY, categoryBundleMap);
+            params.put(ParamKey.GP_APP_TAG_CACHE_KEY, tagBundleMap);
             params.put(ParamKey.GP_APP_CACHE_KEY, appMap);
             messageQueue.putMessage(EventType.GP_APP_LOAD_RESPONSE, params);
           } catch (Exception e) {

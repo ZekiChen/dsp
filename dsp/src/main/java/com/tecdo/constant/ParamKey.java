@@ -31,12 +31,15 @@ public interface ParamKey {
   String AD_GROUP_BUDGETS_CACHE_KEY = "ad-group-budgets-cache-key";
   String AB_TEST_CONFIG_CACHE_KEY = "ab-test-config-key";
   String GP_APP_CACHE_KEY = "gp-app-cache-key";
+  String GP_APP_CATEGORY_CACHE_KEY = "gp-app-category-cache-key";
+  String GP_APP_TAG_CACHE_KEY = "gp-app-tag-cache-key";
   String ADV_CACHE_KEY = "adv-cache-key";
   String IP_TABLE_CACHE_KEY = "ip-table-key";
   String AF_AUDIENCE_SYNC_KEY = "af-audience-sync-key";
   String AFF_COUNTRY_BUNDLE_LIST_CACHE_KEY = "aff-country-bundle-list-cache-key";
   String BUNDLE_DATA_GT_SIZE_CACHE_KEY = "bundle-data-gt-size-cache-key";
   String BUNDLE_DATA_CACHE_KEY = "bundle-data-cache-key";
+  String ECPX_CACHE_KEY = "ecpx-cache-key";
 
   String CHEATING_DATA_FILTER = "cheating-data-filter";
 

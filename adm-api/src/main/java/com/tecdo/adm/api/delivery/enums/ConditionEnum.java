@@ -14,6 +14,8 @@ public enum ConditionEnum {
     CLICK_FREQUENCY("click_frequency"),
     AFFILIATE("affiliate"),
     BUNDLE("bundle"),
+    CATEGORY("category"),
+    TAG("tag"),
     CONNECTION_TYPE("connection_type"),
     DEVICE_COUNTRY("device_country"),
     DEVICE_LANG("device_lang"),
@@ -22,6 +24,7 @@ public enum ConditionEnum {
     DEVICE_OSV("device_osv"),
     HOUR("hour"),
     AUDIENCE_AF("audience_af"),
+    AUDIENCE_TT("audience_tt"),
     AFFILIATE_BLOCKED_AD("affiliate_blocked_ad"),
     ;
 

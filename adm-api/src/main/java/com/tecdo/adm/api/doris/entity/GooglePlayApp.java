@@ -1,4 +1,4 @@
-package com.tecdo.entity.doris;
+package com.tecdo.adm.api.doris.entity;
 
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;

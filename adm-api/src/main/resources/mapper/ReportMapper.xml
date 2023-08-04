@@ -64,4 +64,24 @@
         HAVING winRate IS NOT NULL AND bidPrice IS NOT NULL
     </select>
 
+    <select id="listECPX" resultType="com.tecdo.adm.api.doris.dto.ECPX">
+        SELECT
+            r.country as country,
+            r.bundle_id as bundle,
+            r.ad_format as adFormat,
+            sum(price_total)/1000 / sum(click_count) as eCPC,
+            sum(price_total)/1000 / sum(event1_count) as eCPAEvent1,
+            sum(price_total)/1000 / sum(event2_count) as eCPAEvent2,
+            sum(price_total)/1000 / sum(event3_count) as eCPAEvent3,
+            sum(price_total)/1000 / sum(event10_count) as eCPAEvent10
+        FROM
+            ads.dsp_report r
+        WHERE
+            r.create_date >= #{startDate} AND r.create_date &lt;= #{endDate}
+        GROUP BY
+            r.country,
+            r.bundle_id,
+            r.ad_format
+    </select>
+
 </mapper>

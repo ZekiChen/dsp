@@ -3,6 +3,7 @@ package com.tecdo.adm.api.doris.mapper;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tecdo.adm.api.delivery.dto.SpentDTO;
+import com.tecdo.adm.api.doris.dto.ECPX;
 import com.tecdo.adm.api.doris.entity.BundleData;
 import com.tecdo.adm.api.doris.entity.Report;
 import org.apache.ibatis.annotations.Param;
@@ -27,4 +28,6 @@ public interface ReportMapper extends BaseMapper<Report> {
                                          @Param("size") Integer size);
 
   List<BundleData> getBundleData(@Param("reportHour") String reportHour);
+
+  List<ECPX> listECPX(@Param("startDate") String startDate, @Param("endDate") String endDate);
 }
