@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tecdo.adm.api.doris.mapper.GooglePlayAppMapper">
+
+    <select id="listCategory" resultType="java.lang.String">
+        SELECT DISTINCT categorys FROM google_play_appinfo
+        WHERE is_found=1
+            AND categorys is not null
+            AND categorys != ''
+        ORDER BY categorys ASC
+    </select>
+
+    <select id="listTag" resultType="java.lang.String">
+        SELECT DISTINCT tags FROM google_play_appinfo
+        WHERE is_found=1
+            AND tags is not null
+            AND tags != ''
+        ORDER BY tags ASC
+    </select>
+
+    <select id="countByCategoriesAndTags" resultType="java.lang.String">
+        select count(*) from google_play_appinfo where is_found = 1
+        <if test="categoryList != null and categoryList.size > 0">
+            and
+            <foreach collection="categoryList" item="item" index="index" open="(" close=")" separator="OR">
+                FIND_IN_SET(#{item}, categorys) > 0
+            </foreach>
+        </if>
+        <if test="tagList != null and tagList.size > 0">
+            <choose>
+                <when test="categoryList != null and categoryList.size > 0">
+                    or
+                </when>
+                <otherwise>
+                    and
+                </otherwise>
+            </choose>
+            <foreach collection="tagList" item="item" index="index" open="(" close=")" separator="OR">
+                FIND_IN_SET(#{item}, tags) > 0
+            </foreach>
+        </if>
+    </select>
+
+</mapper>

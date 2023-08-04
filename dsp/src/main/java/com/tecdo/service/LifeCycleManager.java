@@ -18,6 +18,7 @@ import com.tecdo.service.init.CheatingDataManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.IpTableManager;
 import com.tecdo.service.init.RtaInfoManager;
+import com.tecdo.service.init.doris.ECPXManager;
 import com.tecdo.service.init.doris.BudgetManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -58,10 +59,12 @@ public class LifeCycleManager {
   private BundleDataManager bundleDataManager;
   @Autowired
   private CheatingDataManager cheatingDataManager;
+  @Autowired
+  private ECPXManager eCPXManager;
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 11;
+  private final int needInitCount = 12;
 
   @Value("${server.port}")
   private int serverPort;
@@ -156,6 +159,13 @@ public class LifeCycleManager {
       case CHEATING_DATA_LOAD_TIMEOUT:
         cheatingDataManager.handleEvent(eventType, params);
         break;
+      case ECPX_LOAD:
+      case ECPX_LOAD_RESPONSE:
+      case ECPX_LOAD_ERROR:
+      case ECPX_LOAD_TIMEOUT:
+        eCPXManager.handleEvent(eventType, params);
+        break;
+
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -185,6 +195,7 @@ public class LifeCycleManager {
         affCountryBundleListManager.init(params);
         bundleDataManager.init(params);
         cheatingDataManager.init(params);
+        eCPXManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:

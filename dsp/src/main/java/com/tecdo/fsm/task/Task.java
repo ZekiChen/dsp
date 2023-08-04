@@ -1,11 +1,14 @@
 package com.tecdo.fsm.task;
 
+import cn.hutool.core.map.MapUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.google.common.base.MoreObjects;
 import com.tecdo.ab.util.AbTestConfigHelper;
+import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
@@ -29,41 +32,30 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.AbTestConfig;
-import com.tecdo.entity.doris.GooglePlayApp;
+import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.CacheService;
-import com.tecdo.service.init.AbTestConfigManager;
-import com.tecdo.service.init.AdManager;
-import com.tecdo.service.init.BundleDataManager;
-import com.tecdo.service.init.GooglePlayAppManager;
-import com.tecdo.service.init.RtaInfoManager;
+import com.tecdo.service.BidPriceService;
+import com.tecdo.service.init.*;
 import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
-
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.CollectionUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
-
-import cn.hutool.core.map.MapUtil;
-import cn.hutool.extra.spring.SpringUtil;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
@@ -86,6 +78,7 @@ public class Task {
   private int predictResCount = 0;
   private String multiplier = SpringUtil.getProperty("pac.bundle.test.multiplier");
   private String maxPrice = SpringUtil.getProperty("pac.bid-price.max-limit");
+  private Boolean eCPXBidEnable = Boolean.valueOf(SpringUtil.getProperty("pac.bid-price.ecpx.enabled"));
   private int recallTimeout =
     Integer.parseInt(SpringUtil.getProperty("pac.timeout.task.ad.recall"));
 
@@ -97,6 +90,7 @@ public class Task {
           SpringUtil.getBean(GooglePlayAppManager.class);
   private final BundleDataManager bundleDataManager = SpringUtil.getBean(BundleDataManager.class);
   private final CacheService cacheService = SpringUtil.getBean(CacheService.class);
+  private final BidPriceService bidPriceService = SpringUtil.getBean(BidPriceService.class);
   private final RecallFiltersFactory filtersFactory =
           SpringUtil.getBean(RecallFiltersFactory.class);
   private final ThreadPool threadPool = SpringUtil.getBean(ThreadPool.class);
@@ -475,6 +469,7 @@ public class Task {
     }
   }
 
+  // country_bundle_adFormat_width_height
   private String makeKey() {
     Device device = bidRequest.getDevice();
     BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
@@ -498,65 +493,89 @@ public class Task {
     AdDTO adDTO = adDTOWrapper.getAdDTO();
     BundleData bundleData = bundleDataManager.getBundleData(key);
     boolean needTest = !bundleDataManager.isImpGtSize(key);
+    // 该流量key纬度的曝光量小于指定大小、且开启了Bundle自动化探索开关，则进行探索
     if (needTest && adDTO.getAdGroup().getBundleTestEnable() && bundleData != null) {
-      Double winRate = bundleData.getWinRate();
-      Double bidPrice = bundleData.getBidPrice();
-      if (winRate < affiliate.getRequireWinRate()) {
-        if (bidPrice < imp.getBidfloor()) {
-          finalPrice = BigDecimal.valueOf(imp.getBidfloor()).multiply(new BigDecimal(multiplier));
-        } else {
-          finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
-        }
-      } else {
-        if (bundleData.getOldK() == 0 || bundleData.getK() == 0) {
-          finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
-        } else {
-          finalPrice = BigDecimal.valueOf(bidPrice)
-                  .multiply(BigDecimal.valueOf(bundleData.getK()))
-                  .divide(BigDecimal.valueOf(bundleData.getOldK()),
-                          RoundingMode.HALF_UP);
-        }
-      }
+      finalPrice = bundleAutoExplore(bundleData);
     } else {
-      BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTO.getAdGroup().getBidStrategy());
-      switch (bidStrategy) {
-        case CPC:
-          finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
-                  .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
-                  .multiply(BigDecimal.valueOf(1000));
-          break;
-        case CPA:
-          finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
-                  .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
-                  .multiply(BigDecimal.valueOf(1000));
-          break;
-        case DYNAMIC:
-          ThreadLocalRandom random = ThreadLocalRandom.current();
-          if (adDTO.getAdGroup().getBidProbability() > random.nextDouble(100)) {
-            finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getBidMultiplier())
-                    .multiply(BigDecimal.valueOf(imp.getBidfloor()))
-                    .min(BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice()));
-          } else {
-            finalPrice = BigDecimal.ZERO;
-          }
-          break;
-        case CPA_EVENT1:
-        case CPA_EVENT2:
-        case CPA_EVENT3:
-        case CPA_EVENT10:
-          finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice())
-                  .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
-                  .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
-                  .multiply(BigDecimal.valueOf(1000));
-          break;
-        case CPM:
-        default:
-          finalPrice = BigDecimal.valueOf(adDTO.getAdGroup().getOptPrice());
-      }
+      finalPrice = calcPriceByBidStrategy(adDTOWrapper);
     }
+    return maxPriceLimit(finalPrice);
+  }
+
+  private BigDecimal calcPriceByBidStrategy(AdDTOWrapper adDTOWrapper) {
+    AdGroup adGroup = adDTOWrapper.getAdDTO().getAdGroup();
+    boolean bidOptEnable = adGroup.getEcpxBidEnable() != null && adGroup.getEcpxBidEnable() && eCPXBidEnable;
+    BigDecimal optPrice = BigDecimal.valueOf(adGroup.getOptPrice());
+    BigDecimal finalPrice;
+    BidStrategyEnum bidStrategy = BidStrategyEnum.of(adGroup.getBidStrategy());
+    BigDecimal eCPX = bidPriceService.getECPX(bidStrategy, bidRequest, imp);
+    switch (bidStrategy) {
+      case CPC:
+        optPrice = bidOptEnable && eCPX != null ? eCPX : optPrice;
+        finalPrice = optPrice
+                .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                .multiply(BigDecimal.valueOf(1000));
+        break;
+      case CPA:
+        optPrice = bidOptEnable && eCPX != null ? eCPX : optPrice;
+        finalPrice = optPrice
+                .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
+                .multiply(BigDecimal.valueOf(1000));
+        break;
+      case DYNAMIC:
+        ThreadLocalRandom random = ThreadLocalRandom.current();
+        if (adGroup.getBidProbability() > random.nextDouble(100)) {
+          finalPrice = BigDecimal.valueOf(adGroup.getBidMultiplier())
+                  .multiply(BigDecimal.valueOf(imp.getBidfloor()))
+                  .min(optPrice);  // MAX CPM
+        } else {
+          finalPrice = BigDecimal.ZERO;
+        }
+        break;
+      case CPA_EVENT1:
+      case CPA_EVENT2:
+      case CPA_EVENT3:
+      case CPA_EVENT10:
+        optPrice = bidOptEnable && eCPX != null ? eCPX : optPrice;
+        finalPrice = optPrice
+                .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
+                .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
+                .multiply(BigDecimal.valueOf(1000));
+        break;
+      case CPM:
+      default:
+        finalPrice = optPrice;
+    }
+    return finalPrice;
+  }
+
+  private BigDecimal maxPriceLimit(BigDecimal finalPrice) {
     BigDecimal maxPrice = new BigDecimal(this.maxPrice);
     if (finalPrice.compareTo(maxPrice) > 0) {
       finalPrice = maxPrice;
+    }
+    return finalPrice;
+  }
+
+  private BigDecimal bundleAutoExplore(BundleData bundleData) {
+    BigDecimal finalPrice;
+    Double winRate = bundleData.getWinRate();
+    Double bidPrice = bundleData.getBidPrice();
+    if (winRate < affiliate.getRequireWinRate()) {
+      if (bidPrice < imp.getBidfloor()) {
+        finalPrice = BigDecimal.valueOf(imp.getBidfloor()).multiply(new BigDecimal(multiplier));
+      } else {
+        finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
+      }
+    } else {
+      if (bundleData.getOldK() == 0 || bundleData.getK() == 0) {
+        finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
+      } else {
+        finalPrice = BigDecimal.valueOf(bidPrice)
+                .multiply(BigDecimal.valueOf(bundleData.getK()))
+                .divide(BigDecimal.valueOf(bundleData.getOldK()),
+                        RoundingMode.HALF_UP);
+      }
     }
     return finalPrice;
   }

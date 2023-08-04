@@ -11,7 +11,7 @@ import com.tecdo.domain.biz.log.ResponseLog;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.entity.doris.GooglePlayApp;
+import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;

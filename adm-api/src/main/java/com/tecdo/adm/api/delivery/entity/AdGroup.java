@@ -55,4 +55,7 @@ public class AdGroup extends BaseEntity {
     private Double forceJumpRatio;
     @ApiModelProperty("强制跳转链接")
     private String forceLink;
+    @ApiModelProperty("历史ECPX出价开关")
+    private Boolean ecpxBidEnable;
+
 }
