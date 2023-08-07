@@ -57,7 +57,7 @@ public class NoticeService {
             ResponseHelper.aeParamError(messageQueue, params, httpRequest);
             return;
         }
-        log.info("ae pb: {}", JsonHelper.toJSONString(aePbDataVO));
+        log.info("ae pb: {}", httpRequest.getBody());
         for (AePbInfoVO aePbInfoVO : aePbDataVO.getData()) {
             String campaignToCreativeId = aePbInfoVO.getCampaignToCreativeId();
             if (StrUtil.isBlank(campaignToCreativeId)
