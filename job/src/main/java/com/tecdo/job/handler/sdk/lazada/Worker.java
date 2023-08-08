@@ -6,7 +6,6 @@ import com.google.common.util.concurrent.RateLimiter;
 import com.tecdo.job.domain.entity.DeviceRecall;
 import com.xxl.job.core.context.XxlJobHelper;
 
-import org.apache.commons.lang3.StringUtils;
 
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -77,9 +76,8 @@ public class Worker {
     Map<String, String> header = new HashMap<>();
     header.put(HttpHeaders.X_FORWARDED_FOR, device.getIp());
     header.put(HttpHeaders.USER_AGENT, device.getUa());
-    if (StringUtils.isNotEmpty(device.getLang())) {
-      header.put(HttpHeaders.ACCEPT_LANGUAGE, device.getLang());
-    }
+    String lang = MoreObjects.firstNonNull(device.getLang(), "en");
+    header.put(HttpHeaders.ACCEPT_LANGUAGE, lang);
 
 
     String clickId = IdUtil.fastSimpleUUID() + System.currentTimeMillis();
@@ -93,7 +91,7 @@ public class Worker {
              .replace("{osv}", encode(device.getOsv()))
              .replace("{country}", encode(device.getCountry()))
              .replace("{os}", encode(device.getOs()))
-             .replace("{lang}", encode(device.getLang()));
+             .replace("{lang}", encode(lang));
 
     HttpUtils.asyncRequest(url, header);
     requestCount++;

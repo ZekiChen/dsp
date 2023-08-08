@@ -46,5 +46,11 @@ public class SdkLog implements Serializable {
 
   private String lang;
 
+  @JsonProperty("device_first_time")
+  private String deviceFirstTime;
+
+  @JsonProperty("device_last_time")
+  private String deviceLastTime;
+
 
 }

@@ -2,6 +2,8 @@ package com.tecdo.job.domain.entity;
 
 import com.baomidou.mybatisplus.annotation.TableName;
 
+import java.util.Date;
+
 import lombok.Data;
 
 @Data
@@ -35,5 +37,7 @@ public class DeviceRecall {
   private String lang;
 
   private int status;
+
+  private Date etlTime;
 
 }
