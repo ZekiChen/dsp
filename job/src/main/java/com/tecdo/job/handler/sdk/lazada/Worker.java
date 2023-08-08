@@ -6,11 +6,11 @@ import com.google.common.util.concurrent.RateLimiter;
 import com.tecdo.job.domain.entity.DeviceRecall;
 import com.xxl.job.core.context.XxlJobHelper;
 
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -76,7 +76,7 @@ public class Worker {
     Map<String, String> header = new HashMap<>();
     header.put(HttpHeaders.X_FORWARDED_FOR, device.getIp());
     header.put(HttpHeaders.USER_AGENT, device.getUa());
-    String lang = MoreObjects.firstNonNull(device.getLang(), "en");
+    String lang = MoreObjects.firstNonNull(device.getLang(), "en").toLowerCase(Locale.ROOT);
     header.put(HttpHeaders.ACCEPT_LANGUAGE, lang);
 
 

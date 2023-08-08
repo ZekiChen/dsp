@@ -21,9 +21,7 @@ public class SdkLogger {
 
   private static SdkLog buildSdkLog(DeviceRecall deviceRecall, String clickId) {
     Long timeMillis = deviceRecall.getTimeMillis();
-    Date etlTime = deviceRecall.getEtlTime();
-    // 因为doris的etlTime是东八区的时间，程序是0时区，读取来后被当成是0时区，所以需要减去8小时
-    long lastTime = etlTime.getTime() - 8 * 60 * 60 * 1000;
+    long lastTime = deviceRecall.getEtlTime().getTime();
     String deviceFirstTime = DateUtil.format(new Date(timeMillis), "yyyy-MM-dd_HH");
     String deviceLastTime = DateUtil.format(new Date(lastTime), "yyyy-MM-dd_HH");
     return SdkLog.builder()
@@ -40,8 +38,10 @@ public class SdkLogger {
                  .ip(deviceRecall.getIp())
                  .ua(deviceRecall.getUa())
                  .lang(MoreObjects.firstNonNull(deviceRecall.getLang(), "en"))
-                 .deviceFirstTime(deviceFirstTime)
-                 .deviceLastTime(deviceLastTime)
+                 .deviceFirstTime(MoreObjects.firstNonNull(deviceRecall.getDeviceFirstTime(),
+                                                           deviceFirstTime))
+                 .deviceLastTime(MoreObjects.firstNonNull(deviceRecall.getDeviceLastTime(),
+                                                          deviceLastTime))
                  .build();
   }
 }
