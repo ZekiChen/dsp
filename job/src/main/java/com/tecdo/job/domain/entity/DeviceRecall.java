@@ -38,6 +38,10 @@ public class DeviceRecall {
 
   private int status;
 
+  private String deviceFirstTime;
+
+  private String deviceLastTime;
+
   private Date etlTime;
 
 }
