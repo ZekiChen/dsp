@@ -14,6 +14,7 @@ import java.io.File;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -90,6 +91,21 @@ public class CheatingDataLoader {
       }
 
       log.info("write to file cost:{} s", (System.currentTimeMillis() - A) / 1000);
+
+      // 清理历史过期文件
+      Calendar calendar = Calendar.getInstance();
+      calendar.add(Calendar.DATE, -1);
+      for (int i = 0; i < 7; i++) {
+        calendar.add(Calendar.DATE, -1);
+        File directory = new File(baseDir + DateUtil.format(calendar.getTime(), "yyyyMMdd"));
+        if (directory.exists() && directory.isDirectory()) {
+          File[] files = directory.listFiles();
+          for (File file : files) {
+            file.delete();
+          }
+          directory.delete();
+        }
+      }
 
     } catch (Exception e) {
       log.info("load cheating data meet error", e);
