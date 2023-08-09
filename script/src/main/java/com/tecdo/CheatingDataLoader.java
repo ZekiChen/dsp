@@ -94,8 +94,9 @@ public class CheatingDataLoader {
 
       // 清理历史过期文件
       Calendar calendar = Calendar.getInstance();
-      for (int i = -2; i > -7; i--) {
-        calendar.add(Calendar.DATE, i);
+      calendar.add(Calendar.DATE, -1);
+      for (int i = 0; i < 7; i++) {
+        calendar.add(Calendar.DATE, -1);
         File directory = new File(baseDir + DateUtil.format(calendar.getTime(), "yyyyMMdd"));
         if (directory.exists() && directory.isDirectory()) {
           File[] files = directory.listFiles();
