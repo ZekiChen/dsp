@@ -36,6 +36,7 @@ public interface ParamKey {
   String ADV_CACHE_KEY = "adv-cache-key";
   String IP_TABLE_CACHE_KEY = "ip-table-key";
   String AF_AUDIENCE_SYNC_KEY = "af-audience-sync-key";
+  String AF_CONTAINER_SYNC_KEY = "af-container-sync-key";
   String AFF_COUNTRY_BUNDLE_LIST_CACHE_KEY = "aff-country-bundle-list-cache-key";
   String BUNDLE_DATA_GT_SIZE_CACHE_KEY = "bundle-data-gt-size-cache-key";
   String BUNDLE_DATA_CACHE_KEY = "bundle-data-cache-key";

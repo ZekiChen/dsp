@@ -132,7 +132,8 @@ public class NoticeLogger {
             map.put("order_amount", info.getOrderAmount());
             map.put("p4p_revenue", info.getP4pRevenue());
             map.put("affi_revenue", info.getAffiRevenue());
-            map.put("new_register", info.getNewRegister());
+            map.put("add_to_wish_cnt", info.getAddToWishCnt());
+            map.put("add_to_cart_cnt", info.getAddToCartCnt());
 
             if (Objects.equals(info.getUvCnt(), 1)) {
                 map.put(RequestKey.EVENT_4, 1);

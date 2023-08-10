@@ -1,15 +1,18 @@
 package com.tecdo.service.init;
 
+import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-
+import com.tecdo.adm.api.audience.entity.AfContainer;
+import com.tecdo.adm.api.audience.entity.AfSync;
+import com.tecdo.adm.api.audience.mapper.AfContainerMapper;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
-import com.tecdo.adm.api.audience.entity.AfSync;
 import com.tecdo.mapper.AfSyncMapper;
+import com.tecdo.starter.mp.entity.IdEntity;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -18,6 +21,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -30,6 +34,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
 
+    private final AfContainerMapper afContainerMapper;
+
     private final SoftTimer softTimer;
     private final MessageQueue messageQueue;
     private final ThreadPool threadPool;
@@ -38,6 +44,7 @@ public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
     private long timerId;
 
     private Map<Integer, List<AfSync>> afSyncMap;
+    private Map<Integer, AfContainer> afContainerMap;
 
     @Value("${pac.timeout.load.db.default}")
     private long loadTimeout;
@@ -51,6 +58,14 @@ public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
 
     public List<AfSync> getAfSyncList(Integer containerId) {
         return afSyncMap.get(containerId);
+    }
+
+    public Map<Integer, AfContainer> getAfContainerMap() {
+        return afContainerMap;
+    }
+
+    public AfContainer getAfContainer(Integer containerId) {
+        return getAfContainerMap().get(containerId);
     }
 
     @AllArgsConstructor
@@ -121,6 +136,12 @@ public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
                             .filter(v -> v.getHasSync() && v.getIsEnable())
                             .collect(Collectors.groupingBy(AfSync::getContainerId));
                         params.put(ParamKey.AF_AUDIENCE_SYNC_KEY, afSyncMap);
+
+                        Map<Integer, AfContainer> afContainerMap = afContainerMapper.selectList(
+                                Wrappers.<AfContainer>lambdaQuery().eq(AfContainer::getIsEnable, true)
+                        ).stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
+                        params.put(ParamKey.AF_CONTAINER_SYNC_KEY, afContainerMap);
+
                         messageQueue.putMessage(EventType.AF_AUDIENCE_SYNC_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("af audience sync load failure from db", e);
@@ -142,6 +163,7 @@ public class AfAudienceSyncManager extends ServiceImpl<AfSyncMapper, AfSync> {
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.afSyncMap = params.get(ParamKey.AF_AUDIENCE_SYNC_KEY);
+                this.afContainerMap = params.get(ParamKey.AF_CONTAINER_SYNC_KEY);
                 log.info("af audience sync load success, size: {}", afSyncMap.size());
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);

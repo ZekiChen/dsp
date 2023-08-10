@@ -32,4 +32,6 @@ public class AfContainer extends BaseEntity {
     @ApiModelProperty(value = "1：有效；0：无效")
     private Boolean isEnable;
 
+    @ApiModelProperty(value = "加密算法")
+    private Integer encrypt;
 }
