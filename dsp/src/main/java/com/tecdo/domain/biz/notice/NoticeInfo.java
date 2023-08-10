@@ -3,11 +3,10 @@ package com.tecdo.domain.biz.notice;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.ValidateCode;
-
-import java.io.Serializable;
-
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
 
 /**
  * 将出价的 bidId - NoticeInfo 写入缓存，用于通知请求回调时读取使用
@@ -58,7 +57,9 @@ public class NoticeInfo implements Serializable {
     private Integer buyerCnt;
     private Double p4pRevenue;
     private Double affiRevenue;
-    private Integer newRegister;
+//    private Integer newRegister;
+    private Integer addToWishCnt;
+    private Integer addToCartCnt;
 
     public static NoticeInfo buildInfo(HttpRequest httpRequest) {
         NoticeInfo info = new NoticeInfo();

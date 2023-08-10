@@ -34,7 +34,9 @@ public class AePbInfoVO implements Serializable {
     private Integer buyerCnt;
     private Double p4pRevenue;
     private Double affiRevenue;
-    private Integer newRegister;
+//    private Integer newRegister; 对接文档中已去掉
+    private Integer addToWishCnt;
+    private Integer addToCartCnt;
 
     @JsonProperty("rtaSubId1")
     private String bidId;

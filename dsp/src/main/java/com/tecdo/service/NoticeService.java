@@ -84,7 +84,8 @@ public class NoticeService {
             info.setBuyerCnt(aePbInfoVO.getBuyerCnt());
             info.setP4pRevenue(aePbInfoVO.getP4pRevenue());
             info.setAffiRevenue(aePbInfoVO.getAffiRevenue());
-            info.setNewRegister(aePbInfoVO.getNewRegister());
+            info.setAddToWishCnt(aePbInfoVO.getAddToWishCnt());
+            info.setAddToCartCnt(aePbInfoVO.getAddToCartCnt());
             noticeInfos.add(info);
         }
         List<NoticeInfo> infos = new ArrayList<>();
