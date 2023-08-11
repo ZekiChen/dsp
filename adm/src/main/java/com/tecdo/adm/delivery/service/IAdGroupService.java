@@ -28,8 +28,7 @@ public interface IAdGroupService extends IService<AdGroup> {
 
     List<AdGroup> listByCampaignIds(List<Integer> campaignIds);
 
-    boolean copy(Integer targetCampaignId, String sourceAdGroupIds, Integer copyNum,
-                 Integer targetAdGroupStatus, String sourceAdIds, Integer targetAdStatus);
+    boolean copy(Integer targetCampaignId, String sourceAdGroupIds, Integer copyNum, Integer targetAdGroupStatus);
 
     boolean editListInfo(SimpleAdGroupUpdateVO vo);
 

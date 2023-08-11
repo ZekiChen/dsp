@@ -142,24 +142,27 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
                       return i;
                     }, (o, n) -> n));
 
-            List<GooglePlayApp> googlePlayApps = list.stream()
-                    .filter(e -> StrUtil.isAllNotBlank(e.getCategorys(), e.getTags()))
+            List<GooglePlayApp> appsByCategories = list.stream()
+                    .filter(e -> StrUtil.isNotBlank(e.getCategorys()))
                     .collect(Collectors.toList());
-            Map<String, List<String>> categoryBundleMap = googlePlayApps.stream()
+            List<GooglePlayApp> appsByTags = list.stream()
+                    .filter(e -> StrUtil.isNotBlank(e.getTags()))
+                    .collect(Collectors.toList());
+            Map<String, List<String>> categoryBundleMap = appsByCategories.stream()
                     .flatMap(e -> Stream.of(e.getCategorys().split(StrUtil.COMMA)))
                     .distinct()
                     .collect(Collectors.toMap(k -> k, v -> new ArrayList<>()));
-            categoryBundleMap.forEach((category, bundles) -> googlePlayApps.forEach(e -> {
+            categoryBundleMap.forEach((category, bundles) -> appsByCategories.forEach(e -> {
                 if (Arrays.asList(e.getCategorys().split(StrUtil.COMMA)).contains(category)) {
                     bundles.add(e.getBundleId());
                 }
             }));
 
-            Map<String, List<String>> tagBundleMap = googlePlayApps.stream()
+            Map<String, List<String>> tagBundleMap = appsByTags.stream()
                     .flatMap(e -> Stream.of(e.getTags().split(StrUtil.COMMA)))
                     .distinct()
                     .collect(Collectors.toMap(k -> k, v -> new ArrayList<>()));
-            tagBundleMap.forEach((tag, bundles) -> googlePlayApps.forEach(e -> {
+            tagBundleMap.forEach((tag, bundles) -> appsByTags.forEach(e -> {
                 if (Arrays.asList(e.getTags().split(StrUtil.COMMA)).contains(tag)) {
                     bundles.add(e.getBundleId());
                 }
@@ -184,6 +187,8 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
 
   private void handleLoadResponse(Params params) {
     cancelReloadTimeoutTimer();
+    this.categoryBundleMap = params.get(ParamKey.GP_APP_CATEGORY_CACHE_KEY);
+    this.tagBundleMap = params.get(ParamKey.GP_APP_TAG_CACHE_KEY);
     this.googlePlayAppMap = params.get(ParamKey.GP_APP_CACHE_KEY);
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
