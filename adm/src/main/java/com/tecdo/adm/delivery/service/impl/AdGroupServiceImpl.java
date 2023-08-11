@@ -137,13 +137,13 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             if (CollUtil.isEmpty(sourceConditions)) {
                 throw new ServiceException("source conditions is empty!");
             }
+            List<Integer> sourceAdIds = adService.listIdByGroupIds(Collections.singletonList(sourceAdGroup.getId()));
             replaceAdGroup(sourceAdGroup, targetCampaignId, targetAdGroupStatus);
             List<AdGroup> targetAdGroups = copyAdGroups(sourceAdGroup, copyNum);
             saveBatch(targetAdGroups);
             List<TargetCondition> targetConditions = replaceAndCopyConditions(targetAdGroups, sourceConditions);
             conditionService.saveBatch(targetConditions);
 
-            List<Integer> sourceAdIds = adService.listIdByGroupIds(Collections.singletonList(sourceAdGroup.getId()));
             if (CollUtil.isNotEmpty(sourceAdIds)) {
                 List<Ad> sourceAds = adService.listByIds(sourceAdIds);
                 List<Ad> targetAds = replaceAndCopyAds(targetAdGroups, sourceAds);
