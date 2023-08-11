@@ -151,10 +151,8 @@ public class AdGroupController {
     public R copy(@ApiParam("目标campaignId") @RequestParam Integer targetCampaignId,
                   @ApiParam("源adGroupIds") @RequestParam String sourceAdGroupIds,
                   @ApiParam("复制数量") @RequestParam Integer copyNum,
-                  @ApiParam("目标adGroup状态") @RequestParam Integer targetAdGroupStatus,
-                  @ApiParam("复制的adIds") @RequestParam(required = false) String sourceAdIds,
-                  @ApiParam("目标ad状态") @RequestParam Integer targetAdStatus) {
-        return R.status(service.copy(targetCampaignId, sourceAdGroupIds, copyNum, targetAdGroupStatus, sourceAdIds, targetAdStatus));
+                  @ApiParam("目标adGroup状态") @RequestParam Integer targetAdGroupStatus) {
+        return R.status(service.copy(targetCampaignId, sourceAdGroupIds, copyNum, targetAdGroupStatus));
     }
 
     @PutMapping("/update/list-info")

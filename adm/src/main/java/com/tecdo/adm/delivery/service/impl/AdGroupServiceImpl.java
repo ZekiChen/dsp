@@ -123,8 +123,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     @Override
     @Transactional
-    public boolean copy(Integer targetCampaignId, String sourceAdGroupIds, Integer copyNum,
-                        Integer targetAdGroupStatus, String sourceAdIds, Integer targetAdStatus) {
+    public boolean copy(Integer targetCampaignId, String sourceAdGroupIds, Integer copyNum, Integer targetAdGroupStatus) {
         if (copyNum < 1) {
             throw new ServiceException("copy num must bigger than 0!");
         }
@@ -143,9 +142,11 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             saveBatch(targetAdGroups);
             List<TargetCondition> targetConditions = replaceAndCopyConditions(targetAdGroups, sourceConditions);
             conditionService.saveBatch(targetConditions);
-            if (StrUtil.isNotBlank(sourceAdIds)) {
-                List<Ad> sourceAds = adService.listByIds(BigTool.toIntList(sourceAdIds));
-                List<Ad> targetAds = replaceAndCopyAds(targetAdGroups, sourceAds, targetAdStatus);
+
+            List<Integer> sourceAdIds = adService.listIdByGroupIds(Collections.singletonList(sourceAdGroup.getId()));
+            if (CollUtil.isNotEmpty(sourceAdIds)) {
+                List<Ad> sourceAds = adService.listByIds(sourceAdIds);
+                List<Ad> targetAds = replaceAndCopyAds(targetAdGroups, sourceAds);
                 adService.saveBatch(targetAds);
             }
         }
@@ -440,12 +441,12 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         return baseMapper.listStatus(ids);
     }
 
-    private static List<Ad> replaceAndCopyAds(List<AdGroup> targetAdGroups, List<Ad> sourceAds, Integer targetAdStatus) {
+    private static List<Ad> replaceAndCopyAds(List<AdGroup> targetAdGroups, List<Ad> sourceAds) {
         return targetAdGroups.stream()
                 .flatMap(group -> sourceAds.stream().map(ad -> {
                     Ad newAd = BeanUtil.copyProperties(ad, Ad.class);
                     newAd.setGroupId(group.getId());
-                    newAd.setStatus(targetAdStatus);
+                    newAd.setStatus(ad.getStatus());
                     resetBaseEntity(newAd);
                     return newAd;
                 }))
