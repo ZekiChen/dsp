@@ -21,7 +21,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class LazadaRequestJob {
+public class DefaultModelRequestJob {
 
   private final DeviceRecallMapper deviceRecallMapper;
 
@@ -32,9 +32,9 @@ public class LazadaRequestJob {
   @Value("${pac.sdk.query-max-loop-count:2}")
   private int MAX_LOOP_COUNt;
 
-  private String tableName = "recall_device";
+  private String tableName = "recall_device_by_model_train";
 
-  @XxlJob("sdk-lazada")
+  @XxlJob("sdk-use-model")
   public void handle() throws InterruptedException, UnsupportedEncodingException {
 
     String param = XxlJobHelper.getJobParam();
@@ -49,6 +49,8 @@ public class LazadaRequestJob {
     String packageName = (String) config.get("packageName");
     Integer recallType = ((Number) config.get("recallType")).intValue();
     String url = (String) config.get("url");
+    String version = (String) config.get("version");
+    String label = tableName + ":" + version;
     int totalCount = ((Number) config.get("totalCount")).intValue();
     int affSubCount = ((Number) config.get("affSubCount")).intValue();
     int rateLimit = ((Number) config.get("rateLimit")).intValue();
@@ -65,21 +67,23 @@ public class LazadaRequestJob {
 
     int count = 0;
     int loopCount = 0;
-    Long dbOffset = curRecordMapper.getCur(country, os, packageName, recallType, tableName);
+    Long dbOffset = curRecordMapper.getCur(country, os, packageName, recallType, label);
 
     if (dbOffset == null || dbOffset == 0) {
-      curRecordMapper.createCur(country, os, packageName, recallType, tableName, timeInMillis);
+      curRecordMapper.createCur(country, os, packageName, recallType, label, timeInMillis);
       dbOffset = timeInMillis;
     }
     String condition = country + "_" + os + "_" + packageName + "_" + recallType;
 
-    List<DeviceRecall> query = deviceRecallMapper.query(country,
-                                                        os,
-                                                        packageName,
-                                                        recallType,
-                                                        recallTag,
-                                                        dbOffset,
-                                                        Math.min(BATCH_SIZE, totalCount - count));
+    List<DeviceRecall> query = deviceRecallMapper.queryFromModel(country,
+                                                                 os,
+                                                                 packageName,
+                                                                 recallType,
+                                                                 version,
+                                                                 recallTag,
+                                                                 dbOffset,
+                                                                 Math.min(BATCH_SIZE,
+                                                                          totalCount - count));
 
     while (totalCount > count && MAX_LOOP_COUNt > loopCount) {
 
@@ -98,15 +102,16 @@ public class LazadaRequestJob {
       }
       try {
 
-        query = deviceRecallMapper.query(country,
-                                         os,
-                                         packageName,
-                                         recallType,
-                                         recallTag,
-                                         dbOffset,
-                                         Math.min(BATCH_SIZE, totalCount - count));
+        query = deviceRecallMapper.queryFromModel(country,
+                                                  os,
+                                                  packageName,
+                                                  recallType,
+                                                  version,
+                                                  recallTag,
+                                                  dbOffset,
+                                                  Math.min(BATCH_SIZE, totalCount - count));
         // update id offset after every query
-        curRecordMapper.updateCur(country, os, packageName, recallType, tableName, dbOffset);
+        curRecordMapper.updateCur(country, os, packageName, recallType, label, dbOffset);
       } catch (Exception e) {
         XxlJobHelper.log(e);
       }
