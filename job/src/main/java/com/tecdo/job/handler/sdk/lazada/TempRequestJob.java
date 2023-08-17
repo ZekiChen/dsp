@@ -32,6 +32,8 @@ public class TempRequestJob {
   @Value("${pac.sdk.query-max-loop-count:2}")
   private int MAX_LOOP_COUNt;
 
+  private String tableName = "recall_device";
+
   private String dbPackageName = "temp";
   private Integer dbRecallType = -1;
 
@@ -66,10 +68,10 @@ public class TempRequestJob {
 
     int count = 0;
     int loopCount = 0;
-    Long dbOffset = curRecordMapper.getCur(country, os, packageName, recallType);
+    Long dbOffset = curRecordMapper.getCur(country, os, packageName, recallType, tableName);
 
     if (dbOffset == null || dbOffset == 0) {
-      curRecordMapper.createCur(country, os, packageName, recallType, timeInMillis);
+      curRecordMapper.createCur(country, os, packageName, recallType, tableName, timeInMillis);
       dbOffset = timeInMillis;
     }
     String condition = country + "_" + os + "_" + packageName + "_" + recallType;
@@ -82,7 +84,10 @@ public class TempRequestJob {
                                                         dbOffset,
                                                         Math.min(BATCH_SIZE, totalCount - count));
     // set packageName and recallType to log
-    query.forEach(i->{i.setPackageName(packageName);i.setRecallType(recallType);});
+    query.forEach(i -> {
+      i.setPackageName(packageName);
+      i.setRecallType(recallType);
+    });
 
     while (totalCount > count && MAX_LOOP_COUNt > loopCount) {
 
@@ -109,9 +114,12 @@ public class TempRequestJob {
                                          dbOffset,
                                          Math.min(BATCH_SIZE, totalCount - count));
         // set packageName and recallType to log
-        query.forEach(i->{i.setPackageName(packageName);i.setRecallType(recallType);});
+        query.forEach(i -> {
+          i.setPackageName(packageName);
+          i.setRecallType(recallType);
+        });
         // update id offset after every query
-        curRecordMapper.updateCur(country, os, packageName, recallType, dbOffset);
+        curRecordMapper.updateCur(country, os, packageName, recallType, tableName, dbOffset);
       } catch (Exception e) {
         XxlJobHelper.log(e);
       }
