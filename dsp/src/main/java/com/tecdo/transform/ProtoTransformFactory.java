@@ -19,21 +19,13 @@ public class ProtoTransformFactory {
       case FORCE:
         return SpringUtil.getBean(ForceBannerTransform.class);
       case INMOBI:
-        InMobiTransform inMobiTransform = SpringUtil.getBean(InMobiTransform.class);
-        inMobiTransform.setForceBannerEnable(false);
-        return inMobiTransform;
+        return SpringUtil.getBean(InMobiTransform.class);
       case INMOBI + COMMA + FORCE:
-        inMobiTransform = SpringUtil.getBean(InMobiTransform.class);
-        inMobiTransform.setForceBannerEnable(true);
-        return inMobiTransform;
+        return SpringUtil.getBean(InMobiForceTransform.class);
       case YANDEX:
-        YandexTransform yandexTransform = SpringUtil.getBean(YandexTransform.class);
-        yandexTransform.setForceBannerEnable(false);
-        return yandexTransform;
+        return SpringUtil.getBean(YandexTransform.class);
       case YANDEX + COMMA + FORCE:
-        yandexTransform = SpringUtil.getBean(YandexTransform.class);
-        yandexTransform.setForceBannerEnable(true);
-        return yandexTransform;
+        return SpringUtil.getBean(YandexForceTransform.class);
       default:
         return null;
     }

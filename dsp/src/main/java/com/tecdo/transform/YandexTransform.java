@@ -7,8 +7,6 @@ import org.springframework.stereotype.Component;
 @Setter
 public class YandexTransform extends AbstractTransform implements IProtoTransform {
 
-  private boolean forceBannerEnable = false;
-
   @Override
   public String deepLinkFormat(String deepLink) {
     return deepLink;
@@ -31,6 +29,6 @@ public class YandexTransform extends AbstractTransform implements IProtoTransfor
 
   @Override
   public boolean forceBannerEnable() {
-    return forceBannerEnable;
+    return false;
   }
 }
