@@ -44,7 +44,7 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
   private Map<String, List<String>> categoryBundleMap;
   private Map<String, List<String>> tagBundleMap;
 
-  @Value("${pac.timeout.load.db.default}")
+  @Value("${pac.timeout.load.doris.google-play-app}")
   private long loadTimeout;
   @Value("${pac.interval.reload.db.default}")
   private long reloadInterval;
@@ -128,6 +128,7 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
       case RUNNING:
         threadPool.execute(() -> {
           try {
+            long startTime = System.currentTimeMillis();
             LambdaQueryWrapper<GooglePlayApp> wrapper =
                     Wrappers.<GooglePlayApp>lambdaQuery().eq(GooglePlayApp::isFound, 1);
             List<GooglePlayApp> list = list(wrapper);
@@ -168,6 +169,7 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
                 }
             }));
 
+            log.info("gp app load time: {}ms", System.currentTimeMillis() - startTime);
             params.put(ParamKey.GP_APP_CATEGORY_CACHE_KEY, categoryBundleMap);
             params.put(ParamKey.GP_APP_TAG_CACHE_KEY, tagBundleMap);
             params.put(ParamKey.GP_APP_CACHE_KEY, appMap);
