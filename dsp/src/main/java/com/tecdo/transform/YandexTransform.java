@@ -1,9 +1,13 @@
 package com.tecdo.transform;
 
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 @Component
+@Setter
 public class YandexTransform extends AbstractTransform implements IProtoTransform {
+
+  private boolean forceBannerEnable = false;
 
   @Override
   public String deepLinkFormat(String deepLink) {
@@ -27,6 +31,6 @@ public class YandexTransform extends AbstractTransform implements IProtoTransfor
 
   @Override
   public boolean forceBannerEnable() {
-    return false;
+    return forceBannerEnable;
   }
 }
