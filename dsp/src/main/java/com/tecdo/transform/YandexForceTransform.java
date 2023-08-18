@@ -1,20 +1,14 @@
 package com.tecdo.transform;
 
 import lombok.Setter;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Component;
 
 @Component
 @Setter
-public class InMobiTransform extends AbstractTransform implements IProtoTransform {
-
-  private final String INMOBI_DEEPLINK = "inmobideeplink://navigate?primaryUrl=";
+public class YandexForceTransform extends AbstractTransform implements IProtoTransform {
 
   @Override
   public String deepLinkFormat(String deepLink) {
-    if (StringUtils.isNotBlank(deepLink)) {
-      return INMOBI_DEEPLINK + encode(deepLink);
-    }
     return deepLink;
   }
 
@@ -25,7 +19,7 @@ public class InMobiTransform extends AbstractTransform implements IProtoTransfor
 
   @Override
   public boolean buildAdmObject() {
-    return true;
+    return false;
   }
 
   @Override
@@ -35,6 +29,6 @@ public class InMobiTransform extends AbstractTransform implements IProtoTransfor
 
   @Override
   public boolean forceBannerEnable() {
-    return false;
+    return true;
   }
 }

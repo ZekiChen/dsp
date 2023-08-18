@@ -1,8 +1,10 @@
 package com.tecdo.transform;
 
+import lombok.Setter;
 import org.springframework.stereotype.Component;
 
 @Component
+@Setter
 public class YandexTransform extends AbstractTransform implements IProtoTransform {
 
   @Override

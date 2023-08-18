@@ -150,11 +150,11 @@ public class BudgetManager extends ServiceImpl<AdGroupCostMapper, AdGroupCost> {
         cancelReloadTimeoutTimer();
         this.campaignCostMap = params.get(ParamKey.CAMPAIGN_BUDGETS_CACHE_KEY);
         this.adGroupCostMap = params.get(ParamKey.AD_GROUP_BUDGETS_CACHE_KEY);
-        log.info("budgets load success, campaign size: {}, ad group size: {}",
-                campaignCostMap.size(),
-                adGroupCostMap.size());
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                log.info("budgets load success, campaign size: {}, ad group size: {}",
+                        campaignCostMap.size(),
+                        adGroupCostMap.size());
                 messageQueue.putMessage(EventType.ONE_DATA_READY);
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);

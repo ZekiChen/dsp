@@ -13,6 +13,7 @@ public interface ParamKey {
 
   String REQUEST_LAZADA_RTA_RESPONSE = "requestLazadaRtaResponse";
   String REQUEST_AE_RTA_RESPONSE = "requestAeRtaResponse";
+  String REQUEST_MIRAVIA_RTA_RESPONSE = "requestMiraviaRtaResponse";
 
   String TASK_ID = "taskId";
 
