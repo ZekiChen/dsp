@@ -29,6 +29,7 @@ import com.tecdo.service.init.RtaInfoManager;
 import com.tecdo.service.rta.RtaHelper;
 import com.tecdo.service.rta.Target;
 import com.tecdo.service.rta.ae.AeRtaInfoVO;
+import com.tecdo.service.rta.miravia.MiraviaRtaHelper;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.ActionConsumeRecorder;
@@ -78,7 +79,7 @@ public class Context {
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
 
   private int rtaResponseCount = 0;
-  private final int rtaResponseNeed = 2;
+  private final int rtaResponseNeed = 3;
 
   private final GooglePlayAppManager googlePlayAppManager =
     SpringUtil.getBean(GooglePlayAppManager.class);
@@ -198,6 +199,17 @@ public class Context {
       }
     });
 
+    threadPool.execute(() -> {
+      try {
+        Map<Integer, Target> rtaResMap = doRequestRtaByMiravia(bidRequest);
+        messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
+                params.put(ParamKey.REQUEST_MIRAVIA_RTA_RESPONSE, rtaResMap));
+      } catch (Exception e) {
+        log.error("contextId: {}, request miravia rta cause a exception:", requestId, e);
+        messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
+      }
+    });
+
     log.info("contextId: {}, request rta", requestId);
   }
 
@@ -221,6 +233,29 @@ public class Context {
     advToAdList.forEach((advId, adList) -> {
       RtaInfo rtaInfo = rtaInfoManager.getRtaInfo(advId);
       RtaHelper.requestRta(rtaInfo, adList, countryCode, deviceId, rtaResMap);
+    });
+    return rtaResMap;
+  }
+
+  private Map<Integer, Target> doRequestRtaByMiravia(BidRequest bidRequest) {
+    String country = bidRequest.getDevice().getGeo().getCountry();
+    String countryCode = StringConfigUtil.getCountryCode(country);
+    String deviceId = bidRequest.getDevice().getIfa();
+    Map<Integer, Target> rtaResMap = new HashMap<>();
+
+    // 只保留miravia rta的单子，并将单子按照广告主分组
+    Map<Integer, List<AdDTOWrapper>> advToAdList = //
+            this.adDTOWrapperList.stream()
+                    .filter(i -> Objects.nonNull(i.getAdDTO().getCampaignRtaInfo()) &&
+                            AdvTypeEnum.MIRAVIA_RTA.getType() ==
+                                    i.getAdDTO().getAdv().getType())
+                    .collect(Collectors.groupingBy(i -> i.getAdDTO()
+                            .getCampaignRtaInfo()
+                            .getAdvMemId()));
+    // 分广告主进行rta匹配
+    advToAdList.forEach((advId, adList) -> {
+      RtaInfo rtaInfo = rtaInfoManager.getRtaInfo(advId);
+      MiraviaRtaHelper.requestRta(rtaInfo, adList, countryCode, deviceId, rtaResMap);
     });
     return rtaResMap;
   }
@@ -259,7 +294,8 @@ public class Context {
   public void saveRtaResponse(Params params) {
     Map<Integer, Target> lazadaRtaMap = params.get(ParamKey.REQUEST_LAZADA_RTA_RESPONSE);
     Map<Integer, Target> aeRtaMap = params.get(ParamKey.REQUEST_AE_RTA_RESPONSE);
-    Map<Integer, Target> mergeRtaMap = Stream.of(lazadaRtaMap, aeRtaMap)
+    Map<Integer, Target> miraviaRtaMap = params.get(ParamKey.REQUEST_MIRAVIA_RTA_RESPONSE);
+    Map<Integer, Target> mergeRtaMap = Stream.of(lazadaRtaMap, aeRtaMap, miraviaRtaMap)
                                              .flatMap(map -> map.entrySet().stream())
                                              .collect(Collectors.toMap(Map.Entry::getKey,
                                                                        Map.Entry::getValue));
@@ -276,6 +312,7 @@ public class Context {
         ad.setRtaRequestTrue(t.isTarget() ? 1 : 0);
         switch (AdvTypeEnum.of(t.getAdvType())) {
           case LAZADA_RTA:
+          case MIRAVIA_RTA:
             ad.setRtaToken(t.isTarget() ? t.getToken() : null);
             break;
           case AE_RTA:

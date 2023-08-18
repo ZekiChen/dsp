@@ -8,8 +8,11 @@ public interface FormatKey {
   String CAMPAIGN_ID = "{CAMPAIGN_ID}";
   String AD_GROUP_ID = "{AD_GROUP_ID}";
   String AD_ID = "{AD_ID}";
+  String AD_ID_MD5 = "{AD_ID_MD5}";
+  String AD_ID_SHA256 = "{AD_ID_SHA256}";
   String CREATIVE_ID = "{CREATIVE_ID}";
   String DEVICE_ID = "{DEVICE_ID}";
+  String DEVICE_ID_MD5 = "{DEVICE_ID_MD5}";
   String IP = "{IP}";
   String COUNTRY = "{COUNTRY}";
   String OS = "{OS}";

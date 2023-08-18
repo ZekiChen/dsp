@@ -1,4 +1,4 @@
-package com.tecdo.service.rta;
+package com.tecdo.service.rta.miravia;
 
 import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
@@ -6,6 +6,7 @@ import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
+import com.tecdo.service.rta.*;
 import com.tecdo.service.rta.api.LazopClient;
 import com.tecdo.service.rta.api.LazopRequest;
 import lombok.extern.slf4j.Slf4j;
@@ -18,9 +19,9 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 @Slf4j
-public class RtaHelper {
+public class MiraviaRtaHelper {
 
-  private static final String RTA_SERVER_URL = SpringUtil.getProperty("foreign.lazada.rta.url");
+  private static final String RTA_SERVER_URL = SpringUtil.getProperty("foreign.miravia.rta.url");
   private static final String API_NAME = SpringUtil.getProperty("foreign.lazada.rta.api");
 
   private static final ConcurrentHashMap<String, LazopClient> clientMap = new ConcurrentHashMap<>();
@@ -62,7 +63,7 @@ public class RtaHelper {
                             advAppKey,
                             advAppSecret);
     } catch (Exception e) {
-      log.error("query lazada rta catch exception", e);
+      log.error("query miravia rta catch exception", e);
     }
     if (response != null) {
       if (LazadaCode.SUCCESS.equalsIgnoreCase(response.getCode()) && response.getData() != null) {
@@ -70,7 +71,7 @@ public class RtaHelper {
         List<LazadaTarget> targetList = data.getTargetList();
         targetList.forEach(i -> {
           Target target = new Target();
-          target.setAdvType(AdvTypeEnum.LAZADA_RTA.getType());
+          target.setAdvType(AdvTypeEnum.MIRAVIA_RTA.getType());
           if (i.isTarget()) {
             target.setTarget(true);
             target.setToken(data.getToken());
@@ -84,7 +85,7 @@ public class RtaHelper {
           });
         });
       } else {
-        log.error("query rta failed,message:{}", response.getMessage());
+        log.error("query miravia rta failed,message:{}", response.getMessage());
       }
     }
   }
@@ -103,7 +104,7 @@ public class RtaHelper {
     request.addApiParameter("gaid", gaid);
     request.addApiParameter("member_id", advMemberId);
     request.addApiParameter("campaign_id_list", campaignIdList);
-    ResponseDTO response = client.execute(request, AdvTypeEnum.LAZADA_RTA);
+    ResponseDTO response = client.execute(request, AdvTypeEnum.MIRAVIA_RTA);
     return response;
   }
 

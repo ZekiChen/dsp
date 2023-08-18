@@ -17,6 +17,7 @@ public enum AdvTypeEnum {
     NORMAL(1, "Normal"),
     LAZADA_RTA(2, "Lazada RTA"),
     AE_RTA(3, "AliExpress RTA"),
+    MIRAVIA_RTA(4, "Miravia RTA"),
     ;
 
     private final int type;

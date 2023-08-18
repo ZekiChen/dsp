@@ -2,6 +2,7 @@ package com.tecdo.service.rta.api;
 
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
+import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
 import com.tecdo.service.rta.ResponseDTO;
 import com.tecdo.util.JsonHelper;
 
@@ -29,7 +30,7 @@ public class LazopClient {
     this.serverUrl = serverUrl;
   }
 
-  public ResponseDTO execute(LazopRequest request) throws Exception {
+  public ResponseDTO execute(LazopRequest request, AdvTypeEnum advTypeEnum) throws Exception {
 
     RequestContext requestContext = new RequestContext();
     LazopHashMap bizParams = request.getApiParams();
@@ -59,11 +60,25 @@ public class LazopClient {
     String urlQuery = buildQuery(requestContext.getCommonParams(), Constants.CHARSET_UTF8);
     String fullUrl = buildRequestUrl(rpcUrl, urlQuery);
 
-    HttpResult httpResult = OkHttps.sync(fullUrl)
-                                   .bodyType(OkHttps.FORM)
-                                   .setBodyPara(bizParams)
-                                   .addHeader(request.getHeaderParams())
-                                   .post();
+    HttpResult httpResult = null;
+    switch (advTypeEnum) {
+      case LAZADA_RTA:
+        httpResult = OkHttps.sync(fullUrl)
+                .bodyType(OkHttps.FORM)
+                .setBodyPara(bizParams)
+                .addHeader(request.getHeaderParams())
+                .post();
+        break;
+      case MIRAVIA_RTA:
+        String bizUrlQuery = buildQuery(bizParams, Constants.CHARSET_UTF8);
+        fullUrl = buildRequestUrl(fullUrl, bizUrlQuery);
+        httpResult = OkHttps.sync(fullUrl)
+                .bodyType(OkHttps.FORM)
+                .addHeader(request.getHeaderParams())
+                .post();
+        break;
+    }
+
     if (httpResult.isSuccessful()) {
       response = JsonHelper.parseObject(httpResult.getBody().toString(), ResponseDTO.class);
     } else {
