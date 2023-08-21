@@ -1,5 +1,6 @@
 package com.tecdo.log;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import com.google.common.net.HttpHeaders;
 import com.tecdo.constant.RequestKey;
@@ -12,12 +13,10 @@ import com.tecdo.util.JsonHelper;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * Created by Zeki on 2023/5/5
@@ -134,6 +133,28 @@ public class NoticeLogger {
             map.put("affi_revenue", info.getAffiRevenue());
             map.put("add_to_wish_cnt", info.getAddToWishCnt());
             map.put("add_to_cart_cnt", info.getAddToCartCnt());
+
+            List<Integer> contentViewList = info.getSessionContentViewList();
+            List<Integer> addToCartList = info.getSessionAddToCartList();
+            List<Integer> orderItemList = info.getSessionOrderItemList();
+            if (CollUtil.isNotEmpty(contentViewList)) {
+                map.put("session_content_view_list", StringUtils.collectionToCommaDelimitedString(contentViewList));
+                map.put("session_content_view_size", contentViewList.size());
+            }
+            if (CollUtil.isNotEmpty(addToCartList)) {
+                map.put("session_add_to_cart_list", StringUtils.collectionToCommaDelimitedString(addToCartList));
+                map.put("session_add_to_cart_size", addToCartList.size());
+            }
+            if (CollUtil.isNotEmpty(orderItemList)) {
+                map.put("session_order_item_list", StringUtils.collectionToCommaDelimitedString(orderItemList));
+                map.put("session_order_item_size", orderItemList.size());
+            }
+            map.put("first_content_view_time", info.getFirstContentViewTime());
+            map.put("last_content_view_time", info.getLastContentViewTime());
+            map.put("first_add_to_cart_time", info.getFirstAddToCartTime());
+            map.put("last_add_to_cart_time", info.getLastAddToCartTime());
+            map.put("first_order_time", info.getFirstOrderTime());
+            map.put("last_order_time", info.getLastOrderTime());
 
             if (Objects.equals(info.getUvCnt(), 1)) {
                 map.put(RequestKey.EVENT_4, 1);

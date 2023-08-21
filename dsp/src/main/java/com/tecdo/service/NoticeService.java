@@ -86,6 +86,16 @@ public class NoticeService {
             info.setAffiRevenue(aePbInfoVO.getAffiRevenue());
             info.setAddToWishCnt(aePbInfoVO.getAddToWishCnt());
             info.setAddToCartCnt(aePbInfoVO.getAddToCartCnt());
+
+            info.setSessionContentViewList(aePbInfoVO.getSessionContentViewList());
+            info.setSessionAddToCartList(aePbInfoVO.getSessionAddToCartList());
+            info.setSessionOrderItemList(aePbInfoVO.getSessionOrderItemList());
+            info.setFirstContentViewTime(aePbInfoVO.getFirstContentViewTime());
+            info.setLastContentViewTime(aePbInfoVO.getLastContentViewTime());
+            info.setFirstAddToCartTime(aePbInfoVO.getFirstAddToCartTime());
+            info.setLastAddToCartTime(aePbInfoVO.getLastAddToCartTime());
+            info.setFirstOrderTime(aePbInfoVO.getFirstOrderTime());
+            info.setLastOrderTime(aePbInfoVO.getLastOrderTime());
             noticeInfos.add(info);
         }
         List<NoticeInfo> infos = new ArrayList<>();
