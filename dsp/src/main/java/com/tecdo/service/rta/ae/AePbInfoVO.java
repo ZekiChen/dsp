@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * Created by Zeki on 2023/4/6
@@ -37,6 +38,16 @@ public class AePbInfoVO implements Serializable {
 //    private Integer newRegister; 对接文档中已去掉
     private Integer addToWishCnt;
     private Integer addToCartCnt;
+
+    private List<Integer> sessionContentViewList;
+    private List<Integer> sessionAddToCartList;
+    private List<Integer> sessionOrderItemList;
+    private Long firstContentViewTime;
+    private Long lastContentViewTime;
+    private Long firstAddToCartTime;
+    private Long lastAddToCartTime;
+    private Long firstOrderTime;
+    private Long lastOrderTime;
 
     @JsonProperty("rtaSubId1")
     private String bidId;

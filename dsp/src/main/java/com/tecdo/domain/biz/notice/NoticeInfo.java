@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.Setter;
 
 import java.io.Serializable;
+import java.util.List;
 
 /**
  * 将出价的 bidId - NoticeInfo 写入缓存，用于通知请求回调时读取使用
@@ -60,6 +61,16 @@ public class NoticeInfo implements Serializable {
 //    private Integer newRegister;
     private Integer addToWishCnt;
     private Integer addToCartCnt;
+
+    private List<Integer> sessionContentViewList;
+    private List<Integer> sessionAddToCartList;
+    private List<Integer> sessionOrderItemList;
+    private Long firstContentViewTime;
+    private Long lastContentViewTime;
+    private Long firstAddToCartTime;
+    private Long lastAddToCartTime;
+    private Long firstOrderTime;
+    private Long lastOrderTime;
 
     public static NoticeInfo buildInfo(HttpRequest httpRequest) {
         NoticeInfo info = new NoticeInfo();
