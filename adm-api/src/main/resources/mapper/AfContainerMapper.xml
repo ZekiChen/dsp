@@ -7,7 +7,8 @@
             c.id,
             c.name,
             a.af_advertiser as afAdvertiser,
-            a.af_app_id as afAppId
+            a.af_app_id as afAppId,
+            c.device_cnt as deviceCnt
         FROM
             af_container c
             LEFT JOIN af_info a ON c.api_key = a.api_key

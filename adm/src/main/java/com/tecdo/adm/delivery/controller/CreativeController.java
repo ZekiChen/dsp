@@ -30,7 +30,6 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -86,20 +85,21 @@ public class CreativeController {
                     @RequestParam(value = "catIab", required = false) String catIab,
                     @RequestParam(value = "status", required = false) Integer status) {
         CacheUtil.clear(CREATIVE_CACHE);
-        Creative creative = new Creative();
-        creative.setId(id);
+        Creative entity = service.getById(id);
+        if (entity == null) {
+            return R.failure();
+        }
         if (file != null) {
             PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
-            creative.setUrl(pacFile.getUrl());
+            entity.setUrl(pacFile.getUrl());
         }
-        creative.setName(name);
-        creative.setType(type);
-        creative.setWidth(width);
-        creative.setHeight(height);
-        creative.setCatIab(catIab);
-        creative.setStatus(status);
-        creative.setUpdateTime(new Date());
-        return R.status(service.updateById(creative));
+        entity.setName(name);
+        entity.setType(type);
+        entity.setWidth(width);
+        entity.setHeight(height);
+        entity.setCatIab(catIab);
+        entity.setStatus(status);
+        return R.status(service.updateById(entity));
     }
 
     @DeleteMapping("/remove")
@@ -142,5 +142,18 @@ public class CreativeController {
     @Cacheable(cacheNames = CREATIVE_CACHE, key = "'listSpecs'")
     public R<List<CreativeSpecVO>> listSpecs() {
         return R.data(service.listSpecs());
+    }
+
+    @SneakyThrows
+    @PostMapping(value = "/upload", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ApiOperationSupport(order = 7)
+    @ApiOperation(value = "录入OBS", notes = "录入OBS")
+    public R<List<PacFile>> upload(@RequestPart("files") MultipartFile[] files) {
+        List<PacFile> pacFiles = new ArrayList<>();
+        for (int i = 0; i < files.length; i++) {
+            PacFile pacFile = ossTemplate.uploadFile(files[i].getOriginalFilename(), files[i].getInputStream());
+            pacFiles.add(pacFile);
+        }
+        return R.data(pacFiles);
     }
 }

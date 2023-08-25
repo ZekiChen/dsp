@@ -20,4 +20,6 @@ public class SimpleAfContainerVO extends BaseVO {
 	private String afAdvertiser;
 	@ApiModelProperty("af账号下的app id")
 	private String afAppId;
+	@ApiModelProperty(value = "设备数")
+	private Long deviceCnt;
 }

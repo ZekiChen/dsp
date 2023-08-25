@@ -2,6 +2,7 @@ package com.tecdo.adm.delivery.service.impl;
 
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -18,6 +19,8 @@ import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.adm.delivery.service.ITargetConditionService;
+import com.tecdo.adm.doris.IGooglePlayAppService;
+import com.tecdo.adm.doris.IRequestService;
 import com.tecdo.adm.log.service.IBizLogApiService;
 import com.tecdo.starter.log.exception.ServiceException;
 import com.tecdo.starter.mp.entity.BaseEntity;
@@ -27,6 +30,7 @@ import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import com.tecdo.starter.mp.vo.BaseVO;
 import com.tecdo.starter.tool.BigTool;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -45,6 +49,11 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     private final ITargetConditionService conditionService;
     private final IAdService adService;
     private final IBizLogApiService bizLogApiService;
+    private final IGooglePlayAppService googlePlayAppService;
+    private final IRequestService requestService;
+
+    @Value("${pac.condition.device-count.period}")
+    private Integer deviceCntPeriod;
 
     @Override
     public boolean add(AdGroupVO vo) {
@@ -439,6 +448,76 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     public List<StatusEntity> listStatus(List<Integer> ids) {
         return baseMapper.listStatus(ids);
+    }
+
+    @Override
+    public String countDevice(List<TargetCondition> conditions) {
+        if (CollUtil.isEmpty(conditions)) {
+            return "0";
+        }
+        String startDate = DateUtil.offsetDay(new Date(), -deviceCntPeriod).toDateStr();
+        String endDate = DateUtil.yesterday().toDateStr();
+        List<String> affiliates = null;
+        List<String> countries = null;
+        List<String> deviceOSs = null;
+        List<String> tarBundles = new ArrayList<>();
+        List<String> inBundles = new ArrayList<>();
+        List<String> exBundles = new ArrayList<>();
+        for (TargetCondition condition : conditions) {
+            if (StrUtil.isBlank(condition.getValue()) || "null".equals(condition.getValue())) {
+                continue;
+            }
+            switch (ConditionEnum.of(condition.getAttribute())) {
+                case AFFILIATE:
+                    affiliates = new ArrayList<>(BigTool.toStrList(condition.getValue()));
+                    break;
+                case BUNDLE:
+                    List<String> bundles = BigTool.toStrList(condition.getValue());
+                    if ("include".equals(condition.getOperation())) {
+                        inBundles.addAll(bundles);
+                    } else {
+                        exBundles.addAll(bundles);
+                    }
+                    break;
+                case CATEGORY:
+                    List<String> categories = BigTool.toStrList(condition.getValue());
+                    List<String> bundlesC = googlePlayAppService.listByCategoriesAndTags(categories, null);
+                    tarBundles.addAll(bundlesC);
+                    break;
+                case TAG:
+                    List<String> tags = BigTool.toStrList(condition.getValue());
+                    List<String> bundlesT = googlePlayAppService.listByCategoriesAndTags(null, tags);
+                    tarBundles.addAll(bundlesT);
+                    break;
+                case DEVICE_COUNTRY:
+                    countries = new ArrayList<>(BigTool.toStrList(condition.getValue()));
+                    break;
+                case DEVICE_MAKE:
+                    String deviceMakes = condition.getValue();
+                    break;
+                case DEVICE_OS:
+                    deviceOSs = new ArrayList<>(BigTool.toStrList(condition.getValue()));
+                    break;
+                default:
+                    throw new ServiceException("unknown condition operation!");
+            }
+        }
+        try {
+            if (CollUtil.isEmpty(tarBundles)) {
+                return requestService.countDevice(startDate, endDate, affiliates, countries, deviceOSs, inBundles, exBundles);
+            } else {
+                if (CollUtil.isNotEmpty(inBundles) || CollUtil.isNotEmpty(exBundles)) {
+                    if (CollUtil.isNotEmpty(inBundles)) {
+                        tarBundles.addAll(inBundles);
+                    } else {
+                        tarBundles = tarBundles.stream().filter(tar -> !exBundles.contains(tar)).collect(Collectors.toList());
+                    }
+                }
+                return requestService.countDevice(startDate, endDate, affiliates, countries, deviceOSs, tarBundles, exBundles);
+            }
+        } catch (Exception e) {
+            return "unknown error";
+        }
     }
 
     private static List<Ad> replaceAndCopyAds(List<AdGroup> targetAdGroups, List<Ad> sourceAds) {

@@ -41,4 +41,27 @@
         </if>
     </select>
 
+    <select id="listByCategoriesAndTags" resultType="java.lang.String">
+        select bundle_id from google_play_appinfo where is_found = 1
+        <if test="categoryList != null and categoryList.size > 0">
+            and
+            <foreach collection="categoryList" item="item" index="index" open="(" close=")" separator="OR">
+                FIND_IN_SET(#{item}, categorys) > 0
+            </foreach>
+        </if>
+        <if test="tagList != null and tagList.size > 0">
+            <choose>
+                <when test="categoryList != null and categoryList.size > 0">
+                    or
+                </when>
+                <otherwise>
+                    and
+                </otherwise>
+            </choose>
+            <foreach collection="tagList" item="item" index="index" open="(" close=")" separator="OR">
+                FIND_IN_SET(#{item}, tags) > 0
+            </foreach>
+        </if>
+    </select>
+
 </mapper>

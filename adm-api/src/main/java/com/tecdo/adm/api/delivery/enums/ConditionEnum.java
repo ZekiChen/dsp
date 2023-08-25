@@ -3,6 +3,8 @@ package com.tecdo.adm.api.delivery.enums;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+import java.util.Arrays;
+
 /**
  * Created by Zeki on 2022/12/22
  **/
@@ -28,4 +30,8 @@ public enum ConditionEnum {
     ;
 
     private final String desc;
+
+    public static ConditionEnum of(String desc) {
+        return Arrays.stream(ConditionEnum.values()).filter(e -> e.desc.equals(desc)).findFirst().orElse(null);
+    }
 }

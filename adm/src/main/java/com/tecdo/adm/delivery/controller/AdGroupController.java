@@ -25,6 +25,7 @@ import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
@@ -41,6 +42,7 @@ import static com.tecdo.common.constant.CacheConstant.AD_GROUP_CACHE;
 @RestController
 @Api(tags = "广告组")
 @RequiredArgsConstructor
+@Slf4j
 public class AdGroupController {
 
     private final IAdGroupService service;
@@ -208,5 +210,15 @@ public class AdGroupController {
     public R fqcUpdateBatch(@Valid @RequestBody FqcAdGroupUpdateVO vo) {
         CacheUtil.clear(AD_GROUP_CACHE);
         return R.status(service.fqcUpdateBatch(vo));
+    }
+
+    @PostMapping("/count-device")
+    @ApiOperationSupport(order = 15)
+    @ApiOperation(value = "根据定向条件圈选显示预估覆盖UV", notes = "传入Object")
+    public R<String> countDevice(@Valid @RequestBody List<TargetCondition> conditions) {
+        long start = System.currentTimeMillis();
+        R<String> data = R.data(service.countDevice(conditions));
+        log.info("count device cost: {}s", (System.currentTimeMillis() - start) / 1000);
+        return data;
     }
 }

@@ -16,4 +16,7 @@ public interface GooglePlayAppMapper extends BaseMapper<GooglePlayApp> {
 
     String countByCategoriesAndTags(@Param("categoryList") List<String> categoryList,
                                     @Param("tagList") List<String> tagList);
+
+    List<String> listByCategoriesAndTags(@Param("categoryList") List<String> categoryList,
+                                         @Param("tagList") List<String> tagList);
 }
