@@ -460,9 +460,12 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         List<String> affiliates = null;
         List<String> countries = null;
         List<String> deviceOSs = null;
-        List<String> tarBundles = new ArrayList<>();
+        List<String> categories = null;
+        List<String> tags = null;
         List<String> inBundles = new ArrayList<>();
         List<String> exBundles = new ArrayList<>();
+        List<String> inDeviceMakes = new ArrayList<>();
+        List<String> exDeviceMakes = new ArrayList<>();
         for (TargetCondition condition : conditions) {
             if (StrUtil.isBlank(condition.getValue()) || "null".equals(condition.getValue())) {
                 continue;
@@ -480,40 +483,36 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
                     }
                     break;
                 case CATEGORY:
-                    List<String> categories = BigTool.toStrList(condition.getValue());
-                    List<String> bundlesC = googlePlayAppService.listByCategoriesAndTags(categories, null);
-                    tarBundles.addAll(bundlesC);
+                    categories = new ArrayList<>(BigTool.toStrList(condition.getValue()));
                     break;
                 case TAG:
-                    List<String> tags = BigTool.toStrList(condition.getValue());
-                    List<String> bundlesT = googlePlayAppService.listByCategoriesAndTags(null, tags);
-                    tarBundles.addAll(bundlesT);
+                    tags = new ArrayList<>(BigTool.toStrList(condition.getValue()));
                     break;
                 case DEVICE_COUNTRY:
                     countries = new ArrayList<>(BigTool.toStrList(condition.getValue()));
                     break;
                 case DEVICE_MAKE:
-                    String deviceMakes = condition.getValue();
+                    List<String> deviceMakes = BigTool.toStrList(condition.getValue());
+                    if ("include".equals(condition.getOperation())) {
+                        inDeviceMakes.addAll(deviceMakes);
+                    } else {
+                        exDeviceMakes.addAll(deviceMakes);
+                    }
                     break;
                 case DEVICE_OS:
                     deviceOSs = new ArrayList<>(BigTool.toStrList(condition.getValue()));
                     break;
                 default:
-                    throw new ServiceException("unknown condition operation!");
+                    break;
             }
         }
         try {
-            if (CollUtil.isEmpty(tarBundles)) {
-                return requestService.countDevice(startDate, endDate, affiliates, countries, deviceOSs, inBundles, exBundles);
+            if (CollUtil.isEmpty(categories) && CollUtil.isEmpty(tags)) {
+                return requestService.countDevice(startDate, endDate,
+                        affiliates, countries, inDeviceMakes, exDeviceMakes, deviceOSs, inBundles, exBundles);
             } else {
-                if (CollUtil.isNotEmpty(inBundles) || CollUtil.isNotEmpty(exBundles)) {
-                    if (CollUtil.isNotEmpty(inBundles)) {
-                        tarBundles.addAll(inBundles);
-                    } else {
-                        tarBundles = tarBundles.stream().filter(tar -> !exBundles.contains(tar)).collect(Collectors.toList());
-                    }
-                }
-                return requestService.countDevice(startDate, endDate, affiliates, countries, deviceOSs, tarBundles, exBundles);
+                return requestService.countDeviceWithGP(startDate, endDate,
+                        affiliates, countries, inDeviceMakes, exDeviceMakes, deviceOSs, categories, tags, inBundles, exBundles);
             }
         } catch (Exception e) {
             return "unknown error";

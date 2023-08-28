@@ -83,6 +83,8 @@ public class CreativeController {
                     @RequestParam(value = "width", required = false) Integer width,
                     @RequestParam(value = "height", required = false) Integer height,
                     @RequestParam(value = "catIab", required = false) String catIab,
+                    @RequestParam(value = "suffix", required = false) String suffix,
+                    @RequestParam(value = "duration", required = false) Integer duration,
                     @RequestParam(value = "status", required = false) Integer status) {
         CacheUtil.clear(CREATIVE_CACHE);
         Creative entity = service.getById(id);
@@ -98,6 +100,10 @@ public class CreativeController {
         entity.setWidth(width);
         entity.setHeight(height);
         entity.setCatIab(catIab);
+        entity.setSuffix(suffix);
+        if (CreativeTypeEnum.VIDEO.getType() == type) {
+            entity.setDuration(duration);
+        }
         entity.setStatus(status);
         return R.status(service.updateById(entity));
     }

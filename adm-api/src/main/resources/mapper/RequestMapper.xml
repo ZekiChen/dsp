@@ -17,6 +17,18 @@
                 #{item}
             </foreach>
         </if>
+        <if test="inDeviceMakes != null and inDeviceMakes.size > 0">
+            and device_make in
+            <foreach collection="inDeviceMakes" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="exDeviceMakes != null and exDeviceMakes.size > 0">
+            and device_make not in
+            <foreach collection="exDeviceMakes" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
         <if test="deviceOSs != null and deviceOSs.size > 0">
             and os in
             <foreach collection="deviceOSs" item="item" index="index" open="(" close=")" separator=",">
@@ -32,6 +44,72 @@
         <if test="exBundles != null and exBundles.size > 0">
             and bundle_id not in
             <foreach collection="exBundles" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+    </select>
+
+    <select id="countDeviceWithGP" resultType="java.lang.String">
+        SELECT DISTINCT COUNT(*) FROM pac_dsp_request r INNER JOIN (
+            SELECT distinct bundle_id from google_play_appinfo WHERE is_found = 1
+            <if test="categories != null and categories.size > 0">
+                and
+                <foreach collection="categories" item="item" index="index" open="(" close=")" separator="OR">
+                    FIND_IN_SET(#{item}, categorys) > 0
+                </foreach>
+            </if>
+            <if test="tags != null and tags.size > 0">
+                <choose>
+                    <when test="categories != null and categories.size > 0">
+                        or
+                    </when>
+                    <otherwise>
+                        and
+                    </otherwise>
+                </choose>
+                <foreach collection="tags" item="item" index="index" open="(" close=")" separator="OR">
+                    FIND_IN_SET(#{item}, tags) > 0
+                </foreach>
+            </if>
+            <if test="inBundles != null and inBundles.size > 0">
+                <foreach collection="inBundles" item="item" index="index" open="" close="" separator="">
+                    UNION SELECT #{item}
+                </foreach>
+            </if>
+            <if test="exBundles != null and exBundles.size > 0">
+                <foreach collection="exBundles" item="item" index="index" open="" close="" separator="">
+                    EXCEPT SELECT  #{item}
+                </foreach>
+            </if>
+        ) gp ON r.bundle_id = gp.bundle_id
+        where r.report_date >= #{startDate} AND r.report_date &lt;= #{endDate}
+        <if test="affiliates != null and affiliates.size > 0">
+            and r.affiliate_id in
+            <foreach collection="affiliates" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="countries != null and countries.size > 0">
+            and r.country in
+            <foreach collection="countries" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="inDeviceMakes != null and inDeviceMakes.size > 0">
+            and r.device_make in
+            <foreach collection="inDeviceMakes" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="exDeviceMakes != null and exDeviceMakes.size > 0">
+            and r.device_make not in
+            <foreach collection="exDeviceMakes" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        </if>
+        <if test="deviceOSs != null and deviceOSs.size > 0">
+            and r.os in
+            <foreach collection="deviceOSs" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
         </if>

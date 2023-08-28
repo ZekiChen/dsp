@@ -14,6 +14,16 @@ public interface RequestMapper {
     String countDevice(@Param("startDate") String startDate, @Param("endDate") String endDate,
                        @Param("affiliates") List<String> affiliates,
                        @Param("countries") List<String> countries,
+                       @Param("inDeviceMakes") List<String> inDeviceMakes, @Param("exDeviceMakes") List<String> exDeviceMakes,
                        @Param("deviceOSs") List<String> deviceOSs,
                        @Param("inBundles") List<String> inBundles, @Param("exBundles") List<String> exBundles);
+
+    String countDeviceWithGP(@Param("startDate") String startDate, @Param("endDate") String endDate,
+                             @Param("affiliates") List<String> affiliates,
+                             @Param("countries") List<String> countries,
+                             @Param("inDeviceMakes") List<String> inDeviceMakes, @Param("exDeviceMakes") List<String> exDeviceMakes,
+                             @Param("deviceOSs") List<String> deviceOSs,
+                             @Param("categories") List<String> categories,
+                             @Param("tags") List<String> tags,
+                             @Param("inBundles") List<String> inBundles, @Param("exBundles") List<String> exBundles);
 }
