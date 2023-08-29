@@ -14,4 +14,6 @@ public interface IGooglePlayAppService extends IService<GooglePlayApp> {
     List<String> listTag();
 
     String countByCategoriesAndTags(List<String> categoryList, List<String> tagList);
+
+    List<String> listByCategoriesAndTags(List<String> categoryList, List<String> tagList);
 }

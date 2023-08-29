@@ -1,5 +1,7 @@
 package com.tecdo.service;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.AffCountryBundleList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.common.constant.Constant;
@@ -14,15 +16,13 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.log.ValidateLogger;
 import com.tecdo.server.request.HttpRequest;
-import com.tecdo.service.init.AffCountryBundleListManager;
-import com.tecdo.service.init.AffiliateManager;
-import com.tecdo.service.init.CheatingDataManager;
-import com.tecdo.service.init.IpTableManager;
-import com.tecdo.service.init.Pair;
+import com.tecdo.service.init.*;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
+import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.SignHelper;
-
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -31,11 +31,6 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
-
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 
 import static com.tecdo.filter.AbstractRecallFilter.Constant.EXCLUDE;
 import static com.tecdo.filter.AbstractRecallFilter.Constant.INCLUDE;
@@ -99,8 +94,8 @@ public class ValidateService {
         BidRequest bidRequest = protoTransform.requestTransform(httpRequest.getBody());
         if (bidRequest == null || !validateBidRequest(bidRequest)) {
             log.warn("validate bidRequest fail, affiliateId: {}, body: {}",
-                     affiliate.getId(),
-                     httpRequest.getBody());
+                    affiliate.getId(),
+                    httpRequest.getBody());
             messageQueue.putMessage(EventType.RESPONSE_RESULT,
                     Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
                             .put(ParamKey.CHANNEL_CONTEXT,
@@ -132,9 +127,9 @@ public class ValidateService {
             if (ipFilter.contains(ipCheatCheck.right)) {
                 ValidateLogger.log(ipCheatCheck.right, bidRequest, affiliate, true);
                 messageQueue.putMessage(EventType.RESPONSE_RESULT,
-                                        Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
-                                              .put(ParamKey.CHANNEL_CONTEXT,
-                                                   httpRequest.getChannelContext()));
+                        Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
+                                .put(ParamKey.CHANNEL_CONTEXT,
+                                        httpRequest.getChannelContext()));
                 return;
             }
             ValidateLogger.log(ipCheatCheck.right, bidRequest, affiliate, false);
@@ -145,9 +140,9 @@ public class ValidateService {
             if (deviceFilter.contains(deviceCheatCheck.right)) {
                 ValidateLogger.log(deviceCheatCheck.right, bidRequest, affiliate, true);
                 messageQueue.putMessage(EventType.RESPONSE_RESULT,
-                                        Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
-                                              .put(ParamKey.CHANNEL_CONTEXT,
-                                                   httpRequest.getChannelContext()));
+                        Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
+                                .put(ParamKey.CHANNEL_CONTEXT,
+                                        httpRequest.getChannelContext()));
                 return;
             }
             ValidateLogger.log(deviceCheatCheck.right, bidRequest, affiliate, false);
@@ -198,39 +193,44 @@ public class ValidateService {
         return true;
     }
 
-  private boolean validateBidRequest(BidRequest bidRequest) {
-    // 目标渠道：目前只参与移动端流量的竞价
-    if (bidRequest.getApp() == null) {
-      return false;
-    }
-    // 设备信息都不传，不太合理
-    if (bidRequest.getDevice() == null) {
-      return false;
-    }
-    // 没有设备id或者设备id非法
-    if (bidRequest.getDevice().getIfa() == null || bidRequest.getDevice().getIfa().length() != 36 ||
-        Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
-      return false;
-    }
-    // 缺少ip信息，过滤
-    if (StringUtils.isEmpty(bidRequest.getDevice().getIp()) &&
-      StringUtils.isEmpty(bidRequest.getDevice().getIpv6())) {
-      return false;
-    }
-    // 没有国家信息
-    if (bidRequest.getDevice().getGeo() == null ||
-        bidRequest.getDevice().getGeo().getCountry() == null) {
-      return false;
-    }
-    // 没有bundle信息
-    if (StringUtils.isEmpty(bidRequest.getApp().getBundle())) {
-      return false;
-    }
-    // 展示位必须有
-    List<Imp> imp = bidRequest.getImp();
-    if (CollUtil.isEmpty(imp)) {
-      return false;
-    }
+    private boolean validateBidRequest(BidRequest bidRequest) {
+        // 目标渠道：目前只参与移动端流量的竞价
+        if (bidRequest.getApp() == null) {
+            return false;
+        }
+        // 设备信息都不传，不太合理
+        if (bidRequest.getDevice() == null) {
+            return false;
+        }
+        // 没有设备id或者设备id非法
+        if (bidRequest.getDevice().getIfa() == null || bidRequest.getDevice().getIfa().length() != 36 ||
+                Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
+            return false;
+        }
+        // 缺少ip信息，过滤
+        if (StringUtils.isEmpty(bidRequest.getDevice().getIp()) &&
+                StringUtils.isEmpty(bidRequest.getDevice().getIpv6())) {
+            return false;
+        }
+        // 没有国家信息
+        if (bidRequest.getDevice().getGeo() == null ||
+                bidRequest.getDevice().getGeo().getCountry() == null) {
+            return false;
+        }
+        // 没有bundle信息
+        if (StringUtils.isEmpty(bidRequest.getApp().getBundle())) {
+            return false;
+        }
+        // 展示位必须有
+        List<Imp> imps = bidRequest.getImp();
+        if (CollUtil.isEmpty(imps)) {
+            return false;
+        }
+        // banner / native / video / audio 四个对象只能存在一个
+        boolean existNonUnique = imps.stream().anyMatch(imp -> !CreativeHelper.isAdFormatUnique(imp));
+        if (existNonUnique) {
+            return false;
+        }
 
         return true;
     }

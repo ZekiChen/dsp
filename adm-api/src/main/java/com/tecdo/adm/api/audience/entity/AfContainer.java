@@ -34,4 +34,7 @@ public class AfContainer extends BaseEntity {
 
     @ApiModelProperty(value = "加密算法")
     private Integer encrypt;
+
+    @ApiModelProperty(value = "设备数")
+    private Long deviceCnt;
 }

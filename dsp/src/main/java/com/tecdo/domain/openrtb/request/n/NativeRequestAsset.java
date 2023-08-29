@@ -1,7 +1,7 @@
 package com.tecdo.domain.openrtb.request.n;
 
 import com.tecdo.domain.openrtb.base.Extension;
-
+import com.tecdo.domain.openrtb.request.Video;
 import lombok.Getter;
 import lombok.Setter;
 

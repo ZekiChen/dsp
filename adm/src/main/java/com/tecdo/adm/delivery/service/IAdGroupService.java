@@ -58,4 +58,6 @@ public interface IAdGroupService extends IService<AdGroup> {
 
     boolean fqcUpdateBatch(FqcAdGroupUpdateVO vo);
     List<StatusEntity> listStatus(List<Integer> ids);
+
+    String countDevice(List<TargetCondition> conditions);
 }

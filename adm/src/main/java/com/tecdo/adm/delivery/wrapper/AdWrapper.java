@@ -45,18 +45,26 @@ public class AdWrapper extends EntityWrapper<Ad, AdVO> {
 					}
 					break;
 				case NATIVE:
-					if (vo.getImage() != null && vo.getIcon() != null) {
-						image = CreativeCache.getCreative(vo.getImage());
-						Creative icon = CreativeCache.getCreative(vo.getIcon());
-						vo.setImageUrl(image.getUrl());
-						vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
+					image = CreativeCache.getCreative(vo.getImage());
+					Creative icon = CreativeCache.getCreative(vo.getIcon());
+					Creative video = CreativeCache.getCreative(vo.getVideo());
+					if (vo.getIcon() != null) {
 						vo.setIconUrl(icon.getUrl());
 						vo.setIconSize("w" + icon.getWidth() + "h" + icon.getHeight());
+					}
+					if (vo.getImage() != null) {
+						vo.setImageUrl(image.getUrl());
+						vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
+					}
+					if (vo.getVideo() != null) {
+						vo.setVideoUrl(video.getUrl());
+						vo.setDuration(video.getDuration());
+						vo.setVideoSize("w" + video.getWidth() + "h" + video.getHeight());
 					}
 					break;
 				case VIDEO:
 					if (vo.getVideo() != null) {
-						Creative video = CreativeCache.getCreative(vo.getVideo());
+						video = CreativeCache.getCreative(vo.getVideo());
 						vo.setVideoUrl(video.getUrl());
 						vo.setDuration(video.getDuration());
 						vo.setVideoSize("w" + video.getWidth() + "h" + video.getHeight());

@@ -41,4 +41,9 @@ public class GooglePlayAppServiceImpl extends ServiceImpl<GooglePlayAppMapper, G
     public String countByCategoriesAndTags(List<String> categoryList, List<String> tagList) {
         return baseMapper.countByCategoriesAndTags(categoryList, tagList);
     }
+
+    @Override
+    public List<String> listByCategoriesAndTags(List<String> categoryList, List<String> tagList) {
+        return baseMapper.listByCategoriesAndTags(categoryList, tagList);
+    }
 }

@@ -3,6 +3,7 @@ package com.tecdo.adm.delivery.service.impl;
 import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import com.baomidou.mybatisplus.core.conditions.update.LambdaUpdateWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.Ad;
@@ -156,8 +157,21 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
 
     @Override
     public boolean edit(Ad entity) {
+        Ad before = getById(entity.getId());
+        Integer image = before.getImage();
+        Integer video = before.getVideo();
         logByUpdate(entity);
-        return updateById(entity);
+        LambdaUpdateWrapper<Ad> wrapper = new LambdaUpdateWrapper<>();
+        wrapper.eq(IdEntity::getId, entity.getId());
+        if (image != null && entity.getVideo() != null) {
+            wrapper.set(Ad::getImage, null);
+            return update(entity, wrapper);
+        } else if (video != null && entity.getImage() != null) {
+            wrapper.set(Ad::getVideo, null);
+            return update(entity, wrapper);
+        } else {
+            return updateById(entity);
+        }
     }
 
     private void logByUpdate(Ad after) {
