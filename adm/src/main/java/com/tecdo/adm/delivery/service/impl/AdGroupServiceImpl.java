@@ -56,12 +56,14 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     private Integer deviceCntPeriod;
 
     @Override
+    @Transactional
     public boolean add(AdGroupVO vo) {
         vo.setForceLink(vo.getClickUrl());  // 测试时发现 deeplink 无法实现强跳
         return save(vo) && conditionService.saveBatch(vo.listCondition());
     }
 
     @Override
+    @Transactional
     public boolean edit(AdGroupVO vo) {
         if (vo.getId() != null) {
             if (StrUtil.isNotBlank(vo.getClickUrl())) {
@@ -87,6 +89,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean delete(List<Integer> ids) {
         removeBatchByIds(ids);
         conditionService.deleteByAdGroupIds(ids);
@@ -95,6 +98,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean logicDelete(List<Integer> ids) {
         if (CollUtil.isEmpty(ids)) return false;
         Date date = new Date();
@@ -192,6 +196,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean updateBundles(TargetCondition condition) {
         LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
                 .eq(TargetCondition::getAdGroupId, condition.getAdGroupId())
@@ -283,6 +288,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean updateBatch(BatchAdGroupUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
         List<AdGroup> adGroups = listByIds(adGroupIds);
@@ -323,6 +329,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean bundleUpdateBatch(BundleAdGroupUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
         LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
@@ -350,6 +357,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean hourUpdateBatch(BundleAdGroupUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
         LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
@@ -377,6 +385,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean fqcUpdateBatch(FqcAdGroupUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
         if (vo.getIsImpUpdate()) {

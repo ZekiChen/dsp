@@ -52,7 +52,7 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             Boolean beBundleTestEnable = beforeVO.getBundleTestEnable();
             Boolean beForceJumpEnable = beforeVO.getForceJumpEnable();
             Double beForceJumpRatio = beforeVO.getForceJumpRatio();
-            Boolean beECpxBidEnable = beforeVO.getEcpxBidEnable();
+            String beBidAlgorithm = beforeVO.getBidAlgorithm();
             List<TargetConditionVO> beConditionVOs = beforeVO.getConditionVOs();
 
             StringBuilder sb = new StringBuilder();
@@ -106,8 +106,8 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             if (afterVO.getForceJumpRatio() != null && !afterVO.getForceJumpRatio().equals(beForceJumpRatio)) {
                 sb.append("Force Jump Ratio: ").append(beForceJumpRatio).append(" -> ").append(afterVO.getForceJumpRatio()).append("\n");
             }
-            if (afterVO.getEcpxBidEnable() != null && !afterVO.getEcpxBidEnable().equals(beECpxBidEnable)) {
-                sb.append("ECPX Bid Enable: ").append(beECpxBidEnable).append(" -> ").append(afterVO.getEcpxBidEnable()).append("\n");
+            if (afterVO.getBidAlgorithm() != null && !afterVO.getBidAlgorithm().equals(beBidAlgorithm)) {
+                sb.append("Bid Algorithm: ").append(beBidAlgorithm).append(" -> ").append(afterVO.getBidAlgorithm()).append("\n");
             }
 
             List<TargetCondition> afterConditions = afterVO.listCondition();

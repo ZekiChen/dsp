@@ -1,5 +1,6 @@
 package com.tecdo.service.rta.miravia;
 
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
@@ -63,7 +64,11 @@ public class MiraviaRtaHelper {
                             advAppKey,
                             advAppSecret);
     } catch (Exception e) {
-      log.error("query miravia rta catch exception", e);
+      String adGroupIds = adList.stream()
+              .map(w -> w.getAdDTO().getAdGroup().getId().toString())
+              .distinct()
+              .collect(Collectors.joining(StrUtil.COMMA));
+      log.error("query miravia rta catch exception, country: {}, adGroupIds: {},", country, adGroupIds, e);
     }
     if (response != null) {
       if (LazadaCode.SUCCESS.equalsIgnoreCase(response.getCode()) && response.getData() != null) {
