@@ -54,6 +54,7 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
     }
 
     @Override
+    @Transactional
     public boolean edit(CampaignVO vo) {
         if (vo.getId() == null) {
             return false;
@@ -99,6 +100,7 @@ public class CampaignServiceImpl extends ServiceImpl<CampaignMapper, Campaign> i
     }
 
     @Override
+    @Transactional
     public boolean logicDelete(List<Integer> ids) {
         if (CollUtil.isEmpty(ids)) return false;
         Date date = new Date();

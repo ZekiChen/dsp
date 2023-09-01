@@ -79,7 +79,6 @@ public class CreativeController {
     public R update(@RequestPart(value = "file", required = false) MultipartFile file,
                     @RequestParam("id") Integer id,
                     @RequestParam(value = "name", required = false) String name,
-                    @RequestParam(value = "type", required = false) Integer type,
                     @RequestParam(value = "width", required = false) Integer width,
                     @RequestParam(value = "height", required = false) Integer height,
                     @RequestParam(value = "catIab", required = false) String catIab,
@@ -96,12 +95,11 @@ public class CreativeController {
             entity.setUrl(pacFile.getUrl());
         }
         entity.setName(name);
-        entity.setType(type);
         entity.setWidth(width);
         entity.setHeight(height);
         entity.setCatIab(catIab);
         entity.setSuffix(suffix);
-        if (CreativeTypeEnum.VIDEO.getType() == type) {
+        if (CreativeTypeEnum.VIDEO.getType() == entity.getType()) {
             entity.setDuration(duration);
         }
         entity.setStatus(status);
