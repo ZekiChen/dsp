@@ -151,7 +151,7 @@ public class HttpRequest {
     String ip = request.headers().get(Constant.HEADER_IP_KEY);
     if (StringUtils.isNotBlank(ip)) {
       String[] ips = ip.split(Constant.COMMA);
-      String ipv4 = fetchFirstAvailablePublicIp(ips);
+      String ipv4 = fetchLastAvailablePublicIp(ips);
       if (ipv4 != null) {
         return ipv4;
       }
@@ -165,15 +165,15 @@ public class HttpRequest {
     return ip;
   }
 
-  // get the first of available public ipv4 from the array of ip address
-  private String fetchFirstAvailablePublicIp(String[] ipAddresses) {
-    for (String ipAddress : ipAddresses) {
+  // get the last of available public ipv4 from the array of ip address
+  private String fetchLastAvailablePublicIp(String[] ipAddresses) {
+    for (int i = ipAddresses.length - 1; i >= 0; i--) {
 
       InetAddress address;
       try {
-        address = InetAddress.getByName(ipAddress.trim());
+        address = InetAddress.getByName(ipAddresses[i].trim());
       } catch (UnknownHostException e) {
-        logger.error("parse IP: {} error. ", ipAddress, e);
+        logger.error("parse IP: {} error. ", ipAddresses[i], e);
         continue;
       }
 
