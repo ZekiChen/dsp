@@ -558,7 +558,7 @@ public class Task {
   }
 
   private boolean useLearningBidPrice(Integer bidStrategy, String bidAlgorithm) {
-    return BidStrategyEnum.CPA.getType() == bidStrategy
+    return BidStrategyEnum.CPC.getType() == bidStrategy
             && BidAlgorithmEnum.LEARNING.getType().equals(bidAlgorithm)
             && learningBidEnable;
   }
