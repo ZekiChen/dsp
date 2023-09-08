@@ -1,13 +1,12 @@
 package com.tecdo.filter.util;
 
+import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.filter.AbstractRecallFilter;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.Arrays;
 import java.util.List;
 
 /**
@@ -32,10 +31,6 @@ public class FilterChainHelper {
      */
     public static boolean executeFilter(AbstractRecallFilter curFilter, AdDTO adDTO,
                                   BidRequest bidRequest, Imp imp, Affiliate affiliate) {
-        List<Integer> ids = Arrays.asList(11459);
-        if (ids.contains(adDTO.getAd().getId())) {
-            System.out.println(adDTO.getAd().getId());
-        }
         boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
         if (!filterFlag) {
             log.debug("ad recall fail, filter: {}", curFilter.getClass().getSimpleName());
