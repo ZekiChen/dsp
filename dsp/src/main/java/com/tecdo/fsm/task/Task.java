@@ -13,8 +13,10 @@ import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
+import com.tecdo.adm.api.delivery.enums.BidAlgorithmEnum;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
 import com.tecdo.adm.api.doris.entity.BundleData;
+import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
@@ -25,21 +27,23 @@ import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
+import com.tecdo.domain.biz.request.BidPriceInfo;
+import com.tecdo.domain.biz.request.BidPriceRequest;
 import com.tecdo.domain.biz.request.PredictRequest;
+import com.tecdo.domain.biz.response.BidPriceResponse;
 import com.tecdo.domain.biz.response.PredictResponse;
 import com.tecdo.domain.openrtb.request.Banner;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.AbTestConfig;
-import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
-import com.tecdo.service.CacheService;
 import com.tecdo.service.BidPriceService;
+import com.tecdo.service.CacheService;
 import com.tecdo.service.init.*;
 import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
@@ -68,6 +72,9 @@ public class Task {
   // taskId = bidId
   private String taskId;
 
+  private int calcPriceResponseCount = 0;
+  private final int calcPriceResponseNeed = 2;
+
   private String ctrPredictUrl = SpringUtil.getProperty("pac.ctr-predict.url");
   private String cvrPredictUrl = SpringUtil.getProperty("pac.cvr-predict.url");
   private String cvrEvent1PredictUrl = SpringUtil.getProperty("pac.cvr-event1-predict.url");
@@ -79,8 +86,10 @@ public class Task {
   private String multiplier = SpringUtil.getProperty("pac.bundle.test.multiplier");
   private String maxPrice = SpringUtil.getProperty("pac.bid-price.max-limit");
   private Boolean eCPXBidEnable = Boolean.valueOf(SpringUtil.getProperty("pac.bid-price.ecpx.enabled"));
+  private Boolean learningBidEnable = Boolean.valueOf(SpringUtil.getProperty("pac.bid-price.learning.enabled"));
+  private String learningBidUrl = SpringUtil.getProperty("pac.bid-price.learning.url");
   private int recallTimeout =
-    Integer.parseInt(SpringUtil.getProperty("pac.timeout.task.ad.recall"));
+          Integer.parseInt(SpringUtil.getProperty("pac.timeout.task.ad.recall"));
 
   private final AdManager adManager = SpringUtil.getBean(AdManager.class);
   private final RtaInfoManager rtaInfoManager = SpringUtil.getBean(RtaInfoManager.class);
@@ -125,6 +134,7 @@ public class Task {
     this.currentState = SpringUtil.getBean(InitState.class);
     this.needReceiveCount = 0;
     this.predictResCount = 0;
+    this.calcPriceResponseCount = 0;
     this.resMap.clear();
     this.recorder.reset();
   }
@@ -168,9 +178,9 @@ public class Task {
         messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
       } catch (Exception e) {
         log.error(
-          "taskId: {},list recall ad error,  so this request will not participate in bidding",
-          taskId,
-          e);
+                "taskId: {},list recall ad error,  so this request will not participate in bidding",
+                taskId,
+                e);
         messageQueue.putMessage(EventType.ADS_RECALL_ERROR, params);
       }
     });
@@ -184,17 +194,17 @@ public class Task {
                                                     Affiliate affiliate) {
     List<AbstractRecallFilter> filters = filtersFactory.createFilters();
     return adManager.getAdDTOMap()
-                    .values()
-                    .stream()
-                    .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0),
-                                                                     adDTO,
-                                                                     bidRequest,
-                                                                     imp,
-                                                                     affiliate))
-                    .collect(Collectors.toMap(adDTO -> adDTO.getAd().getId(),
-                                              adDTO -> new AdDTOWrapper(imp.getId(),
-                                                                        taskId,
-                                                                        adDTO)));
+            .values()
+            .stream()
+            .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0),
+                    adDTO,
+                    bidRequest,
+                    imp,
+                    affiliate))
+            .collect(Collectors.toMap(adDTO -> adDTO.getAd().getId(),
+                    adDTO -> new AdDTOWrapper(imp.getId(),
+                            taskId,
+                            adDTO)));
 
   }
 
@@ -209,7 +219,7 @@ public class Task {
       // 在线程池中处理多个ad的recall
       CompletableFuture<AdDTOWrapper> future = CompletableFuture.supplyAsync(() -> {
         boolean match =
-          FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate);
+                FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate);
         if (match) {
           return new AdDTOWrapper(imp.getId(), taskId, adDTO);
         } else {
@@ -240,9 +250,9 @@ public class Task {
 
   private <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> com) {
     return CompletableFuture.allOf(com.toArray(new CompletableFuture<?>[0]))
-                            .thenApply(v -> com.stream()
-                                               .map(CompletableFuture::join)
-                                               .collect(Collectors.toList()));
+            .thenApply(v -> com.stream()
+                    .map(CompletableFuture::join)
+                    .collect(Collectors.toList()));
   }
 
 
@@ -460,13 +470,97 @@ public class Task {
     try {
       String key = makeKey();
 
-      this.resMap.values().forEach(e -> e.setBidPrice(doCalcPrice(e, key)));
+      Map<Integer, AdDTOWrapper> needLearningCalcAdMap = new HashMap<>();
+      Map<Integer, AdDTOWrapper> generalCalcAdMap = new HashMap<>();
+      this.resMap.values().forEach(e -> {
+        AdGroup adGroup = e.getAdDTO().getAdGroup();
+        if (useLearningBidPrice(adGroup.getBidStrategy(), adGroup.getBidAlgorithm())) {
+          needLearningCalcAdMap.put(e.getAdDTO().getAd().getId(), e);
+        } else {
+          generalCalcAdMap.put(e.getAdDTO().getAd().getId(), e);
+        }
+      });
       params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, this.resMap);
-      messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
+
+      threadPool.execute(() -> {
+        try {
+          generalCalcAdMap.values().forEach(e -> doCalcPriceByGeneral(e, key));
+          messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
+        } catch (Exception e) {
+          log.error("taskId: {},calculate price by general cause a exception", taskId, e);
+          messageQueue.putMessage(EventType.CALC_CPC_ERROR);
+        }
+      });
+
+      threadPool.execute(() -> {
+        try {
+          doCalcPriceByLearningBid(needLearningCalcAdMap);
+          messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
+        } catch (Exception e) {
+          log.error("taskId: {},calculate price by learning cause a exception", taskId, e);
+          messageQueue.putMessage(EventType.CALC_CPC_ERROR);
+        }
+      });
+
     } catch (Exception e) {
       log.error("taskId: {},calculate cpc cause a exception", taskId, e);
       messageQueue.putMessage(EventType.CALC_CPC_ERROR);
     }
+  }
+
+  private void doCalcPriceByLearningBid(Map<Integer, AdDTOWrapper> adMap) {
+    if (adMap.isEmpty()) {
+      return;
+    }
+    BidPriceRequest request = buildBidPriceRequest(adMap.values());
+    R<List<BidPriceResponse>> r = callLearningBid(request);
+    if (r.succeed()) {
+      List<BidPriceResponse> responses = r.getData();
+      responses.forEach(resp -> {
+        BigDecimal finalPrice = BigDecimal.valueOf(resp.getBidPrice());
+        finalPrice = maxPriceLimit(finalPrice);
+        adMap.get(resp.getAdId()).setBidPrice(finalPrice);
+      });
+    } else {
+      String errorMsg = "call learning bid api error";
+      log.error(errorMsg + ", code:{}, message: {}", r.getCode(), r.getMessage());
+      throw new RuntimeException(errorMsg);
+    }
+  }
+
+  private R<List<BidPriceResponse>> callLearningBid(BidPriceRequest request) {
+    HttpResult result = OkHttps.sync(learningBidUrl)
+            .bodyType(OkHttps.JSON)
+            .setBodyPara(JsonHelper.toJSONString(request))
+            .post();
+    return result.isSuccessful() ?
+            result.getBody().toBean(new TypeRef<R<List<BidPriceResponse>>>() {}) : R.failure();
+  }
+
+  public boolean calcPriceResponseFinish() {
+    return ++calcPriceResponseCount == calcPriceResponseNeed;
+  }
+
+  private BidPriceRequest buildBidPriceRequest(Collection<AdDTOWrapper> wrappers) {
+    List<BidPriceInfo> bidPriceInfos = wrappers.stream()
+            .map(w -> BidPriceInfo.builder()
+                    .pctr(w.getPCtr())
+                    .adId(w.getAdDTO().getAd().getId())
+                    .adGroupId(w.getAdDTO().getAdGroup().getId())
+                    .build())
+            .collect(Collectors.toList());
+
+    return  BidPriceRequest.builder()
+            .country(bidRequest.getDevice().getGeo().getCountry())
+            .affiliateId(affiliate.getId())
+            .bidPriceInfos(bidPriceInfos)
+            .build();
+  }
+
+  private boolean useLearningBidPrice(Integer bidStrategy, String bidAlgorithm) {
+    return BidStrategyEnum.CPA.getType() == bidStrategy
+            && BidAlgorithmEnum.LEARNING.getType().equals(bidAlgorithm)
+            && learningBidEnable;
   }
 
   // country_bundle_adFormat_width_height
@@ -488,7 +582,7 @@ public class Task {
             .concat(MoreObjects.firstNonNull(bidCreative.getHeight(), ""));
   }
 
-  private BigDecimal doCalcPrice(AdDTOWrapper adDTOWrapper, String key) {
+  private void doCalcPriceByGeneral(AdDTOWrapper adDTOWrapper, String key) {
     BigDecimal finalPrice;
     AdDTO adDTO = adDTOWrapper.getAdDTO();
     BundleData bundleData = bundleDataManager.getBundleData(key);
@@ -497,27 +591,28 @@ public class Task {
     if (needTest && adDTO.getAdGroup().getBundleTestEnable() && bundleData != null) {
       finalPrice = bundleAutoExplore(bundleData);
     } else {
-      finalPrice = calcPriceByBidStrategy(adDTOWrapper);
+      finalPrice = calcPriceByFormula(adDTOWrapper);
     }
-    return maxPriceLimit(finalPrice);
+    finalPrice = maxPriceLimit(finalPrice);
+    adDTOWrapper.setBidPrice(finalPrice);
   }
 
-  private BigDecimal calcPriceByBidStrategy(AdDTOWrapper adDTOWrapper) {
+  private BigDecimal calcPriceByFormula(AdDTOWrapper adDTOWrapper) {
     AdGroup adGroup = adDTOWrapper.getAdDTO().getAdGroup();
-    boolean bidOptEnable = adGroup.getEcpxBidEnable() != null && adGroup.getEcpxBidEnable() && eCPXBidEnable;
     BigDecimal optPrice = BigDecimal.valueOf(adGroup.getOptPrice());
-    BigDecimal finalPrice;
     BidStrategyEnum bidStrategy = BidStrategyEnum.of(adGroup.getBidStrategy());
+    boolean ecpxEnable = useEcpxBidPrice(adGroup.getBidAlgorithm());
+    BigDecimal finalPrice;
     BigDecimal eCPX = bidPriceService.getECPX(bidStrategy, bidRequest, imp);
     switch (bidStrategy) {
       case CPC:
-        optPrice = bidOptEnable && eCPX != null ? eCPX : optPrice;
+        optPrice = ecpxEnable && eCPX != null ? eCPX : optPrice;
         finalPrice = optPrice
                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
                 .multiply(BigDecimal.valueOf(1000));
         break;
       case CPA:
-        optPrice = bidOptEnable && eCPX != null ? eCPX : optPrice;
+        optPrice = ecpxEnable && eCPX != null ? eCPX : optPrice;
         finalPrice = optPrice
                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
                 .multiply(BigDecimal.valueOf(1000));
@@ -536,7 +631,7 @@ public class Task {
       case CPA_EVENT2:
       case CPA_EVENT3:
       case CPA_EVENT10:
-        optPrice = bidOptEnable && eCPX != null ? eCPX : optPrice;
+        optPrice = ecpxEnable && eCPX != null ? eCPX : optPrice;
         finalPrice = optPrice
                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
@@ -547,6 +642,10 @@ public class Task {
         finalPrice = optPrice;
     }
     return finalPrice;
+  }
+
+  private boolean useEcpxBidPrice(String bidAlgorithm) {
+    return eCPXBidEnable && BidAlgorithmEnum.HISTORY_ECPX.getType().equals(bidAlgorithm);
   }
 
   private BigDecimal maxPriceLimit(BigDecimal finalPrice) {

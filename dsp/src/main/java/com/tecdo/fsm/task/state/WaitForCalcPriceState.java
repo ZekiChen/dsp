@@ -26,10 +26,12 @@ public class WaitForCalcPriceState implements ITaskState {
   public void handleEvent(EventType eventType, Params params, Task task) {
     switch (eventType) {
       case CALC_CPC_FINISH:
-        task.tick("task-response");
-        task.cancelTimer(EventType.CALC_CPC_TIMEOUT);
-        task.filerAdAndNotifySuccess(params.get(ParamKey.ADS_CALC_PRICE_RESPONSE));
-        task.switchState(waitForRecycleState);
+        if (task.calcPriceResponseFinish()) {
+          task.tick("task-response");
+          task.cancelTimer(EventType.CALC_CPC_TIMEOUT);
+          task.filerAdAndNotifySuccess(params.get(ParamKey.ADS_CALC_PRICE_RESPONSE));
+          task.switchState(waitForRecycleState);
+        }
         break;
       case CALC_CPC_ERROR:
         task.cancelTimer(EventType.CALC_CPC_TIMEOUT);
