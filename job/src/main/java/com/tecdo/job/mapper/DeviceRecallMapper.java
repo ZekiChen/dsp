@@ -48,4 +48,16 @@ public interface DeviceRecallMapper extends BaseMapper<DeviceRecall> {
                                     Long offset,
                                     Integer size);
 
+  @Select(
+    "select time_millis,recall_tag,device_id,country,os,package_name,device_make,device_model,osv,ip,ua,lang from `recall_device_by_model_train` " +
+    "WHERE country = #{country} and os = #{os} and package_name = #{packageName} and version = #{version} " +
+    "and recall_tag >= #{recallTag} and status = 1 and time_millis > #{offset} ORDER BY time_millis limit #{size}")
+  List<DeviceRecall> queryFromNewModel(String country,
+                                    String os,
+                                    String packageName,
+                                    Integer recallType,
+                                    String version,
+                                    Integer recallTag,
+                                    Long offset,
+                                    Integer size);
 }
