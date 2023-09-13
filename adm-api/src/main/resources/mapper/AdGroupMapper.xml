@@ -57,40 +57,63 @@
         <if test="adName != null and adName != ''">
             and ad.name like concat(concat('%', #{adName}),'%')
         </if>
-        <if test="affiliateIds != null and affiliateIds.size > 0">
-            and t.attribute = 'affiliate' and
-            CASE t.operation
-                WHEN 'include' THEN
+        and
+          (
+            <choose>
+                <when test="affiliateIds != null and affiliateIds.size > 0">
+                    (t.attribute = 'affiliate' and
+                    CASE t.operation
+                    WHEN 'include' THEN
                     <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
                         FIND_IN_SET(#{item}, t.`value`)
                     </foreach>
-                WHEN 'exclude' THEN NOT
+                    WHEN 'exclude' THEN NOT
                     <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
                         FIND_IN_SET(#{item}, t.`value`)
                     </foreach>
-                WHEN 'eq' THEN
+                    WHEN 'eq' THEN
                     <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
                         t.`value` = #{item}
                     </foreach>
-                END
-        </if>
-        <if test="countries != null and countries.size > 0">
-            and t.attribute = 'device_country' and
-            CASE t.operation
-                WHEN 'include' THEN
+                    END)
+                    <choose>
+                        <when test="countries != null and countries.size > 0">
+                            or
+                        </when>
+                        <otherwise>
+                            and
+                        </otherwise>
+                    </choose>
+
+                </when>
+                <otherwise>
+                    1 = 1 and
+                </otherwise>
+            </choose>
+            <choose>
+                <when test="countries != null and countries.size > 0">
+                    (t.attribute = 'device_country' and
+                    CASE t.operation
+                    WHEN 'include' THEN
                     <foreach collection="countries" item="item" index="index" open="(" close=")" separator="OR">
                         FIND_IN_SET(#{item}, t.`value`)
                     </foreach>
-                WHEN 'exclude' THEN NOT
+                    WHEN 'exclude' THEN NOT
                     <foreach collection="countries" item="item" index="index" open="(" close=")" separator="OR">
                         FIND_IN_SET(#{item}, t.`value`)
                     </foreach>
-                WHEN 'eq' THEN
+                    WHEN 'eq' THEN
                     <foreach collection="countries" item="item" index="index" open="(" close=")" separator="OR">
                         t.`value` = #{item}
                     </foreach>
-                END
-        </if>
+                    END)
+                </when>
+                <otherwise>
+                    1 = 1
+                </otherwise>
+            </choose>
+        )
+
         <choose>
             <when test="adGroup.status == null">
                 and g.status != 2
@@ -99,6 +122,8 @@
                 and g.status = #{adGroup.status}
             </otherwise>
         </choose>
+
+        GROUP BY g.id HAVING COUNT(DISTINCT t.attribute) > #{targetNum} - 1
     </select>
 
     <select id="listIdAndName" resultType="com.tecdo.starter.mp.vo.BaseVO">

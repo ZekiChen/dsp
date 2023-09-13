@@ -107,7 +107,9 @@ public class AdGroupController {
                     BigTool.toIntList(cIds), cName,
                     BigTool.toIntList(adIds), adName,
                     BigTool.toStrList(affiliateIds),
-                    BigTool.toStrList(countries));
+                    BigTool.toStrList(countries),
+                    0
+                    );
         } else {
             List<Integer> queryCIds = new ArrayList<>();
             if (StrUtil.isEmpty(cIds)) {
@@ -123,8 +125,11 @@ public class AdGroupController {
                     queryCIds, cName,
                     BigTool.toIntList(adIds), adName,
                     BigTool.toStrList(affiliateIds),
-                    BigTool.toStrList(countries));
+                    BigTool.toStrList(countries),
+                    0
+                    );
         }
+        System.out.println(pages.getTotal());
         IPage<AdGroupVO> voPage = AdGroupWrapper.build().pageVO(pages);
         List<AdGroupVO> records = voPage.getRecords();
         if (CollUtil.isNotEmpty(records)) {

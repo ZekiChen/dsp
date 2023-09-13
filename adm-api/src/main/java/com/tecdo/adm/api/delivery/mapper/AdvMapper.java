@@ -4,6 +4,7 @@ import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tecdo.adm.api.delivery.entity.Adv;
 import com.tecdo.adm.api.delivery.vo.SimpleAdvVO;
 import org.apache.ibatis.annotations.Param;
+import org.apache.ibatis.annotations.Select;
 
 import java.util.List;
 
