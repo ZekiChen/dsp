@@ -36,8 +36,7 @@ public interface IAdGroupService extends IService<AdGroup> {
                               List<Integer> campaignIds, String campaignName,
                               List<Integer> adIds, String adName,
                               List<String> affiliateIds,
-                              List<String> countries,
-                              Integer targetNum);
+                              List<String> countries);
 
     boolean updateBundles(TargetCondition condition);
 

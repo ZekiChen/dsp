@@ -191,15 +191,8 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
                                      List<Integer> campaignIds, String campaignName,
                                      List<Integer> adIds, String adName,
                                      List<String> affiliateIds,
-                                     List<String> countries,
-                                     Integer targetNum) {
-        if (affiliateIds != null && !affiliateIds.isEmpty()) {
-            targetNum++;
-        }
-        if (countries != null && !countries.isEmpty()) {
-            targetNum++;
-        }
-        return baseMapper.customPage(page, adGroup, campaignIds, campaignName, adIds, adName, affiliateIds, countries, targetNum);
+                                     List<String> countries) {
+        return baseMapper.customPage(page, adGroup, campaignIds, campaignName, adIds, adName, affiliateIds, countries);
     }
 
     @Override
