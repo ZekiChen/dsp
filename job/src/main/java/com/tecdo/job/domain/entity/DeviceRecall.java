@@ -46,4 +46,6 @@ public class DeviceRecall {
 
   private String version;
 
+  private String dataSource;
+
 }

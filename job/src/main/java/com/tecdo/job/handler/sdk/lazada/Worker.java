@@ -92,6 +92,7 @@ public class Worker {
              .replace("{country}", encode(device.getCountry()))
              .replace("{os}", encode(device.getOs()))
              .replace("{version}", encode(device.getVersion()))
+             .replace("{data_source}", encode(device.getDataSource()))
              .replace("{lang}", encode(lang));
 
     HttpUtils.asyncRequest(url, header);
