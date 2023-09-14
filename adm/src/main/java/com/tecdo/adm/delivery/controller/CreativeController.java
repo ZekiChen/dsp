@@ -64,6 +64,7 @@ public class CreativeController {
             creative.setHeight(Integer.parseInt(paramMap.get("height" + i)));
             creative.setCatIab(paramMap.get("catIab" + i));
             creative.setSuffix(paramMap.get("suffix" + i));
+            creative.setBrand(Integer.parseInt(paramMap.get("brand" + i)));
             if (CreativeTypeEnum.VIDEO.getType() == creative.getType()) {
                 creative.setDuration(Integer.parseInt(paramMap.get("duration" + i)));
             }
@@ -84,7 +85,8 @@ public class CreativeController {
                     @RequestParam(value = "catIab", required = false) String catIab,
                     @RequestParam(value = "suffix", required = false) String suffix,
                     @RequestParam(value = "duration", required = false) Integer duration,
-                    @RequestParam(value = "status", required = false) Integer status) {
+                    @RequestParam(value = "status", required = false) Integer status,
+                    @RequestParam(value = "brand", required = false) Integer brand) {
         CacheUtil.clear(CREATIVE_CACHE);
         Creative entity = service.getById(id);
         if (entity == null) {
@@ -99,6 +101,7 @@ public class CreativeController {
         entity.setHeight(height);
         entity.setCatIab(catIab);
         entity.setSuffix(suffix);
+        entity.setBrand(brand);
         if (CreativeTypeEnum.VIDEO.getType() == entity.getType()) {
             entity.setDuration(duration);
         }
@@ -133,6 +136,7 @@ public class CreativeController {
         wrapper.eq(creative.getType() != null, Creative::getType, creative.getType());
         wrapper.eq(creative.getWidth() != null, Creative::getWidth, creative.getWidth());
         wrapper.eq(creative.getHeight() != null, Creative::getHeight, creative.getHeight());
+        wrapper.eq(creative.getBrand() != null, Creative::getBrand, creative.getBrand());
         wrapper.eq(StrUtil.isNotBlank(creative.getUrl()), Creative::getUrl, creative.getUrl());
         wrapper.eq(StrUtil.isNotBlank(creative.getCatIab()), Creative::getCatIab, creative.getCatIab());
         wrapper.eq(creative.getStatus() != null, Creative::getStatus, creative.getStatus());
