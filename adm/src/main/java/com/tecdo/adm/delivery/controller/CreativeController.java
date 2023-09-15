@@ -1,5 +1,6 @@
 package com.tecdo.adm.delivery.controller;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,6 +12,7 @@ import com.tecdo.adm.api.delivery.vo.CreativeSpecVO;
 import com.tecdo.adm.api.delivery.vo.CreativeVO;
 import com.tecdo.adm.delivery.service.ICreativeService;
 import com.tecdo.adm.delivery.wrapper.CreativeWrapper;
+import com.tecdo.adm.system.service.IDictService;
 import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
 import com.tecdo.starter.mp.support.PCondition;
@@ -141,6 +143,16 @@ public class CreativeController {
         wrapper.eq(StrUtil.isNotBlank(creative.getCatIab()), Creative::getCatIab, creative.getCatIab());
         wrapper.eq(creative.getStatus() != null, Creative::getStatus, creative.getStatus());
         IPage<Creative> pages = service.page(PCondition.getPage(query), wrapper);
+        IPage<CreativeVO> voPage = CreativeWrapper.build().pageVO(pages);
+        List<CreativeVO> records = voPage.getRecords();
+        if (CollUtil.isNotEmpty(records)) {
+            records.forEach(record -> {
+                if (record.getBrand() != null) {
+                    record.setBrandName(service.getBrandById(record.getBrand()));
+                }
+            });
+        }
+        voPage.setRecords(records);
         return R.data(CreativeWrapper.build().pageVO(pages));
     }
 
