@@ -6,7 +6,7 @@ import lombok.Getter;
 import java.util.Arrays;
 
 /**
- * 竞价策略
+ * 出价算法
  **/
 @Getter
 @AllArgsConstructor

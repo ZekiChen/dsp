@@ -1,5 +1,6 @@
 package com.tecdo.domain.biz.dto;
 
+import com.tecdo.adm.api.delivery.enums.BidAlgorithmEnum;
 import com.tecdo.transform.ResponseTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
@@ -80,4 +81,5 @@ public class AdDTOWrapper {
 
   private ResponseTypeEnum responseTypeEnum = ResponseTypeEnum.NORMAL;
 
+  private BidAlgorithmEnum bidAlgorithmEnum = BidAlgorithmEnum.NO;
 }

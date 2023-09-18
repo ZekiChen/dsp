@@ -116,7 +116,8 @@ public class RequestLog implements Serializable {
     private Integer pos;
 
     /**
-     * 广告是否为插屏/全屏
+     * 1-是插屏/全屏广告
+     * 0-不是插屏广告
      */
     @JsonProperty("instl")
     private Integer instl;
@@ -214,4 +215,10 @@ public class RequestLog implements Serializable {
 
     @JsonProperty("bcat")
     private List<String> bCat;
+
+    @JsonProperty("video_placement")
+    private Integer videoPlacement;
+
+    @JsonProperty("is_rewarded")
+    private Integer isRewarded;
 }
