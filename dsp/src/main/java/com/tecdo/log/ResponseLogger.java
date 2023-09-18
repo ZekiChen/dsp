@@ -125,6 +125,7 @@ public class ResponseLogger {
                       .bCat(bidRequest.getBcat())
                       .responseType(wrapper.getResponseTypeEnum().getType())
                       .useDeeplink(wrapper.isUseDeeplink() ? 1 : 0)
+                      .bidAlgorithm(wrapper.getBidAlgorithmEnum().getType())
                       .build();
   }
 }

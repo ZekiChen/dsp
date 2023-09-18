@@ -475,6 +475,7 @@ public class Task {
       this.resMap.values().forEach(e -> {
         AdGroup adGroup = e.getAdDTO().getAdGroup();
         if (useLearningBidPrice(adGroup.getBidStrategy(), adGroup.getBidAlgorithm())) {
+          e.setBidAlgorithmEnum(BidAlgorithmEnum.LEARNING);
           needLearningCalcAdMap.put(e.getAdDTO().getAd().getId(), e);
         } else {
           generalCalcAdMap.put(e.getAdDTO().getAd().getId(), e);
@@ -606,13 +607,13 @@ public class Task {
     BigDecimal eCPX = bidPriceService.getECPX(bidStrategy, bidRequest, imp);
     switch (bidStrategy) {
       case CPC:
-        optPrice = ecpxEnable && eCPX != null ? eCPX : optPrice;
+        optPrice = getEcpxIfNotNull(adDTOWrapper, optPrice, ecpxEnable, eCPX);
         finalPrice = optPrice
                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
                 .multiply(BigDecimal.valueOf(1000));
         break;
       case CPA:
-        optPrice = ecpxEnable && eCPX != null ? eCPX : optPrice;
+        optPrice = getEcpxIfNotNull(adDTOWrapper, optPrice, ecpxEnable, eCPX);
         finalPrice = optPrice
                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
                 .multiply(BigDecimal.valueOf(1000));
@@ -631,7 +632,7 @@ public class Task {
       case CPA_EVENT2:
       case CPA_EVENT3:
       case CPA_EVENT10:
-        optPrice = ecpxEnable && eCPX != null ? eCPX : optPrice;
+        optPrice = getEcpxIfNotNull(adDTOWrapper, optPrice, ecpxEnable, eCPX);
         finalPrice = optPrice
                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
                 .multiply(BigDecimal.valueOf(adDTOWrapper.getPCvr()))
@@ -642,6 +643,15 @@ public class Task {
         finalPrice = optPrice;
     }
     return finalPrice;
+  }
+
+  private static BigDecimal getEcpxIfNotNull(AdDTOWrapper wrapper, BigDecimal optPrice,
+                                             boolean ecpxEnable, BigDecimal eCPX) {
+    if (ecpxEnable && eCPX != null) {
+      wrapper.setBidAlgorithmEnum(BidAlgorithmEnum.HISTORY_ECPX);
+      optPrice = eCPX;
+    }
+    return optPrice;
   }
 
   private boolean useEcpxBidPrice(String bidAlgorithm) {

@@ -1,6 +1,7 @@
 package com.tecdo.domain.biz.log;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.tecdo.adm.api.delivery.enums.BidAlgorithmEnum;
 import com.tecdo.transform.ResponseTypeEnum;
 import lombok.Builder;
 import lombok.Getter;
@@ -309,4 +310,10 @@ public class ResponseLog implements Serializable {
      */
     @JsonProperty("response_type")
     private Integer responseType;
+
+    /**
+     * 出价算法 {@link BidAlgorithmEnum}
+     */
+    @JsonProperty("bid_algorithm")
+    private String bidAlgorithm;
 }
