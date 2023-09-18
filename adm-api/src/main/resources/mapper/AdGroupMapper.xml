@@ -2,7 +2,7 @@
 <!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="com.tecdo.adm.api.delivery.mapper.AdGroupMapper">
 
-     <resultMap id="baseRsMap" type="com.tecdo.adm.api.delivery.entity.AdGroup">
+    <resultMap id="baseRsMap" type="com.tecdo.adm.api.delivery.entity.AdGroup">
         <result column="id" property="id"/>
         <result column="status" property="status"/>
         <result column="create_time" property="createTime"/>
@@ -23,12 +23,12 @@
 
     <select id="customPage" resultMap="baseRsMap">
         SELECT DISTINCT
-            g.*
+        g.*
         FROM
-            ad_group g
-            LEFT JOIN target_condition t ON g.id = t.ad_group_id
-            LEFT JOIN campaign c ON g.campaign_id = c.id
-            LEFT JOIN ad ON ad.group_id = g.id
+        ad_group g
+        LEFT JOIN target_condition t ON g.id = t.ad_group_id
+        LEFT JOIN campaign c ON g.campaign_id = c.id
+        LEFT JOIN ad ON ad.group_id = g.id
         where 1=1
         <if test="adGroup.id != null">
             and g.id = #{adGroup.id}
@@ -40,7 +40,7 @@
             and g.bid_strategy = #{adGroup.bidStrategy}
         </if>
         <if test="campaignIds != null and campaignIds.size > 0">
-           and g.campaign_id IN
+            and g.campaign_id IN
             <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
@@ -49,7 +49,7 @@
             and c.name like concat(concat('%', #{campaignName}),'%')
         </if>
         <if test="adIds != null and adIds.size > 0">
-           and ad.id IN
+            and ad.id IN
             <foreach collection="adIds" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
@@ -57,40 +57,39 @@
         <if test="adName != null and adName != ''">
             and ad.name like concat(concat('%', #{adName}),'%')
         </if>
-        <if test="affiliateIds != null and affiliateIds.size > 0">
-            and t.attribute = 'affiliate' and
-            CASE t.operation
-                WHEN 'include' THEN
-                    <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
-                        FIND_IN_SET(#{item}, t.`value`)
-                    </foreach>
-                WHEN 'exclude' THEN NOT
-                    <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
-                        FIND_IN_SET(#{item}, t.`value`)
-                    </foreach>
-                WHEN 'eq' THEN
-                    <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
-                        t.`value` = #{item}
-                    </foreach>
-                END
+
+        <if test="(affiliateIds != null and affiliateIds.size > 0) or (countries != null and countries.size > 0)">
+          and
+          (
+            <if test="affiliateIds != null and affiliateIds.size > 0">
+                <foreach collection="affiliateIds" item="item" index="index" open="(" close=")" separator="OR">
+                    (t.attribute = 'affiliate' and
+                    CASE t.operation
+                    WHEN 'include' THEN FIND_IN_SET(#{item}, t.`value`)
+                    WHEN 'exclude' THEN NOT FIND_IN_SET(#{item}, t.`value`)
+                    WHEN 'eq' THEN t.`value` = #{item}
+                    END)
+                </foreach>
+            </if>
+
+            <if test="countries != null and countries.size > 0">
+                <if test="affiliateIds != null and affiliateIds.size > 0">
+                    or
+                </if>
+                (
+                <foreach collection="countries" item="item" index="index" open="(" close=")" separator="OR">
+                    (t.attribute = 'device_country' and
+                    CASE t.operation
+                    WHEN 'include' THEN FIND_IN_SET(#{item}, t.`value`)
+                    WHEN 'exclude' THEN NOT FIND_IN_SET(#{item}, t.`value`)
+                    WHEN 'eq' THEN t.`value` = #{item}
+                    END)
+                </foreach>
+                )
+            </if>
+          )
         </if>
-        <if test="countries != null and countries.size > 0">
-            and t.attribute = 'device_country' and
-            CASE t.operation
-                WHEN 'include' THEN
-                    <foreach collection="countries" item="item" index="index" open="(" close=")" separator="OR">
-                        FIND_IN_SET(#{item}, t.`value`)
-                    </foreach>
-                WHEN 'exclude' THEN NOT
-                    <foreach collection="countries" item="item" index="index" open="(" close=")" separator="OR">
-                        FIND_IN_SET(#{item}, t.`value`)
-                    </foreach>
-                WHEN 'eq' THEN
-                    <foreach collection="countries" item="item" index="index" open="(" close=")" separator="OR">
-                        t.`value` = #{item}
-                    </foreach>
-                END
-        </if>
+
         <choose>
             <when test="adGroup.status == null">
                 and g.status != 2
@@ -99,6 +98,8 @@
                 and g.status = #{adGroup.status}
             </otherwise>
         </choose>
+
+        GROUP BY g.id HAVING COUNT(DISTINCT t.attribute) > #{targetNum} - 1
     </select>
 
     <select id="listIdAndName" resultType="com.tecdo.starter.mp.vo.BaseVO">
@@ -107,44 +108,44 @@
 
     <select id="listIdByLikeCampaignName" resultType="java.lang.Integer">
         select
-            g.id
+        g.id
         from
-            ad_group g
-            left join campaign c on c.id = g.campaign_id
+        ad_group g
+        left join campaign c on c.id = g.campaign_id
         where 1=1
-         <if test="campaignName != null and campaignName != ''">
+        <if test="campaignName != null and campaignName != ''">
             and c.name like concat(concat('%', #{campaignName}),'%')
         </if>
     </select>
 
     <select id="listIdByLikeAdGroupName" resultType="java.lang.Integer">
         select
-            id
+        id
         from
-            ad_group
+        ad_group
         where 1=1
-         <if test="name != null and name != ''">
+        <if test="name != null and name != ''">
             and name like concat(concat('%', #{name}),'%')
         </if>
     </select>
 
     <select id="listIdByAdvIds" resultType="java.lang.Integer">
         select
-            g.id
+        g.id
         from
-            ad_group g
-            left join campaign c on c.id = g.campaign_id
+        ad_group g
+        left join campaign c on c.id = g.campaign_id
         where 1=1
-            and c.adv_id in
-            <foreach collection="advIds" item="item" index="index" open="(" close=")" separator=",">
-                #{item}
-            </foreach>
+        and c.adv_id in
+        <foreach collection="advIds" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
     </select>
 
     <select id="listIdByCampaignIds" resultType="java.lang.Integer">
         select id from ad_group where 1=1
         <if test="campaignIds != null and campaignIds.size > 0">
-           and campaign_id IN
+            and campaign_id IN
             <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
                 #{item}
             </foreach>
@@ -154,23 +155,23 @@
 
     <select id="listStatus" resultType="com.tecdo.starter.mp.entity.StatusEntity">
         select id,status from ad_group where id IN
-            <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
-                #{item}
-            </foreach>
+        <foreach collection="ids" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
     </select>
 
     <select id="listIdByCountryAndCIds" resultType="java.lang.Integer">
         SELECT t.ad_group_id FROM target_condition t WHERE ad_group_id in (
-            SELECT id from ad_group WHERE campaign_id in
-            <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
-                #{item}
-            </foreach>
+        SELECT id from ad_group WHERE campaign_id in
+        <foreach collection="campaignIds" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
         )
         and t.attribute = 'device_country' and
         CASE t.operation
-            WHEN 'include' THEN FIND_IN_SET(#{country}, t.`value`)
-            WHEN 'exclude' THEN NOT FIND_IN_SET(#{country}, t.`value`)
-            WHEN 'eq' THEN t.`value` = #{country}
+        WHEN 'include' THEN FIND_IN_SET(#{country}, t.`value`)
+        WHEN 'exclude' THEN NOT FIND_IN_SET(#{country}, t.`value`)
+        WHEN 'eq' THEN t.`value` = #{country}
         END
     </select>
 

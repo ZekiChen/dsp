@@ -102,6 +102,7 @@ public class AdGroupController {
             }
         }
         IPage<AdGroup> pages;
+        System.out.println(preCIds);
         if (CollUtil.isEmpty(preCIds)) {
             pages = service.customPage(PCondition.getPage(query), adGroup,
                     BigTool.toIntList(cIds), cName,
