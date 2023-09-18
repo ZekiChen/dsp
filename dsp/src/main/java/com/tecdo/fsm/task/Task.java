@@ -649,7 +649,7 @@ public class Task {
                                              boolean ecpxEnable, BigDecimal eCPX) {
     if (ecpxEnable && eCPX != null) {
       wrapper.setBidAlgorithmEnum(BidAlgorithmEnum.HISTORY_ECPX);
-      optPrice = eCPX;
+      return eCPX;
     }
     return optPrice;
   }

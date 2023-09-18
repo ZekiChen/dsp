@@ -316,4 +316,10 @@ public class ResponseLog implements Serializable {
      */
     @JsonProperty("bid_algorithm")
     private String bidAlgorithm;
+
+    @JsonProperty("video_placement")
+    private Integer videoPlacement;
+
+    @JsonProperty("is_rewarded")
+    private Integer isRewarded;
 }
