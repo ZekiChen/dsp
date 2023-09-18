@@ -11,6 +11,7 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.ExtHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
 import org.slf4j.Logger;
@@ -101,6 +102,8 @@ public class RequestLogger {
                 .bAdv(bidRequest.getBadv())
                 .bApp(bidRequest.getBapp())
                 .bCat(bidRequest.getBcat())
+                .videoPlacement(imp.getVideo() != null ? imp.getVideo().getPlacement() : -1)
+                .isRewarded(ExtHelper.isRewarded(bidRequest.getExt()) ? 1 : 0)
                 .build();
     }
 }
