@@ -60,7 +60,7 @@ public class Context {
 
   private Map<String, Task> taskMap = new HashMap<>();
   // taskId,adId,AdDTOWrapper
-  private Map<String, Map<Integer, AdDTOWrapper>> taskResponse = new HashMap<>();
+  private Map<String, Map<Integer, AdDTOWrapper>> taskResponse = new LinkedHashMap<>();
 
   private List<AdDTOWrapper> adDTOWrapperList = new ArrayList<>();
 
@@ -177,6 +177,10 @@ public class Context {
     Params params = assignParams();
     BidRequest bidRequest = this.bidRequest;
 
+    for (Map.Entry<String, Map<Integer, AdDTOWrapper>> entry : taskResponse.entrySet()) {
+      String taskId = entry.getKey();  // bidId
+    }
+
     threadPool.execute(() -> {
       try {
         Map<Integer, Target> rtaResMap = doRequestRtaByLazada(bidRequest);
@@ -216,7 +220,7 @@ public class Context {
   private Map<Integer, Target> doRequestRtaByLazada(BidRequest bidRequest) {
     // 协议中的是国家三字码，需要转为对应的二字码
     String country = bidRequest.getDevice().getGeo().getCountry();
-    String countryCode = StringConfigUtil.getCountryCode(country);
+    String countryCode = StringConfigUtil.getCountryCode2(country);
     String deviceId = bidRequest.getDevice().getIfa();
     Map<Integer, Target> rtaResMap = new HashMap<>();
 
@@ -239,7 +243,7 @@ public class Context {
 
   private Map<Integer, Target> doRequestRtaByMiravia(BidRequest bidRequest) {
     String country = bidRequest.getDevice().getGeo().getCountry();
-    String countryCode = StringConfigUtil.getCountryCode(country);
+    String countryCode = StringConfigUtil.getCountryCode2(country);
     String deviceId = bidRequest.getDevice().getIfa();
     Map<Integer, Target> rtaResMap = new HashMap<>();
 

@@ -45,6 +45,7 @@ import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.BidPriceService;
 import com.tecdo.service.CacheService;
 import com.tecdo.service.init.*;
+import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
@@ -520,6 +521,9 @@ public class Task {
       responses.forEach(resp -> {
         BigDecimal finalPrice = BigDecimal.valueOf(resp.getBidPrice());
         finalPrice = maxPriceLimit(finalPrice);
+        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
+          finalPrice = finalPrice.multiply(BigDecimal.valueOf(100));
+        }
         adMap.get(resp.getAdId()).setBidPrice(finalPrice);
       });
     } else {
@@ -595,6 +599,9 @@ public class Task {
       finalPrice = calcPriceByFormula(adDTOWrapper);
     }
     finalPrice = maxPriceLimit(finalPrice);
+    if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
+      finalPrice = finalPrice.multiply(BigDecimal.valueOf(100));
+    }
     adDTOWrapper.setBidPrice(finalPrice);
   }
 

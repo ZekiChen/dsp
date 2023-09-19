@@ -25,6 +25,7 @@ public interface ParamKey {
 
   // init db data, add into cache
   String AFFILIATES_CACHE_KEY = "affiliates-cache-key";
+  String AFFILIATE_ID_CACHE_KEY = "affiliate-id-cache-key";
   String ADS_CACHE_KEY = "ads-cache-key";
   String CAMPAIGNS_CACHE_KEY = "campaigns-cache-key";
   String RTA_INFOS_CACHE_KEY = "rta-infos-cache-key";

@@ -3,11 +3,13 @@ package com.tecdo.util;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Ad;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.openrtb.request.*;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
+import com.tecdo.transform.ProtoTransformFactory;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
@@ -94,13 +96,18 @@ public class CreativeHelper {
                     bidCreative.setHeight(hSb.delete(hSb.length() - 1, hSb.length()).toString().split(StrUtil.COMMA)[0]);
                 }
             }
+        } else if (imp.getImpType() == 1) {
+            bidCreative.setType(AdTypeEnum.NATIVE.getType());
         } else {
             log.error("imp type error, imp id: {}", imp.getId());
         }
         return bidCreative;
     }
 
-    public static boolean isAdFormatUnique(Imp imp) {
+    public static boolean isAdFormatUnique(Imp imp, Affiliate affiliate) {
+        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
+            return imp.getImpType() != null;
+        }
         int count = 0;
         if (imp.getBanner() != null) {
             count++;

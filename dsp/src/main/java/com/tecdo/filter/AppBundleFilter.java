@@ -5,11 +5,13 @@ import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
+import com.tecdo.constant.AffiliateConstant;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.util.ConditionHelper;
 import com.tecdo.service.init.GooglePlayAppManager;
+import com.tecdo.transform.ProtoTransformFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -41,6 +43,10 @@ public class AppBundleFilter extends AbstractRecallFilter {
         String sourceBundle = bidRequest.getApp().getBundle();
         if (StrUtil.isBlank(sourceBundle)) {
             return false;
+        }
+        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
+            return bundleCond != null &&
+                    bundleCond.getValue().contains(AffiliateConstant.VIVO_BUNDLE_KEYWORD);
         }
         List<String> tarBundles = new ArrayList<>();
         if (categoryCond != null) {

@@ -9,7 +9,8 @@ import java.util.Map;
 
 public class StringConfigUtil {
 
-  private static Map<String, String> countryCodeMap;
+  private static Map<String, String> countryCode3To2Map;
+  private static Map<String, String> countryCode2To3Map;
   private static String bannerTemplate;
   private static String forceBannerTemplate;
   private static String videoVast4Template;
@@ -18,10 +19,19 @@ public class StringConfigUtil {
     try (InputStream is = StringConfigUtil.class.getResourceAsStream("/country-code.json")) {
       byte[] bytes = ByteStreams.toByteArray(is);
       String str = new String(bytes, StandardCharsets.UTF_8);
-      countryCodeMap = JsonHelper.parseMap(str, String.class, String.class);
+      countryCode3To2Map = JsonHelper.parseMap(str, String.class, String.class);
     } catch (IOException e) {
       e.printStackTrace();
     }
+
+    try (InputStream is = StringConfigUtil.class.getResourceAsStream("/country-code2.json")) {
+      byte[] bytes = ByteStreams.toByteArray(is);
+      String str = new String(bytes, StandardCharsets.UTF_8);
+      countryCode2To3Map = JsonHelper.parseMap(str, String.class, String.class);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
     try (InputStream is = StringConfigUtil.class.getResourceAsStream("/banner.html")) {
       byte[] bytes = ByteStreams.toByteArray(is);
       bannerTemplate = new String(bytes, StandardCharsets.UTF_8);
@@ -44,8 +54,12 @@ public class StringConfigUtil {
     }
   }
 
-  public static String getCountryCode(String code3) {
-    return countryCodeMap.get(code3);
+  public static String getCountryCode2(String code3) {
+    return countryCode3To2Map.get(code3);
+  }
+
+  public static String getCountryCode3(String code2) {
+    return countryCode2To3Map.get(code2);
   }
 
   public static String getBannerTemplate() {
