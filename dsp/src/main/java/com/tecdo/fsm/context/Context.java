@@ -177,10 +177,6 @@ public class Context {
     Params params = assignParams();
     BidRequest bidRequest = this.bidRequest;
 
-    for (Map.Entry<String, Map<Integer, AdDTOWrapper>> entry : taskResponse.entrySet()) {
-      String taskId = entry.getKey();  // bidId
-    }
-
     threadPool.execute(() -> {
       try {
         Map<Integer, Target> rtaResMap = doRequestRtaByLazada(bidRequest);
