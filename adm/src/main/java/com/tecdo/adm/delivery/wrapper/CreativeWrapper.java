@@ -22,7 +22,7 @@ public class CreativeWrapper extends EntityWrapper<Creative, CreativeVO> {
 		CreativeVO vo = Objects.requireNonNull(BeanUtil.copy(creative, CreativeVO.class));
 		if (vo.getBrand() != null) {
 			String brandName = CreativeCache.getBrandValue(vo.getBrand());
-			if (!brandName.isEmpty()) {
+			if (brandName != null && !brandName.isEmpty()) {
 				vo.setBrandName(brandName);
 			}
 		}
