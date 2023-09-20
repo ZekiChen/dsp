@@ -1,7 +1,5 @@
 package com.tecdo.job.handler.affiliate;
 
-import cn.hutool.core.collection.ListUtil;
-import cn.hutool.core.date.LocalDateTimeUtil;
 import cn.hutool.core.map.MapUtil;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
@@ -10,6 +8,7 @@ import com.tecdo.job.domain.vo.camScanner.FeishuPrependReport;
 import com.tecdo.job.domain.vo.camScanner.FeishuSetUnitStyle;
 import com.tecdo.job.domain.vo.camScanner.UnitStyle;
 import com.tecdo.job.mapper.DspReportMapper;
+import com.tecdo.job.util.TimeZoneUtils;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
@@ -82,26 +81,30 @@ public class CamScannerJob {
     }
 
     /**
-     *
+     * 获取sheetPrependUrl中二维数组请求参数
      * @param date 日期字符串
      * @param spentDTO 曝光量+花费
      * @return List<List<Object>>对象
      */
     public List<List<Object>> buildValues(Long date, SpentDTO spentDTO) {
-        return new ArrayList<List<Object>>() {{
-            add(new ArrayList<Object>() {{
-                add(date);
-                add(spentDTO.getImp());
-                add(spentDTO.getCost());
-            }});
-        }};
+        List<List<Object>> list = new ArrayList<>();
+        List<Object> subList = new ArrayList<>();
+
+        subList.add(date);
+        subList.add(spentDTO.getImp());
+        subList.add(spentDTO.getCost());
+
+        list.add(subList);
+
+        return list;
     }
 
     /**
-     * @return 返回前一天日期字符串，精确到日
+     * 获取前一天时间
+     * @return 前一天日期字符串
      */
     public String dateFormat() {
-        LocalDate currentDate = LocalDate.now().minusDays(1);
+        LocalDate currentDate = TimeZoneUtils.dateInChina().minusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return currentDate.format(formatter);
     }
@@ -111,7 +114,7 @@ public class CamScannerJob {
      * @return 当前距离1899年12月30日的天数
      */
     public Long daysFrom1899() {
-        LocalDate currentDate = LocalDate.now().minusDays(1);
+        LocalDate currentDate = TimeZoneUtils.dateInChina().minusDays(1);
         LocalDate date1899 = LocalDate.of(1899, 12, 30);
         return ChronoUnit.DAYS.between(date1899, currentDate);
     }
@@ -149,4 +152,5 @@ public class CamScannerJob {
         System.out.println(result.getBody());
         return result.isSuccessful();
     }
+
 }
