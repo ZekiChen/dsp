@@ -20,11 +20,6 @@ public class SdkLogger {
   }
 
   private static SdkLog buildSdkLog(DeviceRecall deviceRecall, String clickId) {
-    Long timeMillis =
-      MoreObjects.firstNonNull(deviceRecall.getTimeMillis(), deviceRecall.getEtlTime().getTime());
-    long lastTime = deviceRecall.getEtlTime().getTime();
-    String deviceFirstTime = DateUtil.format(new Date(timeMillis), "yyyy-MM-dd_HH");
-    String deviceLastTime = DateUtil.format(new Date(lastTime), "yyyy-MM-dd_HH");
     return SdkLog.builder()
                  .clickId(clickId)
                  .deviceId(deviceRecall.getDeviceId())
@@ -39,10 +34,6 @@ public class SdkLogger {
                  .ip(deviceRecall.getIp())
                  .ua(deviceRecall.getUa())
                  .lang(MoreObjects.firstNonNull(deviceRecall.getLang(), "en"))
-                 .deviceFirstTime(MoreObjects.firstNonNull(deviceRecall.getDeviceFirstTime(),
-                                                           deviceFirstTime))
-                 .deviceLastTime(MoreObjects.firstNonNull(deviceRecall.getDeviceLastTime(),
-                                                          deviceLastTime))
                  .build();
   }
 }

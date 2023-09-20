@@ -44,4 +44,8 @@ public class DeviceRecall {
 
   private Date etlTime;
 
+  private String version;
+
+  private String dataSource;
+
 }
