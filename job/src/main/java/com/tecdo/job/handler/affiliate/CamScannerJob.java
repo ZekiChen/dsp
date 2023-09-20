@@ -66,7 +66,7 @@ public class CamScannerJob {
 
     /**
      * token有过期时间，每次使用token前调用此接口刷新token
-     * @return
+     * @return 返回应用的tenant token
      */
     public String getAccessToken() {
         Map<String, Object> paramMap = MapUtil.newHashMap();
