@@ -1,6 +1,7 @@
 package com.tecdo.adm.api.delivery.entity;
 
 import com.baomidou.mybatisplus.annotation.FieldFill;
+import com.baomidou.mybatisplus.annotation.FieldStrategy;
 import com.baomidou.mybatisplus.annotation.TableField;
 import com.baomidou.mybatisplus.annotation.TableName;
 import com.tecdo.starter.mp.entity.BaseEntity;
@@ -36,7 +37,7 @@ public class Creative extends BaseEntity {
     private Integer duration;
     @ApiModelProperty(value = "素材IAB类别", notes = "ContentCategoryEnum")
     private String catIab;
-    @ApiModelProperty(value = "素材品牌", notes = "Creative brand")
+    @ApiModelProperty(value = "素材品牌", notes = "Creative brand") @TableField( updateStrategy = FieldStrategy.IGNORED)
     private String brand;
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
     @TableField(fill = FieldFill.INSERT)

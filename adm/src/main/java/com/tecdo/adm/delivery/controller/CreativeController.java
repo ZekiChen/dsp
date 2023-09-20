@@ -106,8 +106,8 @@ public class CreativeController {
         entity.setHeight(height);
         entity.setCatIab(catIab);
         entity.setSuffix(suffix);
-        if (brand == null || brand.isEmpty() || brand.equals("undefined")) {
-            entity.setBrand("");
+        if (brand.isEmpty() || brand.equals("undefined")) {
+            entity.setBrand(null);
         }
         else {
             entity.setBrand(brand);
