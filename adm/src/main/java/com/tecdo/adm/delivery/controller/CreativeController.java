@@ -12,7 +12,6 @@ import com.tecdo.adm.api.delivery.vo.CreativeSpecVO;
 import com.tecdo.adm.api.delivery.vo.CreativeVO;
 import com.tecdo.adm.delivery.service.ICreativeService;
 import com.tecdo.adm.delivery.wrapper.CreativeWrapper;
-import com.tecdo.adm.system.service.IDictService;
 import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
 import com.tecdo.starter.mp.support.PCondition;
@@ -66,7 +65,10 @@ public class CreativeController {
             creative.setHeight(Integer.parseInt(paramMap.get("height" + i)));
             creative.setCatIab(paramMap.get("catIab" + i));
             creative.setSuffix(paramMap.get("suffix" + i));
-            creative.setBrand(Integer.parseInt(paramMap.get("brand" + i)));
+            String brand = paramMap.get("brand" + i);
+            if (!brand.isEmpty() && !brand.equals("undefined")) {
+                creative.setBrand(brand);
+            }
             if (CreativeTypeEnum.VIDEO.getType() == creative.getType()) {
                 creative.setDuration(Integer.parseInt(paramMap.get("duration" + i)));
             }
@@ -88,7 +90,7 @@ public class CreativeController {
                     @RequestParam(value = "suffix", required = false) String suffix,
                     @RequestParam(value = "duration", required = false) Integer duration,
                     @RequestParam(value = "status", required = false) Integer status,
-                    @RequestParam(value = "brand", required = false) Integer brand) {
+                    @RequestParam(value = "brand", required = false) String brand) {
         CacheUtil.clear(CREATIVE_CACHE);
         Creative entity = service.getById(id);
         if (entity == null) {
@@ -103,7 +105,9 @@ public class CreativeController {
         entity.setHeight(height);
         entity.setCatIab(catIab);
         entity.setSuffix(suffix);
-        entity.setBrand(brand);
+        if (!brand.isEmpty() && !brand.equals("undefined")) {
+            entity.setBrand(brand);
+        }
         if (CreativeTypeEnum.VIDEO.getType() == entity.getType()) {
             entity.setDuration(duration);
         }
@@ -148,7 +152,7 @@ public class CreativeController {
         if (CollUtil.isNotEmpty(records)) {
             records.forEach(record -> {
                 if (record.getBrand() != null) {
-                    record.setBrandName(service.getBrandById(record.getBrand()));
+                    record.setBrandName(service.getBrandNameByKey(record.getBrand()));
                 }
             });
         }

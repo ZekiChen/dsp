@@ -21,8 +21,8 @@ public class CreativeCache {
 		return CacheUtil.get(CREATIVE_CACHE, CREATIVE_ID, creativeId, () -> creativeService.getById(creativeId));
 	}
 
-	public static String getBrandValue(Integer brandId) {
-		return CacheUtil.get(CREATIVE_CACHE, CREATIVE_BRAND, brandId, () -> creativeService.getBrandById(brandId));
+	public static String getBrandValue(String key) {
+		return CacheUtil.get(CREATIVE_CACHE, CREATIVE_BRAND, key, () -> creativeService.getBrandNameByKey(key));
 	}
 
 }

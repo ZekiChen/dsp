@@ -37,7 +37,7 @@ public class Creative extends BaseEntity {
     @ApiModelProperty(value = "素材IAB类别", notes = "ContentCategoryEnum")
     private String catIab;
     @ApiModelProperty(value = "素材品牌", notes = "Creative brand")
-    private Integer brand;
+    private String brand;
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
     @TableField(fill = FieldFill.INSERT)
     private Integer status;
