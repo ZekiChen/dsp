@@ -102,8 +102,8 @@ public class CamScannerJob {
      */
     public String dateFormat() {
         LocalDate currentDate = LocalDate.now().minusDays(1);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        return currentDate.format(formatter);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
+        return currentDate.format(formatter).replace("/", "-");
     }
 
     /**
