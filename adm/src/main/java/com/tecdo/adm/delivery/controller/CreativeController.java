@@ -25,6 +25,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -66,7 +67,7 @@ public class CreativeController {
             creative.setCatIab(paramMap.get("catIab" + i));
             creative.setSuffix(paramMap.get("suffix" + i));
             String brand = paramMap.get("brand" + i);
-            if (!brand.isEmpty() && !brand.equals("undefined")) {
+            if (brand != null && !brand.isEmpty() && !brand.equals("undefined")) {
                 creative.setBrand(brand);
             }
             if (CreativeTypeEnum.VIDEO.getType() == creative.getType()) {
@@ -105,7 +106,10 @@ public class CreativeController {
         entity.setHeight(height);
         entity.setCatIab(catIab);
         entity.setSuffix(suffix);
-        if (!brand.isEmpty() && !brand.equals("undefined")) {
+        if (brand == null || brand.isEmpty() || brand.equals("undefined")) {
+            entity.setBrand("");
+        }
+        else {
             entity.setBrand(brand);
         }
         if (CreativeTypeEnum.VIDEO.getType() == entity.getType()) {
