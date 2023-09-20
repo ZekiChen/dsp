@@ -66,7 +66,7 @@ public class DictController {
 	@ApiOperationSupport(order = 4)
 	@ApiOperation(value = "列表", notes = "传入dict")
 	public R<List<DictVO>> list(@ApiIgnore @RequestParam Map<String, Object> dict) {
-		List<Dict> list = service.list(PCondition.getQueryWrapper(dict, Dict.class).lambda().orderByAsc(Dict::getSort));
+		List<Dict> list = service.list(PCondition.getQueryWrapper(dict, Dict.class).lambda().orderByAsc(Dict::getId));
 		DictWrapper dictWrapper = new DictWrapper();
 		return R.data(dictWrapper.listNodeVO(list));
 	}
