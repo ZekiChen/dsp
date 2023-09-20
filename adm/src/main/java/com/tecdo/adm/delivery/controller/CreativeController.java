@@ -1,5 +1,6 @@
 package com.tecdo.adm.delivery.controller;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -11,6 +12,7 @@ import com.tecdo.adm.api.delivery.vo.CreativeSpecVO;
 import com.tecdo.adm.api.delivery.vo.CreativeVO;
 import com.tecdo.adm.delivery.service.ICreativeService;
 import com.tecdo.adm.delivery.wrapper.CreativeWrapper;
+import com.tecdo.adm.system.service.IDictService;
 import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
 import com.tecdo.starter.mp.support.PCondition;
@@ -64,6 +66,7 @@ public class CreativeController {
             creative.setHeight(Integer.parseInt(paramMap.get("height" + i)));
             creative.setCatIab(paramMap.get("catIab" + i));
             creative.setSuffix(paramMap.get("suffix" + i));
+            creative.setBrand(Integer.parseInt(paramMap.get("brand" + i)));
             if (CreativeTypeEnum.VIDEO.getType() == creative.getType()) {
                 creative.setDuration(Integer.parseInt(paramMap.get("duration" + i)));
             }
@@ -84,7 +87,8 @@ public class CreativeController {
                     @RequestParam(value = "catIab", required = false) String catIab,
                     @RequestParam(value = "suffix", required = false) String suffix,
                     @RequestParam(value = "duration", required = false) Integer duration,
-                    @RequestParam(value = "status", required = false) Integer status) {
+                    @RequestParam(value = "status", required = false) Integer status,
+                    @RequestParam(value = "brand", required = false) Integer brand) {
         CacheUtil.clear(CREATIVE_CACHE);
         Creative entity = service.getById(id);
         if (entity == null) {
@@ -99,6 +103,7 @@ public class CreativeController {
         entity.setHeight(height);
         entity.setCatIab(catIab);
         entity.setSuffix(suffix);
+        entity.setBrand(brand);
         if (CreativeTypeEnum.VIDEO.getType() == entity.getType()) {
             entity.setDuration(duration);
         }
@@ -133,10 +138,21 @@ public class CreativeController {
         wrapper.eq(creative.getType() != null, Creative::getType, creative.getType());
         wrapper.eq(creative.getWidth() != null, Creative::getWidth, creative.getWidth());
         wrapper.eq(creative.getHeight() != null, Creative::getHeight, creative.getHeight());
+        wrapper.eq(creative.getBrand() != null, Creative::getBrand, creative.getBrand());
         wrapper.eq(StrUtil.isNotBlank(creative.getUrl()), Creative::getUrl, creative.getUrl());
         wrapper.eq(StrUtil.isNotBlank(creative.getCatIab()), Creative::getCatIab, creative.getCatIab());
         wrapper.eq(creative.getStatus() != null, Creative::getStatus, creative.getStatus());
         IPage<Creative> pages = service.page(PCondition.getPage(query), wrapper);
+        IPage<CreativeVO> voPage = CreativeWrapper.build().pageVO(pages);
+        List<CreativeVO> records = voPage.getRecords();
+        if (CollUtil.isNotEmpty(records)) {
+            records.forEach(record -> {
+                if (record.getBrand() != null) {
+                    record.setBrandName(service.getBrandById(record.getBrand()));
+                }
+            });
+        }
+        voPage.setRecords(records);
         return R.data(CreativeWrapper.build().pageVO(pages));
     }
 
