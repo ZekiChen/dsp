@@ -13,13 +13,6 @@ import java.util.List;
 @AllArgsConstructor
 @NoArgsConstructor
 public class FeishuPrependReport {
-    private ValueRange valueRange;
-
-    @Data
-    @AllArgsConstructor
-    @NoArgsConstructor
-    public static class ValueRange {
-        private String range;
-        private List<List<Object>> values;
-    }
+    private String range;
+    private List<List<Object>> values;
 }

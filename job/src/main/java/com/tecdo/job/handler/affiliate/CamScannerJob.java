@@ -7,6 +7,9 @@ import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.adm.api.delivery.dto.SpentDTO;
 import com.tecdo.job.domain.vo.camScanner.FeishuPrependReport;
+import com.tecdo.job.domain.vo.camScanner.FeishuSetUnitStyle;
+import com.tecdo.job.domain.vo.camScanner.UnitStyle;
+import com.tecdo.job.mapper.DspReportMapper;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +19,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -33,22 +37,31 @@ public class CamScannerJob {
     private String appSecret;
     @Value("${feishu.aff.get-token.url}")
     private String tenantTokenUrl;
+    @Value("${feishu.aff.cs.sheet-prepend.url}")
+    private String sheetPrependUrl;
     @Value("${feishu.aff.cs.sheet-range}")
     private String range;
+    @Value("${feishu.aff.cs.sheet-formatter.url}")
+    private String sheetFormatterUrl;
+    @Value("${feishu.aff.cs.sheet-unit-range}")
+    private String unitRange;
+    private String dateFormat = "yyyy/MM/dd";
+    private String tenantToken = "";
+
+    private final DspReportMapper reportMapper;
 
     @XxlJob("FeishuAff127Job")
     public void dspReport() {
         XxlJobHelper.log("获取doris库dsp_report表前一天数据，写入飞书文档");
-        String tenantToken = getAccessToken();
+        tenantToken = getAccessToken();
         if (tenantToken.isEmpty()) {
             XxlJobHelper.handleFail("tenantToken获取失败");
             return;
         }
-
-        List<List<Object>> values = new ArrayList<>();
-
-        FeishuPrependReport data = new FeishuPrependReport();
-        data.setValueRange(new FeishuPrependReport.ValueRange(range, values));
+        String msg = postData(reportMapper.getImpCostForCamScanner(dateFormat())) ? "数据写入成功" : "数据写入失败";
+        XxlJobHelper.log(msg);
+        msg = unitFormatter() ? "单元格格式修改成功" : "单元格格式修改失败";
+        XxlJobHelper.log(msg);
     }
 
     /**
@@ -70,11 +83,11 @@ public class CamScannerJob {
 
     /**
      *
-     * @param date 时间字符串
+     * @param date 日期字符串
      * @param spentDTO 曝光量+花费
      * @return List<List<Object>>对象
      */
-    public List<List<Object>> buildValues(String date, SpentDTO spentDTO) {
+    public List<List<Object>> buildValues(Long date, SpentDTO spentDTO) {
         return new ArrayList<List<Object>>() {{
             add(new ArrayList<Object>() {{
                 add(date);
@@ -85,12 +98,55 @@ public class CamScannerJob {
     }
 
     /**
-     *
-     * @return 返回当前日期字符串，精确到日
+     * @return 返回前一天日期字符串，精确到日
      */
     public String dateFormat() {
-        LocalDate currentDate = LocalDate.now();
+        LocalDate currentDate = LocalDate.now().minusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy/MM/dd");
-        return currentDate.format(formatter);
+        return currentDate.format(formatter).replace("/", "-");
+    }
+
+    /**
+     * 由于飞书表格的特殊要求，为了填入日期类型的数据，需要填当前距离1899年12月30日的天数
+     * @return 当前距离1899年12月30日的天数
+     */
+    public Long daysFrom1899() {
+        LocalDate currentDate = LocalDate.now().minusDays(1);
+        LocalDate date1899 = LocalDate.of(1899, 12, 30);
+        return ChronoUnit.DAYS.between(date1899, currentDate);
+    }
+
+    /**
+     * 向飞书表格插入数据
+     * @param impCost 花费
+     * @return true / false
+     */
+    public boolean postData(SpentDTO impCost) {
+        FeishuPrependReport request = new FeishuPrependReport(range, buildValues(daysFrom1899(), impCost));
+        Map<String, Object> paramMap = MapUtil.newHashMap();
+        paramMap.put("valueRange", request);
+        HttpResult result = OkHttps.sync(sheetPrependUrl)
+                .bodyType(OkHttps.JSON)
+                .addHeader("Authorization", "Bearer " + tenantToken)
+                .addBodyPara(paramMap)
+                .post();
+        return result.isSuccessful();
+    }
+
+    /**
+     * 把日期对应的单元格设置为dateFormat日期类型
+     * @return true / false
+     */
+    public boolean unitFormatter() {
+        FeishuSetUnitStyle request = new FeishuSetUnitStyle(unitRange, new UnitStyle(dateFormat));
+        Map<String, Object> paramMap = MapUtil.newHashMap();
+        paramMap.put("appendStyle", request);
+        HttpResult result = OkHttps.sync(sheetFormatterUrl)
+                .bodyType(OkHttps.JSON)
+                .addHeader("Authorization", "Bearer " + tenantToken)
+                .addBodyPara(paramMap)
+                .put();
+        System.out.println(result.getBody());
+        return result.isSuccessful();
     }
 }
