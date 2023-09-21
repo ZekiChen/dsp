@@ -7,10 +7,6 @@ import com.tecdo.job.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-
-import cn.hutool.core.date.DateUtil;
-
 public class SdkLogger {
 
   private final static Logger sdkLogger = LoggerFactory.getLogger("sdk_log");
@@ -34,6 +30,8 @@ public class SdkLogger {
                  .ip(deviceRecall.getIp())
                  .ua(deviceRecall.getUa())
                  .lang(MoreObjects.firstNonNull(deviceRecall.getLang(), "en"))
+                 .version(deviceRecall.getVersion())
+                 .dataSource(deviceRecall.getDataSource())
                  .build();
   }
 }
