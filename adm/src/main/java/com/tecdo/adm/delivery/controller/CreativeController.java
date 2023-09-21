@@ -161,8 +161,9 @@ public class CreativeController {
         List<CreativeVO> records = voPage.getRecords();
         if (CollUtil.isNotEmpty(records)) {
             records.forEach(record -> {
-                if (record.getBrand() != null) {
-                    record.setBrandName(service.getBrandNameByKey(record.getBrand()));
+                String key = record.getBrand();
+                if (StrUtil.isNotBlank(key)) {
+                    record.setBrandName(service.getBrandNameByKey(key));
                 }
             });
         }
