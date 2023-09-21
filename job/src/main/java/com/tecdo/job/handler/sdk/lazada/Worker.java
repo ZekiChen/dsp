@@ -95,10 +95,9 @@ public class Worker {
              .replace("{data_source}", encode(device.getDataSource()))
              .replace("{lang}", encode(lang));
 
-    HttpUtils.asyncRequest(url, header);
+    HttpUtils.asyncRequest(url, header, device, clickId);
     requestCount++;
     count++;
-    SdkLogger.log(device, clickId);
   }
 
   private String encode(String s) throws UnsupportedEncodingException {
