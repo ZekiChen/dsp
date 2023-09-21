@@ -64,7 +64,10 @@ public class CreativeController {
             creative.setType(Integer.parseInt(paramMap.get("type" + i)));
             creative.setWidth(Integer.parseInt(paramMap.get("width" + i)));
             creative.setHeight(Integer.parseInt(paramMap.get("height" + i)));
-            creative.setCatIab(paramMap.get("catIab" + i));
+            String catIab = paramMap.get("catIab" + i);
+            if (StrUtil.isNotBlank(catIab)) {
+                creative.setCatIab(catIab);
+            }
             creative.setSuffix(paramMap.get("suffix" + i));
             String brand = paramMap.get("brand" + i);
             if (StrUtil.isNotBlank(brand)) {
@@ -104,13 +107,15 @@ public class CreativeController {
         entity.setName(name);
         entity.setWidth(width);
         entity.setHeight(height);
-        entity.setCatIab(catIab);
+        if (StrUtil.isNotBlank(catIab)) {
+            entity.setCatIab(catIab);
+        } else {
+            entity.setCatIab(null);
+        }
         entity.setSuffix(suffix);
-        System.out.println("brand: " + brand);
         if (StrUtil.isNotBlank(brand)) {
             entity.setBrand(brand);
-        }
-        else {
+        } else {
             entity.setBrand(null);
         }
         if (CreativeTypeEnum.VIDEO.getType() == entity.getType()) {
