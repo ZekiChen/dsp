@@ -16,5 +16,5 @@ public interface ICreativeService extends IService<Creative> {
     List<Integer> listIdByLikeName(String name);
 
     List<Integer> listIdBySize(Integer width, Integer height);
-    String getBrandById(Integer id);
+    String getBrandNameByKey(String key);
 }

@@ -12,7 +12,6 @@ import com.tecdo.adm.api.delivery.vo.CreativeSpecVO;
 import com.tecdo.adm.api.delivery.vo.CreativeVO;
 import com.tecdo.adm.delivery.service.ICreativeService;
 import com.tecdo.adm.delivery.wrapper.CreativeWrapper;
-import com.tecdo.adm.system.service.IDictService;
 import com.tecdo.common.constant.AppConstant;
 import com.tecdo.core.launch.response.R;
 import com.tecdo.starter.mp.support.PCondition;
@@ -26,6 +25,7 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
+import org.apache.ibatis.jdbc.Null;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -64,9 +64,15 @@ public class CreativeController {
             creative.setType(Integer.parseInt(paramMap.get("type" + i)));
             creative.setWidth(Integer.parseInt(paramMap.get("width" + i)));
             creative.setHeight(Integer.parseInt(paramMap.get("height" + i)));
-            creative.setCatIab(paramMap.get("catIab" + i));
+            String catIab = paramMap.get("catIab" + i);
+            if (StrUtil.isNotBlank(catIab)) {
+                creative.setCatIab(catIab);
+            }
             creative.setSuffix(paramMap.get("suffix" + i));
-            creative.setBrand(Integer.parseInt(paramMap.get("brand" + i)));
+            String brand = paramMap.get("brand" + i);
+            if (StrUtil.isNotBlank(brand)) {
+                creative.setBrand(brand);
+            }
             if (CreativeTypeEnum.VIDEO.getType() == creative.getType()) {
                 creative.setDuration(Integer.parseInt(paramMap.get("duration" + i)));
             }
@@ -88,7 +94,7 @@ public class CreativeController {
                     @RequestParam(value = "suffix", required = false) String suffix,
                     @RequestParam(value = "duration", required = false) Integer duration,
                     @RequestParam(value = "status", required = false) Integer status,
-                    @RequestParam(value = "brand", required = false) Integer brand) {
+                    @RequestParam(value = "brand", required = false) String brand) {
         CacheUtil.clear(CREATIVE_CACHE);
         Creative entity = service.getById(id);
         if (entity == null) {
@@ -101,9 +107,17 @@ public class CreativeController {
         entity.setName(name);
         entity.setWidth(width);
         entity.setHeight(height);
-        entity.setCatIab(catIab);
+        if (StrUtil.isNotBlank(catIab)) {
+            entity.setCatIab(catIab);
+        } else {
+            entity.setCatIab(null);
+        }
         entity.setSuffix(suffix);
-        entity.setBrand(brand);
+        if (StrUtil.isNotBlank(brand)) {
+            entity.setBrand(brand);
+        } else {
+            entity.setBrand(null);
+        }
         if (CreativeTypeEnum.VIDEO.getType() == entity.getType()) {
             entity.setDuration(duration);
         }
@@ -138,7 +152,7 @@ public class CreativeController {
         wrapper.eq(creative.getType() != null, Creative::getType, creative.getType());
         wrapper.eq(creative.getWidth() != null, Creative::getWidth, creative.getWidth());
         wrapper.eq(creative.getHeight() != null, Creative::getHeight, creative.getHeight());
-        wrapper.eq(creative.getBrand() != null, Creative::getBrand, creative.getBrand());
+        wrapper.eq(StrUtil.isNotBlank(creative.getBrand()), Creative::getBrand, creative.getBrand());
         wrapper.eq(StrUtil.isNotBlank(creative.getUrl()), Creative::getUrl, creative.getUrl());
         wrapper.eq(StrUtil.isNotBlank(creative.getCatIab()), Creative::getCatIab, creative.getCatIab());
         wrapper.eq(creative.getStatus() != null, Creative::getStatus, creative.getStatus());
@@ -147,8 +161,9 @@ public class CreativeController {
         List<CreativeVO> records = voPage.getRecords();
         if (CollUtil.isNotEmpty(records)) {
             records.forEach(record -> {
-                if (record.getBrand() != null) {
-                    record.setBrandName(service.getBrandById(record.getBrand()));
+                String key = record.getBrand();
+                if (StrUtil.isNotBlank(key)) {
+                    record.setBrandName(service.getBrandNameByKey(key));
                 }
             });
         }
