@@ -1,5 +1,6 @@
 package com.tecdo.adm.delivery.wrapper;
 
+import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.vo.CreativeVO;
 import com.tecdo.adm.common.cache.CreativeCache;
@@ -22,7 +23,7 @@ public class CreativeWrapper extends EntityWrapper<Creative, CreativeVO> {
 		CreativeVO vo = Objects.requireNonNull(BeanUtil.copy(creative, CreativeVO.class));
 		if (vo.getBrand() != null) {
 			String brandName = CreativeCache.getBrandValue(vo.getBrand());
-			if (!brandName.isEmpty()) {
+			if (StrUtil.isNotBlank(brandName)) {
 				vo.setBrandName(brandName);
 			}
 		}

@@ -35,7 +35,7 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
     }
 
     @Override
-    public String getBrandById(Integer id) {
-        return dictService.getValue("creative_brand", StrUtil.toString(id));
+    public String getBrandNameByKey(String key) {
+        return dictService.getValue("creative_brand", key);
     }
 }
