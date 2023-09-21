@@ -67,7 +67,7 @@ public class CreativeController {
             creative.setCatIab(paramMap.get("catIab" + i));
             creative.setSuffix(paramMap.get("suffix" + i));
             String brand = paramMap.get("brand" + i);
-            if (brand != null && !brand.isEmpty() && !brand.equals("undefined")) {
+            if (StrUtil.isNotBlank(brand)) {
                 creative.setBrand(brand);
             }
             if (CreativeTypeEnum.VIDEO.getType() == creative.getType()) {
@@ -106,11 +106,12 @@ public class CreativeController {
         entity.setHeight(height);
         entity.setCatIab(catIab);
         entity.setSuffix(suffix);
-        if (brand.isEmpty() || brand.equals("undefined")) {
-            entity.setBrand(null);
+        System.out.println("brand: " + brand);
+        if (StrUtil.isNotBlank(brand)) {
+            entity.setBrand(brand);
         }
         else {
-            entity.setBrand(brand);
+            entity.setBrand(null);
         }
         if (CreativeTypeEnum.VIDEO.getType() == entity.getType()) {
             entity.setDuration(duration);
@@ -146,7 +147,7 @@ public class CreativeController {
         wrapper.eq(creative.getType() != null, Creative::getType, creative.getType());
         wrapper.eq(creative.getWidth() != null, Creative::getWidth, creative.getWidth());
         wrapper.eq(creative.getHeight() != null, Creative::getHeight, creative.getHeight());
-        wrapper.eq(creative.getBrand() != null, Creative::getBrand, creative.getBrand());
+        wrapper.eq(StrUtil.isNotBlank(creative.getBrand()), Creative::getBrand, creative.getBrand());
         wrapper.eq(StrUtil.isNotBlank(creative.getUrl()), Creative::getUrl, creative.getUrl());
         wrapper.eq(StrUtil.isNotBlank(creative.getCatIab()), Creative::getCatIab, creative.getCatIab());
         wrapper.eq(creative.getStatus() != null, Creative::getStatus, creative.getStatus());
