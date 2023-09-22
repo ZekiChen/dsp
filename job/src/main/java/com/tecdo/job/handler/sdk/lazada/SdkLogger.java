@@ -7,10 +7,6 @@ import com.tecdo.job.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Date;
-
-import cn.hutool.core.date.DateUtil;
-
 public class SdkLogger {
 
   private final static Logger sdkLogger = LoggerFactory.getLogger("sdk_log");
@@ -20,11 +16,6 @@ public class SdkLogger {
   }
 
   private static SdkLog buildSdkLog(DeviceRecall deviceRecall, String clickId) {
-    Long timeMillis =
-      MoreObjects.firstNonNull(deviceRecall.getTimeMillis(), deviceRecall.getEtlTime().getTime());
-    long lastTime = deviceRecall.getEtlTime().getTime();
-    String deviceFirstTime = DateUtil.format(new Date(timeMillis), "yyyy-MM-dd_HH");
-    String deviceLastTime = DateUtil.format(new Date(lastTime), "yyyy-MM-dd_HH");
     return SdkLog.builder()
                  .clickId(clickId)
                  .deviceId(deviceRecall.getDeviceId())
@@ -39,10 +30,8 @@ public class SdkLogger {
                  .ip(deviceRecall.getIp())
                  .ua(deviceRecall.getUa())
                  .lang(MoreObjects.firstNonNull(deviceRecall.getLang(), "en"))
-                 .deviceFirstTime(MoreObjects.firstNonNull(deviceRecall.getDeviceFirstTime(),
-                                                           deviceFirstTime))
-                 .deviceLastTime(MoreObjects.firstNonNull(deviceRecall.getDeviceLastTime(),
-                                                          deviceLastTime))
+                 .version(deviceRecall.getVersion())
+                 .dataSource(deviceRecall.getDataSource())
                  .build();
   }
 }

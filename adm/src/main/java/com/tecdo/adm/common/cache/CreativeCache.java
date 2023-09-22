@@ -13,11 +13,16 @@ import static com.tecdo.common.constant.CacheConstant.CREATIVE_CACHE;
 public class CreativeCache {
 
 	private static final String CREATIVE_ID = "creative:id:";
+	private static final String CREATIVE_BRAND = "creative:brand:";
 
 	private static final ICreativeService creativeService = SpringUtil.getBean(ICreativeService.class);
 
 	public static Creative getCreative(Integer creativeId) {
 		return CacheUtil.get(CREATIVE_CACHE, CREATIVE_ID, creativeId, () -> creativeService.getById(creativeId));
+	}
+
+	public static String getBrandValue(String key) {
+		return CacheUtil.get(CREATIVE_CACHE, CREATIVE_BRAND, key, () -> creativeService.getBrandNameByKey(key));
 	}
 
 }
