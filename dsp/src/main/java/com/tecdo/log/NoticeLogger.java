@@ -1,7 +1,5 @@
 package com.tecdo.log;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
 import com.google.common.net.HttpHeaders;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.constant.RequestPath;
@@ -10,13 +8,22 @@ import com.tecdo.domain.biz.notice.NoticeInfo;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.ValidateCode;
 import com.tecdo.util.JsonHelper;
+
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
 
 /**
  * Created by Zeki on 2023/5/5
@@ -121,8 +128,14 @@ public class NoticeLogger {
         map.put("ad_id", info.getAdId());
         map.put("creative_id", info.getCreativeId());
 
-        if (info.getEventType() != null) {
-            map.put(info.getEventType(), 1);
+        if (Strings.isNotBlank(info.getOrderNumber()) && info.getAdEstimatedCommission() != null) {
+            map.put(RequestKey.EVENT_11, 1);
+            map.put("order_number", info.getOrderNumber());
+            map.put("ad_estimated_commission", info.getAdEstimatedCommission());
+        } else {
+            if (info.getEventType() != null) {
+                map.put(info.getEventType(), 1);
+            }
         }
 
         if (RequestPath.PB_AE.equals(httpRequest.getPath())) {
