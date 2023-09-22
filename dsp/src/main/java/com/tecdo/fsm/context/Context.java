@@ -16,6 +16,8 @@ import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.domain.openrtb.response.BidResponse;
+import com.tecdo.fsm.context.state.IContextState;
+import com.tecdo.fsm.context.state.InitState;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
 import com.tecdo.log.RequestLogger;

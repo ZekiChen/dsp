@@ -1,4 +1,4 @@
-package com.tecdo.service.task;
+package com.tecdo.fsm.task.handler;
 
 import cn.hutool.core.map.MapUtil;
 import com.dianping.cat.Cat;
@@ -54,7 +54,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class PredictService {
+public class PredictHandler {
 
     @Value("{pac.ctr-predict.url}")
     private String ctrPredictUrl;

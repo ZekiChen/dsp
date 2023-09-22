@@ -1,7 +1,8 @@
-package com.tecdo.fsm.context;
+package com.tecdo.fsm.context.state;
 
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
+import com.tecdo.fsm.context.Context;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;

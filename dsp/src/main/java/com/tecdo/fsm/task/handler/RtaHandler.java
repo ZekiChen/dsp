@@ -1,4 +1,4 @@
-package com.tecdo.service.task;
+package com.tecdo.fsm.task.handler;
 
 import com.tecdo.adm.api.delivery.entity.RtaInfo;
 import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
@@ -31,7 +31,7 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class RtaService {
+public class RtaHandler {
 
     private final ThreadPool threadPool;
     private final MessageQueue messageQueue;

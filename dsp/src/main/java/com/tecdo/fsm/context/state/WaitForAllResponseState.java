@@ -1,7 +1,8 @@
-package com.tecdo.fsm.context;
+package com.tecdo.fsm.context.state;
 
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
+import com.tecdo.fsm.context.Context;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,8 +24,7 @@ public class WaitForAllResponseState implements IContextState {
     switch (eventType) {
       case BID_TASK_FINISH:
         context.saveTaskResponse(params);
-        boolean receiveAllTaskResponse = context.isReceiveAllTaskResponse();
-        if (receiveAllTaskResponse) {
+        if (context.isReceiveAllTaskResponse()) {
           context.tick("context-distinct");
           context.cancelTimer(EventType.WAIT_TASK_RESPONSE_TIMEOUT);
           context.distinct();

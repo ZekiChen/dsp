@@ -16,10 +16,10 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.fsm.task.state.ITaskState;
 import com.tecdo.fsm.task.state.InitState;
 import com.tecdo.service.rta.Target;
-import com.tecdo.service.task.AdRecallService;
-import com.tecdo.service.task.PredictService;
-import com.tecdo.service.task.PriceCalcService;
-import com.tecdo.service.task.RtaService;
+import com.tecdo.fsm.task.handler.AdRecallHandler;
+import com.tecdo.fsm.task.handler.PredictHandler;
+import com.tecdo.fsm.task.handler.PriceCalcHandler;
+import com.tecdo.fsm.task.handler.RtaHandler;
 import com.tecdo.util.ActionConsumeRecorder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -49,10 +49,10 @@ public class Task {
     private int rtaResponseCount = 0;
     private final int rtaResponseNeed = 3;
 
-    private final AdRecallService adRecallService = SpringUtil.getBean(AdRecallService.class);
-    private final PredictService predictService = SpringUtil.getBean(PredictService.class);
-    private final PriceCalcService priceCalcService = SpringUtil.getBean(PriceCalcService.class);
-    private final RtaService rtaService = SpringUtil.getBean(RtaService.class);
+    private final AdRecallHandler adRecallHandler = SpringUtil.getBean(AdRecallHandler.class);
+    private final PredictHandler predictHandler = SpringUtil.getBean(PredictHandler.class);
+    private final PriceCalcHandler priceCalcHandler = SpringUtil.getBean(PriceCalcHandler.class);
+    private final RtaHandler rtaHandler = SpringUtil.getBean(RtaHandler.class);
 
     private final ThreadPool threadPool = SpringUtil.getBean(ThreadPool.class);
     private final SoftTimer softTimer = SpringUtil.getBean(SoftTimer.class);
@@ -139,7 +139,7 @@ public class Task {
     }
 
     public void adRecall(boolean recallBatchEnable) {
-        adRecallService.adRecall(assignParams(),
+        adRecallHandler.adRecall(assignParams(),
                 this.bidRequest, this.imp, this.affiliate, recallBatchEnable);
     }
 
@@ -150,7 +150,7 @@ public class Task {
     }
 
     public void callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap) {
-        this.needReceiveCount = predictService.callPredictApi(adDTOMap, assignParams(),
+        this.needReceiveCount = predictHandler.callPredictApi(adDTOMap, assignParams(),
                 this.bidRequest, this.imp, this.affiliate, this.needReceiveCount);
     }
 
@@ -164,7 +164,7 @@ public class Task {
     }
 
     public void calcPrice() {
-        priceCalcService.calcPrice(assignParams(), this.afterPredictAdMap,
+        priceCalcHandler.calcPrice(assignParams(), this.afterPredictAdMap,
                 this.bidRequest, this.imp, this.affiliate);
     }
 
@@ -193,7 +193,7 @@ public class Task {
     }
 
     public void requestRta() {
-        rtaService.requestRta(assignParams(), afterPriceFilterAdMap, this.bidRequest);
+        rtaHandler.requestRta(assignParams(), afterPriceFilterAdMap, this.bidRequest);
     }
 
     public boolean rtaResponseFinish() {
