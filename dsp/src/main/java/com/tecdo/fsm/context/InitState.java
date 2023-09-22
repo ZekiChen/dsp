@@ -27,7 +27,6 @@ public class InitState implements IContextState {
                            context.assignParams(),
                            timeoutTaskResponse);
         context.switchState(waitForAllResponseState);
-
         break;
       default:
         log.error("can't handel event:{}", eventType);

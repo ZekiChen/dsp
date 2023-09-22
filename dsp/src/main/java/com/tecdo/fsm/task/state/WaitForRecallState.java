@@ -33,14 +33,14 @@ public class WaitForRecallState implements ITaskState {
     switch (eventType) {
       case ADS_RECALL_FINISH:
         task.cancelTimer(EventType.ADS_RECALL_TIMEOUT);
-        Map<Integer, AdDTOWrapper> adDTOMap = params.get(ParamKey.ADS_RECALL_RESPONSE);
-        if (adDTOMap.isEmpty()) {
-          task.filerAdAndNotifySuccess(adDTOMap);
+        Map<Integer, AdDTOWrapper> afterRecallAdMap = params.get(ParamKey.ADS_RECALL_RESPONSE);
+        if (afterRecallAdMap.isEmpty()) {
+          task.impNotBid();
           task.switchState(waitForRecycleState);
           return;
         }
         task.tick("task-ad-predict");
-        task.callPredictApi(adDTOMap);
+        task.callPredictApi(afterRecallAdMap);
         task.startTimer(EventType.PREDICT_TIMEOUT, params, timeoutPCtr);
         task.switchState(waitForPredictState);
         break;

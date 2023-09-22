@@ -12,11 +12,11 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class WaitForAllResponseState implements IContextState {
 
-  private final WaitForRtaState waitForRtaState;
+  private final WaitForDistinctState waitForDistinctState;
   private final WaitForRecycleState waiForRecycleState;
 
-  @Value("${pac.timeout.context.rta.response}")
-  private long timeoutRtaResponse;
+  @Value("${pac.timeout.context.ad-distinct}")
+  private long distinctTimeout;
 
   @Override
   public void handleEvent(EventType eventType, Params params, Context context) {
@@ -25,29 +25,14 @@ public class WaitForAllResponseState implements IContextState {
         context.saveTaskResponse(params);
         boolean receiveAllTaskResponse = context.isReceiveAllTaskResponse();
         if (receiveAllTaskResponse) {
+          context.tick("context-distinct");
           context.cancelTimer(EventType.WAIT_TASK_RESPONSE_TIMEOUT);
-          if (context.checkTaskResponse()) {
-            context.tick("context-rta-request");
-            context.requestRta();
-            context.startTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT,
-                               context.assignParams(),
-                               timeoutRtaResponse);
-            context.switchState(waitForRtaState);
-          } else {
-            context.switchState(waiForRecycleState);
-            context.responseData();
-            context.requestComplete();
-          }
+          context.distinct();
+          context.startTimer(EventType.DISTINCT_AD_TIMEOUT, context.assignParams(), distinctTimeout);
+          context.switchState(waitForDistinctState);
         }
         break;
-      // 这里简单处理，对于多个task，要求全部成功，只要超时或者一个task失败，则认为整个请求失败了
       case WAIT_TASK_RESPONSE_TIMEOUT:
-        context.switchState(waiForRecycleState);
-        context.responseData();
-        context.requestComplete();
-        break;
-      case BID_TASK_FAILED:
-        context.cancelTimer(EventType.WAIT_TASK_RESPONSE_TIMEOUT);
         context.switchState(waiForRecycleState);
         context.responseData();
         context.requestComplete();
@@ -62,7 +47,20 @@ public class WaitForAllResponseState implements IContextState {
       case CALC_CPC_FINISH:
       case CALC_CPC_ERROR:
       case CALC_CPC_TIMEOUT:
+      case PRICE_FILTER_FINISH:
+      case PRICE_FILTER_TIMEOUT:
+      case REQUEST_RTA_RESPONSE:
+      case WAIT_REQUEST_RTA_RESPONSE_ERROR:
+      case WAIT_REQUEST_RTA_RESPONSE_TIMEOUT:
+      case SORT_AD_RESPONSE:
+      case WAIT_SORT_AD_TIMEOUT:
         context.dispatchToTask(eventType, params);
+        break;
+      case BID_TASK_FAILED:
+        context.cancelTimer(EventType.WAIT_TASK_RESPONSE_TIMEOUT);
+        context.switchState(waiForRecycleState);
+        context.responseData();
+        context.requestComplete();
         break;
       default:
         log.error("can't handel event:{}", eventType);

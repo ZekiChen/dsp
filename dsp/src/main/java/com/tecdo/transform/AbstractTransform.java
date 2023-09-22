@@ -1,6 +1,5 @@
 package com.tecdo.transform;
 
-import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
@@ -28,10 +27,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
+import java.util.stream.Collectors;
 
 @Component
 public abstract class AbstractTransform implements IProtoTransform {
@@ -40,10 +37,11 @@ public abstract class AbstractTransform implements IProtoTransform {
     private final String impUrl = SpringUtil.getProperty("pac.notice.imp-url");
     private final String clickUrl = SpringUtil.getProperty("pac.notice.click-url");
     private final String lossUrl = SpringUtil.getProperty("pac.notice.loss-url");
+    private final String impInfoUrl = SpringUtil.getProperty("pac.notice.imp-info-url");
+
     private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
     private final String VIVO_AUCTION_PRICE_PARAM = "&bid_success_price=${WIN_PRICE}";
     private final String AUCTION_LOSS_PARAM = "&loss_code=${AUCTION_LOSS}";
-    private final String impInfoUrl = SpringUtil.getProperty("pac.notice.imp-info-url");
 
     @Value("${pac.ae.rta.deeplink.ratio}")
     private Double aeDeeplinkRatio;
@@ -68,16 +66,19 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     @Override
     public ResponseTypeEnum getResponseType(String forceLink, AdDTOWrapper wrapper) {
-        AdDTO adDTO = wrapper.getAdDTO();
-        if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())
-                && forceBannerEnable()
-                && adDTO.getAdGroup().getForceJumpEnable()
-                && StringUtils.isNotBlank(forceLink)
-                && Math.random() < adDTO.getAdGroup().getForceJumpRatio()) {
+        if (isForceJump(forceLink, wrapper.getAdDTO())) {
             wrapper.setResponseTypeEnum(ResponseTypeEnum.FORCE);
             return ResponseTypeEnum.FORCE;
         }
         return ResponseTypeEnum.NORMAL;
+    }
+
+    private boolean isForceJump(String forceLink, AdDTO adDTO) {
+        return Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())
+                && forceBannerEnable()
+                && adDTO.getAdGroup().getForceJumpEnable()
+                && StringUtils.isNotBlank(forceLink)
+                && Math.random() < adDTO.getAdGroup().getForceJumpRatio();
     }
 
     @Override
@@ -105,9 +106,24 @@ public abstract class AbstractTransform implements IProtoTransform {
         return bidRequest;
     }
 
-    public BidResponse responseTransform(AdDTOWrapper wrapper,
+    public BidResponse responseTransform(Map<String, AdDTOWrapper> impBidAdMap,
                                          BidRequest bidRequest,
                                          Affiliate affiliate) {
+        List<Bid> bids = impBidAdMap.values().stream()
+                .map(w -> buildBid(bidRequest, affiliate, w))
+                .collect(Collectors.toList());
+        SeatBid seatBid = new SeatBid();
+        seatBid.setBid(bids);
+        seatBid.setSeat("agency");
+
+        BidResponse bidResponse = new BidResponse();
+        bidResponse.setId(bidRequest.getId());
+        bidResponse.setBidid(bids.get(0).getId());
+        bidResponse.setSeatbid(Collections.singletonList(seatBid));
+        return bidResponse;
+    }
+
+    private Bid buildBid(BidRequest bidRequest, Affiliate affiliate, AdDTOWrapper wrapper) {
         AdDTO adDTO = wrapper.getAdDTO();
         String bidId = wrapper.getBidId();
         Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
@@ -120,11 +136,8 @@ public abstract class AbstractTransform implements IProtoTransform {
 
         String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
         String winUrl = ParamHelper.urlFormat(this.winUrl, sign, wrapper, bidRequest, affiliate);
-        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
-            winUrl = winUrl + VIVO_AUCTION_PRICE_PARAM;
-        } else {
-            winUrl = winUrl + AUCTION_PRICE_PARAM;
-        }
+        winUrl = winUrl.concat(affiliate.getApi().equals(ProtoTransformFactory.VIVO) ?
+                VIVO_AUCTION_PRICE_PARAM : AUCTION_PRICE_PARAM);
         // 判断当前 ADX 是否支持 loss notice，支持则将回调的 loss ep 设置至 lurl
         if (useLossUrl()) {
             String lossUrl =
@@ -163,16 +176,7 @@ public abstract class AbstractTransform implements IProtoTransform {
         if (AdTypeEnum.VIDEO.getType() == creative.getType()) {
             bid.setProtocol(VideoProtocolEnum.VAST_4.getType());
         }
-
-        SeatBid seatBid = new SeatBid();
-        seatBid.setBid(Collections.singletonList(bid));
-        seatBid.setSeat("agency");
-
-        BidResponse bidResponse = new BidResponse();
-        bidResponse.setId(bidRequest.getId());
-        bidResponse.setBidid(bidId);
-        bidResponse.setSeatbid(Collections.singletonList(seatBid));
-        return bidResponse;
+        return bid;
     }
 
     private Object buildAdm(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate) {
@@ -192,10 +196,10 @@ public abstract class AbstractTransform implements IProtoTransform {
                 ParamHelper.urlFormat(adDTO.getAdGroup().getForceLink(), sign, wrapper, bidRequest, affiliate);
 
         String clickUrl;
-        if (StrUtil.isNotBlank(wrapper.getLandingPage())) {  // 当前流量命中 AE RTA 受众
+        if (AeHelper.isAeAudience(wrapper)) {  // 当前流量命中 AE RTA 受众
             String deviceId = bidRequest.getDevice().getIfa();
             clickUrl = AeHelper.landingPageFormat(wrapper.getLandingPage(), wrapper, sign, deviceId, affiliate.getId());
-            if (StrUtil.isNotBlank(wrapper.getDeeplink()) && Math.random() * 100 < aeDeeplinkRatio) {
+            if (AeHelper.isUseDeeplink(wrapper, aeDeeplinkRatio)) {
                 deepLink = AeHelper.landingPageFormat(wrapper.getDeeplink(), wrapper, sign, deviceId, affiliate.getId());
                 wrapper.setUseDeeplink(true);
             }
