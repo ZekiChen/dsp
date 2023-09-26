@@ -94,6 +94,8 @@ public class CreativeHelper {
                     bidCreative.setHeight(hSb.delete(hSb.length() - 1, hSb.length()).toString().split(StrUtil.COMMA)[0]);
                 }
             }
+        } else if (imp.getImpType() == 1) {
+            bidCreative.setType(AdTypeEnum.NATIVE.getType());
         } else {
             log.error("imp type error, imp id: {}", imp.getId());
         }

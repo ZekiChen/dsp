@@ -86,23 +86,16 @@ public enum EventType {
   RECEIVE_LOSS_NOTICE(3008, "receive loss notice"),
   RECEIVE_SDK_PB_NOTICE(3009, "receive sdk pb notice"),
 
-  BID_TASK_FINISH(3101, "bid task finish"),
-  BID_TASK_FAILED(3102, "bid task failed"),
-  WAIT_TASK_RESPONSE_TIMEOUT(3103, "wait task response timeout"),
+  TASK_START(3101, "task start"),
+  BID_TASK_FINISH(3102, "bid task finish"),
+  BID_TASK_FAILED(3103, "bid task failed"),
+  WAIT_TASK_RESPONSE_TIMEOUT(3104, "wait task response timeout"),
 
-  WAIT_REQUEST_RTA_RESPONSE_TIMEOUT(3201, "wait request rta response timeout"),
-  REQUEST_RTA_RESPONSE(3202, "request rta response"),
-  WAIT_REQUEST_RTA_RESPONSE_ERROR(3203, "wait request rta response error"),
+  BID_REQUEST_COMPLETE(3105, "bid request complete"),
 
-  WAIT_SORT_AD_TIMEOUT(3301, "wait sort ad timeout"),
-  SORT_AD_RESPONSE(3302, "sort ad response"),
-
-  BID_REQUEST_COMPLETE(3100, "bid request complete"),
-
-  TASK_START(4001, "task start"),
-  ADS_RECALL_FINISH(4002, "ads recall finish"),
-  ADS_RECALL_ERROR(4003, "ads recall error"),
-  ADS_RECALL_TIMEOUT(4004, "ads recall timeout"),
+  ADS_RECALL_FINISH(4001, "ads recall finish"),
+  ADS_RECALL_ERROR(4002, "ads recall error"),
+  ADS_RECALL_TIMEOUT(4003, "ads recall timeout"),
 
   PREDICT_FINISH(4101, "ctr predict finish"),
   PREDICT_ERROR(4102, "ctr predict error"),
@@ -111,6 +104,19 @@ public enum EventType {
   CALC_CPC_FINISH(4201, "calculate cpc finish"),
   CALC_CPC_ERROR(4202, "calculate cpc error"),
   CALC_CPC_TIMEOUT(4203, "calculate cpc timeout"),
+
+  PRICE_FILTER_FINISH(4301, "bid price filter finish"),
+  PRICE_FILTER_TIMEOUT(4302, "bid price filter finish"),
+
+  REQUEST_RTA_RESPONSE(4401, "request rta response"),
+  WAIT_REQUEST_RTA_RESPONSE_ERROR(4402, "wait request rta response error"),
+  WAIT_REQUEST_RTA_RESPONSE_TIMEOUT(4403, "wait request rta response timeout"),
+
+  SORT_AD_RESPONSE(4501, "sort ad response"),
+  WAIT_SORT_AD_TIMEOUT(4502, "wait sort ad timeout"),
+
+  DISTINCT_AD_RESPONSE(4601, "distinct ad response"),
+  DISTINCT_AD_TIMEOUT(4602, "distinct ad timeout"),
 
   RESPONSE_RESULT(6001, "response result"),
   ;

@@ -6,11 +6,13 @@ import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.response.BidResponse;
 
+import java.util.Map;
+
 public interface IProtoTransform {
 
   BidRequest requestTransform(String req);
 
-  BidResponse responseTransform(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate);
+  BidResponse responseTransform(Map<String, AdDTOWrapper> impBidAdMap, BidRequest bidRequest, Affiliate affiliate);
 
   ResponseTypeEnum getResponseType(String forceLink, AdDTOWrapper wrapper);
 

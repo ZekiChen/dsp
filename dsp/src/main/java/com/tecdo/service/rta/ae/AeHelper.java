@@ -1,5 +1,6 @@
 package com.tecdo.service.rta.ae;
 
+import cn.hutool.core.util.StrUtil;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.util.CreativeHelper;
 
@@ -23,5 +24,13 @@ public class AeHelper {
                 .replace(AeFormatKey.CAMPAIGN_ADGROUP_AD_CREATIVE, campaignId + "_" + adGroupId + "_" + adId + "_" + creativeId)
                 .replace(AeFormatKey.DEVICE_ID, deviceId)
                 .replace(AeFormatKey.AFFILIATE_ID, affiliateId.toString());
+    }
+
+    public static boolean isAeAudience(AdDTOWrapper wrapper) {
+        return StrUtil.isNotBlank(wrapper.getLandingPage());
+    }
+
+    public static boolean isUseDeeplink(AdDTOWrapper wrapper, Double aeDeeplinkRatio) {
+        return StrUtil.isNotBlank(wrapper.getDeeplink()) && Math.random() * 100 < aeDeeplinkRatio;
     }
 }

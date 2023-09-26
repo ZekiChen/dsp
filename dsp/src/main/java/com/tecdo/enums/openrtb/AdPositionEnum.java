@@ -19,7 +19,11 @@ public enum AdPositionEnum {
     HEADER("4", "Header"),
     FOOTER("5", "Footer"),
     SIDEBAR("6", "Sidebar"),
-    FULL_SCREEN("7", "Full Screen");
+    FULL_SCREEN("7", "Full Screen"),
+
+    // 非标准协议，用于自定义处理
+    OTHER("8", "Other"),
+    ;
 
     private final String value;
     private final String desc;

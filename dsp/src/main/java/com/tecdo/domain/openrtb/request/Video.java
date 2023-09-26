@@ -138,7 +138,7 @@ public class Video extends Extension {
      * 广告在屏幕上的位置
      * @see AdPositionEnum
      */
-    private Integer pos;
+    private Integer pos = 0;
 
     /**
      * 如果支持复合广告，表示一组Banner对象

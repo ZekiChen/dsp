@@ -108,4 +108,26 @@ public class Imp extends Extension {
      * 关于拍卖和实际展示之间可能经过的秒数的咨询
      */
     private Integer exp;
+
+    /**
+     * VIVO自定义协议
+     * 曝光类型：1-native；其他类型后续支持
+     */
+    private Integer impType;
+
+    /**
+     * VIVO自定义协议
+     * 本次展示的最低竞拍价格，cpm出价，单位美分，仅仅支持整数
+     */
+    private Float bidFloor = 0F;
+
+    /**
+     * Imp对象存在 bidfloor（标准协议）和 bidFloor（VIVO自定义协议），这里如果不加下面两个 getter 会导致编译不通过
+     */
+    public Float getBidfloor() {
+        return bidfloor;
+    }
+    public Float getBidFloor() {
+        return bidFloor;
+    }
 }

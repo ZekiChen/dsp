@@ -2,6 +2,7 @@ package com.tecdo.domain.openrtb.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.tecdo.domain.openrtb.base.Extension;
+import com.tecdo.domain.openrtb.response.custom.vivo.VivoTrack;
 import com.tecdo.enums.openrtb.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -159,4 +160,10 @@ public class Bid extends Extension {
      * 关于竞标者愿意在拍卖和实际展示之间等待的秒数的咨询。
      */
     private Integer exp;
+
+    /**
+     * VIVO自定义协议
+     * 监测url
+     */
+    private List<VivoTrack> trackUrls;
 }
