@@ -26,6 +26,7 @@ public class RecallFiltersFactory {
     private final DeviceLangFilter deviceLangFilter;
     private final CreativeFormatFilter creativeFormatFilter;
     private final AdPositionFilter adPositionFilter;
+    private final InterstitialFilter interstitialFilter;
     private final DeviceCountryFilter deviceCountryFilter;
     private final DeviceMakeFilter deviceMakeFilter;
     private final DeviceOSFilter deviceOSFilter;
@@ -44,6 +45,7 @@ public class RecallFiltersFactory {
                                 DeviceLangFilter deviceLangFilter,
                                 CreativeFormatFilter creativeFormatFilter,
                                 AdPositionFilter adPositionFilter,
+                                InterstitialFilter interstitialFilter,
                                 DeviceCountryFilter deviceCountryFilter,
                                 DeviceMakeFilter deviceMakeFilter,
                                 DeviceOSFilter deviceOSFilter,
@@ -61,6 +63,7 @@ public class RecallFiltersFactory {
         this.deviceLangFilter = deviceLangFilter;
         this.creativeFormatFilter = creativeFormatFilter;
         this.adPositionFilter = adPositionFilter;
+        this.interstitialFilter = interstitialFilter;
         this.deviceCountryFilter = deviceCountryFilter;
         this.deviceMakeFilter = deviceMakeFilter;
         this.deviceOSFilter = deviceOSFilter;
@@ -81,6 +84,7 @@ public class RecallFiltersFactory {
                 deviceOSVFilter,
                 creativeFormatFilter,
                 adPositionFilter,
+                interstitialFilter,
                 deviceMakeFilter,
                 connectTypeFilter,
                 deviceLangFilter,
