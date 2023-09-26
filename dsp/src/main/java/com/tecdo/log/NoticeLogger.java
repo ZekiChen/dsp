@@ -1,9 +1,5 @@
 package com.tecdo.log;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.SecureUtil;
 import com.google.common.net.HttpHeaders;
 import com.tecdo.constant.AffiliateConstant;
 import com.tecdo.constant.RequestKey;
@@ -15,8 +11,9 @@ import com.tecdo.service.ValidateCode;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.JsonHelper;
-import lombok.RequiredArgsConstructor;
+
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
@@ -25,7 +22,17 @@ import org.springframework.util.StringUtils;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.SecureUtil;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Created by Zeki on 2023/5/5
@@ -157,8 +164,14 @@ public class NoticeLogger {
         map.put("ad_id", info.getAdId());
         map.put("creative_id", info.getCreativeId());
 
-        if (info.getEventType() != null) {
-            map.put(info.getEventType(), 1);
+        if (Strings.isNotBlank(info.getOrderNumber()) && info.getAdEstimatedCommission() != null) {
+            map.put(RequestKey.EVENT_11, 1);
+            map.put("order_number", info.getOrderNumber());
+            map.put("ad_estimated_commission", info.getAdEstimatedCommission());
+        } else {
+            if (info.getEventType() != null) {
+                map.put(info.getEventType(), 1);
+            }
         }
 
         if (RequestPath.PB_AE.equals(httpRequest.getPath())) {
