@@ -36,6 +36,10 @@ public class NoticeInfo implements Serializable {
 
     private ValidateCode validateCode;
 
+    // 以下字段时cps特有的
+    private String orderNumber;
+    private Double adEstimatedCommission;
+
     // 以下数据是ae特有的
     private Boolean isRealtime;
     /**
@@ -85,6 +89,8 @@ public class NoticeInfo implements Serializable {
         info.setEventType(httpRequest.getParamAsStr(RequestKey.EVENT_TYPE));
         info.setBidSuccessPrice(httpRequest.getParamAsStr(RequestKey.BID_SUCCESS_PRICE));
         info.setLossCode(httpRequest.getParamAsInt(RequestKey.LOSS_CODE));
+        info.setOrderNumber(httpRequest.getParamAsStr(RequestKey.ORDER_NUMBER));
+        info.setAdEstimatedCommission(httpRequest.getParamAsDouble(RequestKey.AD_ESTIMATED_COMMISSION));
         return info;
     }
 }
