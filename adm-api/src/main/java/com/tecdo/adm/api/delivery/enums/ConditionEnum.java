@@ -27,6 +27,8 @@ public enum ConditionEnum {
     HOUR("hour"),
     AUDIENCE_AF("audience_af"),
     AFFILIATE_BLOCKED_AD("affiliate_blocked_ad"),
+    AD_POSITION("pos"),
+    INTERSTITIAL("instl"),
     ;
 
     private final String desc;

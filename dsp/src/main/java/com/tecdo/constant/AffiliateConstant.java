@@ -5,6 +5,5 @@ package com.tecdo.constant;
  */
 public interface AffiliateConstant {
 
-    String VIVO_BUNDLE_KEYWORD = "vivo";
     String VIVO_EKEY = "";  // TODO
 }
