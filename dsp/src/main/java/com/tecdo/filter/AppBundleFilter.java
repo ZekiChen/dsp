@@ -5,7 +5,6 @@ import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
-import com.tecdo.constant.AffiliateConstant;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -45,8 +44,7 @@ public class AppBundleFilter extends AbstractRecallFilter {
             return false;
         }
         if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
-            return bundleCond != null &&
-                    bundleCond.getValue().contains(AffiliateConstant.VIVO_BUNDLE_KEYWORD);
+            return true;
         }
         List<String> tarBundles = new ArrayList<>();
         if (categoryCond != null) {
