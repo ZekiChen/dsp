@@ -10,7 +10,6 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.util.ConditionHelper;
 import com.tecdo.service.init.GooglePlayAppManager;
-import com.tecdo.transform.ProtoTransformFactory;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -42,9 +41,6 @@ public class AppBundleFilter extends AbstractRecallFilter {
         String sourceBundle = bidRequest.getApp().getBundle();
         if (StrUtil.isBlank(sourceBundle)) {
             return false;
-        }
-        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
-            return true;
         }
         List<String> tarBundles = new ArrayList<>();
         if (categoryCond != null) {
