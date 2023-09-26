@@ -171,23 +171,21 @@ public class Context {
   }
 
   public void distinct() {
-    threadPool.execute(() -> {
-      Map<String, AdDTOWrapper> impBidAdMap = new HashMap<>();
-      Set<Integer> hasBidAdId = new HashSet<>();
-      for (Map.Entry<String, List<AdDTOWrapper>> entry : taskResponse.entrySet()) {
-        String taskId = entry.getKey();
-        List<AdDTOWrapper> afterSortAds = entry.getValue();
-        for (AdDTOWrapper wrapper : afterSortAds) {
-          Integer adId = wrapper.getAdDTO().getAd().getId();
-          if (!impBidAdMap.containsKey(taskId) && !hasBidAdId.contains(adId)) {
-            hasBidAdId.add(adId);
-            impBidAdMap.put(taskId, wrapper);
-          }
+    Map<String, AdDTOWrapper> impBidAdMap = new HashMap<>();
+    Set<Integer> hasBidAdId = new HashSet<>();
+    for (Map.Entry<String, List<AdDTOWrapper>> entry : taskResponse.entrySet()) {
+      String taskId = entry.getKey();
+      List<AdDTOWrapper> afterSortAds = entry.getValue();
+      for (AdDTOWrapper wrapper : afterSortAds) {
+        Integer adId = wrapper.getAdDTO().getAd().getId();
+        if (!impBidAdMap.containsKey(taskId) && !hasBidAdId.contains(adId)) {
+          hasBidAdId.add(adId);
+          impBidAdMap.put(taskId, wrapper);
         }
       }
-      messageQueue.putMessage(EventType.DISTINCT_AD_RESPONSE,
-              assignParams().put(ParamKey. DISTINCT_AD_RESPONSE, impBidAdMap));
-    });
+    }
+    messageQueue.putMessage(EventType.DISTINCT_AD_RESPONSE,
+            assignParams().put(ParamKey. DISTINCT_AD_RESPONSE, impBidAdMap));
   }
 
   public void saveDistinctResponse(Params params) {
