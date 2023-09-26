@@ -9,7 +9,6 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -54,7 +53,6 @@ public class Task {
     private final PriceCalcHandler priceCalcHandler = SpringUtil.getBean(PriceCalcHandler.class);
     private final RtaHandler rtaHandler = SpringUtil.getBean(RtaHandler.class);
 
-    private final ThreadPool threadPool = SpringUtil.getBean(ThreadPool.class);
     private final SoftTimer softTimer = SpringUtil.getBean(SoftTimer.class);
     private final MessageQueue messageQueue = SpringUtil.getBean(MessageQueue.class);
     private final Map<EventType, Long> eventTimerMap = new HashMap<>();
