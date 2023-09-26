@@ -59,7 +59,7 @@ public class Task {
     private final MessageQueue messageQueue = SpringUtil.getBean(MessageQueue.class);
     private final Map<EventType, Long> eventTimerMap = new HashMap<>();
     private final Map<Integer, AdDTOWrapper> afterPredictAdMap = new HashMap<>();
-    private Map<Integer, AdDTOWrapper> afterPriceFilterAdMap;
+    private Map<Integer, AdDTOWrapper> afterPriceFilterAdMap = new HashMap<>();
     private List<AdDTOWrapper> normalOrRtaTrueAds = Collections.emptyList();
 
     private ActionConsumeRecorder recorder = new ActionConsumeRecorder();
