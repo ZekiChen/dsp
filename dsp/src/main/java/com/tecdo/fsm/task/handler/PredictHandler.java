@@ -76,8 +76,7 @@ public class PredictHandler {
     private final GooglePlayAppManager googlePlayAppManager;
 
     public int callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap, Params params,
-                              BidRequest bidRequest, Imp imp, Affiliate affiliate,
-                              int needReceiveCount) {
+                              BidRequest bidRequest, Imp imp, Affiliate affiliate) {
         Map<Integer, AdDTOWrapper> cpcMap = new HashMap<>();
         Map<Integer, AdDTOWrapper> cpaMap = new HashMap<>();
         Map<Integer, AdDTOWrapper> cpa1Map = new HashMap<>();
@@ -116,12 +115,12 @@ public class PredictHandler {
                     noNeedPredict.put(k, v);
             }
         });
-        needReceiveCount = callAndMetricPredict(cpcMap, "ctr-batch-size", ctrPredictUrl, params, bidRequest, imp, affiliate, needReceiveCount);
-        needReceiveCount = callAndMetricPredict(cpaMap, "cvr-batch-size", cvrPredictUrl, params, bidRequest, imp, affiliate, needReceiveCount);
-        needReceiveCount = callAndMetricPredict(cpa1Map, "cvr-event1-batch-size", cvrEvent1PredictUrl, params, bidRequest, imp, affiliate, needReceiveCount);
-        needReceiveCount = callAndMetricPredict(cpa2Map, "cvr-event2-batch-size", cvrEvent2PredictUrl, params, bidRequest, imp, affiliate, needReceiveCount);
-        needReceiveCount = callAndMetricPredict(cpa3Map, "cvr-event3-batch-size", cvrEvent3PredictUrl, params, bidRequest, imp, affiliate, needReceiveCount);
-        needReceiveCount = callAndMetricPredict(cpa10Map, "cvr-event10-batch-size", cvrEvent10PredictUrl, params, bidRequest, imp, affiliate, needReceiveCount);
+        int needReceiveCount = callAndMetricPredict(cpcMap, "ctr-batch-size", ctrPredictUrl, params, bidRequest, imp, affiliate)
+                + callAndMetricPredict(cpaMap, "cvr-batch-size", cvrPredictUrl, params, bidRequest, imp, affiliate)
+                + callAndMetricPredict(cpa1Map, "cvr-event1-batch-size", cvrEvent1PredictUrl, params, bidRequest, imp, affiliate)
+                + callAndMetricPredict(cpa2Map, "cvr-event2-batch-size", cvrEvent2PredictUrl, params, bidRequest, imp, affiliate)
+                + callAndMetricPredict(cpa3Map, "cvr-event3-batch-size", cvrEvent3PredictUrl, params, bidRequest, imp, affiliate)
+                + callAndMetricPredict(cpa10Map, "cvr-event10-batch-size", cvrEvent10PredictUrl, params, bidRequest, imp, affiliate);
 
         messageQueue.putMessage(EventType.PREDICT_FINISH,
                 params.put(ParamKey.ADS_PREDICT_RESPONSE, noNeedPredict));
@@ -130,15 +129,14 @@ public class PredictHandler {
 
     private int callAndMetricPredict(Map<Integer, AdDTOWrapper> adDTOMap,
                                      String metric, String predictUrl,
-                                     Params params, BidRequest bidRequest, Imp imp, Affiliate affiliate,
-                                     int needReceiveCount) {
+                                     Params params, BidRequest bidRequest, Imp imp, Affiliate affiliate) {
 
         if (!adDTOMap.isEmpty()) {
             Cat.logMetricForDuration(metric, adDTOMap.size());
             threadPool.execute(() -> doCallPredict(adDTOMap, params, bidRequest, imp, affiliate.getId(), predictUrl));
-            ++needReceiveCount;
+            return 1;
         }
-        return needReceiveCount;
+        return 0;
     }
 
     private void doCallPredict(Map<Integer, AdDTOWrapper> adDTOMap,

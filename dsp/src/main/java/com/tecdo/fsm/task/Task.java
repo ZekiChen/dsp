@@ -151,7 +151,7 @@ public class Task {
 
     public void callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap) {
         this.needReceiveCount = predictHandler.callPredictApi(adDTOMap, assignParams(),
-                this.bidRequest, this.imp, this.affiliate, this.needReceiveCount);
+                this.bidRequest, this.imp, this.affiliate);
     }
 
     public void savePredictResponse(Map<Integer, AdDTOWrapper> adDTOMap) {
@@ -243,11 +243,9 @@ public class Task {
     }
 
     public void sort() {
-        threadPool.execute(() -> {
-            normalOrRtaTrueAds.sort(Comparator.comparing(AdDTOWrapper::getBidPrice).reversed());
-            messageQueue.putMessage(EventType.SORT_AD_RESPONSE,
-                    assignParams().put(ParamKey.SORT_AD_RESPONSE, normalOrRtaTrueAds));
-        });
+        normalOrRtaTrueAds.sort(Comparator.comparing(AdDTOWrapper::getBidPrice).reversed());
+        messageQueue.putMessage(EventType.SORT_AD_RESPONSE,
+                assignParams().put(ParamKey.SORT_AD_RESPONSE, normalOrRtaTrueAds));
     }
 
     public void saveSortAdResponse(Params params) {
