@@ -53,14 +53,16 @@ public class RtaHandler {
             }
         });
 
-        try {
-            Map<Integer, Target> rtaResMap = doRequestRtaByAE(afterPriceFilterAdMap, bidRequest);
-            messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
-                    params.put(ParamKey.REQUEST_AE_RTA_RESPONSE, rtaResMap));
-        } catch (Exception e) {
-            log.error("contextId: {}, request ae rta cause a exception:", requestId, e);
-            messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
-        }
+        threadPool.execute(() -> {
+            try {
+                Map<Integer, Target> rtaResMap = doRequestRtaByAE(afterPriceFilterAdMap, bidRequest);
+                messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
+                        params.put(ParamKey.REQUEST_AE_RTA_RESPONSE, rtaResMap));
+            } catch (Exception e) {
+                log.error("contextId: {}, request ae rta cause a exception:", requestId, e);
+                messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
+            }
+        });
 
         threadPool.execute(() -> {
             try {
