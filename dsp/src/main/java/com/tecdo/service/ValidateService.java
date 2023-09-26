@@ -13,7 +13,6 @@ import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
-import com.tecdo.domain.openrtb.request.Geo;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.log.ValidateLogger;
 import com.tecdo.server.request.HttpRequest;
@@ -22,7 +21,6 @@ import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.SignHelper;
-import com.tecdo.util.StringConfigUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.lang3.StringUtils;
@@ -97,7 +95,7 @@ public class ValidateService {
         }
 
         BidRequest bidRequest = protoTransform.requestTransform(httpRequest.getBody());
-        if (bidRequest == null || !validateBidRequest(bidRequest, affiliate)) {
+        if (bidRequest == null || !validateBidRequest(bidRequest)) {
             log.warn("validate bidRequest fail, affiliateId: {}, body: {}",
                     affiliate.getId(),
                     httpRequest.getBody());
@@ -198,7 +196,7 @@ public class ValidateService {
         return true;
     }
 
-    private boolean validateBidRequest(BidRequest bidRequest, Affiliate affiliate) {
+    private boolean validateBidRequest(BidRequest bidRequest) {
         // 目标渠道：目前只参与移动端流量的竞价
         if (bidRequest.getApp() == null) {
             return false;
@@ -206,9 +204,6 @@ public class ValidateService {
         // 设备信息都不传，不太合理
         if (bidRequest.getDevice() == null) {
             return false;
-        }
-        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
-            bidRequest.getDevice().setIfa(bidRequest.getDevice().getDid());
         }
         // 没有设备id或者设备id非法
         if (bidRequest.getDevice().getIfa() == null
@@ -225,10 +220,6 @@ public class ValidateService {
         if (bidRequest.getDevice().getGeo() == null) {
             return false;
         }
-        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
-            Geo geo = bidRequest.getDevice().getGeo();
-            geo.setCountry(StringConfigUtil.getCountryCode3(bidRequest.getDevice().getRegion()));
-        }
         // 没有国家信息
         if (bidRequest.getDevice().getGeo().getCountry() == null) {
             return false;
@@ -242,11 +233,8 @@ public class ValidateService {
         if (CollUtil.isEmpty(imps)) {
             return false;
         }
-        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
-            bidRequest.getImp().forEach(imp -> imp.setBidfloor(imp.getBidFloor() / 100));
-        }
         // banner / native / video / audio 四个对象只能存在一个
-        boolean existNonUnique = imps.stream().anyMatch(imp -> !CreativeHelper.isAdFormatUnique(imp, affiliate));
+        boolean existNonUnique = imps.stream().anyMatch(imp -> !CreativeHelper.isAdFormatUnique(imp));
         if (existNonUnique) {
             return false;
         }
