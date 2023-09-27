@@ -135,7 +135,7 @@ public class NoticeService {
             ResponseHelper.ok(messageQueue, params, httpRequest);
         } else {
             logValidateFailed(eventType, httpRequest, code, info);
-            ResponseHelper.badRequest(messageQueue, params, httpRequest);
+            ResponseHelper.ok(messageQueue, params, httpRequest);
         }
     }
 
@@ -148,7 +148,7 @@ public class NoticeService {
             ResponseHelper.ok(messageQueue, params, httpRequest);
         } else {
             logValidateFailed(eventType, httpRequest, code, info);
-            ResponseHelper.badRequest(messageQueue, params, httpRequest);
+            ResponseHelper.ok(messageQueue, params, httpRequest);
         }
     }
 
