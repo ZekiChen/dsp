@@ -23,25 +23,32 @@ import java.util.Arrays;
 @Component
 public class AdPositionFilter extends AbstractRecallFilter {
 
-    private static final String ATTRIBUTE = ConditionEnum.AD_POSITION.getDesc();
+    private static final String BANNER_POS = ConditionEnum.BANNER_POS.getDesc();
+    private static final String VIDEO_POS = ConditionEnum.VIDEO_POS.getDesc();
 
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-        TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
-        if (condition == null) {
+        TargetCondition bannerCond = adDTO.getConditionMap().get(BANNER_POS);
+        TargetCondition videoCond = adDTO.getConditionMap().get(VIDEO_POS);
+        if (bannerCond == null && videoCond == null) {
             return true;
         }
-        AdTypeEnum curAdTypeEnum = AdTypeEnum.of(adDTO.getAd().getType());
         Integer pos;
-        switch (curAdTypeEnum) {
+        switch (AdTypeEnum.of(adDTO.getAd().getType())) {
             case BANNER:
                 pos = imp.getBanner().getPos();
-                break;
+                return isMatchPos(bannerCond, pos);
             case VIDEO:
                 pos = imp.getVideo().getPos();
-                break;
+                return isMatchPos(videoCond, pos);
             default:
                 return true;
+        }
+    }
+
+    private static boolean isMatchPos(TargetCondition condition, Integer pos) {
+        if (condition == null) {
+            return true;
         }
         if (pos == Integer.parseInt(AdPositionEnum.UNKNOWN.getValue())
                 || pos == Integer.parseInt(AdPositionEnum.DEPRECATED.getValue())

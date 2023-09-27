@@ -27,8 +27,11 @@ public enum ConditionEnum {
     HOUR("hour"),
     AUDIENCE_AF("audience_af"),
     AFFILIATE_BLOCKED_AD("affiliate_blocked_ad"),
-    AD_POSITION("pos"),
-    INTERSTITIAL("instl"),
+    BANNER_POS("banner_pos"),
+    VIDEO_POS("video_pos"),
+    IMAGE_INSTL("image_instl"),
+    VIDEO_INSTL("video_instl"),
+    VIDEO_PLACEMENT("video_placement"),
     ;
 
     private final String desc;
