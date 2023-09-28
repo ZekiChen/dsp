@@ -2,6 +2,7 @@ package com.tecdo.job.util;
 
 import java.time.LocalDate;
 import java.time.ZoneId;
+import java.util.Calendar;
 import java.util.Date;
 
 /**
@@ -23,5 +24,19 @@ public class TimeZoneUtils {
         LocalDate currentDateChina = currentDateUTC.toInstant().atZone(zoneId).toLocalDate();
 
         return currentDateChina;
+    }
+
+    /**
+     * 获取到第二天需要多少秒
+     * @return 到第二天需要的秒数
+     */
+    public static Long getNowToNextDaySeconds() {
+        Calendar cal = Calendar.getInstance();
+        cal.add(Calendar.DAY_OF_YEAR, 1);
+        cal.set(Calendar.HOUR_OF_DAY, 0);
+        cal.set(Calendar.SECOND, 0);
+        cal.set(Calendar.MINUTE, 0);
+        cal.set(Calendar.MILLISECOND, 0);
+        return (cal.getTimeInMillis() - System.currentTimeMillis()) / 1000;
     }
 }
