@@ -39,11 +39,14 @@ public class Worker {
                       .collect(Collectors.toList());
   }
 
-  public void handle(int affSubCount, long totalCount, List<DeviceRecall> list, String url)
-    throws InterruptedException, UnsupportedEncodingException {
+  public void handle(int affSubCount,
+                     long totalCount,
+                     List<DeviceRecall> list,
+                     String url,
+                     boolean adjust) throws InterruptedException, UnsupportedEncodingException {
     for (DeviceRecall device : list) {
       control();
-      request(affSubCount, totalCount, device, url);
+      request(affSubCount, totalCount, device, url, adjust);
     }
   }
 
@@ -65,8 +68,11 @@ public class Worker {
   }
 
 
-  private void request(int affSubCount, long totalCount, DeviceRecall device, String url)
-    throws UnsupportedEncodingException {
+  private void request(int affSubCount,
+                       long totalCount,
+                       DeviceRecall device,
+                       String url,
+                       boolean adjust) throws UnsupportedEncodingException {
 
     if (requestCount >= totalCount) {
       return;
@@ -78,6 +84,9 @@ public class Worker {
     header.put(HttpHeaders.USER_AGENT, device.getUa());
     String lang = MoreObjects.firstNonNull(device.getLang(), "en").toLowerCase(Locale.ROOT);
     header.put(HttpHeaders.ACCEPT_LANGUAGE, lang);
+    if (adjust) {
+      header.put("X-Adjust-Use-Original-Forwarded-For", "1");
+    }
 
 
     String clickId = IdUtil.fastSimpleUUID() + System.currentTimeMillis();
