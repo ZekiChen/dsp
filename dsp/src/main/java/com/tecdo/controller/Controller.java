@@ -86,7 +86,6 @@ public class Controller implements MessageObserver {
       case ECPX_LOAD_RESPONSE:
       case ECPX_LOAD_ERROR:
       case ECPX_LOAD_TIMEOUT:
-
       case ONE_DATA_READY:
       case NETTY_START:
       case RECEIVE_PING_REQUEST:
@@ -112,13 +111,10 @@ public class Controller implements MessageObserver {
       case BID_TASK_FINISH:
       case BID_TASK_FAILED:
       case WAIT_TASK_RESPONSE_TIMEOUT:
-      case REQUEST_RTA_RESPONSE:
-      case WAIT_REQUEST_RTA_RESPONSE_TIMEOUT:
-      case WAIT_REQUEST_RTA_RESPONSE_ERROR:
-      case SORT_AD_RESPONSE:
-      case WAIT_SORT_AD_TIMEOUT:
+      case DISTINCT_AD_RESPONSE:
+      case DISTINCT_AD_TIMEOUT:
       case BID_REQUEST_COMPLETE:
-        // task
+      // task
       case TASK_START:
       case ADS_RECALL_FINISH:
       case ADS_RECALL_ERROR:
@@ -129,6 +125,13 @@ public class Controller implements MessageObserver {
       case CALC_CPC_FINISH:
       case CALC_CPC_ERROR:
       case CALC_CPC_TIMEOUT:
+      case PRICE_FILTER_FINISH:
+      case PRICE_FILTER_TIMEOUT:
+      case REQUEST_RTA_RESPONSE:
+      case WAIT_REQUEST_RTA_RESPONSE_TIMEOUT:
+      case WAIT_REQUEST_RTA_RESPONSE_ERROR:
+      case SORT_AD_RESPONSE:
+      case WAIT_SORT_AD_TIMEOUT:
         contextManager.handleEvent(eventType, params);
         break;
       case RESPONSE_RESULT:

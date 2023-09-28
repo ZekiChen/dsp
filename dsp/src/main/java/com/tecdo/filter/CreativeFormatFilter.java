@@ -10,6 +10,7 @@ import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
 import com.tecdo.enums.biz.VideoMimeEnum;
 import com.tecdo.enums.biz.VideoProtocolEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
+import com.tecdo.transform.ProtoTransformFactory;
 import org.springframework.stereotype.Component;
 
 import java.util.List;
@@ -34,73 +35,77 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
             case BANNER:
                 return bannerFilter(imp.getBanner(), adDTO);
             case NATIVE:
-                Native native1 = imp.getNative1();
-                if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
-                    return false;
-                }
-                boolean hitFlag = false;
-                for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getAssets()) {
-                    if (adDTO.getAd().getImage() != null) {
-                        // 跳过非img的过滤
-                        if (nativeRequestAsset.getImg() == null) {
-                            continue;
-                        }
-                        Creative creative;
-                        if (Objects.equals(nativeRequestAsset.getImg().getType(),
-                                ImageAssetTypeEnum.MAIN.getValue())) {
-                            creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
-                        } else {
-                            creative = adDTO.getCreativeMap().get(adDTO.getAd().getIcon());
-                        }
-                        if (creative == null) {
-                            return false;
-                        }
-                        // 先判断是否存在wmin，hmin，如果存在并且大于0，如果大于并且宽高比例一致则为true，如果不大于，也不返回false，接着判断w和h
-                        // 由于native存在icon和image，所以判断时为true不能直接返回
-                        // 每一轮image的判断都将hitFlag重置为false，只有所有image都符合时才通过
-                        hitFlag = false;
-                        Integer wmin = nativeRequestAsset.getImg().getWmin();
-                        Integer hmin = nativeRequestAsset.getImg().getHmin();
-                        Integer w = nativeRequestAsset.getImg().getW();
-                        Integer h = nativeRequestAsset.getImg().getH();
-                        if (wmin != null && hmin != null) {
-                            if (wmin > 0 && hmin > 0
-                                    && creative.getWidth() >= wmin && creative.getHeight() >= hmin
-                                    && (float) creative.getWidth() / creative.getHeight() == (float) wmin / hmin) {
-                                hitFlag = true;
-                                // 这个图像判断通过，跳到下一个图像
+                if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
+                    return true;
+                } else {
+                    Native native1 = imp.getNative1();
+                    if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
+                        return false;
+                    }
+                    boolean hitFlag = false;
+                    for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getAssets()) {
+                        if (adDTO.getAd().getImage() != null) {
+                            // 跳过非img的过滤
+                            if (nativeRequestAsset.getImg() == null) {
                                 continue;
                             }
-                        }
-                        // 没有wmin，hmin，或者min判断不通过，则进入下面的判断
-                        if (w != null && h != null) {
-                            //wmin，hmin存在，需要大于要求值，并且比例相同
-                            if (wmin != null && hmin != null && wmin > 0 && hmin > 0) {
-                                if (creative.getWidth() >= wmin && creative.getHeight() >= hmin
-                                        && (float) creative.getWidth() / creative.getHeight() == (float) w / h) {
-                                    hitFlag = true;
-                                }
+                            Creative creative;
+                            if (Objects.equals(nativeRequestAsset.getImg().getType(),
+                                    ImageAssetTypeEnum.MAIN.getValue())) {
+                                creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
                             } else {
-                                if ((float) creative.getWidth() / creative.getHeight() == (float) w / h) {
+                                creative = adDTO.getCreativeMap().get(adDTO.getAd().getIcon());
+                            }
+                            if (creative == null) {
+                                return false;
+                            }
+                            // 先判断是否存在wmin，hmin，如果存在并且大于0，如果大于并且宽高比例一致则为true，如果不大于，也不返回false，接着判断w和h
+                            // 由于native存在icon和image，所以判断时为true不能直接返回
+                            // 每一轮image的判断都将hitFlag重置为false，只有所有image都符合时才通过
+                            hitFlag = false;
+                            Integer wmin = nativeRequestAsset.getImg().getWmin();
+                            Integer hmin = nativeRequestAsset.getImg().getHmin();
+                            Integer w = nativeRequestAsset.getImg().getW();
+                            Integer h = nativeRequestAsset.getImg().getH();
+                            if (wmin != null && hmin != null) {
+                                if (wmin > 0 && hmin > 0
+                                        && creative.getWidth() >= wmin && creative.getHeight() >= hmin
+                                        && (float) creative.getWidth() / creative.getHeight() == (float) wmin / hmin) {
                                     hitFlag = true;
+                                    // 这个图像判断通过，跳到下一个图像
+                                    continue;
                                 }
                             }
-                        }
-                        // 如果这一轮图像判断，hitFlag 为false，则返回false
-                        if (!hitFlag) {
-                            return false;
-                        }
-                    } else if (adDTO.getAd().getVideo() != null) {
-                        if (nativeRequestAsset.getVideo() == null) {
+                            // 没有wmin，hmin，或者min判断不通过，则进入下面的判断
+                            if (w != null && h != null) {
+                                //wmin，hmin存在，需要大于要求值，并且比例相同
+                                if (wmin != null && hmin != null && wmin > 0 && hmin > 0) {
+                                    if (creative.getWidth() >= wmin && creative.getHeight() >= hmin
+                                            && (float) creative.getWidth() / creative.getHeight() == (float) w / h) {
+                                        hitFlag = true;
+                                    }
+                                } else {
+                                    if ((float) creative.getWidth() / creative.getHeight() == (float) w / h) {
+                                        hitFlag = true;
+                                    }
+                                }
+                            }
+                            // 如果这一轮图像判断，hitFlag 为false，则返回false
+                            if (!hitFlag) {
+                                return false;
+                            }
+                        } else if (adDTO.getAd().getVideo() != null) {
+                            if (nativeRequestAsset.getVideo() == null) {
+                                continue;
+                            }
+                            if (videoFilter(imp.getVideo(), adDTO)) {
+                                hitFlag = true;
+                            }
+                        } else {
                             continue;
                         }
-                        if (videoFilter(imp.getVideo(), adDTO)) {
-                            hitFlag = true;
-                        }
-                    } else {
-                        continue;
+                        return hitFlag;
                     }
-                    return hitFlag;
                 }
             case VIDEO:
                 return videoFilter(imp.getVideo(), adDTO);

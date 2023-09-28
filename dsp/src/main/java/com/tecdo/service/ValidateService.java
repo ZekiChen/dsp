@@ -78,6 +78,7 @@ public class ValidateService {
                                     httpRequest.getChannelContext()));
             return;
         }
+
         String api = affiliate.getApi();
         IProtoTransform protoTransform = ProtoTransformFactory.getProtoTransform(api);
         if (protoTransform == null) {
@@ -88,9 +89,11 @@ public class ValidateService {
                                     httpRequest.getChannelContext()));
             return;
         }
+
         if (StringUtils.isEmpty(httpRequest.getBody())) {
             return;
         }
+
         BidRequest bidRequest = protoTransform.requestTransform(httpRequest.getBody());
         if (bidRequest == null || !validateBidRequest(bidRequest)) {
             log.warn("validate bidRequest fail, affiliateId: {}, body: {}",
@@ -203,8 +206,9 @@ public class ValidateService {
             return false;
         }
         // 没有设备id或者设备id非法
-        if (bidRequest.getDevice().getIfa() == null || bidRequest.getDevice().getIfa().length() != 36 ||
-                Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
+        if (bidRequest.getDevice().getIfa() == null
+                || bidRequest.getDevice().getIfa().length() != 36
+                || Constant.ERROR_DEVICE_ID.equals(bidRequest.getDevice().getIfa())) {
             return false;
         }
         // 缺少ip信息，过滤
@@ -212,9 +216,12 @@ public class ValidateService {
                 StringUtils.isEmpty(bidRequest.getDevice().getIpv6())) {
             return false;
         }
+        // 没有设备位置信息
+        if (bidRequest.getDevice().getGeo() == null) {
+            return false;
+        }
         // 没有国家信息
-        if (bidRequest.getDevice().getGeo() == null ||
-                bidRequest.getDevice().getGeo().getCountry() == null) {
+        if (bidRequest.getDevice().getGeo().getCountry() == null) {
             return false;
         }
         // 没有bundle信息

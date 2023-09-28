@@ -11,6 +11,7 @@ public class ProtoTransformFactory {
   public static final String INMOBI = "inmobi";
   public static final String FORCE = "force";
   public static final String YANDEX = "yandex";
+  public static final String VIVO = "vivo";
 
   public static IProtoTransform getProtoTransform(String api) {
     switch (api) {
@@ -26,6 +27,8 @@ public class ProtoTransformFactory {
         return SpringUtil.getBean(YandexTransform.class);
       case YANDEX + COMMA + FORCE:
         return SpringUtil.getBean(YandexForceTransform.class);
+      case VIVO:
+        return SpringUtil.getBean(VivoTransform.class);
       default:
         return null;
     }

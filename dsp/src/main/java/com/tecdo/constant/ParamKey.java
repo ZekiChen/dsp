@@ -6,14 +6,8 @@ public interface ParamKey {
 
   String HTTP_REQUEST = "httpRequest";
 
-  String IMP = "imp";
   String BID_REQUEST = "bidRequest";
   String AFFILIATE = "affiliate";
-  String SORT_AD_RESPONSE = "sortAdResponse";
-
-  String REQUEST_LAZADA_RTA_RESPONSE = "requestLazadaRtaResponse";
-  String REQUEST_AE_RTA_RESPONSE = "requestAeRtaResponse";
-  String REQUEST_MIRAVIA_RTA_RESPONSE = "requestMiraviaRtaResponse";
 
   String TASK_ID = "taskId";
 
@@ -25,6 +19,7 @@ public interface ParamKey {
 
   // init db data, add into cache
   String AFFILIATES_CACHE_KEY = "affiliates-cache-key";
+  String AFFILIATE_ID_CACHE_KEY = "affiliate-id-cache-key";
   String ADS_CACHE_KEY = "ads-cache-key";
   String CAMPAIGNS_CACHE_KEY = "campaigns-cache-key";
   String RTA_INFOS_CACHE_KEY = "rta-infos-cache-key";
@@ -34,7 +29,6 @@ public interface ParamKey {
   String GP_APP_CACHE_KEY = "gp-app-cache-key";
   String GP_APP_CATEGORY_CACHE_KEY = "gp-app-category-cache-key";
   String GP_APP_TAG_CACHE_KEY = "gp-app-tag-cache-key";
-  String ADV_CACHE_KEY = "adv-cache-key";
   String IP_TABLE_CACHE_KEY = "ip-table-key";
   String AF_AUDIENCE_SYNC_KEY = "af-audience-sync-key";
   String AF_CONTAINER_SYNC_KEY = "af-container-sync-key";
@@ -46,8 +40,16 @@ public interface ParamKey {
   String CHEATING_DATA_FILTER = "cheating-data-filter";
 
   // task-imp
-  String ADS_TASK_RESPONSE = "ads-imp-key";
   String ADS_RECALL_RESPONSE = "ads-recall-response";
   String ADS_PREDICT_RESPONSE = "ads-predict-response";
   String ADS_CALC_PRICE_RESPONSE = "ads-calc-price-response";
+  String ADS_PRICE_FILTER_RESPONSE = "ads-price-filter-response";
+
+  String REQUEST_LAZADA_RTA_RESPONSE = "requestLazadaRtaResponse";
+  String REQUEST_AE_RTA_RESPONSE = "requestAeRtaResponse";
+  String REQUEST_MIRAVIA_RTA_RESPONSE = "requestMiraviaRtaResponse";
+
+  String SORT_AD_RESPONSE = "sortAdResponse";
+  String ADS_TASK_RESPONSE = "ads-imp-key";
+  String DISTINCT_AD_RESPONSE = "distinct-ad-Response";
 }

@@ -8,6 +8,11 @@ import org.springframework.stereotype.Component;
 public class YandexTransform extends AbstractTransform implements IProtoTransform {
 
   @Override
+  public boolean forceBannerEnable() {
+    return false;
+  }
+
+  @Override
   public String deepLinkFormat(String deepLink) {
     return deepLink;
   }
@@ -18,17 +23,12 @@ public class YandexTransform extends AbstractTransform implements IProtoTransfor
   }
 
   @Override
-  public boolean buildAdmObject() {
-    return false;
-  }
-
-  @Override
   public boolean useLossUrl() {
     return true;
   }
 
   @Override
-  public boolean forceBannerEnable() {
+  public boolean buildAdmByImmobi() {
     return false;
   }
 }

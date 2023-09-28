@@ -1,27 +1,47 @@
 package com.tecdo.log;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
 import com.google.common.net.HttpHeaders;
+import com.tecdo.constant.AffiliateConstant;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.constant.RequestPath;
 import com.tecdo.domain.biz.notice.ImpInfoNoticeInfo;
 import com.tecdo.domain.biz.notice.NoticeInfo;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.ValidateCode;
+import com.tecdo.service.init.AffiliateManager;
+import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.JsonHelper;
+
 import org.apache.commons.lang3.math.NumberUtils;
+import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.math.RoundingMode;
+import java.nio.charset.StandardCharsets;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.SecureUtil;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Created by Zeki on 2023/5/5
  */
+@Component
+@RequiredArgsConstructor
 public class NoticeLogger {
+
+    private final AffiliateManager affiliateManager;
 
     private static final Logger winLog = LoggerFactory.getLogger("win_log");
     private static final Logger lossLog = LoggerFactory.getLogger("loss_log");
@@ -31,7 +51,7 @@ public class NoticeLogger {
     private static final Logger validateLog = LoggerFactory.getLogger("validate_notice_log");
     private static final Logger impInfoLog = LoggerFactory.getLogger("imp_info_log");
 
-    public static void logWin(HttpRequest httpRequest, NoticeInfo info) {
+    public void logWin(HttpRequest httpRequest, NoticeInfo info) {
         String bidSuccessPrice = info.getBidSuccessPrice();
         Map<String, Object> map = new HashMap<>();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
@@ -44,13 +64,24 @@ public class NoticeLogger {
         map.put("creative_id", info.getCreativeId());
         map.put("affiliate_id", info.getAffiliateId());
 
-        map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
-                new BigDecimal(bidSuccessPrice).doubleValue() : 0d);
+        String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
+        if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
+            bidSuccessPrice = SecureUtil
+                    .aes(AffiliateConstant.VIVO_EKEY.getBytes(StandardCharsets.UTF_8))
+                    .decryptStr(bidSuccessPrice);
+            map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
+                    new BigDecimal(bidSuccessPrice)
+                            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+                            .doubleValue() : 0d);
+        } else {
+            map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
+                    new BigDecimal(bidSuccessPrice).doubleValue() : 0d);
+        }
 
         winLog.info(JsonHelper.toJSONString(map));
     }
 
-    public static void logLoss(HttpRequest httpRequest, NoticeInfo info) {
+    public void logLoss(HttpRequest httpRequest, NoticeInfo info) {
 
         Map<String, Object> map = new HashMap<>();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
@@ -68,7 +99,7 @@ public class NoticeLogger {
         lossLog.info(JsonHelper.toJSONString(map));
     }
 
-    public static void logImp(HttpRequest httpRequest, NoticeInfo info) {
+    public void logImp(HttpRequest httpRequest, NoticeInfo info) {
         Map<String, Object> map = new HashMap<>();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
         map.put("time_millis", System.currentTimeMillis());
@@ -84,14 +115,26 @@ public class NoticeLogger {
         map.put("ua_from_imp", httpRequest.getHeader(HttpHeaders.USER_AGENT));
         map.put("ip_from_imp", httpRequest.getIp());
         map.put("device_id", info.getDeviceId());
+
         String bidSuccessPrice = info.getBidSuccessPrice();
-        map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
-                new BigDecimal(bidSuccessPrice).doubleValue() : 0d);
+        String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
+        if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
+            bidSuccessPrice = SecureUtil
+                    .aes(AffiliateConstant.VIVO_EKEY.getBytes(StandardCharsets.UTF_8))
+                    .decryptStr(bidSuccessPrice);
+            map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
+                    new BigDecimal(bidSuccessPrice)
+                            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
+                            .doubleValue() : 0d);
+        } else {
+            map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
+                    new BigDecimal(bidSuccessPrice).doubleValue() : 0d);
+        }
 
         impLog.info(JsonHelper.toJSONString(map));
     }
 
-    public static void logClick(HttpRequest httpRequest, NoticeInfo info) {
+    public void logClick(HttpRequest httpRequest, NoticeInfo info) {
         Map<String, Object> map = new HashMap<>();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
         map.put("time_millis", System.currentTimeMillis());
@@ -110,7 +153,7 @@ public class NoticeLogger {
         clickLog.info(JsonHelper.toJSONString(map));
     }
 
-    public static void logPb(HttpRequest httpRequest, NoticeInfo info) {
+    public void logPb(HttpRequest httpRequest, NoticeInfo info) {
         Map<String, Object> map = new HashMap<>();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
         map.put("time_millis", System.currentTimeMillis());
@@ -121,8 +164,14 @@ public class NoticeLogger {
         map.put("ad_id", info.getAdId());
         map.put("creative_id", info.getCreativeId());
 
-        if (info.getEventType() != null) {
-            map.put(info.getEventType(), 1);
+        if (Strings.isNotBlank(info.getOrderNumber()) && info.getAdEstimatedCommission() != null) {
+            map.put(RequestKey.EVENT_11, 1);
+            map.put("order_number", info.getOrderNumber());
+            map.put("ad_estimated_commission", info.getAdEstimatedCommission());
+        } else {
+            if (info.getEventType() != null) {
+                map.put(info.getEventType(), 1);
+            }
         }
 
         if (RequestPath.PB_AE.equals(httpRequest.getPath())) {
@@ -167,8 +216,8 @@ public class NoticeLogger {
         pbLog.info(JsonHelper.toJSONString(map));
     }
 
-    public static void logValidateFailed(String type, NoticeInfo info,
-                                      HttpRequest httpRequest, ValidateCode code) {
+    public void logValidateFailed(String type, NoticeInfo info,
+                                         HttpRequest httpRequest, ValidateCode code) {
         Map<String, Object> map = new HashMap<>();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
         map.put("time_millis", System.currentTimeMillis());
@@ -197,7 +246,7 @@ public class NoticeLogger {
         validateLog.info(JsonHelper.toJSONString(map));
     }
 
-    public static void logImpInfoValidateSuccess(HttpRequest httpRequest, ImpInfoNoticeInfo info) {
+    public void logImpInfoValidateSuccess(HttpRequest httpRequest, ImpInfoNoticeInfo info) {
         Map<String, Object> map = new HashMap<>();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
         map.put("time_millis", System.currentTimeMillis());

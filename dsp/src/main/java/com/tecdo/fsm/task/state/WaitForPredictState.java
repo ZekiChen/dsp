@@ -53,7 +53,7 @@ public class WaitForPredictState implements ITaskState {
         break;
       case PREDICT_TIMEOUT:
         task.notifyFailed();
-        task.switchState(waitForCalcPriceState);
+        task.switchState(waitForRecycleState);
         break;
       default:
         log.error("Task can't handle event, type: {}", eventType);
