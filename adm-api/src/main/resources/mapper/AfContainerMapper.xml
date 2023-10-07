@@ -13,7 +13,9 @@
             af_container c
             LEFT JOIN af_info a ON c.api_key = a.api_key
         WHERE
-            c.is_enable = 1 AND a.is_enable = 1
+            c.is_enable = 1
+            AND c.device_cnt is not null
+            AND a.is_enable = 1
     </select>
 
 </mapper>
