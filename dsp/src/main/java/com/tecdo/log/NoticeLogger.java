@@ -1,7 +1,10 @@
 package com.tecdo.log;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.crypto.SecureUtil;
 import com.google.common.net.HttpHeaders;
-import com.tecdo.constant.AffiliateConstant;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.constant.RequestPath;
 import com.tecdo.domain.biz.notice.ImpInfoNoticeInfo;
@@ -11,28 +14,19 @@ import com.tecdo.service.ValidateCode;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.JsonHelper;
-
+import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.util.Strings;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.SecureUtil;
-import lombok.RequiredArgsConstructor;
+import java.util.*;
 
 /**
  * Created by Zeki on 2023/5/5
@@ -51,6 +45,9 @@ public class NoticeLogger {
     private static final Logger validateLog = LoggerFactory.getLogger("validate_notice_log");
     private static final Logger impInfoLog = LoggerFactory.getLogger("imp_info_log");
 
+    @Value("${foreign.vivo.encrypt-key}")
+    private String vivoEKey = "5ee754bfa91f4026b8d3cfb7030111c2";
+
     public void logWin(HttpRequest httpRequest, NoticeInfo info) {
         String bidSuccessPrice = info.getBidSuccessPrice();
         Map<String, Object> map = new HashMap<>();
@@ -67,7 +64,7 @@ public class NoticeLogger {
         String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
         if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
             bidSuccessPrice = SecureUtil
-                    .aes(AffiliateConstant.VIVO_EKEY.getBytes(StandardCharsets.UTF_8))
+                    .aes(vivoEKey.getBytes(StandardCharsets.UTF_8))
                     .decryptStr(bidSuccessPrice);
             map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
                     new BigDecimal(bidSuccessPrice)
@@ -120,7 +117,7 @@ public class NoticeLogger {
         String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
         if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
             bidSuccessPrice = SecureUtil
-                    .aes(AffiliateConstant.VIVO_EKEY.getBytes(StandardCharsets.UTF_8))
+                    .aes(vivoEKey.getBytes(StandardCharsets.UTF_8))
                     .decryptStr(bidSuccessPrice);
             map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
                     new BigDecimal(bidSuccessPrice)
