@@ -157,7 +157,7 @@ public class BudgetJob {
             budgetWarnList.add(new BudgetWarn(TimeZoneUtils.dateTimeInChina().toString(),
                     adGroup.getCampaignId(),
                     adGroup.getId(),
-                    df.format(groupImpCostMap.get(adGroup.getId().toString()).getSumSuccessPrice()),
+                    groupImpCostMap.get(adGroup.getId().toString()).getSumSuccessPrice().toString(),
                     adGroup.getDailyBudget().toString(),
                     adGroup.getName(),
                     campaignMapper.selectById(adGroup.getCampaignId()).getName()));
@@ -166,7 +166,7 @@ public class BudgetJob {
             budgetWarnList.add(new BudgetWarn(TimeZoneUtils.dateTimeInChina().toString(),
                     campaign.getId(),
                     -1,
-                    df.format(campaignImpCostMap.get(campaign.getId().toString())),
+                    campaignImpCostMap.get(campaign.getId().toString()).toString(),
                     campaign.getDailyBudget().toString(),
                     "/",
                     campaign.getName()));

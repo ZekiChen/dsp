@@ -20,14 +20,14 @@ public class BudgetWarn {
 
     public BudgetWarn(String time, int campaign_id, int ad_group_id, String sum, String budget,
                       String ad_group_name, String campaign_name) {
+        // 取2位小数
+        DecimalFormat df = new DecimalFormat("0.00");
         this.time = time;
         this.campaign_id = campaign_id;
         this.ad_group_id = ad_group_id;
-        this.sum = sum;
-        this.budget = Double.toString(Double.parseDouble(budget) * 1000);
-        // 保留4位小数
-        DecimalFormat df = new DecimalFormat("0.0000");
-        this.diff = df.format(Double.parseDouble(this.sum) - Double.parseDouble(this.budget));
+        this.sum = df.format(Double.parseDouble(sum) / 1000);
+        this.budget = budget;
+        this.diff = df.format(Double.parseDouble(sum) / 1000 - Double.parseDouble(budget));
         this.ad_group_name = ad_group_name;
         this.campaign_name = campaign_name;
     }
