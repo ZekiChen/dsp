@@ -9,6 +9,8 @@ import lombok.Data;
 @Data
 @AllArgsConstructor
 public class MsgContent {
+    // 飞书群消息模板号
     private String type;
+    // 消息对象
     private ContentData data;
 }

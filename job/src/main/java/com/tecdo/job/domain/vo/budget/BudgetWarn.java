@@ -2,6 +2,8 @@ package com.tecdo.job.domain.vo.budget;
 
 import lombok.Data;
 
+import java.text.DecimalFormat;
+
 /**
  * Created by Elwin on 2023/9/26
  */
@@ -23,8 +25,9 @@ public class BudgetWarn {
         this.ad_group_id = ad_group_id;
         this.sum = sum;
         this.budget = Double.toString(Double.parseDouble(budget) * 1000);
-        double diff = Double.parseDouble(this.sum) - Double.parseDouble(this.budget);
-        this.diff = Double.toString(diff);
+        // 保留4位小数
+        DecimalFormat df = new DecimalFormat("0.0000");
+        this.diff = df.format(Double.parseDouble(this.sum) - Double.parseDouble(this.budget));
         this.ad_group_name = ad_group_name;
         this.campaign_name = campaign_name;
     }

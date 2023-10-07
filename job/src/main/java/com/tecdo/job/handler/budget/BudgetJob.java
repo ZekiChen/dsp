@@ -25,6 +25,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.text.DecimalFormat;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -69,6 +70,8 @@ public class BudgetJob {
             XxlJobHelper.handleFail("tenantToken获取失败");
             return;
         }
+
+        // 获取每个ad group的花费情况
         List<AdGroupCost> impCosts = impCostMapper.listByGroup();
 
         // 获得ad group, campaign列表，并过滤掉已经被Redis记录的部分
@@ -81,8 +84,10 @@ public class BudgetJob {
 
         // 使用Redis记录新增对象
         setRecords(groupList, campaignList);
+
         // 用通过筛选的groupList, campaignList，构建vo对象
         List<BudgetWarn> budgetWarnList = buildBudgetWarn(groupList, campaignList);
+
         // 发送警告消息
         sentWarnings(budgetWarnList);
     }
@@ -94,12 +99,13 @@ public class BudgetJob {
     public void sentWarnings(List<BudgetWarn> budgetWarnList) {
         // 依次发送budgetWarnList
         for (BudgetWarn warn : budgetWarnList) {
-            // 构建请求体request
+            // 构建消息模板
             MsgContent content = new MsgContent("template", new ContentData(template_id, warn));
-            // 序列化为json并去掉首尾单引号
+            // 把消息模板序列化为json，并去掉首尾单引号
             String escapedContent = JsonHelper.toJSONString(content)
                     .replaceAll("^'+|'+$", "");
 
+            // 构建请求体request
             Map<String, Object> request = MapUtil.newHashMap();
             request.put("receive_id", receive_id);
             request.put("msg_type", msg_type);
@@ -145,21 +151,24 @@ public class BudgetJob {
      */
     public List<BudgetWarn> buildBudgetWarn(List<AdGroup> groupList, List<Campaign> campaignList) {
         List<BudgetWarn> budgetWarnList = new ArrayList<>();
+        // 保留4位小数
+        DecimalFormat df = new DecimalFormat("0.0000");
         for (AdGroup adGroup : groupList) {
-            budgetWarnList.add(new BudgetWarn(TimeZoneUtils.dateInChina().toString(),
-                    adGroup.getCampaignId(), adGroup.getId(),
-                    groupImpCostMap.get(adGroup.getId().toString()).getSumSuccessPrice().toString(),
+            budgetWarnList.add(new BudgetWarn(TimeZoneUtils.dateTimeInChina().toString(),
+                    adGroup.getCampaignId(),
+                    adGroup.getId(),
+                    df.format(groupImpCostMap.get(adGroup.getId().toString()).getSumSuccessPrice()),
                     adGroup.getDailyBudget().toString(),
                     adGroup.getName(),
                     campaignMapper.selectById(adGroup.getCampaignId()).getName()));
         }
         for (Campaign campaign : campaignList) {
-            budgetWarnList.add(new BudgetWarn(TimeZoneUtils.dateInChina().toString(),
+            budgetWarnList.add(new BudgetWarn(TimeZoneUtils.dateTimeInChina().toString(),
                     campaign.getId(),
                     -1,
-                    campaignImpCostMap.get(campaign.getId().toString()).toString(),
+                    df.format(campaignImpCostMap.get(campaign.getId().toString())),
                     campaign.getDailyBudget().toString(),
-                    "none",
+                    "/",
                     campaign.getName()));
         }
         return budgetWarnList;
@@ -172,7 +181,7 @@ public class BudgetJob {
      * @return 超预算的ad_group列表
      */
     public List<Campaign> getOverBudgetCampaigns(List<AdGroupCost> impCosts) {
-        // 以campaign为粒度计算花费
+        // 构建campaignImpCostMap映射(id, Campaign花费)
         campaignImpCostMap = impCosts.stream()
                 .collect(Collectors.groupingBy(AdGroupCost::getCampaignId,
                         Collectors.summingDouble(AdGroupCost::getSumSuccessPrice)));
@@ -202,6 +211,7 @@ public class BudgetJob {
      * @return 超预算的ad_group列表
      */
     public List<AdGroup> getOverBudgetGroups(List<AdGroupCost> impCosts) {
+        // 构建groupImpCostMap映射(id, ad group花费)
         groupImpCostMap = impCosts.stream()
                 .collect(Collectors.toMap(AdGroupCost::getAdGroupId, Function.identity()));
 
