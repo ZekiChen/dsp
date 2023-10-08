@@ -22,7 +22,7 @@ public class Device extends Extension {
     private String ua;
 
     /**
-     * 用用户当前位置表示设备位置（推荐）
+     * 用户当前位置表示，设备位置（推荐）
      */
     private Geo geo;
 
@@ -173,4 +173,16 @@ public class Device extends Extension {
      * 设备mac地址,使用md5哈希算法
      */
     private String macmd5;
+
+    /**
+     * VIVO自定义协议
+     * 符合ISO 3166-1标准的两字节国家地区码
+     */
+    private String region;
+
+    /**
+     * VIVO自定义协议
+     * 设备id
+     */
+    private String did;
 }

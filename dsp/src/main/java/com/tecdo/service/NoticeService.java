@@ -35,6 +35,8 @@ public class NoticeService {
     private ValidateService validateService;
     @Autowired
     private AdManager adManager;
+    @Autowired
+    private NoticeLogger noticeLogger;
 
     public void handleEvent(EventType eventType, Params params) {
         HttpRequest httpRequest = params.get(ParamKey.HTTP_REQUEST);
@@ -133,7 +135,7 @@ public class NoticeService {
             ResponseHelper.ok(messageQueue, params, httpRequest);
         } else {
             logValidateFailed(eventType, httpRequest, code, info);
-            ResponseHelper.badRequest(messageQueue, params, httpRequest);
+            ResponseHelper.ok(messageQueue, params, httpRequest);
         }
     }
 
@@ -146,7 +148,7 @@ public class NoticeService {
             ResponseHelper.ok(messageQueue, params, httpRequest);
         } else {
             logValidateFailed(eventType, httpRequest, code, info);
-            ResponseHelper.badRequest(messageQueue, params, httpRequest);
+            ResponseHelper.ok(messageQueue, params, httpRequest);
         }
     }
 
@@ -177,7 +179,7 @@ public class NoticeService {
 
     private void handleValidateFailed(String type, NoticeInfo info,
                                       HttpRequest httpRequest, ValidateCode code) {
-        NoticeLogger.logValidateFailed(type, info, httpRequest, code);
+        noticeLogger.logValidateFailed(type, info, httpRequest, code);
     }
 
     private void logValidateSucceed(EventType eventType, HttpRequest httpRequest, NoticeInfo noticeInfo) {
@@ -203,29 +205,29 @@ public class NoticeService {
     }
 
     private void handleWinNotice(HttpRequest httpRequest, NoticeInfo info) {
-        NoticeLogger.logWin(httpRequest, info);
+        noticeLogger.logWin(httpRequest, info);
     }
 
     private void handleLossNotice(HttpRequest httpRequest, NoticeInfo info) {
-        NoticeLogger.logLoss(httpRequest, info);
+        noticeLogger.logLoss(httpRequest, info);
     }
 
     private void handleImpNotice(HttpRequest httpRequest, NoticeInfo info) {
-        NoticeLogger.logImp(httpRequest, info);
+        noticeLogger.logImp(httpRequest, info);
         cacheService.getFrequencyCache().incrImpCount(String.valueOf(info.getCampaignId()), info.getDeviceId());
     }
 
     private void handleClickNotice(HttpRequest httpRequest, NoticeInfo info) {
-        NoticeLogger.logClick(httpRequest, info);
+        noticeLogger.logClick(httpRequest, info);
         cacheService.getFrequencyCache().incrClickCount(String.valueOf(info.getCampaignId()), info.getDeviceId());
         cacheService.getNoticeCache().clickMark(info.getBidId());
     }
 
     private void handlePbNotice(HttpRequest httpRequest, NoticeInfo info) {
-        NoticeLogger.logPb(httpRequest, info);
+        noticeLogger.logPb(httpRequest, info);
     }
 
     private void logImpInfoValidateSuccess(HttpRequest httpRequest, ImpInfoNoticeInfo info) {
-        NoticeLogger.logImpInfoValidateSuccess(httpRequest, info);
+        noticeLogger.logImpInfoValidateSuccess(httpRequest, info);
     }
 }

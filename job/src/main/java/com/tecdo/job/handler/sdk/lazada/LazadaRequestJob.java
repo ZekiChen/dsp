@@ -54,6 +54,7 @@ public class LazadaRequestJob {
     int rateLimit = ((Number) config.get("rateLimit")).intValue();
     int time = ((Number) config.getOrDefault("time", -2)).intValue();
     long cycleTimeMillis = ((Number) config.getOrDefault("cycleTimeMillis", 604800000)).longValue();
+    boolean adjust = Boolean.parseBoolean((String) config.getOrDefault("adjust", "false"));
 
     Calendar calendar = Calendar.getInstance();
     calendar.add(Calendar.DATE, time);
@@ -94,7 +95,7 @@ public class LazadaRequestJob {
                          loopCount);
       } else {
         // request
-        requestWorker.handle(affSubCount, totalCount, query, url);
+        requestWorker.handle(affSubCount, totalCount, query, url, adjust);
       }
       try {
 

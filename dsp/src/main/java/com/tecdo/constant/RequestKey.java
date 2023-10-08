@@ -18,6 +18,9 @@ public interface RequestKey {
   String AFFILIATE_ID = "affiliate_id";
   String EVENT_TYPE = "event_type";
 
+  String AD_ESTIMATED_COMMISSION = "ad_estimated_commission";
+  String ORDER_NUMBER = "order_number";
+
 
   String EVENT_1 = "event1";
   String EVENT_2 = "event2";
@@ -29,6 +32,7 @@ public interface RequestKey {
   String EVENT_8 = "event8";
   String EVENT_9 = "event9";
   String EVENT_10 = "event10";
+  String EVENT_11 = "event11";
 
   String SIGN = "sign";
 }

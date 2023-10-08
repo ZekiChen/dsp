@@ -1,6 +1,7 @@
 package com.tecdo.job.handler.sdk.lazada;
 
 import com.tecdo.core.launch.thread.ThreadFactoryHelper;
+import com.tecdo.job.domain.entity.DeviceRecall;
 import com.xxl.job.core.context.XxlJobHelper;
 
 import org.slf4j.Logger;
@@ -56,7 +57,7 @@ public class HttpUtils {
 
   private static AtomicInteger count = new AtomicInteger();
 
-  public static void asyncRequest(String url, Map<String, String> header) {
+  public static void asyncRequest(String url, Map<String, String> header, DeviceRecall device,String clickId) {
     Request.Builder builder = new Request.Builder().url(url);
     try {
       header.forEach(builder::addHeader);
@@ -73,6 +74,10 @@ public class HttpUtils {
         @Override
         public void onResponse(Call call, Response response) {
           if (response.body() != null) {
+            int code = response.code();
+            if (code < 400) {
+              SdkLogger.log(device, clickId);
+            }
             int tmp = count.incrementAndGet();
             if (tmp % 1000 == 0) {
               XxlJobHelper.log("finish total count:{}", tmp);

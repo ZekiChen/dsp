@@ -3,14 +3,14 @@ package com.tecdo.service.init;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tecdo.core.launch.thread.ThreadPool;
+import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.mapper.AffiliateMapper;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
-import com.tecdo.adm.api.delivery.entity.Affiliate;
-import com.tecdo.adm.api.delivery.mapper.AffiliateMapper;
+import com.tecdo.core.launch.thread.ThreadPool;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -37,11 +37,14 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
     private long timerId;
 
     private Map<String, Affiliate> affiliateMap;
+    private Map<Integer, Affiliate> affiliateIdMap;
 
     @Value("${pac.timeout.load.db.default}")
     private long loadTimeout;
     @Value("${pac.interval.reload.db.default}")
     private long reloadInterval;
+
+    private static final Affiliate EMPTY = new Affiliate();
 
     /**
      * 从 DB 加载 affiliate 集合，每 5 分钟刷新一次缓存
@@ -52,6 +55,10 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
 
     public Affiliate getAffiliate(String secret){
         return affiliateMap.get(secret);
+    }
+
+    public String getApi(Integer id) {
+        return affiliateIdMap.getOrDefault(id, EMPTY).getApi();
     }
 
     @AllArgsConstructor
@@ -119,13 +126,16 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
                                 Wrappers.<Affiliate>lambdaQuery().eq(Affiliate::getStatus, 1);
                         List<Affiliate> affiliateList = list(wrapper);
                         Map<String, Affiliate> affiliateMap = new HashMap<>();
+                        Map<Integer, Affiliate> affiliateIdMap = new HashMap<>();
                         for (Affiliate affiliate : affiliateList) {
                             String[] split = affiliate.getSecret().split(",");
                             for (String s : split) {
                                 affiliateMap.put(s, affiliate);
                             }
+                            affiliateIdMap.put(affiliate.getId(), affiliate);
                         }
                         params.put(ParamKey.AFFILIATES_CACHE_KEY, affiliateMap);
+                        params.put(ParamKey.AFFILIATE_ID_CACHE_KEY, affiliateIdMap);
                         messageQueue.putMessage(EventType.AFFILIATES_LOAD_RESPONSE, params);
                     } catch (Exception e) {
                         log.error("affiliates load failure from db", e);
@@ -147,6 +157,7 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 this.affiliateMap = params.get(ParamKey.AFFILIATES_CACHE_KEY);
+                this.affiliateIdMap = params.get(ParamKey.AFFILIATE_ID_CACHE_KEY);
                 log.info("affiliates load success, size: {}", affiliateMap.size());
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);
