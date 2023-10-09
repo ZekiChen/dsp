@@ -56,17 +56,17 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class PredictHandler {
 
-    @Value("{pac.ctr-predict.url}")
+    @Value("${pac.ctr-predict.url}")
     private String ctrPredictUrl;
-    @Value("{pac.cvr-predict.url}")
+    @Value("${pac.cvr-predict.url}")
     private String cvrPredictUrl;
-    @Value("{pac.cvr-event1-predict.url}")
+    @Value("${pac.cvr-event1-predict.url}")
     private String cvrEvent1PredictUrl;
-    @Value("{pac.cvr-event2-predict.url}")
+    @Value("${pac.cvr-event2-predict.url}")
     private String cvrEvent2PredictUrl;
-    @Value("{pac.cvr-event3-predict.url}")
+    @Value("${pac.cvr-event3-predict.url}")
     private String cvrEvent3PredictUrl;
-    @Value("{pac.cvr-event10-predict.url}")
+    @Value("${pac.cvr-event10-predict.url}")
     private String cvrEvent10PredictUrl;
 
     private final ThreadPool threadPool;
