@@ -18,13 +18,19 @@ public interface AdGroupMapper extends BaseMapper<AdGroup> {
 
     List<BaseVO> listIdAndName();
 
+    /**
+     * @param targetNum 用于记录affilateIds, countries两个字段中，有几个字段不为空
+     *
+     * @return 符合条件的广告组
+     */
     IPage<AdGroup> customPage(IPage<AdGroup> page, @Param("adGroup") AdGroup adGroup,
                               @Param("campaignIds") List<Integer> campaignIds,
                               @Param("campaignName") String campaignName,
                               @Param("adIds") List<Integer> adIds,
                               @Param("adName") String adName,
                               @Param("affiliateIds") List<String> affiliateIds,
-                              @Param("countries") List<String> countries);
+                              @Param("countries") List<String> countries,
+                              @Param("targetNum") Integer targetNum);
 
     List<Integer> listIdByLikeCampaignName(@Param("campaignName") String campaignName);
     List<Integer> listIdByLikeAdGroupName(@Param("name") String name);
