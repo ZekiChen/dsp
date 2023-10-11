@@ -32,6 +32,9 @@ public enum ConditionEnum {
     IMAGE_INSTL("image_instl"),
     VIDEO_INSTL("video_instl"),
     VIDEO_PLACEMENT("video_placement"),
+    BUNDLE_IMP_CAP_DAY("bundle_imp_cap_day"),
+    BUNDLE_CLICK_CAP_DAY("bundle_click_cap_day"),
+    BUNDLE_COST_CAP_DAY("bundle_cost_cap_day"),
     ;
 
     private final String desc;

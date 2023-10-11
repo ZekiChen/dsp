@@ -221,4 +221,7 @@ public class RequestLog implements Serializable {
 
     @JsonProperty("is_rewarded")
     private Integer isRewarded;
+
+    @JsonProperty("schain")
+    private String schain;
 }
