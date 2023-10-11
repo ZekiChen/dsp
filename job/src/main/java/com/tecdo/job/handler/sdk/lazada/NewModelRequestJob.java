@@ -74,6 +74,7 @@ public class NewModelRequestJob {
       curRecordMapper.createCur(country, os, packageName, recallType, label, timeInMillis);
       dbOffset = timeInMillis;
     }
+    dbOffset = Math.max(dbOffset, timeInMillis);
     String condition = country + "_" + os + "_" + packageName + "_" + recallType;
 
     List<DeviceRecall> query = deviceRecallMapper.queryFromNewModel(country,
