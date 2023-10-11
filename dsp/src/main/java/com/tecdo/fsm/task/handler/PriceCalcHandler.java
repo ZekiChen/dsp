@@ -140,8 +140,7 @@ public class PriceCalcHandler {
         if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
             finalPrice = UnitConvertUtil.usdToUsc(finalPrice);
         }
-        finalPrice.setScale(0, RoundingMode.UP);
-        return finalPrice;
+        return finalPrice.setScale(0, RoundingMode.UP);
     }
 
     public static BigDecimal convertToUsdByVivo(BigDecimal finalPrice, Affiliate affiliate) {
