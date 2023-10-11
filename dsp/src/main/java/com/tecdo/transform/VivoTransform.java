@@ -48,9 +48,11 @@ public class VivoTransform extends AbstractTransform implements IProtoTransform 
     if (device != null) {
       device.setIfa(device.getDid());
       Geo geo = device.getGeo();
-      if (geo != null) {
-        geo.setCountry(StringConfigUtil.getCountryCode3(device.getRegion()));
+      if (geo == null) {
+        geo = new Geo();
+        device.setGeo(geo);
       }
+      geo.setCountry(StringConfigUtil.getCountryCode3(device.getRegion()));
     }
 
     List<Imp> imps = bidRequest.getImp();
