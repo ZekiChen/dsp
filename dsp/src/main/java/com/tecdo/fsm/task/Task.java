@@ -176,7 +176,7 @@ public class Task {
                 .stream()
                 .filter(e -> e.getBidPrice()
                         .compareTo(BigDecimal.valueOf(Optional.of(imp.getBidfloor())
-                                .orElse(0f))) > 0)
+                                .orElse(0f))) >= 0)
                 .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
         Params params = assignParams().put(ParamKey.ADS_PRICE_FILTER_RESPONSE, adDTOMap);
         messageQueue.putMessage(EventType.PRICE_FILTER_FINISH, params);
