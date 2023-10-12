@@ -58,7 +58,7 @@ public class Bid extends Extension {
     /**
      * 竞拍胜出之后可选的传输ad markup的方式，如果胜出通知中包含ad markup则优先使用adm
      */
-    private String adm;
+    private Object adm;
 
     /**
      * inmobi专用字段

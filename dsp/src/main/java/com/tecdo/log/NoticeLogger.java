@@ -3,7 +3,9 @@ package com.tecdo.log;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.SecureUtil;
+import cn.hutool.crypto.Mode;
+import cn.hutool.crypto.Padding;
+import cn.hutool.crypto.symmetric.AES;
 import com.google.common.net.HttpHeaders;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.constant.RequestPath;
@@ -63,9 +65,8 @@ public class NoticeLogger {
 
         String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
         if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
-            bidSuccessPrice = SecureUtil
-                    .aes(vivoEKey.getBytes(StandardCharsets.UTF_8))
-                    .decryptStr(bidSuccessPrice);
+            AES aes = new AES(Mode.CBC, Padding.PKCS5Padding, vivoEKey.getBytes(StandardCharsets.UTF_8));
+            bidSuccessPrice = aes.decryptStr(bidSuccessPrice);
             map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
                     UnitConvertUtil.uscToUsd(new BigDecimal(bidSuccessPrice)).doubleValue() : 0d);
         } else {
@@ -114,9 +115,8 @@ public class NoticeLogger {
         String bidSuccessPrice = info.getBidSuccessPrice();
         String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
         if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
-            bidSuccessPrice = SecureUtil
-                    .aes(vivoEKey.getBytes(StandardCharsets.UTF_8))
-                    .decryptStr(bidSuccessPrice);
+            AES aes = new AES(Mode.CBC, Padding.PKCS5Padding, vivoEKey.getBytes(StandardCharsets.UTF_8));
+            bidSuccessPrice = aes.decryptStr(bidSuccessPrice);
             map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
                     UnitConvertUtil.uscToUsd(new BigDecimal(bidSuccessPrice)).doubleValue() : 0d);
         } else {

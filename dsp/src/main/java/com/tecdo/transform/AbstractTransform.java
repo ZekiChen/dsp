@@ -165,7 +165,7 @@ public abstract class AbstractTransform implements IProtoTransform {
             bid.setAdmobject(buildAdm(wrapper, bidRequest, affiliate));
         } else {
             bid.setImpid(wrapper.getImpId());
-            bid.setAdm((String) buildAdm(wrapper, bidRequest, affiliate));
+            bid.setAdm(buildAdm(wrapper, bidRequest, affiliate));
         }
 
         bid.setAdid(String.valueOf(adDTO.getAd().getId()));

@@ -7,7 +7,6 @@ import com.tecdo.domain.openrtb.response.custom.vivo.VivoAdm;
 import com.tecdo.domain.openrtb.response.custom.vivo.VivoTrack;
 import com.tecdo.service.track.ClickTrackBuilder;
 import com.tecdo.service.track.ImpTrackBuilder;
-import com.tecdo.util.JsonHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -24,10 +23,10 @@ public class VivoResponseBuilder {
     private final ImpTrackBuilder impTrackBuilder;
     private final ClickTrackBuilder clickTrackBuilder;
 
-    public String buildAdm(String packageName) {
+    public Object buildAdm(String packageName) {
         VivoAdm vivoAdm = new VivoAdm();
         vivoAdm.setAppPackage(packageName);
-        return JsonHelper.toJSONString(vivoAdm);
+        return vivoAdm;
     }
 
     public List<VivoTrack> buildTracks(String sysImpTrack, String sysClickTrack,
