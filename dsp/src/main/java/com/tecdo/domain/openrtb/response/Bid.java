@@ -28,6 +28,10 @@ public class Bid extends Extension {
      * 关联的竞价请求中的Imp对象的ID（必须）
      */
     private String impid;
+    /**
+     * vivo自定义
+     */
+    private String impId;
 
     /**
      * 虽然本次只是对某一个展示的出价，但是竞拍价格是以CPM表示。
@@ -166,4 +170,20 @@ public class Bid extends Extension {
      * 监测url
      */
     private List<VivoTrack> trackUrls;
+
+    public String getImpid() {
+        return impid;
+    }
+
+    public void setImpid(String impid) {
+        this.impid = impid;
+    }
+
+    public String getImpId() {
+        return impId;
+    }
+
+    public void setImpId(String impId) {
+        this.impId = impId;
+    }
 }
