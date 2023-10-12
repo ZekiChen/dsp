@@ -139,8 +139,9 @@ public class PriceCalcHandler {
     public static BigDecimal convertToUscByVivo(BigDecimal finalPrice, Affiliate affiliate) {
         if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
             finalPrice = UnitConvertUtil.usdToUsc(finalPrice);
+            finalPrice = finalPrice.setScale(0, RoundingMode.UP);
         }
-        return finalPrice.setScale(0, RoundingMode.UP);
+        return finalPrice;
     }
 
     public static BigDecimal convertToUsdByVivo(BigDecimal finalPrice, Affiliate affiliate) {
@@ -253,6 +254,7 @@ public class PriceCalcHandler {
             case CPA_EVENT2:
             case CPA_EVENT3:
             case CPA_EVENT10:
+            case CPS:
                 optPrice = getEcpxIfNotNull(adDTOWrapper, optPrice, ecpxEnable, eCPX);
                 finalPrice = optPrice
                         .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
