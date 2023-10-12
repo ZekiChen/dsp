@@ -254,7 +254,6 @@ public class PriceCalcHandler {
             case CPA_EVENT2:
             case CPA_EVENT3:
             case CPA_EVENT10:
-            case CPS:
                 optPrice = getEcpxIfNotNull(adDTOWrapper, optPrice, ecpxEnable, eCPX);
                 finalPrice = optPrice
                         .multiply(BigDecimal.valueOf(adDTOWrapper.getPCtr()))
