@@ -30,6 +30,8 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.AbTestConfig;
 import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.GooglePlayAppManager;
+import com.tecdo.transform.IProtoTransform;
+import com.tecdo.transform.ResponseTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
@@ -68,6 +70,11 @@ public class PredictHandler {
     private String cvrEvent3PredictUrl;
     @Value("${pac.cvr-event10-predict.url}")
     private String cvrEvent10PredictUrl;
+    @Value("${pac.cvr-event11-predict.url}")
+    private String cvrEvent11PredictUrl;
+
+    @Value("${pac.force-jump.pctr}")
+    private Double forceJumpPCtr;
 
     private final ThreadPool threadPool;
     private final MessageQueue messageQueue;
@@ -76,13 +83,14 @@ public class PredictHandler {
     private final GooglePlayAppManager googlePlayAppManager;
 
     public int callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap, Params params,
-                              BidRequest bidRequest, Imp imp, Affiliate affiliate) {
+                              BidRequest bidRequest, Imp imp, Affiliate affiliate, IProtoTransform protoTransform) {
         Map<Integer, AdDTOWrapper> cpcMap = new HashMap<>();
         Map<Integer, AdDTOWrapper> cpaMap = new HashMap<>();
         Map<Integer, AdDTOWrapper> cpa1Map = new HashMap<>();
         Map<Integer, AdDTOWrapper> cpa2Map = new HashMap<>();
         Map<Integer, AdDTOWrapper> cpa3Map = new HashMap<>();
         Map<Integer, AdDTOWrapper> cpa10Map = new HashMap<>();
+        Map<Integer, AdDTOWrapper> cpsMap = new HashMap<>();
         Map<Integer, AdDTOWrapper> noNeedPredict = new HashMap<>();
         adDTOMap.forEach((k, v) -> {
             BidStrategyEnum strategyEnum = BidStrategyEnum.of(v.getAdDTO().getAdGroup().getBidStrategy());
@@ -109,6 +117,15 @@ public class PredictHandler {
                     cpcMap.put(k, v);
                     cpa10Map.put(k, v);
                     break;
+                case CPS:
+                    String forceLink = v.getAdDTO().getAdGroup().getForceLink();
+                    if (ResponseTypeEnum.FORCE.equals(protoTransform.getResponseType(forceLink, v))) {
+                        v.setPCtr(forceJumpPCtr);
+                    } else {
+                        cpcMap.put(k, v);
+                    }
+                    cpsMap.put(k, v);
+                    break;
                 case CPM:
                 case DYNAMIC:
                 default:
@@ -120,7 +137,8 @@ public class PredictHandler {
                 + callAndMetricPredict(cpa1Map, "cvr-event1-batch-size", cvrEvent1PredictUrl, params, bidRequest, imp, affiliate)
                 + callAndMetricPredict(cpa2Map, "cvr-event2-batch-size", cvrEvent2PredictUrl, params, bidRequest, imp, affiliate)
                 + callAndMetricPredict(cpa3Map, "cvr-event3-batch-size", cvrEvent3PredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpa10Map, "cvr-event10-batch-size", cvrEvent10PredictUrl, params, bidRequest, imp, affiliate);
+                + callAndMetricPredict(cpa10Map, "cvr-event10-batch-size", cvrEvent10PredictUrl, params, bidRequest, imp, affiliate)
+                + callAndMetricPredict(cpsMap, "cvr-event11-batch-size", cvrEvent11PredictUrl, params, bidRequest, imp, affiliate);
 
         messageQueue.putMessage(EventType.PREDICT_FINISH,
                 params.put(ParamKey.ADS_PREDICT_RESPONSE, noNeedPredict));

@@ -131,7 +131,7 @@ public class Context {
       Task task = taskPool.get();
       // taskId = bidId
       String taskId = generateBidId();
-      task.init(bidRequest, imp, affiliate, requestId, taskId);
+      task.init(bidRequest, imp, affiliate, requestId, taskId, protoTransform);
       taskMap.put(taskId, task);
       messageQueue.putMessage(EventType.TASK_START, assignParams().put(ParamKey.TASK_ID, taskId));
       log.info("receive bid request: {},requestId: {},taskId: {}",

@@ -82,4 +82,6 @@ public class AdDTOWrapper {
   private ResponseTypeEnum responseTypeEnum = ResponseTypeEnum.NORMAL;
 
   private BidAlgorithmEnum bidAlgorithmEnum = BidAlgorithmEnum.NO;
+
+  private double random = Math.random();
 }

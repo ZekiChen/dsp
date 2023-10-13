@@ -3,6 +3,7 @@ package com.tecdo.transform;
 import cn.hutool.core.collection.CollUtil;
 import com.tecdo.domain.openrtb.request.*;
 import com.tecdo.util.StringConfigUtil;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.math.BigDecimal;
@@ -39,6 +40,9 @@ public class VivoTransform extends AbstractTransform implements IProtoTransform 
     return false;
   }
 
+  @Value("${pac.affiliate.vivo.default-bidfloor:5f}")
+  private Float defaultBibFloor;
+
   @Override
   public BidRequest requestTransform(String req) {
     BidRequest bidRequest = super.requestTransform(req);
@@ -60,9 +64,11 @@ public class VivoTransform extends AbstractTransform implements IProtoTransform 
     List<Imp> imps = bidRequest.getImp();
     if (CollUtil.isNotEmpty(imps)) {
       imps.forEach(imp -> {
-        imp.setBidfloor(BigDecimal.valueOf(imp.getBidFloor())
-                                  .divide(BigDecimal.valueOf(100), 3, RoundingMode.HALF_UP)
-                                  .floatValue());
+        float bidfloor = BigDecimal.valueOf(imp.getBidFloor())
+                .divide(BigDecimal.valueOf(100), 3, RoundingMode.HALF_UP)
+                .floatValue();
+        // vivo有部分流量底价为 0 美分，直接初始化 5 美分，便于贴底价买量处理
+        imp.setBidfloor(bidfloor == 0f ? defaultBibFloor : bidfloor);
 
         Integer impType = imp.getImpType();
         if (impType != null && impType == 1) {
