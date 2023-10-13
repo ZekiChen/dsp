@@ -104,6 +104,7 @@ public class RequestLogger {
                 .bCat(bidRequest.getBcat())
                 .videoPlacement(imp.getVideo() != null ? imp.getVideo().getPlacement() : -1)
                 .isRewarded(ExtHelper.isRewarded(bidRequest.getExt()) ? 1 : 0)
+                .schain(ExtHelper.listSChain(bidRequest.getSource()))
                 .build();
     }
 }

@@ -72,6 +72,7 @@ public class LazadaRequestJob {
       curRecordMapper.createCur(country, os, packageName, recallType, tableName, timeInMillis);
       dbOffset = timeInMillis;
     }
+    dbOffset = Math.max(dbOffset, timeInMillis);
     String condition = country + "_" + os + "_" + packageName + "_" + recallType;
 
     List<DeviceRecall> query = deviceRecallMapper.query(country,

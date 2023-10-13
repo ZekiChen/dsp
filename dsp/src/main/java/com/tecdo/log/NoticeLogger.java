@@ -3,7 +3,6 @@ package com.tecdo.log;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import cn.hutool.core.util.StrUtil;
-import cn.hutool.crypto.SecureUtil;
 import com.google.common.net.HttpHeaders;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.constant.RequestPath;
@@ -13,7 +12,9 @@ import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.ValidateCode;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.ProtoTransformFactory;
+import com.tecdo.util.AdxSecurityCipher;
 import com.tecdo.util.JsonHelper;
+import com.tecdo.util.UnitConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -24,7 +25,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.nio.charset.StandardCharsets;
 import java.util.*;
 
@@ -46,7 +46,7 @@ public class NoticeLogger {
     private static final Logger impInfoLog = LoggerFactory.getLogger("imp_info_log");
 
     @Value("${foreign.vivo.encrypt-key}")
-    private String vivoEKey = "5ee754bfa91f4026b8d3cfb7030111c2";
+    private String vivoEKey;
 
     public void logWin(HttpRequest httpRequest, NoticeInfo info) {
         String bidSuccessPrice = info.getBidSuccessPrice();
@@ -63,13 +63,10 @@ public class NoticeLogger {
 
         String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
         if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
-            bidSuccessPrice = SecureUtil
-                    .aes(vivoEKey.getBytes(StandardCharsets.UTF_8))
-                    .decryptStr(bidSuccessPrice);
+            bidSuccessPrice = AdxSecurityCipher.decryptString(bidSuccessPrice,
+                    vivoEKey.getBytes(StandardCharsets.UTF_8));
             map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
-                    new BigDecimal(bidSuccessPrice)
-                            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
-                            .doubleValue() : 0d);
+                    UnitConvertUtil.uscToUsd(new BigDecimal(bidSuccessPrice)).doubleValue() : 0d);
         } else {
             map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
                     new BigDecimal(bidSuccessPrice).doubleValue() : 0d);
@@ -116,13 +113,10 @@ public class NoticeLogger {
         String bidSuccessPrice = info.getBidSuccessPrice();
         String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
         if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
-            bidSuccessPrice = SecureUtil
-                    .aes(vivoEKey.getBytes(StandardCharsets.UTF_8))
-                    .decryptStr(bidSuccessPrice);
+            bidSuccessPrice = AdxSecurityCipher.decryptString(bidSuccessPrice,
+                    vivoEKey.getBytes(StandardCharsets.UTF_8));
             map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
-                    new BigDecimal(bidSuccessPrice)
-                            .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP)
-                            .doubleValue() : 0d);
+                    UnitConvertUtil.uscToUsd(new BigDecimal(bidSuccessPrice)).doubleValue() : 0d);
         } else {
             map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
                     new BigDecimal(bidSuccessPrice).doubleValue() : 0d);
@@ -214,7 +208,7 @@ public class NoticeLogger {
     }
 
     public void logValidateFailed(String type, NoticeInfo info,
-                                         HttpRequest httpRequest, ValidateCode code) {
+                                  HttpRequest httpRequest, ValidateCode code) {
         Map<String, Object> map = new HashMap<>();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
         map.put("time_millis", System.currentTimeMillis());

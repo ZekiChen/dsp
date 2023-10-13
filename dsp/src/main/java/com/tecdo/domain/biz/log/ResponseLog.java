@@ -322,4 +322,7 @@ public class ResponseLog implements Serializable {
 
     @JsonProperty("is_rewarded")
     private Integer isRewarded;
+
+    @JsonProperty("schain")
+    private String schain;
 }

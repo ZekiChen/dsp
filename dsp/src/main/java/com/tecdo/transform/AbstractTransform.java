@@ -66,19 +66,20 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     @Override
     public ResponseTypeEnum getResponseType(String forceLink, AdDTOWrapper wrapper) {
-        if (isForceJump(forceLink, wrapper.getAdDTO())) {
+        if (isForceJump(forceLink, wrapper)) {
             wrapper.setResponseTypeEnum(ResponseTypeEnum.FORCE);
             return ResponseTypeEnum.FORCE;
         }
         return ResponseTypeEnum.NORMAL;
     }
 
-    private boolean isForceJump(String forceLink, AdDTO adDTO) {
+    private boolean isForceJump(String forceLink, AdDTOWrapper wrapper) {
+        AdDTO adDTO = wrapper.getAdDTO();
         return Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())
                 && forceBannerEnable()
                 && adDTO.getAdGroup().getForceJumpEnable()
                 && StringUtils.isNotBlank(forceLink)
-                && Math.random() < adDTO.getAdGroup().getForceJumpRatio();
+                && wrapper.getRandom() < adDTO.getAdGroup().getForceJumpRatio();
     }
 
     @Override
@@ -119,7 +120,11 @@ public abstract class AbstractTransform implements IProtoTransform {
         BidResponse bidResponse = new BidResponse();
         bidResponse.setId(bidRequest.getId());
         bidResponse.setBidid(bids.get(0).getId());
-        bidResponse.setSeatbid(Collections.singletonList(seatBid));
+        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
+            bidResponse.setSeatBid(Collections.singletonList(seatBid));
+        } else {
+            bidResponse.setSeatbid(Collections.singletonList(seatBid));
+        }
         return bidResponse;
     }
 
@@ -131,7 +136,6 @@ public abstract class AbstractTransform implements IProtoTransform {
 
         Bid bid = new Bid();
         bid.setId(bidId);
-        bid.setImpid(wrapper.getImpId());
         bid.setPrice(wrapper.getBidPrice().floatValue());
 
         String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
@@ -152,14 +156,17 @@ public abstract class AbstractTransform implements IProtoTransform {
         }
 
         if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
+            bid.setImpId(wrapper.getImpId());
             String sysImpTrack = this.impUrl + VIVO_AUCTION_PRICE_PARAM;
             String sysClickTrack = this.clickUrl;
             bid.setAdm(vivoResponseBuilder.buildAdm(wrapper.getAdDTO().getCampaign().getPackageName()));
             bid.setTrackUrls(vivoResponseBuilder.buildTracks(sysImpTrack, sysClickTrack, wrapper, bidRequest, affiliate, sign));
         } else if (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.NATIVE.getType()) && buildAdmByImmobi()) {
+            bid.setImpid(wrapper.getImpId());
             bid.setAdmobject(buildAdm(wrapper, bidRequest, affiliate));
         } else {
-            bid.setAdm((String) buildAdm(wrapper, bidRequest, affiliate));
+            bid.setImpid(wrapper.getImpId());
+            bid.setAdm(buildAdm(wrapper, bidRequest, affiliate));
         }
 
         bid.setAdid(String.valueOf(adDTO.getAd().getId()));

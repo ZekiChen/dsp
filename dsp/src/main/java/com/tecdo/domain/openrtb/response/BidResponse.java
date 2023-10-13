@@ -27,6 +27,10 @@ public class BidResponse extends Extension {
      * 如果出价，则至少应该填充一个
      */
     private List<SeatBid> seatbid;
+    /**
+     * vivo自定义
+     */
+    private List<SeatBid> seatBid;
 
     /**
      * 竞拍者生成的响应ID, 辅助日志或者交易追踪
@@ -48,4 +52,20 @@ public class BidResponse extends Extension {
      * @see NoBidReasonCodeEnum
      */
     private Integer nbr;
+
+    public List<SeatBid> getSeatbid() {
+        return seatbid;
+    }
+
+    public void setSeatbid(List<SeatBid> seatbid) {
+        this.seatbid = seatbid;
+    }
+
+    public List<SeatBid> getSeatBid() {
+        return seatBid;
+    }
+
+    public void setSeatBid(List<SeatBid> seatBid) {
+        this.seatBid = seatBid;
+    }
 }

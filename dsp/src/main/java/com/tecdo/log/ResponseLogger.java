@@ -13,6 +13,7 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
+import com.tecdo.fsm.task.handler.PriceCalcHandler;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.ExtHelper;
 import com.tecdo.util.FieldFormatHelper;
@@ -73,7 +74,7 @@ public class ResponseLogger {
                       .feature(Optional.ofNullable(wrapper.getAdDTO().getCampaignRtaInfo())
                                        .map(CampaignRtaInfo::getRtaFeature)
                                        .orElse(-1))
-                      .bidPrice(wrapper.getBidPrice().doubleValue())
+                      .bidPrice(PriceCalcHandler.convertToUsdByVivo(wrapper.getBidPrice(), affiliate).doubleValue())
                       .pCtr(wrapper.getPCtr())
                       .pCtrVersion(wrapper.getPCtrVersion())
                       .pCvr(wrapper.getPCvr())
@@ -129,6 +130,7 @@ public class ResponseLogger {
                       .bidAlgorithm(wrapper.getBidAlgorithmEnum().getType())
                       .videoPlacement(imp.getVideo() != null ? imp.getVideo().getPlacement() : -1)
                       .isRewarded(ExtHelper.isRewarded(bidRequest.getExt()) ? 1 : 0)
+                      .schain(ExtHelper.listSChain(bidRequest.getSource()))
                       .build();
   }
 }

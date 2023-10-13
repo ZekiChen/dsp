@@ -31,6 +31,7 @@ import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
+import com.tecdo.util.UnitConvertUtil;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -135,9 +136,17 @@ public class PriceCalcHandler {
         }
     }
 
-    private BigDecimal convertToUscByVivo(BigDecimal finalPrice, Affiliate affiliate) {
+    public static BigDecimal convertToUscByVivo(BigDecimal finalPrice, Affiliate affiliate) {
         if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
-            finalPrice = finalPrice.multiply(BigDecimal.valueOf(100));
+            finalPrice = UnitConvertUtil.usdToUsc(finalPrice);
+            finalPrice = finalPrice.setScale(0, RoundingMode.UP);
+        }
+        return finalPrice;
+    }
+
+    public static BigDecimal convertToUsdByVivo(BigDecimal finalPrice, Affiliate affiliate) {
+        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
+            finalPrice = UnitConvertUtil.uscToUsd(finalPrice);
         }
         return finalPrice;
     }
@@ -200,7 +209,7 @@ public class PriceCalcHandler {
         AdDTO adDTO = adDTOWrapper.getAdDTO();
         BundleData bundleData = bundleDataManager.getBundleData(key);
         boolean needTest = !bundleDataManager.isImpGtSize(key);
-        // 该流量key纬度的曝光量小于指定大小、且开启了Bundle自动化探索开关，则进行探索
+        // 该广告位的曝光量小于指定大小、且开启了Bundle自动化探索开关，则进行探索
         if (needTest && adDTO.getAdGroup().getBundleTestEnable() && bundleData != null) {
             finalPrice = bundleAutoExplore(bundleData, affiliate, imp);
         } else {
@@ -284,6 +293,7 @@ public class PriceCalcHandler {
         Double winRate = bundleData.getWinRate();
         Double bidPrice = bundleData.getBidPrice();
         if (winRate < affiliate.getRequireWinRate()) {
+            // max(当前底价, ecpm) * 倍率 进行出价
             if (bidPrice < imp.getBidfloor()) {
                 finalPrice = BigDecimal.valueOf(imp.getBidfloor()).multiply(new BigDecimal(multiplier));
             } else {
@@ -293,6 +303,7 @@ public class PriceCalcHandler {
             if (bundleData.getOldK() == 0 || bundleData.getK() == 0) {
                 finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
             } else {
+                // k = winRate / bidPrice。 出价 = 新k的ecpm * 新k/旧k
                 finalPrice = BigDecimal.valueOf(bidPrice)
                         .multiply(BigDecimal.valueOf(bundleData.getK()))
                         .divide(BigDecimal.valueOf(bundleData.getOldK()),
