@@ -48,6 +48,9 @@ public class BidPriceService {
             case CPA_EVENT10:
                 eCPX = historyECPX.getECPAEvent10();
                 break;
+            case CPS:
+                eCPX = historyECPX.getECPS();
+                break;
         }
         return eCPX != null ? BigDecimal.valueOf(eCPX) : null;
     }

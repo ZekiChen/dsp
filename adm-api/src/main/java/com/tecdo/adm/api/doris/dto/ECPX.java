@@ -21,4 +21,5 @@ public class ECPX implements Serializable {
     private Double eCPAEvent2;
     private Double eCPAEvent3;
     private Double eCPAEvent10;
+    private Double eCPS;
 }

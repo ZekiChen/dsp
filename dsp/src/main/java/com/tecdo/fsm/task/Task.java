@@ -19,6 +19,7 @@ import com.tecdo.fsm.task.handler.AdRecallHandler;
 import com.tecdo.fsm.task.handler.PredictHandler;
 import com.tecdo.fsm.task.handler.PriceCalcHandler;
 import com.tecdo.fsm.task.handler.RtaHandler;
+import com.tecdo.transform.IProtoTransform;
 import com.tecdo.util.ActionConsumeRecorder;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
@@ -38,6 +39,7 @@ public class Task {
     private Long requestId;
     // taskId = bidId
     private String taskId;
+    private IProtoTransform protoTransform;
 
     private int needReceiveCount = 0;
     private int predictResCount = 0;
@@ -68,12 +70,14 @@ public class Task {
                      Imp imp,
                      Affiliate affiliate,
                      Long requestId,
-                     String taskId) {
+                     String taskId,
+                     IProtoTransform protoTransform) {
         this.bidRequest = bidRequest;
         this.imp = imp;
         this.affiliate = affiliate;
         this.requestId = requestId;
         this.taskId = taskId;
+        this.protoTransform = protoTransform;
     }
 
     public void reset() {
@@ -91,6 +95,7 @@ public class Task {
         this.afterPredictAdMap.clear();
         this.afterPriceFilterAdMap.clear();
         this.normalOrRtaTrueAds.clear();
+        this.protoTransform = null;
         this.recorder.reset();
     }
 
@@ -149,7 +154,7 @@ public class Task {
 
     public void callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap) {
         this.needReceiveCount = predictHandler.callPredictApi(adDTOMap, assignParams(),
-                this.bidRequest, this.imp, this.affiliate);
+                this.bidRequest, this.imp, this.affiliate, this.protoTransform);
     }
 
     public void savePredictResponse(Map<Integer, AdDTOWrapper> adDTOMap) {

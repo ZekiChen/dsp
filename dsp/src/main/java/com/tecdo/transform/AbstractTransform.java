@@ -66,19 +66,20 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     @Override
     public ResponseTypeEnum getResponseType(String forceLink, AdDTOWrapper wrapper) {
-        if (isForceJump(forceLink, wrapper.getAdDTO())) {
+        if (isForceJump(forceLink, wrapper)) {
             wrapper.setResponseTypeEnum(ResponseTypeEnum.FORCE);
             return ResponseTypeEnum.FORCE;
         }
         return ResponseTypeEnum.NORMAL;
     }
 
-    private boolean isForceJump(String forceLink, AdDTO adDTO) {
+    private boolean isForceJump(String forceLink, AdDTOWrapper wrapper) {
+        AdDTO adDTO = wrapper.getAdDTO();
         return Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())
                 && forceBannerEnable()
                 && adDTO.getAdGroup().getForceJumpEnable()
                 && StringUtils.isNotBlank(forceLink)
-                && Math.random() < adDTO.getAdGroup().getForceJumpRatio();
+                && wrapper.getRandom() < adDTO.getAdGroup().getForceJumpRatio();
     }
 
     @Override
