@@ -12,7 +12,9 @@ import com.tecdo.server.request.HttpRequest;
 import com.tecdo.service.ValidateCode;
 import com.tecdo.service.init.AffiliateManager;
 import com.tecdo.transform.ProtoTransformFactory;
+import com.tecdo.util.AdxSecurityCipher;
 import com.tecdo.util.JsonHelper;
+import com.tecdo.util.UnitConvertUtil;
 import lombok.RequiredArgsConstructor;
 import org.apache.commons.lang3.math.NumberUtils;
 import org.apache.logging.log4j.util.Strings;
@@ -23,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
 import java.math.BigDecimal;
+import java.nio.charset.StandardCharsets;
 import java.util.*;
 
 /**
@@ -60,11 +63,10 @@ public class NoticeLogger {
 
         String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
         if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
-//            AES aes = new AES(Mode.CBC, Padding.PKCS5Padding, vivoEKey.getBytes(StandardCharsets.UTF_8));
-//            bidSuccessPrice = aes.decryptStr(bidSuccessPrice);
-//            map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
-//                    UnitConvertUtil.uscToUsd(new BigDecimal(bidSuccessPrice)).doubleValue() : 0d);
-            map.put("bid_success_price", 0d);
+            bidSuccessPrice = AdxSecurityCipher.decryptString(bidSuccessPrice,
+                    vivoEKey.getBytes(StandardCharsets.UTF_8));
+            map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
+                    UnitConvertUtil.uscToUsd(new BigDecimal(bidSuccessPrice)).doubleValue() : 0d);
         } else {
             map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
                     new BigDecimal(bidSuccessPrice).doubleValue() : 0d);
@@ -111,11 +113,10 @@ public class NoticeLogger {
         String bidSuccessPrice = info.getBidSuccessPrice();
         String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
         if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
-//            AES aes = new AES(Mode.CBC, Padding.PKCS5Padding, vivoEKey.getBytes(StandardCharsets.UTF_8));
-//            bidSuccessPrice = aes.decryptStr(bidSuccessPrice);
-//            map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
-//                    UnitConvertUtil.uscToUsd(new BigDecimal(bidSuccessPrice)).doubleValue() : 0d);
-            map.put("bid_success_price", 0d);
+            bidSuccessPrice = AdxSecurityCipher.decryptString(bidSuccessPrice,
+                    vivoEKey.getBytes(StandardCharsets.UTF_8));
+            map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
+                    UnitConvertUtil.uscToUsd(new BigDecimal(bidSuccessPrice)).doubleValue() : 0d);
         } else {
             map.put("bid_success_price", NumberUtils.isParsable(bidSuccessPrice) ?
                     new BigDecimal(bidSuccessPrice).doubleValue() : 0d);
@@ -207,7 +208,7 @@ public class NoticeLogger {
     }
 
     public void logValidateFailed(String type, NoticeInfo info,
-                                         HttpRequest httpRequest, ValidateCode code) {
+                                  HttpRequest httpRequest, ValidateCode code) {
         Map<String, Object> map = new HashMap<>();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
         map.put("time_millis", System.currentTimeMillis());
