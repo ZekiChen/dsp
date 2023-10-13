@@ -7,6 +7,7 @@ import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.openrtb.request.*;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
+import com.tecdo.domain.openrtb.response.custom.vivo.VivoConstant;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
 import lombok.extern.slf4j.Slf4j;
 
@@ -95,7 +96,10 @@ public class CreativeHelper {
                 }
             }
         } else if (imp.getImpType() == 1) {
+            // vivo native
             bidCreative.setType(AdTypeEnum.NATIVE.getType());
+            bidCreative.setWidth(VivoConstant.WIDTH);
+            bidCreative.setHeight(VivoConstant.HEIGHT);
         } else {
             log.error("imp type error, imp id: {}", imp.getId());
         }
