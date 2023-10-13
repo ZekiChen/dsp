@@ -60,9 +60,11 @@ public class VivoTransform extends AbstractTransform implements IProtoTransform 
     List<Imp> imps = bidRequest.getImp();
     if (CollUtil.isNotEmpty(imps)) {
       imps.forEach(imp -> {
-        imp.setBidfloor(BigDecimal.valueOf(imp.getBidFloor())
-                                  .divide(BigDecimal.valueOf(100), 3, RoundingMode.HALF_UP)
-                                  .floatValue());
+        float bidfloor = BigDecimal.valueOf(imp.getBidFloor())
+                .divide(BigDecimal.valueOf(100), 3, RoundingMode.HALF_UP)
+                .floatValue();
+        // vivo有部分流量底价为 0 美分，直接初始化 5 美分，便于贴底价买量处理
+        imp.setBidfloor(bidfloor == 0f ? 5f : bidfloor);
 
         Integer impType = imp.getImpType();
         if (impType != null && impType == 1) {
