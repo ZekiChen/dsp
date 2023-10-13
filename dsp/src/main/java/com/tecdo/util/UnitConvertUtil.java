@@ -13,6 +13,6 @@ public class UnitConvertUtil {
     }
 
     public static BigDecimal uscToUsd(BigDecimal usc) {
-        return usc.divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        return usc.divide(BigDecimal.valueOf(100), 3, RoundingMode.HALF_UP);
     }
 }

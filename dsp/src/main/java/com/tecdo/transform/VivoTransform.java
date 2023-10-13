@@ -5,6 +5,8 @@ import com.tecdo.domain.openrtb.request.*;
 import com.tecdo.util.StringConfigUtil;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 
 @Component
@@ -58,7 +60,9 @@ public class VivoTransform extends AbstractTransform implements IProtoTransform 
     List<Imp> imps = bidRequest.getImp();
     if (CollUtil.isNotEmpty(imps)) {
       imps.forEach(imp -> {
-        imp.setBidfloor(imp.getBidFloor() / 100);
+        imp.setBidfloor(BigDecimal.valueOf(imp.getBidFloor())
+                                  .divide(BigDecimal.valueOf(100), 3, RoundingMode.HALF_UP)
+                                  .floatValue());
 
         Integer impType = imp.getImpType();
         if (impType != null && impType == 1) {
