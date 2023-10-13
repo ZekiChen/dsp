@@ -67,6 +67,11 @@ public enum EventType {
   CHEATING_DATA_LOAD_ERROR(2203, "cheating data load failure"),
   CHEATING_DATA_LOAD_TIMEOUT(2204, "cheating data load timeout"),
 
+  BUNDLE_COST_LOAD(2101, "bundle cost load"),
+  BUNDLE_COST_LOAD_RESPONSE(2102, "bundle cost load response"),
+  BUNDLE_COST_LOAD_ERROR(2103, "bundle cost load failure"),
+  BUNDLE_COST_LOAD_TIMEOUT(2104, "bundle cost load timeout"),
+
   ECPX_LOAD(2301, "ecpx data load"),
   ECPX_LOAD_RESPONSE(2302, "ecpx data load response"),
   ECPX_LOAD_ERROR(2303, "ecpx data load failure"),

@@ -18,6 +18,7 @@ import com.tecdo.service.init.CheatingDataManager;
 import com.tecdo.service.init.GooglePlayAppManager;
 import com.tecdo.service.init.IpTableManager;
 import com.tecdo.service.init.RtaInfoManager;
+import com.tecdo.service.init.doris.BundleCostManager;
 import com.tecdo.service.init.doris.ECPXManager;
 import com.tecdo.service.init.doris.BudgetManager;
 
@@ -58,13 +59,15 @@ public class LifeCycleManager {
   @Autowired
   private BundleDataManager bundleDataManager;
   @Autowired
+  private BundleCostManager bundleCostManager;
+  @Autowired
   private CheatingDataManager cheatingDataManager;
   @Autowired
   private ECPXManager eCPXManager;
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 12;
+  private final int needInitCount = 13;
 
   @Value("${server.port}")
   private int serverPort;
@@ -159,6 +162,12 @@ public class LifeCycleManager {
       case CHEATING_DATA_LOAD_TIMEOUT:
         cheatingDataManager.handleEvent(eventType, params);
         break;
+      case BUNDLE_COST_LOAD:
+      case BUNDLE_COST_LOAD_RESPONSE:
+      case BUNDLE_COST_LOAD_ERROR:
+      case BUNDLE_COST_LOAD_TIMEOUT:
+        bundleCostManager.handleEvent(eventType, params);
+        break;
       case ECPX_LOAD:
       case ECPX_LOAD_RESPONSE:
       case ECPX_LOAD_ERROR:
@@ -195,6 +204,7 @@ public class LifeCycleManager {
         affCountryBundleListManager.init(params);
         bundleDataManager.init(params);
         cheatingDataManager.init(params);
+        bundleCostManager.init(params);
         eCPXManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;

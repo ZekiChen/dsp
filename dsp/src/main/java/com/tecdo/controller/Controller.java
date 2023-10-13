@@ -82,6 +82,10 @@ public class Controller implements MessageObserver {
       case CHEATING_DATA_LOAD_RESPONSE:
       case CHEATING_DATA_LOAD_ERROR:
       case CHEATING_DATA_LOAD_TIMEOUT:
+      case BUNDLE_COST_LOAD:
+      case BUNDLE_COST_LOAD_RESPONSE:
+      case BUNDLE_COST_LOAD_ERROR:
+      case BUNDLE_COST_LOAD_TIMEOUT:
       case ECPX_LOAD:
       case ECPX_LOAD_RESPONSE:
       case ECPX_LOAD_ERROR:
