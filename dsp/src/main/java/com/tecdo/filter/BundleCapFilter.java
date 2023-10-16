@@ -28,11 +28,11 @@ public class BundleCapFilter extends AbstractRecallFilter {
 
         // 获取ad group曝光、点击、花费的定向条件
         TargetCondition impCapDay = adDTO.getConditionMap()
-                .getOrDefault(ConditionEnum.BUNDLE_IMP_CAP_DAY.getDesc(), null);
+                .get(ConditionEnum.BUNDLE_IMP_CAP_DAY.getDesc());
         TargetCondition clickCapDay = adDTO.getConditionMap()
-                .getOrDefault(ConditionEnum.BUNDLE_CLICK_CAP_DAY.getDesc(), null);
+                .get(ConditionEnum.BUNDLE_CLICK_CAP_DAY.getDesc());
         TargetCondition costCapDay = adDTO.getConditionMap()
-                .getOrDefault(ConditionEnum.BUNDLE_COST_CAP_DAY.getDesc(), null);
+                .get(ConditionEnum.BUNDLE_COST_CAP_DAY.getDesc());
 
         // 当日bundle在该group下的imp, click, cost
         BundleCost bundleCost =
