@@ -34,7 +34,7 @@ public class RecallFiltersFactory {
     private final DeviceOSVFilter deviceOSVFilter;
     private final TimePeriodFilter timePeriodFilter;
     private final BudgetFilter budgetFilter;
-    private final BundleFilter bundleFilter;
+    private final BundleCapFilter bundleCapFilter;
     private final ImpFrequencyFilter impFrequencyFilter;
     private final ClickFrequencyFilter clickFrequencyFilter;
     private final AfAudienceFilter afAudienceFilter;
@@ -55,7 +55,7 @@ public class RecallFiltersFactory {
                                 DeviceOSVFilter deviceOSVFilter,
                                 TimePeriodFilter timePeriodFilter,
                                 BudgetFilter budgetFilter,
-                                BundleFilter bundleFilter,
+                                BundleCapFilter bundleCapFilter,
                                 ImpFrequencyFilter impFrequencyFilter,
                                 ClickFrequencyFilter clickFrequencyFilter,
                                 AfAudienceFilter afAudienceFilter,
@@ -75,7 +75,7 @@ public class RecallFiltersFactory {
         this.deviceOSVFilter = deviceOSVFilter;
         this.timePeriodFilter = timePeriodFilter;
         this.budgetFilter = budgetFilter;
-        this.bundleFilter = bundleFilter;
+        this.bundleCapFilter = bundleCapFilter;
         this.impFrequencyFilter = impFrequencyFilter;
         this.clickFrequencyFilter = clickFrequencyFilter;
         this.afAudienceFilter = afAudienceFilter;
@@ -97,7 +97,7 @@ public class RecallFiltersFactory {
                 deviceLangFilter,
                 appBundleFilter,
                 budgetFilter,
-                bundleFilter,
+                bundleCapFilter,
                 afAudienceFilter,
                 impFrequencyFilter,
                 clickFrequencyFilter

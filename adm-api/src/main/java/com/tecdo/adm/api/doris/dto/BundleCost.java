@@ -11,9 +11,9 @@ import java.io.Serializable;
 public class BundleCost implements Serializable{
     private String bundleId;
     private Integer adGroupId;
-    private Integer impCount;
-    private Integer clickCount;
-    private Double bidPriceTotal;
+    private Long impCount = 0L;
+    private Long clickCount = 0L;
+    private Double bidPriceTotal = 0D;
 
     @Override
     public String toString() {

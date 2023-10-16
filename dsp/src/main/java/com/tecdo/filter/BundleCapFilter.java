@@ -17,7 +17,7 @@ import org.springframework.stereotype.Component;
  * Created by Elwin on 2023/10/12
  */
 @Component
-public class BundleFilter extends AbstractRecallFilter {
+public class BundleCapFilter extends AbstractRecallFilter {
     @Autowired
     private BundleCostManager bundleCostManager;
 
@@ -27,37 +27,32 @@ public class BundleFilter extends AbstractRecallFilter {
         Integer groupId = adDTO.getAdGroup().getId();
 
         // 获取ad group曝光、点击、花费的定向条件
-        TargetCondition defalut = new TargetCondition();
-        defalut.setValue(null);
-        String impCapDay = adDTO.getConditionMap()
-                .getOrDefault(ConditionEnum.BUNDLE_IMP_CAP_DAY.getDesc(), defalut)
-                .getValue();
-        String clickCapDay = adDTO.getConditionMap()
-                .getOrDefault(ConditionEnum.BUNDLE_CLICK_CAP_DAY.getDesc(), defalut)
-                .getValue();
-        String costCapDay = adDTO.getConditionMap()
-                .getOrDefault(ConditionEnum.BUNDLE_COST_CAP_DAY.getDesc(), defalut)
-                .getValue();
+        TargetCondition impCapDay = adDTO.getConditionMap()
+                .getOrDefault(ConditionEnum.BUNDLE_IMP_CAP_DAY.getDesc(), null);
+        TargetCondition clickCapDay = adDTO.getConditionMap()
+                .getOrDefault(ConditionEnum.BUNDLE_CLICK_CAP_DAY.getDesc(), null);
+        TargetCondition costCapDay = adDTO.getConditionMap()
+                .getOrDefault(ConditionEnum.BUNDLE_COST_CAP_DAY.getDesc(), null);
 
         // 当日bundle在该group下的imp, click, cost
         BundleCost bundleCost =
                 bundleCostManager.getBundleCost(bundleId.concat(",").concat(groupId.toString()));
 
         // 构造过滤结果，未设限条件设置为true
-        boolean impIsValid = StrUtil.isBlank(impCapDay) ||
+        boolean impIsValid = impCapDay == null ||
                 ConditionHelper.compare(bundleCost.getImpCount().toString(),
-                                        Constant.LT,
-                                        impCapDay);
+                                        impCapDay.getOperation(),
+                                        impCapDay.getValue());
 
-        boolean clickIsValid = StrUtil.isBlank(clickCapDay) ||
+        boolean clickIsValid = clickCapDay == null ||
                 ConditionHelper.compare(bundleCost.getClickCount().toString(),
-                                        Constant.LT,
-                                        clickCapDay);
+                                        clickCapDay.getOperation(),
+                                        clickCapDay.getValue());
 
-        boolean costIsValid = StrUtil.isBlank(costCapDay) ||
+        boolean costIsValid = costCapDay == null ||
                 ConditionHelper.compare(bundleCost.getBidPriceTotal().toString(),
-                                        Constant.LT,
-                                        costCapDay);
+                                        costCapDay.getOperation(),
+                                        costCapDay.getValue());
 
         return impIsValid && clickIsValid && costIsValid;
     }

@@ -2,6 +2,7 @@ package com.tecdo.service.init.doris;
 
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.doris.dto.BundleCost;
+import com.tecdo.adm.api.doris.dto.ECPX;
 import com.tecdo.adm.api.doris.entity.Report;
 import com.tecdo.adm.api.doris.mapper.ReportMapper;
 import com.tecdo.common.util.Params;
@@ -39,6 +40,7 @@ public class BundleCostManager extends ServiceImpl<ReportMapper, Report> {
 
     private State currentState = State.INIT;
     private long timerId;
+    private static final BundleCost EMPTY = new BundleCost();
 
     /**
      * Key: "${bundleId}, ${adGroupId}"
@@ -54,7 +56,7 @@ public class BundleCostManager extends ServiceImpl<ReportMapper, Report> {
      * 从 Doris 加载 当天bundle-group的曝光、点击、花费 集合，每 5 分钟刷新一次缓存
      */
     public BundleCost getBundleCost(String bundleAndAdGroup) {
-        return bundleCostMap.getOrDefault(bundleAndAdGroup, null);
+        return bundleCostMap.getOrDefault(bundleAndAdGroup, EMPTY);
     }
 
     @AllArgsConstructor
@@ -172,7 +174,7 @@ public class BundleCostManager extends ServiceImpl<ReportMapper, Report> {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
             case UPDATING:
-                log.error("timeout load budgets");
+                log.error("timeout load bundle cost");
                 startNextReloadTimer(params);
                 switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
                 break;

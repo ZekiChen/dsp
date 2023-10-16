@@ -59,11 +59,11 @@ public class LifeCycleManager {
   @Autowired
   private BundleDataManager bundleDataManager;
   @Autowired
-  private BundleCostManager bundleCostManager;
-  @Autowired
   private CheatingDataManager cheatingDataManager;
   @Autowired
   private ECPXManager eCPXManager;
+  @Autowired
+  private BundleCostManager bundleCostManager;
   private State currentState = State.INIT;
 
   private int readyCount = 0;
@@ -162,19 +162,18 @@ public class LifeCycleManager {
       case CHEATING_DATA_LOAD_TIMEOUT:
         cheatingDataManager.handleEvent(eventType, params);
         break;
-      case BUNDLE_COST_LOAD:
-      case BUNDLE_COST_LOAD_RESPONSE:
-      case BUNDLE_COST_LOAD_ERROR:
-      case BUNDLE_COST_LOAD_TIMEOUT:
-        bundleCostManager.handleEvent(eventType, params);
-        break;
       case ECPX_LOAD:
       case ECPX_LOAD_RESPONSE:
       case ECPX_LOAD_ERROR:
       case ECPX_LOAD_TIMEOUT:
         eCPXManager.handleEvent(eventType, params);
         break;
-
+      case BUNDLE_COST_LOAD:
+      case BUNDLE_COST_LOAD_RESPONSE:
+      case BUNDLE_COST_LOAD_ERROR:
+      case BUNDLE_COST_LOAD_TIMEOUT:
+        bundleCostManager.handleEvent(eventType, params);
+        break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -204,8 +203,8 @@ public class LifeCycleManager {
         affCountryBundleListManager.init(params);
         bundleDataManager.init(params);
         cheatingDataManager.init(params);
-        bundleCostManager.init(params);
         eCPXManager.init(params);
+        bundleCostManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:
