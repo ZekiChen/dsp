@@ -32,5 +32,5 @@ public interface ReportMapper extends BaseMapper<Report> {
 
   List<ECPX> listECPX(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
-  List<BundleCost> getBundleCostByDay();
+  List<BundleCost> getBundleCostByDay(@Param("createDate") String createDate);
 }

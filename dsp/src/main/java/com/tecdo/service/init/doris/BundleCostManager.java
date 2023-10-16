@@ -1,5 +1,6 @@
 package com.tecdo.service.init.doris;
 
+import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.doris.dto.BundleCost;
 import com.tecdo.adm.api.doris.dto.ECPX;
@@ -120,7 +121,7 @@ public class BundleCostManager extends ServiceImpl<ReportMapper, Report> {
             case RUNNING:
                 threadPool.execute(() -> {
                     try {
-                        List<BundleCost> costList = reportMapper.getBundleCostByDay();
+                        List<BundleCost> costList = reportMapper.getBundleCostByDay(DateUtil.today());
                         Map<String, BundleCost> bundleCostMap = costList.stream().collect(Collectors.toMap(BundleCost::toString, cost -> cost));
                         params.put(BUNDLE_COST_CACHE_KEY, bundleCostMap);
                         messageQueue.putMessage(EventType.BUNDLE_COST_LOAD_RESPONSE, params);

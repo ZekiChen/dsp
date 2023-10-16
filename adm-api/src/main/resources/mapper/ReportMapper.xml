@@ -95,7 +95,7 @@
         FROM
             ads.dsp_report
         WHERE
-            create_date = CURDATE()
+            create_date = #{createDate}
         GROUP BY
             bundle_id, ad_group_id
     </select>
