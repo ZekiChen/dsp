@@ -34,11 +34,11 @@ public class RecallFiltersFactory {
     private final DeviceOSVFilter deviceOSVFilter;
     private final TimePeriodFilter timePeriodFilter;
     private final BudgetFilter budgetFilter;
-    private final BundleCapFilter bundleCapFilter;
     private final ImpFrequencyFilter impFrequencyFilter;
     private final ClickFrequencyFilter clickFrequencyFilter;
     private final AfAudienceFilter afAudienceFilter;
     private final AffiliateBlockedAdFilter affiliateBlockedAdFilter;
+    private final BundleCapFilter bundleCapFilter;
 
     @Autowired
     public RecallFiltersFactory(AffiliateFilter affiliateFilter,
@@ -55,11 +55,11 @@ public class RecallFiltersFactory {
                                 DeviceOSVFilter deviceOSVFilter,
                                 TimePeriodFilter timePeriodFilter,
                                 BudgetFilter budgetFilter,
-                                BundleCapFilter bundleCapFilter,
                                 ImpFrequencyFilter impFrequencyFilter,
                                 ClickFrequencyFilter clickFrequencyFilter,
                                 AfAudienceFilter afAudienceFilter,
-                                AffiliateBlockedAdFilter affiliateBlockedAdFilter) {
+                                AffiliateBlockedAdFilter affiliateBlockedAdFilter,
+                                BundleCapFilter bundleCapFilter) {
 
         this.affiliateFilter = affiliateFilter;
         this.appBundleFilter = appBundleFilter;
@@ -75,11 +75,11 @@ public class RecallFiltersFactory {
         this.deviceOSVFilter = deviceOSVFilter;
         this.timePeriodFilter = timePeriodFilter;
         this.budgetFilter = budgetFilter;
-        this.bundleCapFilter = bundleCapFilter;
         this.impFrequencyFilter = impFrequencyFilter;
         this.clickFrequencyFilter = clickFrequencyFilter;
         this.afAudienceFilter = afAudienceFilter;
         this.affiliateBlockedAdFilter = affiliateBlockedAdFilter;
+        this.bundleCapFilter = bundleCapFilter;
 
         List<AbstractRecallFilter> filters = CollUtil.newArrayList(
                 affiliateFilter,
@@ -97,10 +97,10 @@ public class RecallFiltersFactory {
                 deviceLangFilter,
                 appBundleFilter,
                 budgetFilter,
-                bundleCapFilter,
                 afAudienceFilter,
                 impFrequencyFilter,
-                clickFrequencyFilter
+                clickFrequencyFilter,
+                bundleCapFilter
         );
         FilterChainHelper.assemble(filters);
         this.filterChain = filters;
