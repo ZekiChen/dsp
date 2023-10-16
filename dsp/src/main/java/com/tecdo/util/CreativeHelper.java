@@ -102,7 +102,7 @@ public class CreativeHelper {
                 }
             }
         }
-        if (imp.getImpType() == 1) {
+        if (Objects.equals(imp.getImpType(), 1)) {
             // vivo native
             bidCreative.setType(AdTypeEnum.NATIVE.getType());
             bidCreative.setWidth(VivoConstant.WIDTH);
