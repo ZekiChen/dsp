@@ -85,4 +85,18 @@
             r.ad_format
     </select>
 
+    <select id="getBundleCostByDay" resultType="com.tecdo.adm.api.doris.dto.BundleCost">
+        SELECT
+            bundle_id              as bundleId,
+            ad_group_id            as adGroupId,
+            sum(imp_count)         as impCount,
+            sum(click_count)       as clickCount,
+            sum(bid_price_total) / 1000   as bidPriceTotal
+        FROM
+            ads.dsp_report
+        WHERE
+            create_date = #{createDate}
+        GROUP BY
+            bundle_id, ad_group_id
+    </select>
 </mapper>

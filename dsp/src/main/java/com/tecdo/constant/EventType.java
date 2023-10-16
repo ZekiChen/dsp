@@ -72,6 +72,11 @@ public enum EventType {
   ECPX_LOAD_ERROR(2303, "ecpx data load failure"),
   ECPX_LOAD_TIMEOUT(2304, "ecpx data load timeout"),
 
+  BUNDLE_COST_LOAD(2401, "bundle cost load"),
+  BUNDLE_COST_LOAD_RESPONSE(2402, "bundle cost load response"),
+  BUNDLE_COST_LOAD_ERROR(2403, "bundle cost load failure"),
+  BUNDLE_COST_LOAD_TIMEOUT(2404, "bundle cost load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

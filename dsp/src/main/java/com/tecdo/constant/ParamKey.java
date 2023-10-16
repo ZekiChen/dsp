@@ -36,6 +36,7 @@ public interface ParamKey {
   String BUNDLE_DATA_GT_SIZE_CACHE_KEY = "bundle-data-gt-size-cache-key";
   String BUNDLE_DATA_CACHE_KEY = "bundle-data-cache-key";
   String ECPX_CACHE_KEY = "ecpx-cache-key";
+  String BUNDLE_COST_CACHE_KEY = "bundle-cost-cache-key";
 
   String CHEATING_DATA_FILTER = "cheating-data-filter";
 

@@ -38,6 +38,7 @@ public class RecallFiltersFactory {
     private final ClickFrequencyFilter clickFrequencyFilter;
     private final AfAudienceFilter afAudienceFilter;
     private final AffiliateBlockedAdFilter affiliateBlockedAdFilter;
+    private final BundleCapFilter bundleCapFilter;
 
     @Autowired
     public RecallFiltersFactory(AffiliateFilter affiliateFilter,
@@ -57,7 +58,8 @@ public class RecallFiltersFactory {
                                 ImpFrequencyFilter impFrequencyFilter,
                                 ClickFrequencyFilter clickFrequencyFilter,
                                 AfAudienceFilter afAudienceFilter,
-                                AffiliateBlockedAdFilter affiliateBlockedAdFilter) {
+                                AffiliateBlockedAdFilter affiliateBlockedAdFilter,
+                                BundleCapFilter bundleCapFilter) {
 
         this.affiliateFilter = affiliateFilter;
         this.appBundleFilter = appBundleFilter;
@@ -77,6 +79,7 @@ public class RecallFiltersFactory {
         this.clickFrequencyFilter = clickFrequencyFilter;
         this.afAudienceFilter = afAudienceFilter;
         this.affiliateBlockedAdFilter = affiliateBlockedAdFilter;
+        this.bundleCapFilter = bundleCapFilter;
 
         List<AbstractRecallFilter> filters = CollUtil.newArrayList(
                 affiliateFilter,
@@ -96,7 +99,8 @@ public class RecallFiltersFactory {
                 budgetFilter,
                 afAudienceFilter,
                 impFrequencyFilter,
-                clickFrequencyFilter
+                clickFrequencyFilter,
+                bundleCapFilter
         );
         FilterChainHelper.assemble(filters);
         this.filterChain = filters;
