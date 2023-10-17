@@ -48,9 +48,9 @@ public class BundleCostManager extends ServiceImpl<ReportMapper, Report> {
      */
     private Map<String, BundleCost> bundleCostMap;
 
-    @Value("${pac.timeout.load.db.default}")
+    @Value("${pac.timeout.load.doris.report.bundle-cap}")
     private long loadTimeout;
-    @Value("${pac.interval.reload.db.default}")
+    @Value("${pac.interval.reload.doris.report.bundle-cap}")
     private long reloadInterval;
 
     /**
