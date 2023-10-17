@@ -1,23 +1,17 @@
 package com.tecdo.util;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.BidCreative;
-import com.tecdo.domain.openrtb.request.Audio;
-import com.tecdo.domain.openrtb.request.Banner;
-import com.tecdo.domain.openrtb.request.Format;
-import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.domain.openrtb.request.Native;
-import com.tecdo.domain.openrtb.request.Video;
+import com.tecdo.domain.openrtb.request.*;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
 import com.tecdo.domain.openrtb.response.custom.vivo.VivoConstant;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
+import lombok.extern.slf4j.Slf4j;
 
 import java.util.Objects;
-
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
-import lombok.extern.slf4j.Slf4j;
 
 /**
  * 创意物料 工具
@@ -107,8 +101,6 @@ public class CreativeHelper {
             bidCreative.setType(AdTypeEnum.NATIVE.getType());
             bidCreative.setWidth(VivoConstant.WIDTH);
             bidCreative.setHeight(VivoConstant.HEIGHT);
-        } else {
-            log.error("imp type error, imp id: {}", imp.getId());
         }
         return bidCreative;
     }
