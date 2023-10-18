@@ -6,6 +6,7 @@ import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.*;
+import com.tecdo.domain.openrtb.request.n.Img;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
 import com.tecdo.enums.biz.VideoMimeEnum;
 import com.tecdo.enums.biz.VideoProtocolEnum;
@@ -35,82 +36,12 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
             case BANNER:
                 return bannerFilter(imp.getBanner(), adDTO);
             case NATIVE:
-                if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
-                    return true;
-                } else {
-                    Native native1 = imp.getNative1();
-                    if (native1 == null || native1.getNativeRequest() == null || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
-                        return false;
-                    }
-                    boolean hitFlag = false;
-                    for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getAssets()) {
-                        if (adDTO.getAd().getImage() != null) {
-                            // 跳过非img的过滤
-                            if (nativeRequestAsset.getImg() == null) {
-                                continue;
-                            }
-                            Creative creative;
-                            if (Objects.equals(nativeRequestAsset.getImg().getType(),
-                                    ImageAssetTypeEnum.MAIN.getValue())) {
-                                creative = adDTO.getCreativeMap().get(adDTO.getAd().getImage());
-                            } else {
-                                creative = adDTO.getCreativeMap().get(adDTO.getAd().getIcon());
-                            }
-                            if (creative == null) {
-                                return false;
-                            }
-                            // 先判断是否存在wmin，hmin，如果存在并且大于0，如果大于并且宽高比例一致则为true，如果不大于，也不返回false，接着判断w和h
-                            // 由于native存在icon和image，所以判断时为true不能直接返回
-                            // 每一轮image的判断都将hitFlag重置为false，只有所有image都符合时才通过
-                            hitFlag = false;
-                            Integer wmin = nativeRequestAsset.getImg().getWmin();
-                            Integer hmin = nativeRequestAsset.getImg().getHmin();
-                            Integer w = nativeRequestAsset.getImg().getW();
-                            Integer h = nativeRequestAsset.getImg().getH();
-                            if (wmin != null && hmin != null) {
-                                if (wmin > 0 && hmin > 0
-                                        && creative.getWidth() >= wmin && creative.getHeight() >= hmin
-                                        && (float) creative.getWidth() / creative.getHeight() == (float) wmin / hmin) {
-                                    hitFlag = true;
-                                    // 这个图像判断通过，跳到下一个图像
-                                    continue;
-                                }
-                            }
-                            // 没有wmin，hmin，或者min判断不通过，则进入下面的判断
-                            if (w != null && h != null) {
-                                //wmin，hmin存在，需要大于要求值，并且比例相同
-                                if (wmin != null && hmin != null && wmin > 0 && hmin > 0) {
-                                    if (creative.getWidth() >= wmin && creative.getHeight() >= hmin
-                                            && (float) creative.getWidth() / creative.getHeight() == (float) w / h) {
-                                        hitFlag = true;
-                                    }
-                                } else {
-                                    if ((float) creative.getWidth() / creative.getHeight() == (float) w / h) {
-                                        hitFlag = true;
-                                    }
-                                }
-                            }
-                            // 如果这一轮图像判断，hitFlag 为false，则返回false
-                            if (!hitFlag) {
-                                return false;
-                            }
-                        } else if (adDTO.getAd().getVideo() != null) {
-                            if (nativeRequestAsset.getVideo() == null) {
-                                continue;
-                            }
-                            if (videoFilter(imp.getVideo(), adDTO)) {
-                                hitFlag = true;
-                            }
-                        } else {
-                            continue;
-                        }
-                        return hitFlag;
-                    }
-                }
+                return nativeFilter(imp.getNative1(), adDTO, affiliate);
             case VIDEO:
                 return videoFilter(imp.getVideo(), adDTO);
+            default:
+                return true;
         }
-        return true;
     }
 
     private static boolean bannerFilter(Banner banner, AdDTO adDTO) {
@@ -138,6 +69,33 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 }
             }
             return hitFlag;
+        }
+    }
+
+    private boolean nativeFilter(Native native1, AdDTO adDTO, Affiliate affiliate) {
+        if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
+            return true;
+        } else {
+            if (native1 == null || native1.getNativeRequest() == null
+                    || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
+                return false;
+            }
+            for (NativeRequestAsset asset : native1.getNativeRequest().getAssets()) {
+                if (asset.getImg() != null && adDTO.getAd().getImage() != null) {
+                    Creative creative = getCreativeByImgType(asset, adDTO);
+                    if (creative == null) {
+                        return false;
+                    }
+                    if (!checkImgSize(asset.getImg(), creative)) {
+                        return false;
+                    }
+                } else if (asset.getVideo() != null && adDTO.getAd().getVideo() != null) {
+                    if (!videoFilter(asset.getVideo(), adDTO)) {
+                        return false;
+                    }
+                }
+            }
+            return true;
         }
     }
 
@@ -176,5 +134,23 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
             return false;
         }
         return protocols.stream().anyMatch(type -> VideoProtocolEnum.of(type) != VideoProtocolEnum.OTHER);
+    }
+
+
+    private Creative getCreativeByImgType(NativeRequestAsset nativeRequestAsset, AdDTO adDTO) {
+        return Objects.equals(nativeRequestAsset.getImg().getType(), ImageAssetTypeEnum.MAIN.getValue())
+                ? adDTO.getCreativeMap().get(adDTO.getAd().getImage())
+                : adDTO.getCreativeMap().get(adDTO.getAd().getIcon());
+    }
+
+    private boolean checkImgSize(Img img, Creative creative) {
+        return isSizeMatch(img.getWmin(), img.getHmin(), creative.getWidth(), creative.getHeight())
+                || isSizeMatch(img.getW(), img.getH(), creative.getWidth(), creative.getHeight());
+    }
+
+    private boolean isSizeMatch(Integer reqW, Integer reqH, Integer creW, Integer creH) {
+        return reqW != null && reqH != null && reqW > 0 && reqH > 0
+                && creW >= reqW && creH >= reqH
+                && (float) creW / creH == (float) reqW / reqH;
     }
 }
