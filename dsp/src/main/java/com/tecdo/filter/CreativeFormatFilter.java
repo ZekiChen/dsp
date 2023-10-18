@@ -1,21 +1,28 @@
 package com.tecdo.filter;
 
-import cn.hutool.core.collection.CollUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
-import com.tecdo.domain.openrtb.request.*;
+import com.tecdo.domain.openrtb.request.Banner;
+import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Format;
+import com.tecdo.domain.openrtb.request.Imp;
+import com.tecdo.domain.openrtb.request.Native;
+import com.tecdo.domain.openrtb.request.Video;
 import com.tecdo.domain.openrtb.request.n.Img;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
 import com.tecdo.enums.biz.VideoMimeEnum;
 import com.tecdo.enums.biz.VideoProtocolEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
 import com.tecdo.transform.ProtoTransformFactory;
+
 import org.springframework.stereotype.Component;
 
 import java.util.List;
 import java.util.Objects;
+
+import cn.hutool.core.collection.CollUtil;
 
 /**
  * 物料格式 过滤
@@ -75,28 +82,28 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
     private boolean nativeFilter(Native native1, AdDTO adDTO, Affiliate affiliate) {
         if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
             return true;
-        } else {
-            if (native1 == null || native1.getNativeRequest() == null
-                    || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
-                return false;
-            }
-            for (NativeRequestAsset asset : native1.getNativeRequest().getAssets()) {
-                if (asset.getImg() != null && adDTO.getAd().getImage() != null) {
-                    Creative creative = getCreativeByImgType(asset, adDTO);
-                    if (creative == null) {
-                        return false;
-                    }
-                    if (!checkImgSize(asset.getImg(), creative)) {
-                        return false;
-                    }
-                } else if (asset.getVideo() != null && adDTO.getAd().getVideo() != null) {
-                    if (!videoFilter(asset.getVideo(), adDTO)) {
-                        return false;
-                    }
+        }
+        if (native1 == null || native1.getNativeRequest() == null
+                || CollUtil.isEmpty(native1.getNativeRequest().getAssets())) {
+            return false;
+        }
+        for (NativeRequestAsset asset : native1.getNativeRequest().getAssets()) {
+            if (asset.getImg() != null ) {
+                Creative creative = getCreativeByImgType(asset, adDTO);
+                if (creative == null) {
+                    return false;
+                }
+                if (!checkImgSize(asset.getImg(), creative)) {
+                    return false;
+                }
+            } else if (asset.getVideo() != null) {
+                if (!videoFilter(asset.getVideo(), adDTO)) {
+                    return false;
                 }
             }
-            return true;
         }
+        return true;
+
     }
 
     private static boolean videoFilter(Video video, AdDTO adDTO) {
@@ -144,13 +151,30 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
     }
 
     private boolean checkImgSize(Img img, Creative creative) {
-        return isSizeMatch(img.getWmin(), img.getHmin(), creative.getWidth(), creative.getHeight())
-                || isSizeMatch(img.getW(), img.getH(), creative.getWidth(), creative.getHeight());
+        if (isExistMinLimit(img.getWmin(), img.getHmin())) {
+            return isSizeMatchMin(img.getWmin(),
+                                  img.getHmin(),
+                                  creative.getWidth(),
+                                  creative.getHeight());
+        } else {
+            return isSizeMatch(img.getW(), img.getH(), creative.getWidth(), creative.getHeight());
+        }
     }
 
-    private boolean isSizeMatch(Integer reqW, Integer reqH, Integer creW, Integer creH) {
+    private boolean isExistMinLimit(Integer reqW, Integer reqH){
+        return reqW != null && reqH != null && reqW > 0 && reqH > 0;
+    }
+
+    //对于min，需要大于min，并且比例相同
+    private boolean isSizeMatchMin(Integer reqW, Integer reqH, Integer creW, Integer creH) {
         return reqW != null && reqH != null && reqW > 0 && reqH > 0
                 && creW >= reqW && creH >= reqH
                 && (float) creW / creH == (float) reqW / reqH;
+    }
+
+    // 对于w，h，比例相同就行
+    private boolean isSizeMatch(Integer reqW, Integer reqH, Integer creW, Integer creH) {
+        return reqW != null && reqH != null && reqW > 0 && reqH > 0
+               && (float) creW / creH == (float) reqW / reqH;
     }
 }
