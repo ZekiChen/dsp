@@ -1,5 +1,6 @@
-package com.tecdo.service.init;
+package com.tecdo.service.init.doris;
 
+import cn.hutool.core.date.DateUtil;
 import com.google.common.base.MoreObjects;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -11,23 +12,15 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Service;
-
-import java.util.Calendar;
-import java.util.Date;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
-import java.util.Set;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import cn.hutool.core.date.DateUtil;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
+
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -135,12 +128,14 @@ public class BundleDataManager {
 
             Calendar end = Calendar.getInstance();
             end.add(Calendar.DAY_OF_MONTH, -1);
+            long startTime = System.currentTimeMillis();
             List<BundleData> bundleData =
               reportMapper.getBundleData(DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
             List<BundleData> dataImpCountGtSize =
               reportMapper.getDataImpCountGtSize(DateUtil.format(start.getTime(), "yyyy-MM-dd"),
                                                  DateUtil.format(end.getTime(), "yyyy-MM-dd"),
                                                  impSize);
+            log.info("bundle data load time: {}s", (System.currentTimeMillis() - startTime) / 1000);
             params.put(ParamKey.BUNDLE_DATA_GT_SIZE_CACHE_KEY,
                        dataImpCountGtSize.stream().map(this::makeKey).collect(Collectors.toSet()));
             params.put(ParamKey.BUNDLE_DATA_CACHE_KEY,

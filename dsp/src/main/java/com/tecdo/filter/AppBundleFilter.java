@@ -9,7 +9,7 @@ import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.util.ConditionHelper;
-import com.tecdo.service.init.GooglePlayAppManager;
+import com.tecdo.service.init.doris.GooglePlayAppManager;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
