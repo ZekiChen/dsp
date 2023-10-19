@@ -22,7 +22,7 @@ import com.tecdo.fsm.task.TaskPool;
 import com.tecdo.log.RequestLogger;
 import com.tecdo.log.ResponseLogger;
 import com.tecdo.server.request.HttpRequest;
-import com.tecdo.service.init.GooglePlayAppManager;
+import com.tecdo.service.init.doris.GooglePlayAppManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.ActionConsumeRecorder;

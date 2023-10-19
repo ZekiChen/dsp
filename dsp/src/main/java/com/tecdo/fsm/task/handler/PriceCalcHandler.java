@@ -26,7 +26,7 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.service.BidPriceService;
-import com.tecdo.service.init.BundleDataManager;
+import com.tecdo.service.init.doris.BundleDataManager;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.FieldFormatHelper;

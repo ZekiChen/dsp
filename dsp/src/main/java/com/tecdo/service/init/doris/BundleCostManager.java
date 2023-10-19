@@ -3,7 +3,6 @@ package com.tecdo.service.init.doris;
 import cn.hutool.core.date.DateUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.doris.dto.BundleCost;
-import com.tecdo.adm.api.doris.dto.ECPX;
 import com.tecdo.adm.api.doris.entity.Report;
 import com.tecdo.adm.api.doris.mapper.ReportMapper;
 import com.tecdo.common.util.Params;
@@ -12,7 +11,6 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
 import lombok.AllArgsConstructor;
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -121,8 +119,10 @@ public class BundleCostManager extends ServiceImpl<ReportMapper, Report> {
             case RUNNING:
                 threadPool.execute(() -> {
                     try {
+                        long startTime = System.currentTimeMillis();
                         List<BundleCost> costList = reportMapper.getBundleCostByDay(DateUtil.today());
                         Map<String, BundleCost> bundleCostMap = costList.stream().collect(Collectors.toMap(BundleCost::toString, cost -> cost));
+                        log.info("bundle cap load time: {}s", (System.currentTimeMillis() - startTime) / 1000);
                         params.put(BUNDLE_COST_CACHE_KEY, bundleCostMap);
                         messageQueue.putMessage(EventType.BUNDLE_COST_LOAD_RESPONSE, params);
                     } catch (Exception e) {

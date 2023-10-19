@@ -1,4 +1,4 @@
-package com.tecdo.service.init;
+package com.tecdo.service.init.doris;
 
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
@@ -169,7 +169,7 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
                 }
             }));
 
-            log.info("gp app load time: {}ms", System.currentTimeMillis() - startTime);
+            log.info("gp app load time: {}s", (System.currentTimeMillis() - startTime) / 1000);
             params.put(ParamKey.GP_APP_CATEGORY_CACHE_KEY, categoryBundleMap);
             params.put(ParamKey.GP_APP_TAG_CACHE_KEY, tagBundleMap);
             params.put(ParamKey.GP_APP_CACHE_KEY, appMap);

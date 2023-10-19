@@ -127,7 +127,7 @@ public class ECPXManager extends ServiceImpl<ReportMapper, Report> {
                                         .concat("_").concat(eCPX.getBundle())
                                         .concat("_").concat(eCPX.getAdFormat()),
                                 eCPX -> eCPX));
-                        log.info("eCPXs load time: {}ms", System.currentTimeMillis() - startTime);
+                        log.info("eCPXs load time: {}s", (System.currentTimeMillis() - startTime) / 1000);
                         params.put(ParamKey.ECPX_CACHE_KEY, eCPXMap);
                         messageQueue.putMessage(EventType.ECPX_LOAD_RESPONSE, params);
                     } catch (Exception e) {
