@@ -29,7 +29,7 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.AbTestConfig;
 import com.tecdo.service.init.AbTestConfigManager;
-import com.tecdo.service.init.GooglePlayAppManager;
+import com.tecdo.service.init.doris.GooglePlayAppManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ResponseTypeEnum;
 import com.tecdo.util.CreativeHelper;
