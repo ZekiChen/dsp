@@ -14,10 +14,16 @@ public enum ConditionEnum {
 
     IMP_FREQUENCY("imp_frequency"),
     CLICK_FREQUENCY("click_frequency"),
+
     AFFILIATE("affiliate"),
+
     BUNDLE("bundle"),
+    AUTO_BUNDLE("auto_bundle"),
+    AUTO_BUNDLE_EXCEPT("auto_bundle_except"),
+
     CATEGORY("category"),
     TAG("tag"),
+
     CONNECTION_TYPE("connection_type"),
     DEVICE_COUNTRY("device_country"),
     DEVICE_LANG("device_lang"),
@@ -27,14 +33,21 @@ public enum ConditionEnum {
     HOUR("hour"),
     AUDIENCE_AF("audience_af"),
     AFFILIATE_BLOCKED_AD("affiliate_blocked_ad"),
+
     BANNER_POS("banner_pos"),
     VIDEO_POS("video_pos"),
     IMAGE_INSTL("image_instl"),
     VIDEO_INSTL("video_instl"),
     VIDEO_PLACEMENT("video_placement"),
+
     BUNDLE_IMP_CAP_DAY("bundle_imp_cap_day"),
     BUNDLE_CLICK_CAP_DAY("bundle_click_cap_day"),
     BUNDLE_COST_CAP_DAY("bundle_cost_cap_day"),
+
+    BUNDLE_BLACK_CLICK("bundle_black_click"),
+    BUNDLE_BLACK_IMP("bundle_black_imp"),
+    BUNDLE_BLACK_CTR("bundle_black_ctr"),
+    BUNDLE_BLACK_ROI("bundle_black_roi"),
     ;
 
     private final String desc;

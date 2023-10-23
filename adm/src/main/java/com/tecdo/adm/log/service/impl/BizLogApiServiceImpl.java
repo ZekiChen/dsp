@@ -7,6 +7,7 @@ import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
+import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.vo.*;
 import com.tecdo.adm.api.log.entity.BizLogApi;
 import com.tecdo.adm.api.log.enums.BizTypeEnum;
@@ -242,23 +243,30 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
     }
 
     @Override
-    public void logByUpdateAdGroupBundle(TargetCondition before, TargetCondition after) {
+    public void logByUpdateAdGroupBundle(List<TargetCondition> befores, List<TargetCondition> afters) {
+        Map<String, TargetCondition> beforeMap = befores.stream()
+                .collect(Collectors.toMap(TargetCondition::getAttribute, Function.identity()));
+        Map<String, TargetCondition> afterMap = afters.stream()
+                .collect(Collectors.toMap(TargetCondition::getAttribute, Function.identity()));
+
         threadPool.execute(() -> {
             BizLogApi bizLogApi = new BizLogApi();
-            bizLogApi.setBizId(after.getAdGroupId());
+            bizLogApi.setBizId(afters.get(0).getAdGroupId());
             bizLogApi.setOptType(OptTypeEnum.UPDATE.getType());
             bizLogApi.setBizType(BizTypeEnum.AD_GROUP.getType());
             bizLogApi.setTitle("Ad Group Update Bundle");
-            if (before == null || StrUtil.isBlank(before.getValue())) {
-                if (StrUtil.isNotBlank(after.getValue())) {
-                    bizLogApi.setContent("Bundle: null -> " + after.getOperation() + " " + after.getValue());
+            String bundleAttr = ConditionEnum.BUNDLE.getDesc();
+            TargetCondition afterBundleCond = afterMap.get(bundleAttr);
+            if (beforeMap.isEmpty() || beforeMap.get(bundleAttr) == null || StrUtil.isBlank(beforeMap.get(bundleAttr).getValue())) {
+                if (StrUtil.isNotBlank(afterBundleCond.getValue())) {
+                    bizLogApi.setContent("Bundle: null -> " + afterBundleCond.getOperation() + " " + afterBundleCond.getValue());
                 }
             } else {
-                if (StrUtil.isBlank(after.getValue())) {
-                    bizLogApi.setContent("Bundle: " + before.getOperation() + " " + before.getValue() + " -> null");
+                if (StrUtil.isBlank(afterBundleCond.getValue())) {
+                    bizLogApi.setContent("Bundle: " + beforeMap.get(bundleAttr).getOperation() + " " + beforeMap.get(bundleAttr).getValue() + " -> null");
                 } else {
-                    bizLogApi.setContent("Bundle: " + before.getOperation() + " " + before.getValue()
-                            + " -> " + after.getOperation() + " " + after.getValue());
+                    bizLogApi.setContent("Bundle: " + beforeMap.get(bundleAttr).getOperation() + " " + beforeMap.get(bundleAttr).getValue()
+                            + " -> " + afterBundleCond.getOperation() + " " + afterBundleCond.getValue());
                 }
             }
             bizLogApi.setCreator("admin");
