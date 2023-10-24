@@ -325,4 +325,9 @@ public class ResponseLog implements Serializable {
 
     @JsonProperty("schain")
     private String schain;
+
+    @JsonProperty("imp_frequency")
+    private Integer impFrequency;
+    @JsonProperty("click_frequency")
+    private Integer clickFrequency;
 }

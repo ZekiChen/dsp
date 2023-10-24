@@ -5,21 +5,24 @@ import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
+import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.log.ResponseLog;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.fsm.task.handler.PriceCalcHandler;
+import com.tecdo.service.CacheService;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.ExtHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
+import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.Optional;
@@ -29,20 +32,24 @@ import java.util.Optional;
  * <p>
  * Created by Zeki on 2023/1/31
  */
+@Component
+@RequiredArgsConstructor
 public class ResponseLogger {
 
   private final static Logger responseLogger = LoggerFactory.getLogger("response_log");
 
-  public static void log(AdDTOWrapper wrapper,
-                         BidRequest bidRequest,
-                         Affiliate affiliate,
-                         GooglePlayApp googlePlayApp) {
+  private final CacheService cacheService;
+
+  public void log(AdDTOWrapper wrapper,
+                  BidRequest bidRequest,
+                  Affiliate affiliate,
+                  GooglePlayApp googlePlayApp) {
     ResponseLog responseLog =
       buildResponseLog(wrapper, bidRequest, affiliate, googlePlayApp);
     responseLogger.info(JsonHelper.toJSONString(responseLog));
   }
 
-  private static ResponseLog buildResponseLog(AdDTOWrapper wrapper,
+  private ResponseLog buildResponseLog(AdDTOWrapper wrapper,
                                               BidRequest bidRequest,
                                               Affiliate affiliate,
                                               GooglePlayApp googlePlayApp) {
@@ -131,6 +138,10 @@ public class ResponseLogger {
                       .videoPlacement(imp.getVideo() != null ? imp.getVideo().getPlacement() : -1)
                       .isRewarded(ExtHelper.isRewarded(bidRequest.getExt()) ? 1 : 0)
                       .schain(ExtHelper.listSChain(bidRequest.getSource()))
+                      .impFrequency(cacheService.getFrequencyCache()
+                              .getImpCountToday(wrapper.getAdDTO().getCampaign().getId().toString(), device.getIfa()))
+                      .clickFrequency(cacheService.getFrequencyCache()
+                              .getClickCountToday(wrapper.getAdDTO().getCampaign().getId().toString(), device.getIfa()))
                       .build();
   }
 }

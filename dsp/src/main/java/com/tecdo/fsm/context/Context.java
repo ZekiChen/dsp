@@ -60,8 +60,8 @@ public class Context {
 
   private final TaskPool taskPool = SpringUtil.getBean(TaskPool.class);
 
-  private final GooglePlayAppManager googlePlayAppManager =
-    SpringUtil.getBean(GooglePlayAppManager.class);
+  private final GooglePlayAppManager googlePlayAppManager = SpringUtil.getBean(GooglePlayAppManager.class);
+  private final ResponseLogger responseLogger = SpringUtil.getBean(ResponseLogger.class);
 
   public void handleEvent(EventType eventType, Params params) {
     currentState.handleEvent(eventType, params, this);
@@ -239,6 +239,6 @@ public class Context {
   private void logBidResponse() {
     GooglePlayApp googleApp =
             googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
-    impBidAdMap.values().forEach(w -> ResponseLogger.log(w, bidRequest, affiliate, googleApp));
+    impBidAdMap.values().forEach(w -> responseLogger.log(w, bidRequest, affiliate, googleApp));
   }
 }
