@@ -5,7 +5,6 @@ import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.AffCountryBundleList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.common.constant.Constant;
-import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
@@ -20,6 +19,7 @@ import com.tecdo.service.init.*;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.ResponseHelper;
 import com.tecdo.util.SignHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -72,10 +72,7 @@ public class ValidateService {
 
         if (affiliate == null) {
             log.warn("validate fail! aff doesn't exist, token: {}", token);
-            messageQueue.putMessage(EventType.RESPONSE_RESULT,
-                    Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
-                            .put(ParamKey.CHANNEL_CONTEXT,
-                                    httpRequest.getChannelContext()));
+            ResponseHelper.badRequest(messageQueue, Params.create(), httpRequest);
             return;
         }
 
@@ -83,14 +80,13 @@ public class ValidateService {
         IProtoTransform protoTransform = ProtoTransformFactory.getProtoTransform(api);
         if (protoTransform == null) {
             log.warn("validate fail! bid protocol is not supported, api: {}", api);
-            messageQueue.putMessage(EventType.RESPONSE_RESULT,
-                    Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
-                            .put(ParamKey.CHANNEL_CONTEXT,
-                                    httpRequest.getChannelContext()));
+            ResponseHelper.noBid(messageQueue, Params.create(), httpRequest);
             return;
         }
 
         if (StringUtils.isEmpty(httpRequest.getBody())) {
+            log.warn("request body is empty, affiliateId: {}", affiliate.getId());
+            ResponseHelper.badRequest(messageQueue, Params.create(), httpRequest);
             return;
         }
 
@@ -99,10 +95,7 @@ public class ValidateService {
             log.warn("validate bidRequest fail, affiliateId: {}, body: {}",
                     affiliate.getId(),
                     httpRequest.getBody());
-            messageQueue.putMessage(EventType.RESPONSE_RESULT,
-                    Params.create(ParamKey.HTTP_CODE, HttpCode.BAD_REQUEST)
-                            .put(ParamKey.CHANNEL_CONTEXT,
-                                    httpRequest.getChannelContext()));
+            ResponseHelper.badRequest(messageQueue, Params.create(), httpRequest);
             return;
         }
 
@@ -115,10 +108,7 @@ public class ValidateService {
                     country,
                     bundle);
             ValidateLogger.log("black", bidRequest, affiliate, true);
-            messageQueue.putMessage(EventType.RESPONSE_RESULT,
-                    Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
-                            .put(ParamKey.CHANNEL_CONTEXT,
-                                    httpRequest.getChannelContext()));
+            ResponseHelper.noBid(messageQueue, Params.create(), httpRequest);
             return;
         }
 
@@ -129,10 +119,7 @@ public class ValidateService {
         if (ipCheatCheck.left) {
             if (ipFilter.contains(ipCheatCheck.right)) {
                 ValidateLogger.log(ipCheatCheck.right, bidRequest, affiliate, true);
-                messageQueue.putMessage(EventType.RESPONSE_RESULT,
-                        Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
-                                .put(ParamKey.CHANNEL_CONTEXT,
-                                        httpRequest.getChannelContext()));
+                ResponseHelper.noBid(messageQueue, Params.create(), httpRequest);
                 return;
             }
             ValidateLogger.log(ipCheatCheck.right, bidRequest, affiliate, false);
@@ -142,10 +129,7 @@ public class ValidateService {
         if (deviceCheatCheck.left) {
             if (deviceFilter.contains(deviceCheatCheck.right)) {
                 ValidateLogger.log(deviceCheatCheck.right, bidRequest, affiliate, true);
-                messageQueue.putMessage(EventType.RESPONSE_RESULT,
-                        Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
-                                .put(ParamKey.CHANNEL_CONTEXT,
-                                        httpRequest.getChannelContext()));
+                ResponseHelper.noBid(messageQueue, Params.create(), httpRequest);
                 return;
             }
             ValidateLogger.log(deviceCheatCheck.right, bidRequest, affiliate, false);
@@ -155,10 +139,7 @@ public class ValidateService {
         if (blocked.left) {
             if (needValidateRequest) {
                 ValidateLogger.log(blocked.right, bidRequest, affiliate, true);
-                messageQueue.putMessage(EventType.RESPONSE_RESULT,
-                        Params.create(ParamKey.HTTP_CODE, HttpCode.NOT_BID)
-                                .put(ParamKey.CHANNEL_CONTEXT,
-                                        httpRequest.getChannelContext()));
+                ResponseHelper.noBid(messageQueue, Params.create(), httpRequest);
                 return;
             }
             ValidateLogger.log(blocked.right, bidRequest, affiliate, false);
