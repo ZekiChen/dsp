@@ -60,8 +60,8 @@ public class Context {
 
   private final TaskPool taskPool = SpringUtil.getBean(TaskPool.class);
 
-  private final GooglePlayAppManager googlePlayAppManager =
-    SpringUtil.getBean(GooglePlayAppManager.class);
+  private final GooglePlayAppManager googlePlayAppManager = SpringUtil.getBean(GooglePlayAppManager.class);
+  private final ResponseLogger responseLogger = SpringUtil.getBean(ResponseLogger.class);
 
   public void handleEvent(EventType eventType, Params params) {
     currentState.handleEvent(eventType, params, this);
@@ -135,9 +135,9 @@ public class Context {
       taskMap.put(taskId, task);
       messageQueue.putMessage(EventType.TASK_START, assignParams().put(ParamKey.TASK_ID, taskId));
       log.info("receive bid request: {},requestId: {},taskId: {}",
-               bidRequest.getId(),
-               requestId,
-               taskId);
+              bidRequest.getId(),
+              requestId,
+              taskId);
     });
   }
 
@@ -161,7 +161,7 @@ public class Context {
     List<AdDTOWrapper> afterSortAds = params.get(ParamKey.ADS_TASK_RESPONSE);
     taskResponse.put(taskId, afterSortAds);
     log.info("receive ad from task, contextId: {}, taskId: {}, afterSortAds size:{}, taskResponse size: {}",
-             requestId, taskId, afterSortAds.size(), taskResponse.size());
+            requestId, taskId, afterSortAds.size(), taskResponse.size());
   }
 
   public boolean isReceiveAllTaskResponse() {
@@ -221,24 +221,24 @@ public class Context {
 
   private void logBidRequest() {
     GooglePlayApp googleApp =
-      googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
+            googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
     taskMap.forEach((taskId, task) -> {
       List<AdDTOWrapper> ads = taskResponse.getOrDefault(taskId, Collections.emptyList());
       int rtaRequest = ads.stream().anyMatch(i -> i.getRtaRequest() == 1) ? 1 : 0;
       int rtaRequestTrue = ads.stream().anyMatch(i -> i.getRtaRequestTrue() == 1) ? 1 : 0;
       RequestLogger.log(taskId,
-                        task.getImp(),
-                        bidRequest,
-                        affiliate,
-                        rtaRequest,
-                        rtaRequestTrue,
-                        googleApp);
+              task.getImp(),
+              bidRequest,
+              affiliate,
+              rtaRequest,
+              rtaRequestTrue,
+              googleApp);
     });
   }
 
   private void logBidResponse() {
     GooglePlayApp googleApp =
             googlePlayAppManager.getGoogleAppOrEmpty(bidRequest.getApp().getBundle());
-    impBidAdMap.values().forEach(w -> ResponseLogger.log(w, bidRequest, affiliate, googleApp));
+    impBidAdMap.values().forEach(w -> responseLogger.log(w, bidRequest, affiliate, googleApp));
   }
 }
