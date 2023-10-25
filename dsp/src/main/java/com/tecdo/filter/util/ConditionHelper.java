@@ -7,6 +7,8 @@ import com.tecdo.exception.DspException;
 
 import java.util.Arrays;
 import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import static com.tecdo.filter.AbstractRecallFilter.Constant.*;
 
@@ -63,13 +65,15 @@ public class ConditionHelper {
                 }
                 // todo 当数据量多时，这里存在性能问题
             case INCLUDE:
-                return Arrays.stream(target.split(",")).anyMatch(i -> i.equalsIgnoreCase(source));
+                return Arrays.stream(target.split(StrUtil.COMMA)).anyMatch(i -> i.equalsIgnoreCase(source));
             case EXCLUDE:
-                return Arrays.stream(target.split(",")).noneMatch(i -> i.equalsIgnoreCase(source));
+                return Arrays.stream(target.split(StrUtil.COMMA)).noneMatch(i -> i.equalsIgnoreCase(source));
             case CONTAINS:
-                return source.toUpperCase().contains(source.toUpperCase());
+                Set<String> sources = Arrays.stream(source.split(StrUtil.COMMA)).collect(Collectors.toSet());
+                return Arrays.stream(target.split(StrUtil.COMMA)).anyMatch(sources::contains);
             case NOT_CONTAINS:
-                return !source.toUpperCase().contains(source.toUpperCase());
+                sources = Arrays.stream(source.split(StrUtil.COMMA)).collect(Collectors.toSet());
+                return Arrays.stream(target.split(StrUtil.COMMA)).noneMatch(sources::contains);
             default:
                 // 调用该方法不会是未被包含的操作符，否则就是预期意外的异常
                 throw new IllegalArgumentException("Invalid operation: " + operation);
