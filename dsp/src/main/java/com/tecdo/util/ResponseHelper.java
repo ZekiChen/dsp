@@ -26,6 +26,12 @@ public class ResponseHelper {
         messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
     }
 
+    public static void noBid(MessageQueue messageQueue, Params params, HttpRequest httpRequest) {
+        params.put(ParamKey.HTTP_CODE, HttpCode.NOT_BID);
+        params.put(ParamKey.CHANNEL_CONTEXT, httpRequest.getChannelContext());
+        messageQueue.putMessage(EventType.RESPONSE_RESULT, params);
+    }
+
     public static void aeOK(MessageQueue messageQueue, Params params, HttpRequest httpRequest) {
         params.put(ParamKey.HTTP_CODE, HttpCode.OK);
         params.put(ParamKey.RESPONSE_BODY, JsonHelper.toJSONString(new AeResponse<>(AeCode.SUCCESS)));
