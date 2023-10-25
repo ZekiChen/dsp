@@ -13,6 +13,8 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainHelper;
+import com.tecdo.service.CacheService;
+import com.tecdo.service.cache.FrequencyCache;
 import com.tecdo.service.init.AdManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -29,7 +31,7 @@ import java.util.stream.Collectors;
 
 /**
  * 广告召回
- *
+ * <p>
  * Created by Zeki on 2023/9/22
  */
 @Slf4j
@@ -41,6 +43,7 @@ public class AdRecallHandler {
     private final MessageQueue messageQueue;
     private final RecallFiltersFactory filtersFactory;
     private final AdManager adManager;
+    private final CacheService cacheService;
 
     @Value("${pac.timeout.task.ad.recall}")
     private int recallTimeout;
@@ -71,15 +74,11 @@ public class AdRecallHandler {
         return adManager.getAdDTOMap()
                 .values()
                 .stream()
-                .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0),
-                        adDTO,
-                        bidRequest,
-                        imp,
-                        affiliate))
-                .collect(Collectors.toMap(adDTO -> adDTO.getAd().getId(),
-                        adDTO -> new AdDTOWrapper(imp.getId(),
-                                params.get(ParamKey.TASK_ID),
-                                adDTO)));
+                .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate))
+                .collect(Collectors.toMap(
+                        adDTO -> adDTO.getAd().getId(),
+                        adDTO -> buildADDTOWrapper(params.get(ParamKey.TASK_ID), bidRequest, imp.getId(), adDTO))
+                );
     }
 
     private Map<Integer, AdDTOWrapper> doAdRecallBatch(Params params, BidRequest bidRequest,
@@ -90,15 +89,11 @@ public class AdRecallHandler {
         Map<Integer, AdDTOWrapper> res = new HashMap<>();
         for (AdDTO adDTO : adDTOMap.values()) {
             // 在线程池中处理多个ad的recall
-            CompletableFuture<AdDTOWrapper> future = CompletableFuture.supplyAsync(() -> {
-                boolean match =
-                        FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate);
-                if (match) {
-                    return new AdDTOWrapper(imp.getId(), params.get(ParamKey.TASK_ID), adDTO);
-                } else {
-                    return null;
-                }
-            }, threadPool.getExecutor());
+            CompletableFuture<AdDTOWrapper> future = CompletableFuture.supplyAsync(() ->
+                            FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate)
+                                    ? buildADDTOWrapper(params.get(ParamKey.TASK_ID), bidRequest, imp.getId(), adDTO)
+                                    : null,
+                    threadPool.getExecutor());
             futureList.add(future);
         }
 
@@ -119,6 +114,16 @@ public class AdRecallHandler {
             }
         }
         return res;
+    }
+
+    private AdDTOWrapper buildADDTOWrapper(String bidId, BidRequest bidRequest, String impId, AdDTO adDTO) {
+        FrequencyCache frequencyCache = cacheService.getFrequencyCache();
+        String deviceId = bidRequest.getDevice().getIfa();
+
+        AdDTOWrapper wrapper = new AdDTOWrapper(impId, bidId, adDTO);
+        wrapper.setImpFrequency(frequencyCache.getImpCountToday(adDTO.getCampaign().getId().toString(), deviceId));
+        wrapper.setClickFrequency(frequencyCache.getClickCountToday(adDTO.getCampaign().getId().toString(), deviceId));
+        return wrapper;
     }
 
     private <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> com) {

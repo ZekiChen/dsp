@@ -14,7 +14,6 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.fsm.task.handler.PriceCalcHandler;
-import com.tecdo.service.CacheService;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.ExtHelper;
 import com.tecdo.util.FieldFormatHelper;
@@ -37,8 +36,6 @@ import java.util.Optional;
 public class ResponseLogger {
 
     private final static Logger responseLogger = LoggerFactory.getLogger("response_log");
-
-    private final CacheService cacheService;
 
     public void log(AdDTOWrapper wrapper,
                     BidRequest bidRequest,
@@ -138,10 +135,8 @@ public class ResponseLogger {
                 .videoPlacement(imp.getVideo() != null ? imp.getVideo().getPlacement() : -1)
                 .isRewarded(ExtHelper.isRewarded(bidRequest.getExt()) ? 1 : 0)
                 .schain(ExtHelper.listSChain(bidRequest.getSource()))
-                .impFrequency(cacheService.getFrequencyCache()
-                        .getImpCountToday(wrapper.getAdDTO().getCampaign().getId().toString(), device.getIfa()))
-                .clickFrequency(cacheService.getFrequencyCache()
-                        .getClickCountToday(wrapper.getAdDTO().getCampaign().getId().toString(), device.getIfa()))
+                .impFrequency(wrapper.getImpFrequency())
+                .clickFrequency(wrapper.getClickFrequency())
                 .build();
     }
 }
