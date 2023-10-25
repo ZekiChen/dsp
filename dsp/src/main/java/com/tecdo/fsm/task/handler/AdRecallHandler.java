@@ -52,12 +52,9 @@ public class AdRecallHandler {
                          Affiliate affiliate, boolean recallBatchEnable) {
         threadPool.execute(() -> {
             try {
-                Map<Integer, AdDTOWrapper> res;
-                if (recallBatchEnable) {
-                    res = doAdRecallBatch(params, bidRequest, imp, affiliate);
-                } else {
-                    res = doAdRecall(params, bidRequest, imp, affiliate);
-                }
+                Map<Integer, AdDTOWrapper> res = recallBatchEnable
+                        ? doAdRecallBatch(params, bidRequest, imp, affiliate)
+                        : doAdRecall(params, bidRequest, imp, affiliate);
                 params.put(ParamKey.ADS_RECALL_RESPONSE, res);
                 messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
             } catch (Exception e) {
