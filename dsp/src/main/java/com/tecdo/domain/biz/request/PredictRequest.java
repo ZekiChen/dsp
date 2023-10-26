@@ -2,13 +2,12 @@ package com.tecdo.domain.biz.request;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.fasterxml.jackson.annotation.JsonProperty;
-
-import java.io.Serializable;
-import java.util.List;
-
 import lombok.Builder;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.io.Serializable;
+import java.util.List;
 
 @Setter
 @Getter
@@ -137,4 +136,6 @@ public class PredictRequest implements Serializable {
 
   private String tagId;
 
+  private Integer impFrequency;
+  private Integer clickFrequency;
 }
