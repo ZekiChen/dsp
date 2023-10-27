@@ -32,8 +32,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
-import static com.tecdo.filter.AbstractRecallFilter.Constant.EXCLUDE;
-import static com.tecdo.filter.AbstractRecallFilter.Constant.INCLUDE;
+import static com.tecdo.common.constant.ConditionConstant.*;
 
 @Slf4j
 @Service
