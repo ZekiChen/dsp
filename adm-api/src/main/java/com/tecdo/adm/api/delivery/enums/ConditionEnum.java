@@ -48,6 +48,8 @@ public enum ConditionEnum {
     BUNDLE_BLACK_IMP("bundle_black_imp"),
     BUNDLE_BLACK_CTR("bundle_black_ctr"),
     BUNDLE_BLACK_ROI("bundle_black_roi"),
+
+    SCHAIN("schain"),
     ;
 
     private final String desc;

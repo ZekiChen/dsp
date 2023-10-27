@@ -29,7 +29,7 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.AbTestConfig;
 import com.tecdo.service.init.AbTestConfigManager;
-import com.tecdo.service.init.GooglePlayAppManager;
+import com.tecdo.service.init.doris.GooglePlayAppManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ResponseTypeEnum;
 import com.tecdo.util.CreativeHelper;
@@ -212,7 +212,7 @@ public class PredictHandler {
                         .map(adDTOWrapper -> buildPredictRequest(bidRequest,
                                 imp,
                                 affId,
-                                adDTOWrapper.getAdDTO()))
+                                adDTOWrapper))
                         .collect(Collectors.toList());
         Map<String, Object> paramMap =
                 MapUtil.<String, Object>builder().put("data", predictRequests).build();
@@ -238,7 +238,8 @@ public class PredictHandler {
     private PredictRequest buildPredictRequest(BidRequest bidRequest,
                                                Imp imp,
                                                Integer affId,
-                                               AdDTO adDTO) {
+                                               AdDTOWrapper wrapper) {
+        AdDTO adDTO = wrapper.getAdDTO();
         Integer creativeId = CreativeHelper.getCreativeId(adDTO.getAd());
         // 版位的
         BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
@@ -288,6 +289,8 @@ public class PredictHandler {
                 .bundleIdDownload(googleApp.getDownloads())
                 .bundleIdReview(googleApp.getReviews())
                 .tagId(imp.getTagid())
+                .impFrequency(wrapper.getImpFrequency())
+                .clickFrequency(wrapper.getClickFrequency())
                 .build();
     }
 }

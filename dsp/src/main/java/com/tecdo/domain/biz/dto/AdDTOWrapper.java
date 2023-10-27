@@ -84,4 +84,8 @@ public class AdDTOWrapper {
   private BidAlgorithmEnum bidAlgorithmEnum = BidAlgorithmEnum.NO;
 
   private double random = Math.random();
+
+  private Integer impFrequency;
+  private Integer clickFrequency;
+
 }
