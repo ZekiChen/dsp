@@ -15,7 +15,7 @@ import lombok.Setter;
  **/
 @Setter
 @Getter
-public abstract class AbstractRecallFilter implements ConditionConstant {
+public abstract class AbstractRecallFilter{
 
     /**
      * 下一个过滤器
