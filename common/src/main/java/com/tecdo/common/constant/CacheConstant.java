@@ -30,5 +30,6 @@ public interface CacheConstant {
 
 	// =================================== key expire ===========================================\
 	long DAY_COUNT_EXP = 60 * 60 * 24;  // 24h
+	long HOUR_COUNT_EXP = 60 * 60; // 1h
 
 }

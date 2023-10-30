@@ -215,11 +215,13 @@ public class NoticeService {
     private void handleImpNotice(HttpRequest httpRequest, NoticeInfo info) {
         noticeLogger.logImp(httpRequest, info);
         cacheService.getFrequencyCache().incrImpCount(String.valueOf(info.getCampaignId()), info.getDeviceId());
+        cacheService.getFrequencyCache().incrImpCountByHour(String.valueOf(info.getCampaignId()), info.getDeviceId());
     }
 
     private void handleClickNotice(HttpRequest httpRequest, NoticeInfo info) {
         noticeLogger.logClick(httpRequest, info);
         cacheService.getFrequencyCache().incrClickCount(String.valueOf(info.getCampaignId()), info.getDeviceId());
+        cacheService.getFrequencyCache().incrClickCountByHour(String.valueOf(info.getCampaignId()), info.getDeviceId());
         cacheService.getNoticeCache().clickMark(info.getBidId());
     }
 
