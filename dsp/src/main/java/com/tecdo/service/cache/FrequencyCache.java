@@ -42,7 +42,7 @@ public class FrequencyCache {
     public void incrImpCountByHour(String campaignId, String deviceId) {
         String key = CacheConstant.IMP_CACHE
                 .concat(StrUtil.COLON).concat(HOUR_COUNT_CACHE)
-                .concat(StrUtil.COLON).concat(DateUtil.format(LocalDateTime.now(),"yyyy-MM-dd HH"))
+                .concat(StrUtil.COLON).concat(DateUtil.format(LocalDateTime.now(),"yyyyMMddHH"))
                 .concat(StrUtil.COLON).concat(campaignId)
                 .concat(StrUtil.COLON).concat(deviceId);
         pacRedis.incr(key);
@@ -68,7 +68,7 @@ public class FrequencyCache {
     public void incrClickCountByHour(String campaignId, String deviceId) {
         String key = CacheConstant.CLICK_CACHE
                 .concat(StrUtil.COLON).concat(HOUR_COUNT_CACHE)
-                .concat(StrUtil.COLON).concat(DateUtil.format(LocalDateTime.now(),"yyyy-MM-dd HH"))
+                .concat(StrUtil.COLON).concat(DateUtil.format(LocalDateTime.now(),"yyyyMMddHH"))
                 .concat(StrUtil.COLON).concat(campaignId)
                 .concat(StrUtil.COLON).concat(deviceId);
         pacRedis.incr(key);
@@ -87,7 +87,7 @@ public class FrequencyCache {
     public Integer getImpCountByHour(String campaignId, String deviceId) {
         String key = CacheConstant.IMP_CACHE
                 .concat(StrUtil.COLON).concat(HOUR_COUNT_CACHE)
-                .concat(StrUtil.COLON).concat(DateUtil.format(LocalDateTime.now(),"yyyy-MM-dd HH"))
+                .concat(StrUtil.COLON).concat(DateUtil.format(LocalDateTime.now(),"yyyyMMddHH"))
                 .concat(StrUtil.COLON).concat(campaignId)
                 .concat(StrUtil.COLON).concat(deviceId);
         return pacRedis.getCounter(key);
@@ -105,7 +105,7 @@ public class FrequencyCache {
     public Integer getClickCountByHour(String campaignId, String deviceId) {
         String key = CacheConstant.CLICK_CACHE
                 .concat(StrUtil.COLON).concat(HOUR_COUNT_CACHE)
-                .concat(StrUtil.COLON).concat(DateUtil.format(LocalDateTime.now(),"yyyy-MM-dd HH"))
+                .concat(StrUtil.COLON).concat(DateUtil.format(LocalDateTime.now(),"yyyyMMddHH"))
                 .concat(StrUtil.COLON).concat(campaignId)
                 .concat(StrUtil.COLON).concat(deviceId);
         return pacRedis.getCounter(key);
