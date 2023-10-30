@@ -213,15 +213,19 @@ public class NoticeService {
     }
 
     private void handleImpNotice(HttpRequest httpRequest, NoticeInfo info) {
+        String campaignId = String.valueOf(info.getCampaignId());
+        String deviceId = info.getDeviceId();
         noticeLogger.logImp(httpRequest, info);
-        cacheService.getFrequencyCache().incrImpCount(String.valueOf(info.getCampaignId()), info.getDeviceId());
-        cacheService.getFrequencyCache().incrImpCountByHour(String.valueOf(info.getCampaignId()), info.getDeviceId());
+        cacheService.getFrequencyCache().incrImpCount(campaignId, deviceId);
+        cacheService.getFrequencyCache().incrImpCountByHour(campaignId, deviceId);
     }
 
     private void handleClickNotice(HttpRequest httpRequest, NoticeInfo info) {
+        String campaignId = String.valueOf(info.getCampaignId());
+        String deviceId = info.getDeviceId();
         noticeLogger.logClick(httpRequest, info);
-        cacheService.getFrequencyCache().incrClickCount(String.valueOf(info.getCampaignId()), info.getDeviceId());
-        cacheService.getFrequencyCache().incrClickCountByHour(String.valueOf(info.getCampaignId()), info.getDeviceId());
+        cacheService.getFrequencyCache().incrClickCount(campaignId, deviceId);
+        cacheService.getFrequencyCache().incrClickCountByHour(campaignId, deviceId);
         cacheService.getNoticeCache().clickMark(info.getBidId());
     }
 

@@ -21,7 +21,7 @@ public class FrequencyCache {
     private final PacRedis pacRedis;
 
     private final static String DAY_COUNT_CACHE = "day-count:v2";
-    private final static String HOUR_COUNT_CACHE = "hour-count:v2";
+    private final static String HOUR_COUNT_CACHE = "hour-count";
 
     /**
      * 展示次数统计：在每次 imp notice 中写入缓存，value 从 1 开始单调递增。24h 后自动过期
