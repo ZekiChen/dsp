@@ -106,12 +106,12 @@
         ad_group_id      as adGroupId,
         SUM(click_count) as clickCount,
         SUM(imp_count)   as impCount,
-        SUM(CASE WHEN create_date BETWEEN '2023-10-21' AND '2023-10-25' THEN bid_price_total ELSE 0 END) as bidPriceTotal,
-        SUM(CASE WHEN create_date BETWEEN '2023-10-21' AND '2023-10-25' THEN ad_estimated_commission ELSE 0 END) as adEstimatedCommission
+        SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN bid_price_total ELSE 0 END) / 1000 as bidPriceTotal,
+        SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN ad_estimated_commission ELSE 0 END) as adEstimatedCommission
         FROM
             ads.dsp_report_fall_one
         WHERE ad_group_id IN
-        <foreach collection="adGroups" item="item" index="index" open="(" close=")" separator=",">
+        <foreach collection="adGroupIds" item="item" index="index" open="(" close=")" separator=",">
             #{item}
         </foreach>
         GROUP BY

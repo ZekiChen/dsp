@@ -14,6 +14,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static com.tecdo.adm.api.delivery.enums.ConditionEnum.*;
 import static com.tecdo.common.constant.ConditionConstant.EXCLUDE;
@@ -36,17 +37,17 @@ public class AutoBundleJob {
             return;
         }
 
-        Map<Integer, List<TargetCondition>> conditionMap = buildConditionMap(conditionList);
+        Map<Integer, List<TargetCondition>> conditionMap = conditionList.stream()
+                .collect(Collectors.groupingBy(TargetCondition::getAdGroupId));
 
         // 确保每个存在拉黑定向条件的adGroup有attribute = “auto_bundle”的元组
 
 
         XxlJobHelper.log("获取参与校验的ad_group-bundle信息列表");
         List<AutoBundle> autoBundleInfoList = reportMapper
-                .getAutoBundleInfoList(new ArrayList<>(conditionMap.keySet()),
+                .getAutoBundleInfoList(conditionMap.keySet(),
                         LocalDate.now().minusDays(5).toString(),
                         LocalDate.now().minusDays(1).toString());
-
         XxlJobHelper.log("根据定向条件生成新黑名单");
         Map<Integer, Set<String>> blackListMap = generateBlackListMap(autoBundleInfoList, conditionMap);
 
@@ -119,34 +120,12 @@ public class AutoBundleJob {
             // 不需要拉黑则检查下一个bundle
             if (bundleIsValid) continue;
 
-            Set<String> blackList = blackListMap.get(autoBundle.getAdGroupId());
-            if (blackList != null) {
-                blackList.add(autoBundle.getBundleId());
-            }
-            else {
-                blackList = new HashSet<>();
-                blackList.add(autoBundle.getBundleId());
-            }
+            Set<String> blackList = blackListMap.getOrDefault(autoBundle.getAdGroupId(), new HashSet<>());
+            blackList.add(autoBundle.getBundleId());
             blackListMap.put(autoBundle.getAdGroupId(), blackList);
         }
 
         return blackListMap;
-    }
-
-    /**
-     * 构建每个adGroupId对应多个condition的Map
-     * @param conditionList 条件列表
-     * @return adGroup-Condition列表的映射
-     */
-    public Map<Integer, List<TargetCondition>> buildConditionMap(List<TargetCondition> conditionList) {
-        Map<Integer, List<TargetCondition>> conditionMap = new HashMap<>();
-        for (TargetCondition condition : conditionList) {
-            int adGroupId = condition.getAdGroupId();
-            List<TargetCondition> oldVal = conditionMap.getOrDefault(adGroupId, new ArrayList<>());
-            oldVal.add(condition);
-            conditionMap.put(adGroupId, oldVal);
-        }
-        return conditionMap;
     }
 
     /**

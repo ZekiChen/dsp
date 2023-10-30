@@ -41,7 +41,7 @@ public interface ReportMapper extends BaseMapper<Report> {
    * @param createDate 创建日期
    * @return bundle坐标（ad_group_id-bundle_id）
    */
-  List<AutoBundle> getAutoBundleInfoList(@Param("adGroups") List<Integer> adGroups,
+  List<AutoBundle> getAutoBundleInfoList(@Param("adGroupIds") Set<Integer> adGroups,
                                          @Param("startDate") String startDate,
                                          @Param("endDate") String endDate);
 
