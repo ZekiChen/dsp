@@ -32,14 +32,14 @@ public class StringConfigUtil {
       e.printStackTrace();
     }
 
-    try (InputStream is = StringConfigUtil.class.getResourceAsStream("/banner.html")) {
+    try (InputStream is = StringConfigUtil.class.getResourceAsStream("/banner-encrypt-for-replace.html")) {
       byte[] bytes = ByteStreams.toByteArray(is);
       bannerTemplate = new String(bytes, StandardCharsets.UTF_8);
     } catch (IOException e) {
       e.printStackTrace();
     }
 
-    try (InputStream is = StringConfigUtil.class.getResourceAsStream("/force-banner.html")) {
+    try (InputStream is = StringConfigUtil.class.getResourceAsStream("/force-banner-encrypt-for-replace.html")) {
       byte[] bytes = ByteStreams.toByteArray(is);
       forceBannerTemplate = new String(bytes, StandardCharsets.UTF_8);
     } catch (IOException e) {

@@ -1,20 +1,16 @@
 <div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
-    <a id="fc_dsp_banner_link" target="_blank" href="{CLICK_URL}">
-        <img
-                id="fc_dsp_banner_img"
-                src="{IMG_URL}"
-                border="0"
-                style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"
-                onClick="fireClickTracker()"
-        />
-    </a>
+    <img id="fc_dsp_banner_img"
+         src="{IMG_URL}" border="0"
+         style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto" />
     <div id="fc_dsp_banner_imp"></div>
 </div>
 <script type="text/javascript">
     document.getElementById('fc_dsp_banner_imp').innerHTML = '{IMP_DIV_LIST}';
     var clickTrackers = [{CLICK_TRACK_URL_LIST}];
     var impInfoUrl = '{IMP_INFO_URL}';
+    var clickUrl = '{CLICK_URL}';
     var i = 0;
+    // 3秒后或图片加载出来后，发送网络请求impInfoUrl，并且附带了一些图片大小，图片位置、图片样式等一堆参数
     var timer = setInterval(function () {
         i++;
         var e = document.getElementById('fc_dsp_banner_img');
@@ -37,7 +33,7 @@
             var paramsStr = '';
             for (var key in params) {
                 if (key) {
-                    paramsStr += '&' + key + '=' + (params[key]);
+                    paramsStr += '&' + key + '=' + params[key];
                 }
             }
             var c = createXmlHttp();
@@ -48,11 +44,14 @@
         }
     }, 1000);
 
+    // 创建一个发送网络请求的对象，做了ie和其他浏览器的兼容
     function createXmlHttp() {
         var a;
         try {
+            // 其他浏览器的网络请求实例
             a = new XMLHttpRequest();
         } catch (b) {
+            // ie浏览器的网络请求实例
             try {
                 a = new ActiveXObject('Msxml2.XMLHTTP');
             } catch (b) {
@@ -66,9 +65,17 @@
         return a;
     }
 
+    // 点击图片之后，先访问 clickTrackers 中所有链接，然后再访问 clickUrl
     function fireClickTracker() {
+        triggerTrace();
+        window.location.href = clickUrl;
+    }
+
+    // 访问clickTrackers数组中的所有url，目前只有 https://www.tec-do.com/tec-click.html，这个地址返回了html文件，如果运行在浏览器上就会打开这个页面
+    function triggerTrace() {
         for (var a in clickTrackers) {
             var c = createXmlHttp();
+            // 如果浏览器不兼容xml (ie 7 之前的旧版本会不支持xml) 就用iframe标签访问url
             if (!c) {
                 var b = document.createElement('iframe');
                 b.height = 1;
@@ -77,12 +84,14 @@
                 b.src = clickTrackers[a];
                 document.getElementById('fc_dsp_banner_wrap').appendChild(b);
             } else {
+                // 如果有支持xml http请求，直接请求url
                 c.open('GET', clickTrackers[a], true);
                 c.send();
             }
         }
     }
 
+    // 获取页面可见区域的宽高
     function getViewport() {
         if (document.compatMode == 'BackCompat') {
             return {
@@ -97,6 +106,7 @@
         }
     }
 
+    // 不断的获取元素距离定位父元素左边的距离
     function getElementLeft(element) {
         var actualLeft = element.offsetLeft;
         var current = element.offsetParent;
@@ -107,6 +117,7 @@
         return actualLeft;
     }
 
+    // 不断的获取元素距离定位父元素上面的距离
     function getElementTop(element) {
         var actualTop = element.offsetTop;
         var current = element.offsetParent;
@@ -117,20 +128,26 @@
         return actualTop;
     }
 
-    function getBoundingClientRect(element) {
+    // 计算出这个图片在页面的具体位置
+    var getBoundingClientRect = function calculateBoundingClientRect(element) {
         var scrollTop = document.documentElement.scrollTop;
         var scrollLeft = document.documentElement.scrollLeft;
+        function calculateOffset() {
+            var temp = document.createElement('div');
+            temp.style.cssText = 'position:absolute;left:0;top:0;';
+            document.body.appendChild(temp);
+            var offset = -temp.getBoundingClientRect().top - scrollTop;
+            document.body.removeChild(temp);
+            temp = null;
+            return offset;
+        }
+
         if (element.getBoundingClientRect) {
-            if (typeof arguments.callee.offset != 'number') {
-                var temp = document.createElement('div');
-                temp.style.cssText = 'position:absolute;left:0;top:0;';
-                document.body.appendChild(temp);
-                arguments.callee.offset = -temp.getBoundingClientRect().top - scrollTop;
-                document.body.removeChild(temp);
-                temp = null;
+            if (typeof calculateBoundingClientRect.offset !== 'number') {
+                calculateBoundingClientRect.offset = calculateOffset();
             }
             var rect = element.getBoundingClientRect();
-            var offset = arguments.callee.offset;
+            var offset = calculateBoundingClientRect.offset;
             return {
                 left: rect.left + offset,
                 right: rect.right + offset,
@@ -147,8 +164,9 @@
                 bottom: actualTop + element.offsetHeight - scrollTop,
             };
         }
-    }
+    };
 
+    // 获取页面中定位层级最高的值(zIndex值最高的元素会呈现在页面层级最上面)
     function getMaxIndex() {
         var allElement = Array.from(document.all);
         var zIndex = [];
@@ -164,4 +182,10 @@
         }
         return max;
     }
+
+    // 页面加载完成之后调用的事件
+    window.addEventListener("load", function () {
+        // 给图片绑定一个点击事件，用户主动触发后先请求 clickTrackers，在执行强跳clickUrl
+        document.getElementById('fc_dsp_banner_img').onclick = fireClickTracker;
+    })
 </script>
