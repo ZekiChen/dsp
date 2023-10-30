@@ -40,9 +40,6 @@ public class AutoBundleJob {
         Map<Integer, List<TargetCondition>> conditionMap = conditionList.stream()
                 .collect(Collectors.groupingBy(TargetCondition::getAdGroupId));
 
-        // 确保每个存在拉黑定向条件的adGroup有attribute = “auto_bundle”的元组
-
-
         XxlJobHelper.log("获取参与校验的ad_group-bundle信息列表");
         List<AutoBundle> autoBundleInfoList = reportMapper
                 .getAutoBundleInfoList(conditionMap.keySet(),
@@ -95,8 +92,11 @@ public class AutoBundleJob {
         Map<Integer, Set<String>> blackListMap = new HashMap<>();
         Map<String, String> valueMap = new HashMap<>();
         for (AutoBundle autoBundle : autoBundleInfoList) {
-            double ctr = (double)autoBundle.getClickCount() / autoBundle.getImpCount();
-            double roi = (double)autoBundle.getAdEstimatedCommission() / autoBundle.getBidPriceTotal();
+            // 分母为0则不进行拉黑操作
+            double ctr = autoBundle.getImpCount() == 0 ?
+                    Double.MAX_VALUE : (double)autoBundle.getClickCount() / autoBundle.getImpCount();
+            double roi = autoBundle.getBidPriceTotal() == 0 ?
+                    Double.MAX_VALUE : (double)autoBundle.getAdEstimatedCommission() / autoBundle.getBidPriceTotal();
 
             valueMap.put(BUNDLE_BLACK_CLICK.getDesc(), autoBundle.getClickCount().toString());
             valueMap.put(BUNDLE_BLACK_IMP.getDesc(), autoBundle.getImpCount().toString());

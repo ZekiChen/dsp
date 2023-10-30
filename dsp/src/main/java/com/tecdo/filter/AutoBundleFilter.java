@@ -23,7 +23,10 @@ public class AutoBundleFilter extends AbstractRecallFilter {
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
         TargetCondition autoBundleCond = adDTO.getConditionMap().get(AUTO_BUNDLE);
         TargetCondition autoBundleExceptCond = adDTO.getConditionMap().get(AUTO_BUNDLE_EXCEPT);
-        // TODO
-        return true;
+        String bundleId = bidRequest.getApp().getBundle();
+
+        // (白名单不为空 && 白名单包含bundle) || (黑名单为空 || 黑名单不包含bundle)
+        return (autoBundleExceptCond != null && autoBundleExceptCond.getValue().contains(bundleId)) ||
+                (autoBundleCond == null || !autoBundleCond.getValue().contains(bundleId));
     }
 }
