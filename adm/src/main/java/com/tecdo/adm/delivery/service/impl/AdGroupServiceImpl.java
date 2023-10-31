@@ -208,7 +208,6 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
                 .eq(TargetCondition::getAdGroupId, conditions.get(0).getAdGroupId())
                 .in(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc(),
-                        ConditionEnum.AUTO_BUNDLE.getDesc(),
                         ConditionEnum.AUTO_BUNDLE_EXCEPT.getDesc());
         List<TargetCondition> befores = conditionService.list(wrapper);
         if (CollUtil.isNotEmpty(befores)) {

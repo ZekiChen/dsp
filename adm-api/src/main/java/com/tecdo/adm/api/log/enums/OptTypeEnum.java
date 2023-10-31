@@ -12,7 +12,7 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum OptTypeEnum {
 
-//    INSERT(1, "Created"),
+    INSERT(1, "Created"),
     UPDATE(2, "Edit"),
     DELETE(3, "Delete");
 //    SELECT(4, "Query");

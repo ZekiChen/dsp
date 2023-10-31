@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -250,28 +251,35 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                 .collect(Collectors.toMap(TargetCondition::getAttribute, Function.identity()));
 
         threadPool.execute(() -> {
-            BizLogApi bizLogApi = new BizLogApi();
-            bizLogApi.setBizId(afters.get(0).getAdGroupId());
-            bizLogApi.setOptType(OptTypeEnum.UPDATE.getType());
-            bizLogApi.setBizType(BizTypeEnum.AD_GROUP.getType());
-            bizLogApi.setTitle("Ad Group Update Bundle");
-            String bundleAttr = ConditionEnum.BUNDLE.getDesc();
-            TargetCondition afterBundleCond = afterMap.get(bundleAttr);
-            if (beforeMap.isEmpty() || beforeMap.get(bundleAttr) == null || StrUtil.isBlank(beforeMap.get(bundleAttr).getValue())) {
-                if (StrUtil.isNotBlank(afterBundleCond.getValue())) {
-                    bizLogApi.setContent("Bundle: null -> " + afterBundleCond.getOperation() + " " + afterBundleCond.getValue());
-                }
-            } else {
-                if (StrUtil.isBlank(afterBundleCond.getValue())) {
-                    bizLogApi.setContent("Bundle: " + beforeMap.get(bundleAttr).getOperation() + " " + beforeMap.get(bundleAttr).getValue() + " -> null");
+            // 获取全部attributes
+            Set<String> attributes = afterMap.keySet();
+            int adGroupId = afters.get(0).getAdGroupId();
+            for (String bundleAttr : attributes) {
+                String title;
+                if (bundleAttr.equals(ConditionEnum.AUTO_BUNDLE_EXCEPT.getDesc())) title = "Ad Group Auto Update Bundle";
+                else title = "Ad Group Update Bundle";
+                BizLogApi bizLogApi = new BizLogApi();
+                bizLogApi.setBizId(adGroupId);
+                bizLogApi.setOptType(OptTypeEnum.UPDATE.getType());
+                bizLogApi.setBizType(BizTypeEnum.AD_GROUP.getType());
+                bizLogApi.setTitle(title);
+                TargetCondition afterBundleCond = afterMap.get(bundleAttr);
+                if (beforeMap.isEmpty() || beforeMap.get(bundleAttr) == null || StrUtil.isBlank(beforeMap.get(bundleAttr).getValue())) {
+                    if (StrUtil.isNotBlank(afterBundleCond.getValue())) {
+                        bizLogApi.setContent("Bundle: null -> " + afterBundleCond.getOperation() + " " + afterBundleCond.getValue());
+                    }
                 } else {
-                    bizLogApi.setContent("Bundle: " + beforeMap.get(bundleAttr).getOperation() + " " + beforeMap.get(bundleAttr).getValue()
-                            + " -> " + afterBundleCond.getOperation() + " " + afterBundleCond.getValue());
+                    if (StrUtil.isBlank(afterBundleCond.getValue())) {
+                        bizLogApi.setContent("Bundle: " + beforeMap.get(bundleAttr).getOperation() + " " + beforeMap.get(bundleAttr).getValue() + " -> null");
+                    } else {
+                        bizLogApi.setContent("Bundle: " + beforeMap.get(bundleAttr).getOperation() + " " + beforeMap.get(bundleAttr).getValue()
+                                + " -> " + afterBundleCond.getOperation() + " " + afterBundleCond.getValue());
+                    }
                 }
-            }
-            bizLogApi.setCreator("admin");
-            if (StrUtil.isNotBlank(bizLogApi.getContent())) {
-                save(bizLogApi);
+                bizLogApi.setCreator("admin");
+                if (StrUtil.isNotBlank(bizLogApi.getContent())) {
+                    save(bizLogApi);
+                }
             }
         });
     }
@@ -351,6 +359,10 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                 saveBatch(bizLogApis);
             }
         });
+    }
+
+    public void logByAutoUpdateExpBundle(List<TargetCondition> befores, List<TargetCondition> afters) {
+
     }
 
     // =====================================================================================================

@@ -5,11 +5,16 @@ import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.mapper.TargetConditionMapper;
 import com.tecdo.adm.api.doris.dto.AutoBundle;
 import com.tecdo.adm.api.doris.mapper.ReportMapper;
+import com.tecdo.adm.api.log.entity.BizLogApi;
+import com.tecdo.adm.api.log.enums.BizTypeEnum;
+import com.tecdo.adm.api.log.enums.OptTypeEnum;
+import com.tecdo.adm.api.log.mapper.BizLogApiMapper;
 import com.tecdo.job.util.ConditionHelper;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.collections.SetUtils;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -28,6 +33,8 @@ import static com.tecdo.common.constant.ConditionConstant.EXCLUDE;
 public class AutoBundleJob {
     private final TargetConditionMapper targetConditionMapper;
     private final ReportMapper reportMapper;
+    private final BizLogApiMapper bizLogApiMapper;
+    private final String TITLE = "Ad Group Auto Update Bundle";
     @XxlJob("autoBundleRefresh")
     public void autoBundleRefresh() {
         XxlJobHelper.log("获取bundle拉黑的定向条件");
@@ -61,8 +68,14 @@ public class AutoBundleJob {
             Set<String> preBlackList = new HashSet<>();
             Collections.addAll(preBlackList, autoBundleCondition.getValue().split(","));
 
-            // 并集运算
-            preBlackList.addAll(blackListMap.get(autoBundleCondition.getAdGroupId()));
+            Set<String> newBlackList = blackListMap.get(autoBundleCondition.getAdGroupId());
+
+            // 1.差集运算求新增 2.记录新增日志
+            newBlackList.removeAll(preBlackList);
+            inserLog(newBlackList, autoBundleCondition.getAdGroupId());
+
+            // 并集运算求结果
+            preBlackList.addAll(newBlackList);
 
             blackListMap.put(autoBundleCondition.getAdGroupId(), preBlackList);
         }
@@ -80,6 +93,23 @@ public class AutoBundleJob {
 
         targetConditionMapper.updateAutoBundleList(updatedAutoBundleList);
 
+    }
+
+    /**
+     * 记录自动拉黑的新增bundle
+     * @param diff 新增的bundle集合
+     * @param adGroupId 所在adgroup的id
+     */
+    public void inserLog(Set<String> diff, int adGroupId) {
+        if (diff == null || diff.isEmpty()) return;
+        BizLogApi bizLogApi = new BizLogApi();
+        bizLogApi.setBizId(adGroupId);
+        bizLogApi.setOptType(OptTypeEnum.INSERT.getType());
+        bizLogApi.setBizType(BizTypeEnum.AD_GROUP.getType());
+        bizLogApi.setTitle(TITLE);
+        bizLogApi.setContent("Bundle: " + EXCLUDE + " " + String.join(",", diff));
+        bizLogApi.setCreator("system");
+        bizLogApiMapper.insert(bizLogApi);
     }
 
     /**
