@@ -1,6 +1,7 @@
 package com.tecdo.filter;
 
 import cn.hutool.core.util.StrUtil;
+import com.sun.deploy.util.BlackList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
@@ -42,6 +43,6 @@ public class AutoBundleFilter extends AbstractRecallFilter {
         }
 
         // 白名单包含bundle || 黑名单不包含bundle
-        return blackList.contains(bundleId) || !whiteList.contains(bundleId);
+        return whiteList.contains(bundleId) || !blackList.contains(bundleId);
     }
 }
