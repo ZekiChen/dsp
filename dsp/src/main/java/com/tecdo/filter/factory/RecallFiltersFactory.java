@@ -22,6 +22,7 @@ public class RecallFiltersFactory {
 
     private final AffiliateFilter affiliateFilter;
     private final AppBundleFilter appBundleFilter;
+    private final AutoBundleFilter autoBundleFilter;
     private final ConnectTypeFilter connectTypeFilter;
     private final DeviceLangFilter deviceLangFilter;
     private final CreativeFormatFilter creativeFormatFilter;
@@ -44,6 +45,7 @@ public class RecallFiltersFactory {
     @Autowired
     public RecallFiltersFactory(AffiliateFilter affiliateFilter,
                                 AppBundleFilter appBundleFilter,
+                                AutoBundleFilter autoBundleFilter,
                                 ConnectTypeFilter connectTypeFilter,
                                 DeviceLangFilter deviceLangFilter,
                                 CreativeFormatFilter creativeFormatFilter,
@@ -77,6 +79,7 @@ public class RecallFiltersFactory {
         this.connectTypeFilter = connectTypeFilter;
         this.deviceLangFilter = deviceLangFilter;
         this.appBundleFilter = appBundleFilter;
+        this.autoBundleFilter = autoBundleFilter;
         this.budgetFilter = budgetFilter;
         this.bundleCapFilter = bundleCapFilter;
         this.sChainFilter = sChainFilter;
@@ -100,6 +103,7 @@ public class RecallFiltersFactory {
                 connectTypeFilter,
                 deviceLangFilter,
                 appBundleFilter,
+                autoBundleFilter,
                 budgetFilter,
                 bundleCapFilter,
                 sChainFilter,
