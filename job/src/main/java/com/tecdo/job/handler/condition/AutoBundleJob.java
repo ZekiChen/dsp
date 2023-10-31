@@ -50,8 +50,8 @@ public class AutoBundleJob {
         XxlJobHelper.log("获取参与校验的ad_group-bundle信息列表");
         List<AutoBundle> autoBundleInfoList = reportMapper
                 .getAutoBundleInfoList(conditionMap.keySet(),
-                        LocalDate.now().minusDays(5).toString(),
-                        LocalDate.now().minusDays(1).toString());
+                        LocalDate.now().minusDays(8).toString(),
+                        LocalDate.now().minusDays(3).toString());
         XxlJobHelper.log("根据定向条件生成新黑名单");
         Map<Integer, Set<String>> blackListMap = generateBlackListMap(autoBundleInfoList, conditionMap);
 
