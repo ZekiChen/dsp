@@ -255,9 +255,9 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             Set<String> attributes = afterMap.keySet();
             int adGroupId = afters.get(0).getAdGroupId();
             for (String bundleAttr : attributes) {
-                String title;
-                if (bundleAttr.equals(ConditionEnum.AUTO_BUNDLE_EXCEPT.getDesc())) title = "Ad Group Auto Update Bundle";
-                else title = "Ad Group Update Bundle";
+                String title = bundleAttr.equals(ConditionEnum.AUTO_BUNDLE_EXCEPT.getDesc())
+                        ? "Ad Group Auto Update Bundle"
+                        : "Ad Group Update Bundle";
                 BizLogApi bizLogApi = new BizLogApi();
                 bizLogApi.setBizId(adGroupId);
                 bizLogApi.setOptType(OptTypeEnum.UPDATE.getType());
