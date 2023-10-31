@@ -1,5 +1,6 @@
 package com.tecdo.filter;
 
+import com.tecdo.common.constant.ConditionConstant;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -31,10 +32,10 @@ public class BudgetFilter extends AbstractRecallFilter {
       budgetManager.getAdGroupCost(adDTO.getAdGroup().getId().toString()) / 1000;
 
     return ConditionHelper.compare(Double.toString(campaignCost),
-                                   Constant.LT,
+                                   ConditionConstant.LT,
                                    campaignBudget.toString()) &&
            ConditionHelper.compare(Double.toString(adGroupCost),
-                                   Constant.LT,
+                                   ConditionConstant.LT,
                                    adGroupBudget.toString());
   }
 }

@@ -22,7 +22,7 @@ public interface IBizLogApiService extends IService<BizLogApi> {
 
     void logByUpdateAdGroupDirect(AdGroupVO beforeVO, AdGroupVO afterVO);
 
-    void logByUpdateAdGroupBundle(TargetCondition before, TargetCondition after);
+    void logByUpdateAdGroupBundle(List<TargetCondition> befores, List<TargetCondition> afters);
 
     void logByUpdateBatchAdGroup(Map<Integer, AdGroup> beAdGroupMap, BatchAdGroupUpdateVO afterVO);
 

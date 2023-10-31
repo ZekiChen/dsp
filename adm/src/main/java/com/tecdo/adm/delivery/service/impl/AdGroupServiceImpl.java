@@ -204,29 +204,33 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
 
     @Override
     @Transactional
-    public boolean updateBundles(TargetCondition condition) {
+    public boolean updateBundles(List<TargetCondition> conditions) {
         LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
-                .eq(TargetCondition::getAdGroupId, condition.getAdGroupId())
-                .eq(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc());
-        TargetCondition before = conditionService.getOne(wrapper);
-        if (before != null) {
+                .eq(TargetCondition::getAdGroupId, conditions.get(0).getAdGroupId())
+                .in(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc(),
+                        ConditionEnum.AUTO_BUNDLE_EXCEPT.getDesc());
+        List<TargetCondition> befores = conditionService.list(wrapper);
+        if (CollUtil.isNotEmpty(befores)) {
             conditionService.remove(wrapper);
         }
-        if (StrUtil.isNotBlank(condition.getValue())) {
-            condition.setAttribute(ConditionEnum.BUNDLE.getDesc());
-            conditionService.save(condition);
-        }
-        batchUpdateTime(Collections.singletonList(condition.getAdGroupId()));
-        bizLogApiService.logByUpdateAdGroupBundle(before, condition);
+        conditions.forEach(condition -> {
+            if (StrUtil.isNotBlank(condition.getValue())) {
+                conditionService.save(condition);
+            }
+        });
+        batchUpdateTime(Collections.singletonList(conditions.get(0).getAdGroupId()));
+        bizLogApiService.logByUpdateAdGroupBundle(befores, conditions);
         return true;
     }
 
     @Override
-    public TargetCondition listBundle(Integer adGroupId) {
+    public List<TargetCondition> listBundle(Integer adGroupId) {
         LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
                 .eq(TargetCondition::getAdGroupId, adGroupId)
-                .eq(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc());
-        return conditionService.getOne(wrapper);
+                .in(TargetCondition::getAttribute, ConditionEnum.BUNDLE.getDesc(),
+                        ConditionEnum.AUTO_BUNDLE.getDesc(),
+                        ConditionEnum.AUTO_BUNDLE_EXCEPT.getDesc());
+        return conditionService.list(wrapper);
     }
 
     @Override
