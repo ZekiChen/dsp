@@ -16,22 +16,34 @@ import org.springframework.stereotype.Component;
 @RequiredArgsConstructor
 public class ClickFrequencyFilter extends AbstractRecallFilter {
 
-  private static final String ATTRIBUTE = ConditionEnum.CLICK_FREQUENCY.getDesc();
+  private static final String CLICK_FREQUENCY = ConditionEnum.CLICK_FREQUENCY.getDesc();
+  private static final String CLICK_FREQUENCY_HOUR = ConditionEnum.CLICK_FREQUENCY_HOUR.getDesc();
 
   private final CacheService cacheService;
 
   @Override
   public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
-    TargetCondition condition = adDTO.getConditionMap().get(ATTRIBUTE);
-    if (condition == null) {
-      return true;
-    }
+    TargetCondition conditionToday = adDTO.getConditionMap().get(CLICK_FREQUENCY);
+    TargetCondition conditionByhour = adDTO.getConditionMap().get(CLICK_FREQUENCY_HOUR);
+    boolean isPassedToday = true, isPassedByHour = true;
+
     Integer campaignId = adDTO.getCampaign().getId();
     String deviceId = bidRequest.getDevice().getIfa();
-    Integer countToday = cacheService.getFrequencyCache().getClickCountToday(campaignId.toString(), deviceId);
 
-    return ConditionHelper.compare(String.valueOf(countToday),
-                                   condition.getOperation(),
-                                   condition.getValue());
+    if (conditionToday != null) {
+      Integer countToday = cacheService.getFrequencyCache().getClickCountToday(campaignId.toString(), deviceId);
+      isPassedToday = ConditionHelper.compare(String.valueOf(countToday),
+              conditionToday.getOperation(),
+              conditionToday.getValue());
+    }
+
+    if (conditionByhour != null) {
+      Integer countByHour = cacheService.getFrequencyCache().getClickCountByHour(campaignId.toString(), deviceId);
+      isPassedByHour = ConditionHelper.compare(String.valueOf(countByHour),
+              conditionByhour.getOperation(),
+              conditionByhour.getValue());
+    }
+
+    return isPassedToday && isPassedByHour;
   }
 }

@@ -13,7 +13,9 @@ import java.util.Arrays;
 public enum ConditionEnum {
 
     IMP_FREQUENCY("imp_frequency"),
+    IMP_FREQUENCY_HOUR("imp_frequency_hour"),
     CLICK_FREQUENCY("click_frequency"),
+    CLICK_FREQUENCY_HOUR("click_frequency_hour"),
 
     AFFILIATE("affiliate"),
 
