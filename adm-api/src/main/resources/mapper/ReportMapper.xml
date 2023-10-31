@@ -99,4 +99,40 @@
         GROUP BY
             bundle_id, ad_group_id
     </select>
+
+    <select id="getAutoBundleInfoList" resultType="com.tecdo.adm.api.doris.dto.AutoBundle">
+        SELECT
+        bundle_id        as bundleId,
+        ad_group_id      as adGroupId,
+        SUM(click_count) as clickCount,
+        SUM(imp_count)   as impCount,
+        SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN bid_price_total ELSE 0 END) / 1000 as bidPriceTotal,
+        SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN ad_estimated_commission ELSE 0 END) as adEstimatedCommission
+        FROM
+            ads.dsp_report_fall_one
+        WHERE ad_group_id IN
+        <foreach collection="adGroupIds" item="item" index="index" open="(" close=")" separator=",">
+            #{item}
+        </foreach>
+        GROUP BY
+            ad_group_id, bundle_id
+    </select>
+
+    <select id="getAutoBundleInfo" resultType="com.tecdo.adm.api.doris.dto.AutoBundle">
+        SELECT
+            bundle_id        as bundleId,
+            ad_group_id      as adGroupId,
+            SUM(click_count) as clickCount,
+            SUM(imp_count)   as impCount,
+            SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN bid_price_total ELSE 0 END) as bidPriceTotal,
+            SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN ad_estimated_commission ELSE 0 END) as adEstimatedCommission
+        FROM
+            ads.dsp_report_fall_one
+        WHERE
+        <foreach collection="bundles" item="item" index="index" open="(" close=")" separator="OR">
+            (bundle_id = #{item.bundleId} AND ad_group_id = #{item.adGroupId})
+        </foreach>
+        GROUP BY
+            ad_group_id, bundle_id
+    </select>
 </mapper>

@@ -1,8 +1,8 @@
-package com.tecdo.ab.util;
+package com.tecdo.job.util;
+
 
 import cn.hutool.core.util.NumberUtil;
 import cn.hutool.core.util.StrUtil;
-import com.tecdo.exception.DspException;
 
 import java.util.Arrays;
 import java.util.Objects;
@@ -10,6 +10,11 @@ import java.util.Objects;
 import static com.tecdo.common.constant.ConditionConstant.*;
 
 
+/**
+ * 定投条件 工具
+ *
+ * Created by Zeki on 2023/1/5
+ **/
 public class ConditionHelper {
 
     /**
@@ -22,6 +27,8 @@ public class ConditionHelper {
      */
     public static boolean compare(String source, String operation, String target) {
         // 判空在上层已经校验过，调用该方法不会为空，否则就是预期意外的异常
+        // todo task的 listLegalCondition 方法会把 attribute，operation，value任一为空的filter过滤掉
+        //  但是会导致想过滤掉空字符串的filter不生效，需要将value设置为不为空的无意义的值
         if (StrUtil.hasBlank(source, operation, target)) {
             throw new IllegalArgumentException("source/operation/value must not be blank");
         }
@@ -43,7 +50,7 @@ public class ConditionHelper {
             case BETWEEN:
                 String[] targetArr = target.split(",");
                 if (targetArr.length != 2) {
-                    throw new DspException("The value of the 'between' must be two numbers");
+                    throw new RuntimeException("The value of the 'between' must be two numbers");
                 }
                 double sourceNum = Double.parseDouble(source);
                 double num1 = Double.parseDouble(targetArr[0]);
@@ -54,10 +61,15 @@ public class ConditionHelper {
                     // 比如控制小时投放，20点到8点可投放
                     return num1 <= sourceNum || sourceNum <= num2;
                 }
+                // todo 当数据量多时，这里存在性能问题
             case INCLUDE:
-                return Arrays.asList(target.split(",")).contains(source);
+                return Arrays.stream(target.split(",")).anyMatch(i -> i.equalsIgnoreCase(source));
             case EXCLUDE:
-                return !Arrays.asList(target.split(",")).contains(source);
+                return Arrays.stream(target.split(",")).noneMatch(i -> i.equalsIgnoreCase(source));
+            case CONTAINS:
+                return source.toUpperCase().contains(source.toUpperCase());
+            case NOT_CONTAINS:
+                return !source.toUpperCase().contains(source.toUpperCase());
             default:
                 // 调用该方法不会是未被包含的操作符，否则就是预期意外的异常
                 throw new IllegalArgumentException("Invalid operation: " + operation);

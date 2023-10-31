@@ -168,15 +168,15 @@ public class AdGroupController {
     @PutMapping("/update-bundle")
     @ApiOperationSupport(order = 9)
     @ApiOperation(value = "列表直接修改bundle", notes = "传入Object")
-    public R updateBundles(@Valid @RequestBody TargetCondition condition) {
+    public R updateBundles(@Valid @RequestBody List<TargetCondition> conditions) {
         CacheUtil.clear(AD_GROUP_CACHE);
-        return R.status(service.updateBundles(condition));
+        return R.status(service.updateBundles(conditions));
     }
 
     @GetMapping("/bundle/{adGroupId}")
     @ApiOperationSupport(order = 10)
     @ApiOperation(value = "bundle详情", notes = "传入adGroupId")
-    public R<TargetCondition> listBundle(@PathVariable("adGroupId") Integer adGroupId) {
+    public R<List<TargetCondition>> listBundle(@PathVariable("adGroupId") Integer adGroupId) {
         return R.data(service.listBundle(adGroupId));
     }
 

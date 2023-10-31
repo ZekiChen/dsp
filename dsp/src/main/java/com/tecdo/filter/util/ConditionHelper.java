@@ -10,7 +10,8 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import static com.tecdo.filter.AbstractRecallFilter.Constant.*;
+import static com.tecdo.common.constant.ConditionConstant.*;
+
 
 /**
  * 定投条件 工具

@@ -5,6 +5,7 @@ import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
+import com.tecdo.common.constant.ConditionConstant;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -59,7 +60,7 @@ public class AppBundleFilter extends AbstractRecallFilter {
         } else {
             if (bundleCond != null) {
                 List<String> bundles = Arrays.asList(bundleCond.getValue().split(StrUtil.COMMA));
-                if (Constant.INCLUDE.equals(bundleCond.getOperation())) {
+                if (ConditionConstant.INCLUDE.equals(bundleCond.getOperation())) {
                     tarBundles.addAll(bundles);
                 } else {
                     tarBundles = tarBundles.stream().filter(tar -> !bundles.contains(tar)).collect(Collectors.toList());

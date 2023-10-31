@@ -13,4 +13,34 @@
         <result column="value" property="value"/>
     </resultMap>
 
+    <select id="blackConditionList" resultMap="baseRsMap">
+        SELECT
+            t.ad_group_id, t.attribute, t.operation, t.value, g.status g_status, c.status c_status, adv.status adv_status
+        FROM
+            target_condition t
+                LEFT JOIN
+            ad_group g ON t.ad_group_id = g.id
+                LEFT JOIN
+            campaign c ON g.campaign_id = c.id
+                LEFT JOIN
+            adv ON c.adv_id = adv.id
+        WHERE
+            t.attribute IN
+        <foreach collection="attributes" item="attribute" index="index" open="(" close=")" separator=",">
+            #{attribute}
+        </foreach>
+            AND g.status = 1 AND c.status = 1 AND adv.status = 1
+    </select>
+
+    <select id="updateAutoBundleList" parameterType="java.util.List">
+        INSERT INTO target_condition
+        (ad_group_id, attribute, operation, value)
+        VALUES
+        <foreach collection="blackList" separator="," item="item" index="index">
+            (#{item.adGroupId}, #{item.attribute}, #{item.operation}, #{item.value})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        value = VALUES(value)
+    </select>
+
 </mapper>

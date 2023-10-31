@@ -6,6 +6,7 @@ import com.tecdo.adm.api.audience.entity.AfContainer;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
+import com.tecdo.common.constant.ConditionConstant;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -46,12 +47,12 @@ public class AfAudienceFilter  extends AbstractRecallFilter{
                 continue;
             }
             switch (condition.getOperation()) {
-                case Constant.INCLUDE:
+                case ConditionConstant.INCLUDE:
                     if (existInBloomFilter(key, deviceId, container.getEncrypt())) {
                         return true;
                     }
                     break;
-                case Constant.EXCLUDE:
+                case ConditionConstant.EXCLUDE:
                     if (existInBloomFilter(key, deviceId, container.getEncrypt())) {
                         return false;
                     }
@@ -60,7 +61,7 @@ public class AfAudienceFilter  extends AbstractRecallFilter{
                     break;
             }
         }
-        return Constant.EXCLUDE.equals(condition.getOperation());
+        return ConditionConstant.EXCLUDE.equals(condition.getOperation());
     }
 
     private boolean existInBloomFilter(String key, String deviceId, int encrypt) {
