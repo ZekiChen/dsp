@@ -1,7 +1,6 @@
 package com.tecdo.filter;
 
 import cn.hutool.core.util.StrUtil;
-import com.sun.deploy.util.BlackList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
