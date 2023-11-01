@@ -1,0 +1,168 @@
+<div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
+  <img
+    id="fc_dsp_banner_img"
+    src="{IMG_URL}"
+    border="0"
+    style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"
+  />
+  <div id="fc_dsp_banner_imp"></div>
+</div>
+<script type="text/javascript">
+    document.getElementById("fc_dsp_banner_imp").innerHTML = '{IMP_DIV_LIST}';
+    var t = [CLICK_TRACK_URL_LIST],
+        e = "{IMP_INFO_URL}",
+        n = "{CLICK_URL}",
+        i = "{FORCE_URL}";
+    let r = window.navigator.userAgent, o = r.match(/mobile/i), c = r.match(/(iphone|ipod|ipad)/i),
+        a = !c && r.match(/android/i),
+        m = c && r.match(/Safari\/([0-9.]+$)/) && !r.match(/Chrome/i),
+        u = r.match(/micromessenger\/([\d.]+)/i), d = r.match(/(ucbrowser)\/([\d.]+)/i),
+        f = r.match(/newsarticle/i),
+        l = r.match(/chrome\/[\d.]+ mobile safari\/[\d.]+/i) && a && r.indexOf("Version") < 0;
+    var s = 0, h = setInterval((function () {
+        s++;
+        var t = document.getElementById("fc_dsp_banner_img"), n = y(t),
+            i = window.getComputedStyle(t), r = {
+                width: Number(n.right) - Number(n.left),
+                height: Number(n.bottom) - Number(n.top),
+                t: i.zIndex,
+                i: k(),
+                display: i.display,
+                o: _().width || 0,
+                m: _().height || 0,
+                u: n.top,
+                l: n.bottom,
+                h: n.left,
+                p: n.right
+            };
+        if (s > 2 || r.width > 0 && r.height > 0) {
+            var o = "";
+            for (var c in r) c && (o += "&" + c + "=" + r[c]);
+            var a = p();
+            a.open("GET", e + o, !0), a.send(), clearInterval(h)
+        }
+    }), 1e3);
+
+    function p() {
+        var t;
+        try {
+            t = new XMLHttpRequest
+        } catch (e) {
+            try {
+                t = new ActiveXObject("Msxml2.XMLHTTP")
+            } catch (e) {
+                try {
+                    t = new ActiveXObject("Microsoft.XMLHTTP")
+                } catch (e) {
+                    t = !1
+                }
+            }
+        }
+        return t
+    }
+
+    function w() {
+        v(), window.location.href = n
+    }
+
+    function v() {
+        for (var e in t) {
+            var n = p();
+            if (n) n.open("GET", t[e], !0), n.send(); else {
+                var i = document.createElement("iframe");
+                i.height = 1, i.width = 1, i.style.display = "none", i.src = t[e], document.getElementById("fc_dsp_banner_wrap").appendChild(i)
+            }
+        }
+    }
+
+    function _() {
+        return "BackCompat" == document.compatMode ? {
+            width: document.body.clientWidth,
+            height: document.body.clientHeight
+        } : {
+            width: document.documentElement.clientWidth,
+            height: document.documentElement.clientHeight
+        }
+    }
+
+    function g(t) {
+        for (var e = t.offsetLeft, n = t.offsetParent; null !== n;) e += n.offsetLeft, n = n.offsetParent;
+        return e
+    }
+
+    function b(t) {
+        for (var e = t.offsetTop, n = t.offsetParent; null !== n;) e += n.offsetTop, n = n.offsetParent;
+        return e
+    }
+
+    var y = function t(e) {
+        var n = document.documentElement.scrollTop, i = document.documentElement.scrollLeft;
+        if (e.getBoundingClientRect) {
+            "number" != typeof t.offset && (t.offset = function () {
+                var t = document.createElement("div");
+                t.style.cssText = "position:absolute;left:0;top:0;", document.body.appendChild(t);
+                var e = -t.getBoundingClientRect().top - n;
+                return document.body.removeChild(t), t = null, e
+            }());
+            var r = e.getBoundingClientRect(), o = t.offset;
+            return {left: r.left + o, right: r.right + o, top: r.top + o, bottom: r.bottom + o}
+        }
+        var c = g(e), a = b(e);
+        return {
+            left: c - i,
+            right: c + e.offsetWidth - i,
+            top: a - n,
+            bottom: a + e.offsetHeight - n
+        }
+    };
+
+    function k() {
+        var t = Array.from(document.all), e = [];
+        t.forEach((function (t) {
+            var n = Number(window.getComputedStyle(t, null).getPropertyValue("z-index"));
+            n && e.push(n)
+        }));
+        var n = 0;
+        return e.length && (n = Math.max(...e)), n
+    }
+
+    let N = {
+        v: function (t) {
+            window.location.href = t
+        }, _: function (t) {
+            let e = document.createElement("a");
+            e.setAttribute("href", t), e.style.display = "none", document.body.append(e), e.click()
+        }, k: function (t) {
+            let e = document.createElement("iframe");
+            e.style.cssText = "display:none;border:0;width:0;height:0;", e.setAttribute("referrerpolicy", "origin"), document.body.append(e), e.src = t
+        }
+    };
+
+    function M(t) {
+        let e = "http" === t.substr(0, 4).toLowerCase(),
+            n = "intent" === t.substr(0, 6).toLowerCase();
+        if (o && "" != t) if (v(), c) {
+            let n = T(r.match(/OS ([\d_.]+) like Mac OS X/i)[1].replace(/_/g, "."), "9.0") >= 0,
+                i = u && X();
+            n ? e ? !f && !d || i && T(i, "7.0.5") >= 0 ? N.v(t) : (N._(t), N.k(t)) : (m || N.k(t), N.v(t)) : N.k(t)
+        } else a ? (n && l || N.k(t), N.v(t)) : (N.k(t), N.v(t))
+    }
+
+    function T(t, e) {
+        t = t.toString().split("."), e = e.toString().split(".");
+        for (let n = 0; n < t.length || n < e.length; n++) {
+            let i = parseInt(t[n], 10), r = parseInt(e[n], 10);
+            if (isNaN(i) && (i = 0), isNaN(r) && (r = 0), i < r) return -1;
+            if (r < i) return 1
+        }
+        return 0
+    }
+
+    function X() {
+        return navigator.appVersion.match(/micromessenger\/(\d+\.\d+\.\d+)/i)[1]
+    }
+
+    window.addEventListener("load", (function () {
+        M(i), document.getElementById("fc_dsp_banner_img").onclick = w
+    }));
+</script>

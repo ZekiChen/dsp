@@ -1,0 +1,124 @@
+<div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
+  <img id="fc_dsp_banner_img"
+       src="{IMG_URL}"
+       border="0"
+       style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"/>
+  <div id="fc_dsp_banner_imp"></div>
+</div>
+
+<script type="text/javascript">
+    document.getElementById("fc_dsp_banner_imp").innerHTML = '{IMP_DIV_LIST}';
+    var t = [CLICK_TRACK_URL_LIST],
+        e = "{IMP_INFO_URL}",
+        n = "{CLICK_URL}",
+        r = 0, c = setInterval((function () {
+            r++;
+            var t = document.getElementById("fc_dsp_banner_img"), n = f(t),
+                i = window.getComputedStyle(t), m = {
+                    width: Number(n.right) - Number(n.left),
+                    height: Number(n.bottom) - Number(n.top),
+                    t: i.zIndex,
+                    o: l(),
+                    display: i.display,
+                    i: u().width || 0,
+                    m: u().height || 0,
+                    u: n.top,
+                    l: n.bottom,
+                    h: n.left,
+                    p: n.right
+                };
+            if (r > 2 || m.width > 0 && m.height > 0) {
+                var a = "";
+                for (var d in m) d && (a += "&" + d + "=" + m[d]);
+                var w = o();
+                w.open("GET", e + a, !0), w.send(), clearInterval(c)
+            }
+        }), 1e3);
+
+    function o() {
+        var t;
+        try {
+            t = new XMLHttpRequest
+        } catch (e) {
+            try {
+                t = new ActiveXObject("Msxml2.XMLHTTP")
+            } catch (e) {
+                try {
+                    t = new ActiveXObject("Microsoft.XMLHTTP")
+                } catch (e) {
+                    t = !1
+                }
+            }
+        }
+        return t
+    }
+
+    function i() {
+        m(), window.location.href = n
+    }
+
+    function m() {
+        for (var e in t) {
+            var n = o();
+            if (n) n.open("GET", t[e], !0), n.send(); else {
+                var r = document.createElement("iframe");
+                r.height = 1, r.width = 1, r.style.display = "none", r.src = t[e], document.getElementById("fc_dsp_banner_wrap").appendChild(r)
+            }
+        }
+    }
+
+    function u() {
+        return "BackCompat" == document.compatMode ? {
+            width: document.body.clientWidth,
+            height: document.body.clientHeight
+        } : {
+            width: document.documentElement.clientWidth,
+            height: document.documentElement.clientHeight
+        }
+    }
+
+    function a(t) {
+        for (var e = t.offsetLeft, n = t.offsetParent; null !== n;) e += n.offsetLeft, n = n.offsetParent;
+        return e
+    }
+
+    function d(t) {
+        for (var e = t.offsetTop, n = t.offsetParent; null !== n;) e += n.offsetTop, n = n.offsetParent;
+        return e
+    }
+
+    var f = function t(e) {
+        var n = document.documentElement.scrollTop, r = document.documentElement.scrollLeft;
+        if (e.getBoundingClientRect) {
+            "number" != typeof t.offset && (t.offset = function () {
+                var t = document.createElement("div");
+                t.style.cssText = "position:absolute;left:0;top:0;", document.body.appendChild(t);
+                var e = -t.getBoundingClientRect().top - n;
+                return document.body.removeChild(t), t = null, e
+            }());
+            var c = e.getBoundingClientRect(), o = t.offset;
+            return {left: c.left + o, right: c.right + o, top: c.top + o, bottom: c.bottom + o}
+        }
+        var i = a(e), m = d(e);
+        return {
+            left: i - r,
+            right: i + e.offsetWidth - r,
+            top: m - n,
+            bottom: m + e.offsetHeight - n
+        }
+    };
+
+    function l() {
+        var t = Array.from(document.all), e = [];
+        t.forEach((function (t) {
+            var n = Number(window.getComputedStyle(t, null).getPropertyValue("z-index"));
+            n && e.push(n)
+        }));
+        var n = 0;
+        return e.length && (n = Math.max(...e)), n
+    }
+
+    window.addEventListener("load", (function () {
+        document.getElementById("fc_dsp_banner_img").onclick = i
+    }));
+</script>
