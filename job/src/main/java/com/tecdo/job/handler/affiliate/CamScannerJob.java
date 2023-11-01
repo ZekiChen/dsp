@@ -16,6 +16,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Component;
 import org.springframework.beans.factory.annotation.Value;
 
+import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
@@ -44,6 +45,11 @@ public class CamScannerJob {
     private String sheetFormatterUrl;
     @Value("${feishu.aff.cs.sheet-unit-range}")
     private String unitRange;
+    @Value("${feishu.aff.cs.cost-ratio}")
+    private String costRatio;
+    @Value("${feishu.aff.cs.imp-ratio}")
+    private String impRatio;
+
     private String dateFormat = "yyyy/MM/dd";
     private String tenantToken = "";
 
@@ -125,6 +131,13 @@ public class CamScannerJob {
      * @return true / false
      */
     public boolean postData(SpentDTO impCost) {
+        DecimalFormat df = new DecimalFormat("#.0000"); // 保留4位小数
+        double finalCost = Double.parseDouble(df.format(impCost.getCost() * Double.parseDouble(costRatio)));
+        Long finalImp = Math.round(impCost.getImp() * Double.parseDouble(impRatio));
+
+        impCost.setCost(finalCost);
+        impCost.setImp(finalImp);
+
         FeishuPrependReport request = new FeishuPrependReport(range, buildValues(daysFrom1899(), impCost));
         Map<String, Object> paramMap = MapUtil.newHashMap();
         paramMap.put("valueRange", request);
