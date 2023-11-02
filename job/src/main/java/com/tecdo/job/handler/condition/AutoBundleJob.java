@@ -63,7 +63,7 @@ public class AutoBundleJob {
                 .<TargetCondition>lambdaQuery()
                 .eq(TargetCondition::getAttribute, AUTO_BUNDLE)
                 .in(TargetCondition::getAdGroupId, newBlackListMap.keySet())
-        ).stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
+        ).stream().collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
 
         // 遍历已经存在的黑名单：对 已经存在的黑名单 & 新获取的黑名单 求并集
         for (TargetCondition oldBlackCondition : oldBlackListMap.values()) {
