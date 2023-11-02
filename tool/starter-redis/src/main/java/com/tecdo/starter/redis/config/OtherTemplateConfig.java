@@ -2,8 +2,10 @@ package com.tecdo.starter.redis.config;
 
 import com.tecdo.starter.redis.serializer.RedisKeySerializer;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.autoconfigure.data.redis.RedisAutoConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.data.redis.connection.RedisConnection;
@@ -19,7 +21,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  *
  * Created by Zeki on 2023/11/1
  */
-@Configuration
+@AutoConfiguration(before = RedisAutoConfiguration.class)
 public class OtherTemplateConfig {
 
     @Value("${pac.redis-mx.database}")
