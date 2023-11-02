@@ -6,6 +6,7 @@ import com.tecdo.adm.api.delivery.dto.CampaignDTO;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.*;
 import com.tecdo.controller.MessageQueue;
+import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.notice.ImpInfoNoticeInfo;
 import com.tecdo.domain.biz.notice.NoticeInfo;
 import com.tecdo.log.NoticeLogger;
@@ -37,6 +38,8 @@ public class NoticeService {
     private AdManager adManager;
     @Autowired
     private NoticeLogger noticeLogger;
+    @Autowired
+    private ThreadPool threadPool;
 
     public void handleEvent(EventType eventType, Params params) {
         HttpRequest httpRequest = params.get(ParamKey.HTTP_REQUEST);
@@ -141,15 +144,16 @@ public class NoticeService {
 
     private void generalHandle(EventType eventType, Params params, HttpRequest httpRequest) {
         NoticeInfo info = NoticeInfo.buildInfo(httpRequest);
-        ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
-                info.getSign(), info.getCampaignId(), eventType);
-        if (code == ValidateCode.SUCCESS) {
-            logValidateSucceed(eventType, httpRequest, info);
-            ResponseHelper.ok(messageQueue, params, httpRequest);
-        } else {
-            logValidateFailed(eventType, httpRequest, code, info);
-            ResponseHelper.ok(messageQueue, params, httpRequest);
-        }
+        threadPool.execute(() -> {
+            ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
+                    info.getSign(), info.getCampaignId(), eventType);
+            if (code == ValidateCode.SUCCESS) {
+                logValidateSucceed(eventType, httpRequest, info);
+            } else {
+                logValidateFailed(eventType, httpRequest, code, info);
+            }
+        });
+        ResponseHelper.ok(messageQueue, params, httpRequest);
     }
 
     private void logValidateFailed(EventType eventType, HttpRequest httpRequest, ValidateCode code, NoticeInfo noticeInfo) {

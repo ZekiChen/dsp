@@ -1,6 +1,7 @@
 package com.tecdo.fsm.context;
 
 import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
 import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
@@ -30,11 +31,13 @@ import com.tecdo.util.JsonHelper;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.*;
+import static com.tecdo.constant.CountryConstant.*;
 
 @Slf4j
 public class Context {
 
   private IContextState currentState = SpringUtil.getBean(InitState.class);
+  private String area = SpringUtil.getProperty("pac.service.area");
 
   private HttpRequest httpRequest;
 
@@ -130,7 +133,7 @@ public class Context {
     impList.forEach(imp -> {
       Task task = taskPool.get();
       // taskId = bidId
-      String taskId = generateBidId();
+      String taskId = generateBidId(area);
       task.init(bidRequest, imp, affiliate, requestId, taskId, protoTransform);
       taskMap.put(taskId, task);
       messageQueue.putMessage(EventType.TASK_START, assignParams().put(ParamKey.TASK_ID, taskId));
@@ -142,8 +145,20 @@ public class Context {
   }
 
   // 32位UUID + 13位时间戳
-  private String generateBidId() {
-    return IdUtil.fastSimpleUUID() + System.currentTimeMillis();
+  private String generateBidId(String area) {
+    String slot;
+    switch (area) {
+      case MEXICO:
+        slot = "b";
+        break;
+      case PARIS:
+        slot = "c";
+        break;
+      case SINGAPORE:
+      default:
+        slot = "a";
+    }
+    return IdUtil.fastSimpleUUID().replaceFirst(StrUtil.DOT, slot) + System.currentTimeMillis();
   }
 
   public void dispatchToTask(EventType eventType, Params params) {

@@ -2,12 +2,18 @@ package com.tecdo.service.cache;
 
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.common.constant.CacheConstant;
+import com.tecdo.constant.CountryConstant;
 import com.tecdo.starter.redis.PacRedis;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
 
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.TimeUnit;
+
+import static com.tecdo.constant.CountryConstant.*;
 
 /**
  * 通知相关 缓存操作
@@ -19,11 +25,21 @@ import java.util.concurrent.TimeUnit;
 public class NoticeCache {
 
     private final PacRedis pacRedis;
+    private final RedisTemplate<String, String> mxRedisTemplate;
+    private final RedisTemplate<String, String> parRedisTemplate;
 
     private final static String HAS_WIN_CACHE = "has-win";
     private final static String HAS_LOSS_CACHE = "has-loss";
     private final static String HAS_IMP_CACHE = "has-imp";
     private final static String HAS_CLICK_CACHE = "has-click";
+
+    private static Map<Character, String> areaSlot = new HashMap<>();
+
+    static {
+        areaSlot.put('a', SINGAPORE);
+        areaSlot.put('b', MEXICO);
+        areaSlot.put('c', PARIS);
+    }
 
     @Value("${pac.notice.expire.click}")
     private long clickExpire;
@@ -88,7 +104,19 @@ public class NoticeCache {
         String key = CacheConstant.CLICK_CACHE
                 .concat(StrUtil.COLON).concat(HAS_CLICK_CACHE)
                 .concat(StrUtil.COLON).concat(bidId);
-        return pacRedis.exists(key);
+        return doHasClickByDiffArea(bidId.charAt(0), key);
+    }
+
+    private Boolean doHasClickByDiffArea(char slot, String key) {
+        switch (areaSlot.get(slot)) {
+            case MEXICO:
+                return mxRedisTemplate.hasKey(key);
+            case PARIS:
+                return parRedisTemplate.hasKey(key);
+            case SINGAPORE:
+            default:
+                return pacRedis.exists(key);
+        }
     }
 
 }
