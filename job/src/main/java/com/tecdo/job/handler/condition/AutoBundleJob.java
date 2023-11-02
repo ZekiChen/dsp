@@ -10,6 +10,7 @@ import com.tecdo.adm.api.log.enums.BizTypeEnum;
 import com.tecdo.adm.api.log.enums.OptTypeEnum;
 import com.tecdo.adm.api.log.mapper.BizLogApiMapper;
 import com.tecdo.job.util.ConditionHelper;
+import com.tecdo.starter.mp.entity.IdEntity;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,7 @@ import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import static com.tecdo.adm.api.delivery.enums.ConditionEnum.*;
@@ -54,48 +56,45 @@ public class AutoBundleJob {
                         LocalDate.now().minusDays(3).toString());
 
         XxlJobHelper.log("根据定向条件生成新黑名单");
-        Map<Integer, Set<String>> blackListMap = generateBlackListMap(autoBundleInfoList, conditionMap);
+        Map<Integer, Set<String>> newBlackListMap = generateBlackListMap(autoBundleInfoList, conditionMap);
 
         XxlJobHelper.log("查询target_condition表中已存在的自动拉黑名单");
-        List<TargetCondition> autoBundleConditionList = targetConditionMapper.selectList(Wrappers
+        Map<Integer, TargetCondition> oldBlackListMap = targetConditionMapper.selectList(Wrappers
                 .<TargetCondition>lambdaQuery()
                 .eq(TargetCondition::getAttribute, AUTO_BUNDLE)
-                .in(TargetCondition::getAdGroupId, blackListMap.keySet())
-        );
+                .in(TargetCondition::getAdGroupId, newBlackListMap.keySet())
+        ).stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
 
         // 遍历已经存在的黑名单：对 已经存在的黑名单 & 新获取的黑名单 求并集
-        Set<Integer> existedSet = new HashSet<>();
-        for (TargetCondition autoBundleCondition : autoBundleConditionList) {
-            // 记录已经存在黑名单的adGroup
-            existedSet.add(autoBundleCondition.getAdGroupId());
+        for (TargetCondition oldBlackCondition : oldBlackListMap.values()) {
             // “,”分隔String构建Set<String>对象
             Set<String> preBlackList = new HashSet<>();
-            Collections.addAll(preBlackList, autoBundleCondition.getValue().split(","));
+            Collections.addAll(preBlackList, oldBlackCondition.getValue().split(","));
 
-            Set<String> newBlackList = blackListMap.get(autoBundleCondition.getAdGroupId());
+            Set<String> newBlackList = newBlackListMap.get(oldBlackCondition.getAdGroupId());
 
             // 1.差集运算求新增 2.记录新增日志
             newBlackList.removeAll(preBlackList);
-            insertLog(newBlackList, autoBundleCondition.getAdGroupId());
+            insertLog(newBlackList, oldBlackCondition.getAdGroupId());
 
             // 并集运算求结果
             preBlackList.addAll(newBlackList);
 
-            blackListMap.put(autoBundleCondition.getAdGroupId(), preBlackList);
+            newBlackListMap.put(oldBlackCondition.getAdGroupId(), preBlackList);
         }
 
         // 构造合并后的黑名单
         List<TargetCondition> updatedAutoBundleList = new ArrayList<>();
-        for (Integer key : blackListMap.keySet()) {
+        for (Integer key : newBlackListMap.keySet()) {
             // 若之前不存在黑名单，则日志记录
-            if (!existedSet.contains(key)) {
-                insertLog(blackListMap.get(key), key);
+            if (!oldBlackListMap.containsKey(key)) {
+                insertLog(newBlackListMap.get(key), key);
             }
             TargetCondition condition = new TargetCondition();
             condition.setAdGroupId(key);
             condition.setAttribute(AUTO_BUNDLE.getDesc());
             condition.setOperation(EXCLUDE);
-            condition.setValue(String.join(",", blackListMap.get(key)));
+            condition.setValue(String.join(",", newBlackListMap.get(key)));
             updatedAutoBundleList.add(condition);
         }
 
