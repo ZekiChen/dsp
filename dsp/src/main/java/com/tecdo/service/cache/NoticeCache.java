@@ -110,7 +110,7 @@ public class NoticeCache {
         // 后续删除这部分代码
         long createStamp = Long.parseLong(bidId.substring(32, 45));
         if (DateUtil.date(createStamp).isBefore(DateUtil.parseDate(newStrategyDate))) {
-            return pacRedis.exists(key);
+            return pacRedis.exists(key) || mxRedisTemplate.hasKey(key) || parRedisTemplate.hasKey(key);
         }
 
         return doHasClickByDiffArea(bidId.charAt(0), key);
