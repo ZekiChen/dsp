@@ -52,6 +52,7 @@ public class AutoBundleJob {
                 .getAutoBundleInfoList(conditionMap.keySet(),
                         LocalDate.now().minusDays(7).toString(),
                         LocalDate.now().minusDays(3).toString());
+
         XxlJobHelper.log("根据定向条件生成新黑名单");
         Map<Integer, Set<String>> blackListMap = generateBlackListMap(autoBundleInfoList, conditionMap);
 
@@ -62,8 +63,11 @@ public class AutoBundleJob {
                 .in(TargetCondition::getAdGroupId, blackListMap.keySet())
         );
 
-        // 对数据库黑名单求并集
+        // 遍历已经存在的黑名单：对 已经存在的黑名单 & 新获取的黑名单 求并集
+        Set<Integer> existedSet = new HashSet<>();
         for (TargetCondition autoBundleCondition : autoBundleConditionList) {
+            // 记录已经存在黑名单的adGroup
+            existedSet.add(autoBundleCondition.getAdGroupId());
             // “,”分隔String构建Set<String>对象
             Set<String> preBlackList = new HashSet<>();
             Collections.addAll(preBlackList, autoBundleCondition.getValue().split(","));
@@ -72,7 +76,7 @@ public class AutoBundleJob {
 
             // 1.差集运算求新增 2.记录新增日志
             newBlackList.removeAll(preBlackList);
-            inserLog(newBlackList, autoBundleCondition.getAdGroupId());
+            insertLog(newBlackList, autoBundleCondition.getAdGroupId());
 
             // 并集运算求结果
             preBlackList.addAll(newBlackList);
@@ -83,6 +87,10 @@ public class AutoBundleJob {
         // 构造合并后的黑名单
         List<TargetCondition> updatedAutoBundleList = new ArrayList<>();
         for (Integer key : blackListMap.keySet()) {
+            // 若之前不存在黑名单，则日志记录
+            if (!existedSet.contains(key)) {
+                insertLog(blackListMap.get(key), key);
+            }
             TargetCondition condition = new TargetCondition();
             condition.setAdGroupId(key);
             condition.setAttribute(AUTO_BUNDLE.getDesc());
@@ -100,7 +108,7 @@ public class AutoBundleJob {
      * @param diff 新增的bundle集合
      * @param adGroupId 所在adgroup的id
      */
-    public void inserLog(Set<String> diff, int adGroupId) {
+    public void insertLog(Set<String> diff, int adGroupId) {
         if (diff == null || diff.isEmpty()) return;
         BizLogApi bizLogApi = new BizLogApi();
         bizLogApi.setBizId(adGroupId);
