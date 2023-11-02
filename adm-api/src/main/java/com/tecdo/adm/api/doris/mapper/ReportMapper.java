@@ -38,7 +38,6 @@ public interface ReportMapper extends BaseMapper<Report> {
   /**
    * 获取当日指定adGroup列表内的bundle
    * @param adGroups 指定的adGroup列表
-   * @param createDate 创建日期
    * @return bundle坐标（ad_group_id-bundle_id）
    */
   List<AutoBundle> getAutoBundleInfoList(@Param("adGroupIds") Set<Integer> adGroups,

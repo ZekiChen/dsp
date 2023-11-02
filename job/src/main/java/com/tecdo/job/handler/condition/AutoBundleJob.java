@@ -137,13 +137,14 @@ public class AutoBundleJob {
             List<TargetCondition> conditionList = conditionMap.get(autoBundle.getAdGroupId());
             if (conditionList == null || conditionList.isEmpty()) continue;
 
-            // 存在一个不满足的定向条件则拉黑
-            boolean bundleIsValid = true;
+            // 存在一个不需要拉黑的条件，则不拉黑
+            boolean bundleIsValid = false;
             for (TargetCondition condition : conditionList) {
-                if (ConditionHelper.compare(valueMap.get(condition.getAttribute()),
+                if (!ConditionHelper.compare(valueMap.get(condition.getAttribute()),
                         condition.getOperation(),
                         condition.getValue())) {
-                    bundleIsValid = false;
+                    bundleIsValid = true;
+                    break;
                 }
             }
 
