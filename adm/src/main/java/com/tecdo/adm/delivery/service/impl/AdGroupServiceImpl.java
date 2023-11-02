@@ -312,12 +312,15 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         Map<Integer, AdGroup> beAdGroupMap = adGroups.stream().collect(Collectors.toMap(IdEntity::getId, Function.identity()));
         List<AdGroup> updateAdGroups = vo.getAdGroupIds().stream().map(id -> {
             AdGroup entity = new AdGroup();
+            if (vo.getForceJumpRatio() != null) vo.setForceJumpEnable(vo.getForceJumpRatio() != 0);
             entity.setId(id);
             entity.setStatus(vo.getStatus());
             entity.setOptPrice(vo.getOptPrice());
             entity.setBidStrategy(vo.getBidStrategy());
             entity.setDailyBudget(vo.getDailyBudget());
             entity.setBidMultiplier(vo.getBidMultiplier());
+            entity.setForceJumpEnable(vo.getForceJumpEnable());
+            entity.setForceJumpRatio(vo.getForceJumpRatio());
             entity.setUpdateTime(new Date());
             return entity;
         }).collect(Collectors.toList());

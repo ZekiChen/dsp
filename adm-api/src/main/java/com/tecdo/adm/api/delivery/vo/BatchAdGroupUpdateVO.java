@@ -30,4 +30,8 @@ public class BatchAdGroupUpdateVO implements Serializable {
 	private Double bidMultiplier;
 	@ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
 	private Integer status;
+	@ApiModelProperty("强制跳转开关")
+	private Boolean forceJumpEnable;
+	@ApiModelProperty("强制跳转比例")
+	private Double forceJumpRatio;
 }
