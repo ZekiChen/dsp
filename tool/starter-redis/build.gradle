@@ -1,7 +1,7 @@
 dependencies {
 
     implementation 'com.fasterxml.jackson.datatype:jackson-datatype-jsr310'
-    implementation 'org.springframework.boot:spring-boot-starter-data-redis'
+    api 'org.springframework.boot:spring-boot-starter-data-redis'
 
     implementation 'io.protostuff:protostuff-core'
     implementation 'io.protostuff:protostuff-runtime'
