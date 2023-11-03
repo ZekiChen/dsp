@@ -1,6 +1,7 @@
 package com.tecdo.adm.api.delivery.vo;
 
 import com.tecdo.adm.api.delivery.entity.AdGroup;
+import com.tecdo.adm.api.delivery.entity.MultiBidStrategy;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
@@ -31,6 +32,18 @@ public class AdGroupVO extends AdGroup {
 	List<TargetConditionVO> conditionVOs;
 	@ApiModelProperty("花费是否到达预算上限标识")
 	private boolean isCostFull;
+	@ApiModelProperty("双阶段出价模式")
+	private List<MultiBidStrategyVO> StrategyVOs;
+
+	public List<MultiBidStrategy> listStrategies() {
+		List<MultiBidStrategy> strategies = StrategyVOs.stream().map(e -> {
+			MultiBidStrategy strategy = new MultiBidStrategyVO();
+			BeanUtils.copyProperties(e, strategy);
+			return strategy;
+		}).collect(Collectors.toList());
+		strategies.forEach(e -> e.setAdGroupId(getId()));
+		return strategies;
+	}
 
 	public List<TargetCondition> listCondition() {
 		List<TargetCondition> conditions = conditionVOs.stream().map(e -> {

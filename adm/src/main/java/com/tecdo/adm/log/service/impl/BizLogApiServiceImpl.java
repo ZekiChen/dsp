@@ -1,10 +1,12 @@
 package com.tecdo.adm.log.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
+import com.tecdo.adm.api.delivery.entity.MultiBidStrategy;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
@@ -21,8 +23,10 @@ import com.tecdo.starter.mp.enums.BaseStatusEnum;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -55,7 +59,9 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             Boolean beForceJumpEnable = beforeVO.getForceJumpEnable();
             Double beForceJumpRatio = beforeVO.getForceJumpRatio();
             String beBidAlgorithm = beforeVO.getBidAlgorithm();
+            Integer beBidMode = beforeVO.getBidMode();
             List<TargetConditionVO> beConditionVOs = beforeVO.getConditionVOs();
+            List<MultiBidStrategyVO> beStrategyVOs = beforeVO.getStrategyVOs();
 
             StringBuilder sb = new StringBuilder();
             if (afterVO.getCampaignId() != null && !afterVO.getCampaignId().equals(beCampaignId)) {
@@ -111,13 +117,16 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             if (afterVO.getBidAlgorithm() != null && !afterVO.getBidAlgorithm().equals(beBidAlgorithm)) {
                 sb.append("Bid Algorithm: ").append(beBidAlgorithm).append(" -> ").append(afterVO.getBidAlgorithm()).append("\n");
             }
+            if (afterVO.getBidMode() != null && !afterVO.getBidMode().equals(beBidMode)) {
+                sb.append("Bid Mode: ").append(beBidMode).append(" -> ").append(afterVO.getBidMode()).append("\n");
+            }
 
             List<TargetCondition> afterConditions = afterVO.listCondition();
             if (CollUtil.isNotEmpty(afterConditions)) {
-                Map<String, TargetCondition> afterMap = afterConditions.stream().collect(Collectors.toMap(TargetCondition::getAttribute, v -> v));
+                Map<String, TargetCondition> afterCondMap = afterConditions.stream().collect(Collectors.toMap(TargetCondition::getAttribute, v -> v));
                 for (TargetConditionVO before : beConditionVOs) {
-                    if (afterMap.containsKey(before.getAttribute())) {
-                        TargetCondition after = afterMap.get(before.getAttribute());
+                    if (afterCondMap.containsKey(before.getAttribute())) {
+                        TargetCondition after = afterCondMap.get(before.getAttribute());
                         // before和after都有，但值不一致
                         if (!before.getOperation().equals(after.getOperation()) || !before.getValue().equals(after.getValue())) {
                             sb.append(before.getAttribute()).append(": ").append(before.getOperation()).append(" ")
@@ -135,6 +144,39 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                     if (!beforeMap.containsKey(after.getAttribute())) {
                         sb.append(after.getAttribute()).append(": null -> ")
                                 .append(after.getOperation()).append(" ").append(after.getValue()).append("\n");
+                    }
+                }
+            }
+
+            List<MultiBidStrategy> afterStrategies = afterVO.listStrategies();
+            if (CollUtil.isNotEmpty(afterStrategies)) {
+                Field[] strategyFields = MultiBidStrategy.class.getDeclaredFields();
+                Map<Integer, MultiBidStrategy> afterStrategyMap = afterStrategies.stream().collect(Collectors.toMap(MultiBidStrategy::getStage, v -> v));
+                if (CollUtil.isNotEmpty(beStrategyVOs)) { //若before & after 都不为空
+                    try {
+                        for (MultiBidStrategyVO beStrategyVO : beStrategyVOs) {
+                            int stage = beStrategyVO.getStage();
+                            boolean isChanged = false;
+                            StringBuilder tmp_sb = new StringBuilder();
+                            tmp_sb.append("strategy for stage").append(stage).append(": ");
+                            for (Field field : strategyFields) {
+                                field.setAccessible(true);
+                                Object beforeVal = field.get(beStrategyVO);
+                                Object afterVal = field.get(afterStrategyMap.get(stage));
+                                // 若存在一个修改则标记
+                                if (!ObjectUtil.equal(beforeVal, afterVal)) {
+                                    isChanged = true;
+                                    tmp_sb.append("[").append(field.getName()).append("] ")
+                                            .append(beforeVal).append(" -> ").append(afterVal).append("; ");
+                                }
+                            }
+                            tmp_sb.append("\n");
+                            if (isChanged) {
+                                sb.append(tmp_sb);
+                            }
+                        }
+                    } catch (IllegalAccessException e) {
+                        throw new RuntimeException(e);
                     }
                 }
             }
@@ -359,10 +401,6 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                 saveBatch(bizLogApis);
             }
         });
-    }
-
-    public void logByAutoUpdateExpBundle(List<TargetCondition> befores, List<TargetCondition> afters) {
-
     }
 
     // =====================================================================================================

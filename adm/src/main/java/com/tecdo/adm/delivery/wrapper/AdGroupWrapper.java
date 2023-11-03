@@ -1,9 +1,11 @@
 package com.tecdo.adm.delivery.wrapper;
 
 import com.tecdo.adm.api.delivery.entity.AdGroup;
+import com.tecdo.adm.api.delivery.entity.MultiBidStrategy;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
+import com.tecdo.adm.api.delivery.vo.MultiBidStrategyVO;
 import com.tecdo.adm.api.delivery.vo.TargetConditionVO;
 import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.common.cache.AffiliateCache;
@@ -28,11 +30,19 @@ public class AdGroupWrapper extends EntityWrapper<AdGroup, AdGroupVO> {
 	public AdGroupVO entityVO(AdGroup adGroup) {
 		AdGroupVO vo = Objects.requireNonNull(BeanUtil.copy(adGroup, AdGroupVO.class));
 		vo.setCampaignName(CampaignCache.getCampaign(vo.getCampaignId()).getName());
+
 		List<TargetCondition> conditions = AdGroupCache.listCondition(vo.getId());
 		List<TargetConditionVO> conditionVOs = Objects.requireNonNull(BeanUtil.copy(conditions, TargetConditionVO.class));
+
+
+		List<MultiBidStrategy> strategies = AdGroupCache.listStrategy(vo.getId());
+		List<MultiBidStrategyVO> strategyVOs = Objects.requireNonNull(BeanUtil.copy(strategies, MultiBidStrategyVO.class));
+
 		vo.setConditionVOs(conditionVOs);
+		vo.setStrategyVOs(strategyVOs);
 		setAffNames(vo, conditionVOs);
 		setCountries(vo, conditionVOs);
+
 		return vo;
 	}
 
