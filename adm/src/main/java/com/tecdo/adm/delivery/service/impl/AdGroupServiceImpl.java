@@ -62,7 +62,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     @Transactional
     public boolean add(AdGroupVO vo) {
         vo.setForceLink(vo.getClickUrl());  // 测试时发现 deeplink 无法实现强跳
-        return save(vo) && strategyService.saveBatch(vo.listStrategies()) && conditionService.saveBatch(vo.listCondition());
+        return save(vo) && strategyService.saveBatch(vo.getStrategyVOs()) && conditionService.saveBatch(vo.listCondition());
     }
 
     @Override
@@ -77,7 +77,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
                 conditionService.deleteByAdGroupIds(Collections.singletonList(vo.getId()));
                 conditionService.saveBatch(vo.listCondition());
                 strategyService.deleteByAdGroupIds(Collections.singletonList(vo.getId()));
-                strategyService.saveBatch(vo.listStrategies());
+                strategyService.saveBatch(vo.getStrategyVOs());
                 return true;
             }
         }
@@ -95,11 +95,11 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         beforeVO.setConditionVOs(conditionVOs);
 
         List<MultiBidStrategy> strategies = strategyService.listByAdGroupId(Collections.singletonList(adGroupId));
-        List<MultiBidStrategyVO> strategyVOs = null;
+        List<MultiBidStrategy> strategyVOs = null;
         if (CollUtil.isNotEmpty(strategies)) {
-            strategyVOs = Objects.requireNonNull(com.tecdo.starter.tool.util.BeanUtil.copy(strategies, MultiBidStrategyVO.class));;
+            strategyVOs = Objects.requireNonNull(com.tecdo.starter.tool.util.BeanUtil.copy(strategies, MultiBidStrategy.class));;
         }
-        beforeVO.setStrategyVOs(strategyVOs);
+        beforeVO.setStrategyVOS(strategyVOs);
 
         bizLogApiService.logByUpdateAdGroup(beforeVO, afterVO);
     }

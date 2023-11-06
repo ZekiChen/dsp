@@ -5,7 +5,6 @@ import com.tecdo.adm.api.delivery.entity.MultiBidStrategy;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
-import com.tecdo.adm.api.delivery.vo.MultiBidStrategyVO;
 import com.tecdo.adm.api.delivery.vo.TargetConditionVO;
 import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.common.cache.AffiliateCache;
@@ -36,10 +35,10 @@ public class AdGroupWrapper extends EntityWrapper<AdGroup, AdGroupVO> {
 
 
 		List<MultiBidStrategy> strategies = AdGroupCache.listStrategy(vo.getId());
-		List<MultiBidStrategyVO> strategyVOs = Objects.requireNonNull(BeanUtil.copy(strategies, MultiBidStrategyVO.class));
+		List<MultiBidStrategy> strategyVOs = Objects.requireNonNull(BeanUtil.copy(strategies, MultiBidStrategy.class));
 
 		vo.setConditionVOs(conditionVOs);
-		vo.setStrategyVOs(strategyVOs);
+		vo.setStrategyVOS(strategyVOs);
 		setAffNames(vo, conditionVOs);
 		setCountries(vo, conditionVOs);
 
