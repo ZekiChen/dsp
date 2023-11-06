@@ -33,4 +33,10 @@ public class MultiBidStrategy extends BaseEntity {
     private Boolean bundleTestEnable;
     @ApiModelProperty("出价算法优化")
     private String bidAlgorithm;
+    @ApiModelProperty("曝光条件，不满足则进入下一阶段")
+    private Integer impCond;
+    @ApiModelProperty("点击条件，不满足则进入下一阶段")
+    private Integer clickCond;
+    @ApiModelProperty("花费条件，不满足则进入下一阶段")
+    private Double costCond;
 }
