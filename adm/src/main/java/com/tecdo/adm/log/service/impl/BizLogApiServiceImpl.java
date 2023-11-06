@@ -60,7 +60,7 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             String beBidAlgorithm = beforeVO.getBidAlgorithm();
             Integer beBidMode = beforeVO.getBidMode();
             List<TargetConditionVO> beConditionVOs = beforeVO.getConditionVOs();
-            List<MultiBidStrategyVO> beStrategyVOs = beforeVO.getStrategyVOS();
+            List<MultiBidStrategyVO> beStrategyVOs = beforeVO.getStrategyVOs();
 
             StringBuilder sb = new StringBuilder();
             if (afterVO.getCampaignId() != null && !afterVO.getCampaignId().equals(beCampaignId)) {
