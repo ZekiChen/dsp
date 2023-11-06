@@ -99,7 +99,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         if (CollUtil.isNotEmpty(strategies)) {
             strategyVOs = Objects.requireNonNull(com.tecdo.starter.tool.util.BeanUtil.copy(strategies, MultiBidStrategyVO.class));;
         }
-        beforeVO.setStrategyVOs(strategyVOs);
+        beforeVO.setStrategyVOS(strategyVOs);
 
         bizLogApiService.logByUpdateAdGroup(beforeVO, afterVO);
     }

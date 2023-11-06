@@ -39,7 +39,7 @@ public class AdGroupWrapper extends EntityWrapper<AdGroup, AdGroupVO> {
 		List<MultiBidStrategyVO> strategyVOs = Objects.requireNonNull(BeanUtil.copy(strategies, MultiBidStrategyVO.class));
 
 		vo.setConditionVOs(conditionVOs);
-		vo.setStrategyVOs(strategyVOs);
+		vo.setStrategyVOS(strategyVOs);
 		setAffNames(vo, conditionVOs);
 		setCountries(vo, conditionVOs);
 
