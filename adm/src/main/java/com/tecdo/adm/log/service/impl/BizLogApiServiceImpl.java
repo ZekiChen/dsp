@@ -26,7 +26,6 @@ import org.springframework.stereotype.Service;
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -61,7 +60,7 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             String beBidAlgorithm = beforeVO.getBidAlgorithm();
             Integer beBidMode = beforeVO.getBidMode();
             List<TargetConditionVO> beConditionVOs = beforeVO.getConditionVOs();
-            List<MultiBidStrategyVO> beStrategyVOs = beforeVO.getStrategyVOs();
+            List<MultiBidStrategy> beStrategyVOs = beforeVO.getStrategyVOs();
 
             StringBuilder sb = new StringBuilder();
             if (afterVO.getCampaignId() != null && !afterVO.getCampaignId().equals(beCampaignId)) {
@@ -148,13 +147,13 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                 }
             }
 
-            List<MultiBidStrategy> afterStrategies = afterVO.listStrategies();
-            if (CollUtil.isNotEmpty(afterStrategies)) {
+            List<MultiBidStrategy> strategyVOs = afterVO.getStrategyVOs();
+            if (CollUtil.isNotEmpty(strategyVOs)) {
                 Field[] strategyFields = MultiBidStrategy.class.getDeclaredFields();
-                Map<Integer, MultiBidStrategy> afterStrategyMap = afterStrategies.stream().collect(Collectors.toMap(MultiBidStrategy::getStage, v -> v));
+                Map<Integer, MultiBidStrategy> afterStrategyMap = strategyVOs.stream().collect(Collectors.toMap(MultiBidStrategy::getStage, v -> v));
                 if (CollUtil.isNotEmpty(beStrategyVOs)) { //若before & after 都不为空
                     try {
-                        for (MultiBidStrategyVO beStrategyVO : beStrategyVOs) {
+                        for (MultiBidStrategy beStrategyVO : beStrategyVOs) {
                             int stage = beStrategyVO.getStage();
                             boolean isChanged = false;
                             StringBuilder tmp_sb = new StringBuilder();

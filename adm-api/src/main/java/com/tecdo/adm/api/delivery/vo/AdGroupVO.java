@@ -33,17 +33,7 @@ public class AdGroupVO extends AdGroup {
 	@ApiModelProperty("花费是否到达预算上限标识")
 	private boolean isCostFull;
 	@ApiModelProperty("双阶段出价模式")
-	private List<MultiBidStrategyVO> StrategyVOs;
-
-	public List<MultiBidStrategy> listStrategies() {
-		List<MultiBidStrategy> strategies = StrategyVOs.stream().map(e -> {
-			MultiBidStrategy strategy = new MultiBidStrategyVO();
-			BeanUtils.copyProperties(e, strategy);
-			return strategy;
-		}).collect(Collectors.toList());
-		strategies.forEach(e -> e.setAdGroupId(getId()));
-		return strategies;
-	}
+	private List<MultiBidStrategy> strategyVOs;
 
 	public List<TargetCondition> listCondition() {
 		List<TargetCondition> conditions = conditionVOs.stream().map(e -> {
