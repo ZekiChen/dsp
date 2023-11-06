@@ -23,4 +23,9 @@ public class IMultiBidStrategyServiceImpl extends ServiceImpl<MultiBidStrategyMa
     public void deleteByAdGroupIds(List<Integer> adGroupIds) {
         baseMapper.delete(Wrappers.<MultiBidStrategy>lambdaQuery().in(MultiBidStrategy::getAdGroupId, adGroupIds));
     }
+
+    @Override
+    public void insertOrUpdate(List<MultiBidStrategy> strategies) {
+        baseMapper.insertOrUpdate(strategies);
+    }
 }

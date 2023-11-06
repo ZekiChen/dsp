@@ -11,4 +11,5 @@ import java.util.List;
 public interface IMultiBidStrategyService extends IService<MultiBidStrategy> {
     List<MultiBidStrategy> listByAdGroupId(List<Integer> adGroupId);
     void deleteByAdGroupIds(List<Integer> adGroupIds);
+    void insertOrUpdate(List<MultiBidStrategy> strategies);
 }

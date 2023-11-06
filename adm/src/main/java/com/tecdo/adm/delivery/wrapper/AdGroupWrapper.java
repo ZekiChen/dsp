@@ -34,7 +34,6 @@ public class AdGroupWrapper extends EntityWrapper<AdGroup, AdGroupVO> {
 		List<TargetCondition> conditions = AdGroupCache.listCondition(vo.getId());
 		List<TargetConditionVO> conditionVOs = Objects.requireNonNull(BeanUtil.copy(conditions, TargetConditionVO.class));
 
-
 		List<MultiBidStrategy> strategies = AdGroupCache.listStrategy(vo.getId());
 		List<MultiBidStrategyVO> strategyVOs = Objects.requireNonNull(BeanUtil.copy(strategies, MultiBidStrategyVO.class));
 

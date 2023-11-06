@@ -76,8 +76,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             if (updateById(vo)) {
                 conditionService.deleteByAdGroupIds(Collections.singletonList(vo.getId()));
                 conditionService.saveBatch(vo.listCondition());
-                strategyService.deleteByAdGroupIds(Collections.singletonList(vo.getId()));
-                strategyService.saveBatch(vo.listStrategies());
+                strategyService.insertOrUpdate(vo.listStrategies());
                 return true;
             }
         }
