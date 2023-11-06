@@ -318,6 +318,8 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             entity.setBidStrategy(vo.getBidStrategy());
             entity.setDailyBudget(vo.getDailyBudget());
             entity.setBidMultiplier(vo.getBidMultiplier());
+            entity.setForceJumpEnable(vo.getForceJumpEnable());
+            entity.setForceJumpRatio(vo.getForceJumpRatio());
             entity.setUpdateTime(new Date());
             return entity;
         }).collect(Collectors.toList());

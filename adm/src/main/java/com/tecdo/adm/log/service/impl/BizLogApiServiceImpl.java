@@ -307,6 +307,12 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                     sb.append("Status: ").append(BaseStatusEnum.of(beAdGroupMap.get(id).getStatus()).getDesc()).append(" -> ")
                             .append(BaseStatusEnum.of(afterVO.getStatus()).getDesc()).append("\n");
                 }
+                if (afterVO.getForceJumpEnable() != null) {
+                    sb.append("ForceJumpEnable: ").append(beAdGroupMap.get(id).getForceJumpEnable()).append(" -> ").append(afterVO.getForceJumpEnable()).append("\n");
+                }
+                if (afterVO.getForceJumpRatio() != null) {
+                    sb.append("ForceJumpRatio: ").append(beAdGroupMap.get(id).getForceJumpRatio()).append(" -> ").append(afterVO.getForceJumpRatio()).append("\n");
+                }
                 bizLogApi.setCreator("admin");
                 bizLogApi.setContent(sb.length() > 0 ? sb.substring(0, sb.length() - 1) : null);
                 return bizLogApi;
