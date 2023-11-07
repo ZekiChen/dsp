@@ -34,7 +34,7 @@ public class AdGroup extends BaseEntity {
     private String clickTrackUrls;
     @ApiModelProperty("日预算")
     private Double dailyBudget;
-    @ApiModelProperty("出价模式：0.Base Bid 1.Two-Stage Bidding")
+    @ApiModelProperty(value = "出价模式", notes = "BidModeEnum")
     private Integer bidMode;
     @ApiModelProperty(value = "竞价策略", notes = "BidStrategyEnum")
     private Integer bidStrategy;
