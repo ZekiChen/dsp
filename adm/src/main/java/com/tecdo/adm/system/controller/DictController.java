@@ -30,6 +30,7 @@ import static com.tecdo.common.constant.CacheConstant.DICT_CACHE;
 @RequestMapping("/dict")
 @ApiSupport(order = 1)
 @Api(tags = "字典")
+@CrossOrigin(origins = "*")
 public class DictController {
 
 	private final IDictService service;
