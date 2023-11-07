@@ -241,8 +241,9 @@ public abstract class AbstractTransform implements IProtoTransform {
         if (adDTO.getAdGroup().getEncryptClickUrlEnable()) {
             //get original param string
             String oriParam = ParamHelper.getUriParamAsString(clickUrl);
-            String encryptParam =
-              ClickUrlSecurityCipher.encryptString(oriParam, encryptKey, encryptIV);
+            String encryptParam = ParamHelper.encode(ClickUrlSecurityCipher.encryptString(oriParam,
+                                                                                          encryptKey,
+                                                                                          encryptIV));
             String baseEncryptUrl =
               StringUtils.firstNonBlank(adDTO.getAdGroup().getEncryptClickUrlDomain(), baseDomain) +
               basePath;
