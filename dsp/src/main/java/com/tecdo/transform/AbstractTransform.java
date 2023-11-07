@@ -1,6 +1,5 @@
 package com.tecdo.transform;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
@@ -20,15 +19,27 @@ import com.tecdo.service.response.VivoResponseBuilder;
 import com.tecdo.service.rta.ae.AeHelper;
 import com.tecdo.service.track.ClickTrackBuilder;
 import com.tecdo.service.track.ImpTrackBuilder;
-import com.tecdo.util.*;
+import com.tecdo.util.AdmGenerator;
+import com.tecdo.util.ClickUrlSecurityCipher;
+import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.JsonHelper;
+import com.tecdo.util.ParamHelper;
+import com.tecdo.util.SignHelper;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
-import java.util.*;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
+
+import cn.hutool.extra.spring.SpringUtil;
 
 @Component
 public abstract class AbstractTransform implements IProtoTransform {
@@ -45,6 +56,18 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     @Value("${pac.ae.rta.deeplink.ratio}")
     private Double aeDeeplinkRatio;
+
+    @Value("${pac.url.encrypt.key}")
+    private String encryptKey;
+
+    @Value("${pac.url.encrypt.iv}")
+    private String encryptIV;
+
+    @Value("${pac.url.encrypt.basePath:/cpd?pd=}")
+    private String basePath;
+
+    @Value("${pac.url.encrypt.baseDomain}")
+    private String baseDomain;
 
     public abstract boolean forceBannerEnable();
 
@@ -213,6 +236,18 @@ public abstract class AbstractTransform implements IProtoTransform {
             forceLink = clickUrl;
         } else {
             clickUrl = ParamHelper.urlFormat(adDTO.getAdGroup().getClickUrl(), sign, wrapper, bidRequest, affiliate);
+        }
+        // if adGroup encrypt clickUrl enable,replace domain and encrypt clickUrl
+        if (adDTO.getAdGroup().getEncryptClickUrlEnable()) {
+            //get original param string
+            String oriParam = ParamHelper.getUriParamAsString(clickUrl);
+            String encryptParam = ParamHelper.encode(ClickUrlSecurityCipher.encryptString(oriParam,
+                                                                                          encryptKey,
+                                                                                          encryptIV));
+            String baseEncryptUrl =
+              StringUtils.firstNonBlank(adDTO.getAdGroup().getEncryptClickUrlDomain(), baseDomain) +
+              basePath;
+            clickUrl = baseEncryptUrl + encryptParam;
         }
         deepLink = deepLinkFormat(deepLink);
 

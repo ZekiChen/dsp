@@ -3,6 +3,7 @@ package com.tecdo.util;
 import cn.hutool.crypto.SecureUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
+import com.tecdo.common.constant.Constant;
 import com.tecdo.constant.FormatKey;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
@@ -67,5 +68,14 @@ public class ParamHelper {
         } catch (Exception e) {
             return "";
         }
+    }
+
+    public static String getUriParamAsString(String uri) {
+        int index = uri.indexOf(Constant.QUESTION_MARK);
+        String content = "";
+        if (0 < index) {
+            content = uri.substring(index + 1);
+        }
+        return content;
     }
 }

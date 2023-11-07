@@ -12,7 +12,7 @@ import org.springframework.data.redis.serializer.RedisSerializer;
  *
  * Created by Zeki on 2023/5/4
  */
-@AutoConfiguration(before = RedisTemplateConfiguration.class)
+@AutoConfiguration(before = {RedisTemplateConfiguration.class, OtherTemplateConfig.class})
 @ConditionalOnClass(name = "io.protostuff.Schema")
 public class ProtoStuffSerializerConfiguration implements PacRedisSerializerConfigAble {
 

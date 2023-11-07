@@ -59,5 +59,9 @@ public class AdGroup extends BaseEntity {
     private String forceLink;
     @ApiModelProperty("出价算法优化")
     private String bidAlgorithm;
+    @ApiModelProperty("点击链接加密")
+    private Boolean encryptClickUrlEnable;
+    @ApiModelProperty("点击链接加密域名")
+    private String encryptClickUrlDomain;
 
 }

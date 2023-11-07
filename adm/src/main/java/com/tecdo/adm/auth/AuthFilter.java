@@ -20,7 +20,8 @@ public class AuthFilter implements Filter {
         String token = req.getHeader("Token");
         String path = req.getServletPath();
         if ("asdfiouw4uw3h6jjklse".equals(token)
-                || "/adm/ae/rta/daily/report".equals(path)) {
+                || "/adm/ae/rta/daily/report".equals(path)
+                || path.contains("/dict/")) {
             chain.doFilter(request, response);
         } else {
             response.getWriter().write("auth fail!");
