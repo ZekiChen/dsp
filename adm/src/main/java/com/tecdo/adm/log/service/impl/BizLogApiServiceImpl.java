@@ -1,6 +1,7 @@
 package com.tecdo.adm.log.service.impl;
 
 import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
@@ -20,6 +21,7 @@ import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.starter.mp.entity.IdEntity;
 import com.tecdo.starter.mp.entity.StatusEntity;
 import com.tecdo.starter.mp.enums.BaseStatusEnum;
+import com.tecdo.starter.tool.util.ClassUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -41,84 +43,15 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
 
     public void logByUpdateAdGroup(AdGroupVO beforeVO, AdGroupVO afterVO) {
         threadPool.execute(() -> {
-            Integer beCampaignId = beforeVO.getCampaignId();
-            String beAdGroupName = beforeVO.getName();
-            String beClickUrl = beforeVO.getClickUrl();
-            String beDeeplink = beforeVO.getDeeplink();
-            String beImpTrackUrls = beforeVO.getImpTrackUrls();
-            String beClickTrackUrls = beforeVO.getClickTrackUrls();
-            Double beBudget = beforeVO.getDailyBudget();
-            Integer beBidStrategy = beforeVO.getBidStrategy();
-            Double beOptPrice = beforeVO.getOptPrice();
-            Double beBidMultiplier = beforeVO.getBidMultiplier();
-            Double beBidProbability = beforeVO.getBidProbability();
-            String beRemark = beforeVO.getRemark();
-            Integer beStatus = beforeVO.getStatus();
-            Boolean beBundleTestEnable = beforeVO.getBundleTestEnable();
-            Boolean beForceJumpEnable = beforeVO.getForceJumpEnable();
-            Double beForceJumpRatio = beforeVO.getForceJumpRatio();
-            String beBidAlgorithm = beforeVO.getBidAlgorithm();
-            Integer beBidMode = beforeVO.getBidMode();
+            StringBuilder sb = new StringBuilder();
+            try {
+                compareObjAdGroup(sb, beforeVO, afterVO);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+
             List<TargetConditionVO> beConditionVOs = beforeVO.getConditionVOs();
             List<MultiBidStrategyVO> beStrategyVOs = beforeVO.getStrategyVOs();
-
-            StringBuilder sb = new StringBuilder();
-            if (afterVO.getCampaignId() != null && !afterVO.getCampaignId().equals(beCampaignId)) {
-                sb.append("Ad Group Id: ").append(beCampaignId).append(" -> ").append(afterVO.getCampaignId()).append("\n");
-            }
-            if (StrUtil.isNotBlank(afterVO.getName()) && !afterVO.getName().equals(beAdGroupName)) {
-                sb.append("Ad Group Name: ").append(beAdGroupName).append(" -> ").append(afterVO.getName()).append("\n");
-            }
-            if (StrUtil.isNotBlank(afterVO.getClickUrl()) && !afterVO.getClickUrl().equals(beClickUrl)) {
-                sb.append("Click Url: ").append(beClickUrl).append(" -> ").append(afterVO.getClickUrl()).append("\n");
-            }
-            if (StrUtil.isNotBlank(afterVO.getDeeplink()) && !afterVO.getDeeplink().equals(beDeeplink)) {
-                sb.append("Deeplink: ").append(beDeeplink).append(" -> ").append(afterVO.getDeeplink()).append("\n");
-            }
-            if (StrUtil.isNotBlank(afterVO.getImpTrackUrls()) && !afterVO.getImpTrackUrls().equals(beImpTrackUrls)) {
-                sb.append("Imp Tracking URL: ").append(beImpTrackUrls).append(" -> ").append(afterVO.getImpTrackUrls()).append("\n");
-            }
-            if (StrUtil.isNotBlank(afterVO.getClickTrackUrls()) && !afterVO.getClickTrackUrls().equals(beClickTrackUrls)) {
-                sb.append("Click Tracking URL: ").append(beClickTrackUrls).append(" -> ").append(afterVO.getClickTrackUrls()).append("\n");
-            }
-            if (afterVO.getDailyBudget() != null && !afterVO.getDailyBudget().equals(beBudget)) {
-                sb.append("Budget: ").append(beBudget).append(" -> ").append(afterVO.getDailyBudget()).append("\n");
-            }
-            if (afterVO.getBidStrategy() != null && !afterVO.getBidStrategy().equals(beBidStrategy)) {
-                sb.append("Bid Strategy: ").append(BidStrategyEnum.of(beBidStrategy).getDesc()).append(" -> ")
-                        .append(BidStrategyEnum.of(afterVO.getBidStrategy()).getDesc()).append("\n");
-            }
-            if (afterVO.getOptPrice() != null && !afterVO.getOptPrice().equals(beOptPrice)) {
-                sb.append("Bid Price: ").append(beOptPrice).append(" -> ").append(afterVO.getOptPrice()).append("\n");
-            }
-            if (afterVO.getBidMultiplier() != null && !afterVO.getBidMultiplier().equals(beBidMultiplier)) {
-                sb.append("Bid Multiplier: ").append(beBidMultiplier).append(" -> ").append(afterVO.getBidMultiplier()).append("\n");
-            }
-            if (afterVO.getBidProbability() != null && !afterVO.getBidProbability().equals(beBidProbability)) {
-                sb.append("Bid Probability: ").append(beBidProbability).append(" -> ").append(afterVO.getBidProbability()).append("\n");
-            }
-            if (StrUtil.isNotBlank(afterVO.getRemark()) && !afterVO.getRemark().equals(beRemark)) {
-                sb.append("Remark: ").append(beRemark).append(" -> ").append(afterVO.getRemark()).append("\n");
-            }
-            if (afterVO.getStatus() != null && !afterVO.getStatus().equals(beStatus)) {
-                sb.append("Status: ").append(BaseStatusEnum.of(beStatus).getDesc()).append(" -> ")
-                        .append(BaseStatusEnum.of(afterVO.getStatus()).getDesc()).append("\n");
-            }
-            if (afterVO.getBundleTestEnable() != null && !afterVO.getBundleTestEnable() == beBundleTestEnable) {
-                sb.append("Bundle Test Enable: ").append(beBundleTestEnable).append(" -> ").append(afterVO.getBundleTestEnable()).append("\n");
-            }
-            if (afterVO.getForceJumpEnable() != null && !afterVO.getForceJumpEnable() == beForceJumpEnable) {
-                sb.append("Force Jump Enable: ").append(beForceJumpEnable).append(" -> ").append(afterVO.getForceJumpEnable()).append("\n");
-            }
-            if (afterVO.getForceJumpRatio() != null && !afterVO.getForceJumpRatio().equals(beForceJumpRatio)) {
-                sb.append("Force Jump Ratio: ").append(beForceJumpRatio).append(" -> ").append(afterVO.getForceJumpRatio()).append("\n");
-            }
-            if (afterVO.getBidAlgorithm() != null && !afterVO.getBidAlgorithm().equals(beBidAlgorithm)) {
-                sb.append("Bid Algorithm: ").append(beBidAlgorithm).append(" -> ").append(afterVO.getBidAlgorithm()).append("\n");
-            }
-            if (afterVO.getBidMode() != null && !afterVO.getBidMode().equals(beBidMode)) {
-                sb.append("Bid Mode: ").append(beBidMode).append(" -> ").append(afterVO.getBidMode()).append("\n");
-            }
 
             List<TargetCondition> afterConditions = afterVO.listCondition();
             if (CollUtil.isNotEmpty(afterConditions)) {
@@ -191,6 +124,45 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                 save(bizLogApi);
             }
         });
+    }
+
+    public void compareObjAdGroup(StringBuilder sb, Object beforeVO, Object afterVO) throws IllegalAccessException {
+        Class<?> clazz = beforeVO.getClass();
+        Field[] fields = clazz.getDeclaredFields();
+
+        // 获取父类的私有字段
+        Class<?> superClass = clazz.getSuperclass();
+        if (superClass != null) {
+            Field[] superFields = superClass.getDeclaredFields();
+            fields = ArrayUtil.addAll(fields, superFields);
+        }
+
+        for (Field field : fields) {
+            field.setAccessible(true);
+
+            if (!ClassUtil.isPrimitiveOrWrapper(field.getType()) && !(field.getType() == String.class)) continue;
+            String fieldName = field.getName();
+            Object beforeValue = field.get(beforeVO), afterValue = field.get(afterVO);
+
+            //对枚举字段做特殊处理
+            switch (fieldName) {
+                case "bidStrategy":
+                    beforeValue = BidStrategyEnum.of((Integer) beforeValue).getDesc();
+                    afterValue = BidStrategyEnum.of((Integer) afterValue).getDesc();
+                    break;
+                case "status":
+                    beforeValue = BaseStatusEnum.of((Integer) beforeValue).getDesc();
+                    afterValue = BaseStatusEnum.of((Integer) afterValue).getDesc();
+                    break;
+                default:
+            }
+
+            //写入记录
+            if (!(ObjectUtil.equal(beforeValue, afterValue))) {
+                sb.append("[").append(fieldName).append("] ")
+                        .append(beforeValue).append(" -> ").append(afterValue).append(";").append("\n");
+            }
+        }
     }
 
     @Override
