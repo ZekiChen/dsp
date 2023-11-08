@@ -84,61 +84,54 @@ public class PredictHandler {
 
     public int callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap, Params params,
                               BidRequest bidRequest, Imp imp, Affiliate affiliate, IProtoTransform protoTransform) {
-        Map<Integer, AdDTOWrapper> cpcMap = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpaMap = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpa1Map = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpa2Map = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpa3Map = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpa10Map = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpsMap = new HashMap<>();
         Map<Integer, AdDTOWrapper> noNeedPredict = new HashMap<>();
-        adDTOMap.forEach((k, v) -> {
-            BidStrategyEnum strategyEnum = BidStrategyEnum.of(v.getAdDTO().getAdGroup().getBidStrategy());
-            switch (strategyEnum) {
-                case CPC:
-                    cpcMap.put(k, v);
-                    break;
-                case CPA:
-                    cpaMap.put(k, v);
-                    break;
-                case CPA_EVENT1:
-                    cpcMap.put(k, v);
-                    cpa1Map.put(k, v);
-                    break;
-                case CPA_EVENT2:
-                    cpcMap.put(k, v);
-                    cpa2Map.put(k, v);
-                    break;
-                case CPA_EVENT3:
-                    cpcMap.put(k, v);
-                    cpa3Map.put(k, v);
-                    break;
-                case CPA_EVENT10:
-                    cpcMap.put(k, v);
-                    cpa10Map.put(k, v);
-                    break;
-                case CPS:
-                    String forceLink = v.getAdDTO().getAdGroup().getForceLink();
-                    if (ResponseTypeEnum.FORCE.equals(protoTransform.getResponseType(forceLink, v))) {
-                        v.setPCtr(forceJumpPCtr);
-                    } else {
-                        cpcMap.put(k, v);
-                    }
-                    cpsMap.put(k, v);
-                    break;
-                case CPM:
-                case DYNAMIC:
-                default:
-                    noNeedPredict.put(k, v);
+        Map<BidStrategyEnum, String> strategyUrlMap = new HashMap<>();
+        strategyUrlMap.put(BidStrategyEnum.CPC, ctrPredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPA, cvrPredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPA_EVENT1, cvrEvent1PredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPA_EVENT2, cvrEvent2PredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPA_EVENT3, cvrEvent3PredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPA_EVENT10, cvrEvent10PredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPS, cvrEvent11PredictUrl);
+
+        Map<BidStrategyEnum, Map<Integer, AdDTOWrapper>> strategyAdMap = new HashMap<>();
+        for (BidStrategyEnum strategy : BidStrategyEnum.values()) {
+            strategyAdMap.put(strategy, new HashMap<>());
+        }
+
+        for (Map.Entry<Integer, AdDTOWrapper> entry : adDTOMap.entrySet()) {
+            Integer adId = entry.getKey();
+            AdDTOWrapper w = entry.getValue();
+            BidStrategyEnum strategy = BidStrategyEnum.of(w.getAdDTO().getAdGroup().getBidStrategy());
+            if (strategy == BidStrategyEnum.CPM || strategy == BidStrategyEnum.DYNAMIC) {
+                noNeedPredict.put(adId, w);
+            } else if (strategy == BidStrategyEnum.CPC
+                    || strategy == BidStrategyEnum.CPA) {
+                strategyAdMap.get(strategy).put(adId, w);
+            } else if (strategy == BidStrategyEnum.CPA_EVENT1
+                    || strategy == BidStrategyEnum.CPA_EVENT2
+                    || strategy == BidStrategyEnum.CPA_EVENT3
+                    || strategy == BidStrategyEnum.CPA_EVENT10) {
+                strategyAdMap.get(BidStrategyEnum.CPC).put(adId, w);
+                strategyAdMap.get(strategy).put(adId, w);
+            } else if (strategy == BidStrategyEnum.CPS) {
+                String forceLink = w.getAdDTO().getAdGroup().getForceLink();
+                if (ResponseTypeEnum.FORCE.equals(protoTransform.getResponseType(forceLink, w))) {
+                    w.setPCtr(forceJumpPCtr);
+                } else {
+                    strategyAdMap.get(BidStrategyEnum.CPC).put(adId, w);
+                }
+                strategyAdMap.get(strategy).put(adId, w);
             }
-        });
-        int needReceiveCount = callAndMetricPredict(cpcMap, "ctr-batch-size", ctrPredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpaMap, "cvr-batch-size", cvrPredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpa1Map, "cvr-event1-batch-size", cvrEvent1PredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpa2Map, "cvr-event2-batch-size", cvrEvent2PredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpa3Map, "cvr-event3-batch-size", cvrEvent3PredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpa10Map, "cvr-event10-batch-size", cvrEvent10PredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpsMap, "cvr-event11-batch-size", cvrEvent11PredictUrl, params, bidRequest, imp, affiliate);
+        }
+
+        int needReceiveCount = 0;
+        for (Map.Entry<BidStrategyEnum, Map<Integer, AdDTOWrapper>> entry : strategyAdMap.entrySet()) {
+            needReceiveCount += callAndMetricPredict(entry.getValue(),
+                    entry.getKey().name() + "-batch-size",
+                    strategyUrlMap.get(entry.getKey()),
+                    params, bidRequest, imp, affiliate);
+        }
 
         messageQueue.putMessage(EventType.PREDICT_FINISH,
                 params.put(ParamKey.ADS_PREDICT_RESPONSE, noNeedPredict));
