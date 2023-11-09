@@ -19,7 +19,7 @@ import lombok.EqualsAndHashCode;
 public class MultiBidStrategy extends BaseEntity {
     @ApiModelProperty(value = "adGroupId")
     private Integer adGroupId;
-    @ApiModelProperty(value = "策略阶段", notes = "0-第一阶段, 1-第二阶段")
+    @ApiModelProperty(value = "策略阶段", notes = "MultiBidStateEnum")
     private Integer stage;
     @ApiModelProperty(value = "竞价策略", notes = "BidStrategyEnum")
     private Integer bidStrategy;
