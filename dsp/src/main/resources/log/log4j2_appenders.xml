@@ -263,6 +263,23 @@
         </Filters>
     </RollingFile>
 
+    <RollingFile name="NOT_BID_REASON_LOG" fileName="${BUSINESS_LOG_HOME}/not-bid-reason.log"
+                 filePattern="${BUSINESS_LOG_HOME}/not-bid-reason-%d{yyyy-MM-dd-HH}.log">
+        <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+        </Policies>
+        <DefaultRolloverStrategy>
+            <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                <IfFileName glob="not-bid-reason-*.log"/>
+                <IfAccumulatedFileSize exceeds="10GB"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
     <CatLog4j2Appender name="CatLog4j2Appender">
         <PatternLayout pattern="${ENCODER_PATTERN}"/>
     </CatLog4j2Appender>

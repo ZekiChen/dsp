@@ -49,7 +49,7 @@ public class RecallFilterTest {
     @Test
     public void test_all_filter_by_banner_request() {
         List<Imp> imps = bidRequest.getImp();
-        imps.forEach(imp -> FilterChainHelper.executeFilter(firstFilter, adDTO, bidRequest, imp, affiliate));
+        imps.forEach(imp -> FilterChainHelper.executeFilter("", firstFilter, adDTO, bidRequest, imp, affiliate));
     }
 
     @Test
