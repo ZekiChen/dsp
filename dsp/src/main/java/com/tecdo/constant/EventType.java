@@ -77,6 +77,11 @@ public enum EventType {
   BUNDLE_COST_LOAD_ERROR(2403, "bundle cost load failure"),
   BUNDLE_COST_LOAD_TIMEOUT(2404, "bundle cost load timeout"),
 
+  ADGROUP_BUNDLE_DATA_LOAD(2501, "adgroup bundle data load"),
+  ADGROUP_BUNDLE_DATA_LOAD_RESPONSE(2502, "adgroup bundle data load response"),
+  ADGROUP_BUNDLE_DATA_LOAD_ERROR(2503, "adgroup bundle data load failure"),
+  ADGROUP_BUNDLE_DATA_LOAD_TIMEOUT(2504, "adgroup bundle data load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

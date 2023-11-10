@@ -13,14 +13,10 @@ import com.tecdo.service.init.AdManager;
 import com.tecdo.service.init.AfAudienceSyncManager;
 import com.tecdo.service.init.AffCountryBundleListManager;
 import com.tecdo.service.init.AffiliateManager;
-import com.tecdo.service.init.doris.BundleDataManager;
+import com.tecdo.service.init.doris.*;
 import com.tecdo.service.init.CheatingDataManager;
-import com.tecdo.service.init.doris.GooglePlayAppManager;
 import com.tecdo.service.init.IpTableManager;
 import com.tecdo.service.init.RtaInfoManager;
-import com.tecdo.service.init.doris.BundleCostManager;
-import com.tecdo.service.init.doris.ECPXManager;
-import com.tecdo.service.init.doris.BudgetManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -64,10 +60,12 @@ public class LifeCycleManager {
   private ECPXManager eCPXManager;
   @Autowired
   private BundleCostManager bundleCostManager;
+  @Autowired
+  private AdGroupBundleManager adGroupBundleManager;
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 13;
+  private final int needInitCount = 14;
 
   @Value("${server.port}")
   private int serverPort;
@@ -174,6 +172,12 @@ public class LifeCycleManager {
       case BUNDLE_COST_LOAD_TIMEOUT:
         bundleCostManager.handleEvent(eventType, params);
         break;
+      case ADGROUP_BUNDLE_DATA_LOAD:
+      case ADGROUP_BUNDLE_DATA_LOAD_RESPONSE:
+      case ADGROUP_BUNDLE_DATA_LOAD_ERROR:
+      case ADGROUP_BUNDLE_DATA_LOAD_TIMEOUT:
+        adGroupBundleManager.handleEvent(eventType, params);
+        break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -205,6 +209,7 @@ public class LifeCycleManager {
         cheatingDataManager.init(params);
         eCPXManager.init(params);
         bundleCostManager.init(params);
+        adGroupBundleManager.init(params);
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:

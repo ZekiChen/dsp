@@ -39,6 +39,11 @@ public class AdDTO implements Serializable {
   private Map<String, TargetCondition> conditionMap;
 
   /**
+   * group关联的双阶段出价信息  stage - multiBidStrategy
+   */
+  private Map<Integer, MultiBidStrategy> twoStageBidMap;
+
+  /**
    * 广告所属的 campaign 信息
    */
   private Campaign campaign;

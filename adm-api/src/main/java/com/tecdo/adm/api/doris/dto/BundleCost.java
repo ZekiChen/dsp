@@ -13,7 +13,7 @@ public class BundleCost implements Serializable{
     private Integer adGroupId;
     private Long impCount = 0L;
     private Long clickCount = 0L;
-    private Double bidPriceTotal = 0D;
+    private Double cost = 0D;
 
     @Override
     public String toString() {
