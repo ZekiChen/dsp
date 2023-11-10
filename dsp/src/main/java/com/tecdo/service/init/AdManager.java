@@ -1,6 +1,7 @@
 package com.tecdo.service.init;
 
 import cn.hutool.core.bean.BeanUtil;
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tecdo.adm.api.delivery.dto.AdGroupDTO;
@@ -23,6 +24,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.function.Function;
 import java.util.stream.Collectors;
 
 /**
@@ -44,6 +46,7 @@ public class AdManager {
     private final CampaignMapper campaignMapper;
     private final CampaignRtaInfoMapper campaignRtaMapper;
     private final AdvMapper advMapper;
+    private final MultiBidStrategyMapper multiStrategyMapper;
 
     private State currentState = State.INIT;
     private long timerId;
@@ -134,26 +137,30 @@ public class AdManager {
                         List<Ad> ads = adMapper.selectList(Wrappers.<Ad>lambdaQuery().eq(Ad::getStatus, BaseStatusEnum.ACTIVE.getType()));
 
                         Map<Integer, Creative> creativeMap = creativeMapper.selectList(
-                                Wrappers.<Creative>lambdaQuery().eq(Creative::getStatus,BaseStatusEnum.ACTIVE.getType())
+                                Wrappers.<Creative>lambdaQuery().eq(Creative::getStatus, BaseStatusEnum.ACTIVE.getType())
                         ).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
 
                         Map<Integer, AdGroup> adGroupMap = adGroupMapper.selectList(
-                                Wrappers.<AdGroup>lambdaQuery().eq(AdGroup::getStatus,BaseStatusEnum.ACTIVE.getType())
+                                Wrappers.<AdGroup>lambdaQuery().eq(AdGroup::getStatus, BaseStatusEnum.ACTIVE.getType())
                         ).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
 
                         List<TargetCondition> conditions = conditionMapper.selectList(Wrappers.lambdaQuery());
 
                         Map<Integer, Campaign> campaignMap = campaignMapper.selectList(
-                                Wrappers.<Campaign>lambdaQuery().eq(Campaign::getStatus,BaseStatusEnum.ACTIVE.getType())
+                                Wrappers.<Campaign>lambdaQuery().eq(Campaign::getStatus, BaseStatusEnum.ACTIVE.getType())
                         ).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
 
                         List<CampaignRtaInfo> campaignRtaInfos = campaignRtaMapper.selectList(Wrappers.lambdaQuery());
 
                         Map<Integer, Adv> advMap = advMapper.selectList(
-                                Wrappers.<Adv>lambdaQuery().eq(Adv::getStatus,BaseStatusEnum.ACTIVE.getType())
+                                Wrappers.<Adv>lambdaQuery().eq(Adv::getStatus, BaseStatusEnum.ACTIVE.getType())
                         ).stream().collect(Collectors.toMap(IdEntity::getId, e -> e));
 
-                        Map<Integer, AdDTO> adDTOMap = listAndConvertAds(ads, creativeMap, adGroupMap, conditions, campaignMap, campaignRtaInfos, advMap);
+                        Map<Integer, List<MultiBidStrategy>> multiStrategyMap = multiStrategyMapper.selectList(
+                                Wrappers.lambdaQuery()
+                        ).stream().collect(Collectors.groupingBy(MultiBidStrategy::getAdGroupId));
+
+                        Map<Integer, AdDTO> adDTOMap = listAndConvertAds(ads, creativeMap, adGroupMap, conditions, multiStrategyMap, campaignMap, campaignRtaInfos, advMap);
                         Map<Integer, CampaignDTO> campaignDTOMap = listCampaignDTOMap(ads, creativeMap, adGroupMap, conditions, campaignMap, campaignRtaInfos);
                         params.put(ParamKey.ADS_CACHE_KEY, adDTOMap);
                         params.put(ParamKey.CAMPAIGNS_CACHE_KEY, campaignDTOMap);
@@ -178,9 +185,10 @@ public class AdManager {
                                                   Map<Integer, Creative> creativeMap,
                                                   Map<Integer, AdGroup> adGroupMap,
                                                   List<TargetCondition> conditions,
+                                                  Map<Integer, List<MultiBidStrategy>> multiStrategyMap,
                                                   Map<Integer, Campaign> campaignMap,
                                                   List<CampaignRtaInfo> campaignRtaInfos,
-                                                  Map<Integer,Adv> advMap) {
+                                                  Map<Integer, Adv> advMap) {
         List<AdDTO> adDTOs = new ArrayList<>();
         for (Ad ad : ads) {
             Map<Integer, Creative> creatives = listCreativesByAd(creativeMap, ad);
@@ -195,6 +203,7 @@ public class AdManager {
             if (conditionMap.isEmpty()) {
                 continue;
             }
+            Map<Integer, MultiBidStrategy> twoStageBidMap = getMultiBidStrategy(multiStrategyMap, adGroup.getId());
             Campaign campaign = getCampaignByGroup(campaignMap, adGroup);
             if (campaign == null) {
                 continue;
@@ -209,6 +218,7 @@ public class AdManager {
                     .creativeMap(creatives)
                     .adGroup(adGroup)
                     .conditionMap(conditionMap)
+                    .twoStageBidMap(twoStageBidMap)
                     .campaign(campaign)
                     .campaignRtaInfo(campaignRtaInfo)
                     .adv(adv)
@@ -265,8 +275,15 @@ public class AdManager {
 
     private Map<String, TargetCondition> listConditionByGroup(List<TargetCondition> conditions, AdGroup adGroup) {
         return conditions.stream().filter(e -> Objects.equals(adGroup.getId(), e.getAdGroupId())
-                        && StrUtil.isAllNotBlank(e.getAttribute(), e.getOperation(), e.getValue())
+                && StrUtil.isAllNotBlank(e.getAttribute(), e.getOperation(), e.getValue())
         ).collect(Collectors.toMap(TargetCondition::getAttribute, e -> e));
+    }
+
+    private Map<Integer, MultiBidStrategy> getMultiBidStrategy(Map<Integer, List<MultiBidStrategy>> multiStrategyMap,
+                                                               Integer adGroupId) {
+        List<MultiBidStrategy> multiBidStrategies = multiStrategyMap.get(adGroupId);
+        return CollUtil.isEmpty(multiBidStrategies) ? null :
+                multiBidStrategies.stream().collect(Collectors.toMap(MultiBidStrategy::getStage, Function.identity()));
     }
 
     private Campaign getCampaignByGroup(Map<Integer, Campaign> campaignMap, AdGroup adGroup) {

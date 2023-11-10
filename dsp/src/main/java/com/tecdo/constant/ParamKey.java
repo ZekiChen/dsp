@@ -37,6 +37,7 @@ public interface ParamKey {
   String BUNDLE_DATA_CACHE_KEY = "bundle-data-cache-key";
   String ECPX_CACHE_KEY = "ecpx-cache-key";
   String BUNDLE_COST_CACHE_KEY = "bundle-cost-cache-key";
+  String BUNDLE_ADGROUP_DATA_CACHE_KEY = "bundle-adgroup-data-cache-key";
 
   String CHEATING_DATA_FILTER = "cheating-data-filter";
 

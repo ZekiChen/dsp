@@ -1,6 +1,5 @@
 package com.tecdo.filter;
 
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
@@ -50,7 +49,7 @@ public class BundleCapFilter extends AbstractRecallFilter {
                                         clickCapDay.getValue());
 
         boolean costIsValid = costCapDay == null ||
-                ConditionHelper.compare(bundleCost.getBidPriceTotal().toString(),
+                ConditionHelper.compare(bundleCost.getCost().toString(),
                                         costCapDay.getOperation(),
                                         costCapDay.getValue());
 

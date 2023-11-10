@@ -1,14 +1,15 @@
 package com.tecdo.fsm.task.handler;
 
+import cn.hutool.core.util.StrUtil;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.google.common.base.MoreObjects;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
-import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
-import com.tecdo.adm.api.delivery.enums.BidAlgorithmEnum;
-import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
+import com.tecdo.adm.api.delivery.entity.MultiBidStrategy;
+import com.tecdo.adm.api.delivery.enums.*;
+import com.tecdo.adm.api.doris.dto.BundleCost;
 import com.tecdo.adm.api.doris.entity.BundleData;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
@@ -26,6 +27,7 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.service.BidPriceService;
+import com.tecdo.service.init.doris.AdGroupBundleManager;
 import com.tecdo.service.init.doris.BundleDataManager;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.CreativeHelper;
@@ -55,17 +57,18 @@ public class PriceCalcHandler {
 
     private final ThreadPool threadPool;
     private final MessageQueue messageQueue;
-    private final BundleDataManager bundleDataManager;
     private final BidPriceService bidPriceService;
+    private final BundleDataManager bundleDataManager;
+    private final AdGroupBundleManager adGroupBundleManager;
 
     @Value("${pac.bid-price.learning.url}")
     private String learningBidUrl;
     @Value("${pac.bid-price.learning.enabled}")
     private Boolean learningBidEnable;
     @Value("${pac.bundle.test.multiplier}")
-    private String multiplier;
+    private BigDecimal multiplier;
     @Value("${pac.bid-price.max-limit}")
-    private String maxPrice;
+    private BigDecimal maxPrice;
     @Value("${pac.bid-price.ecpx.enabled}")
     private Boolean eCPXBidEnable;
 
@@ -73,45 +76,94 @@ public class PriceCalcHandler {
                           BidRequest bidRequest, Imp imp, Affiliate affiliate) {
         String taskId = params.get(ParamKey.TASK_ID);
         try {
-            String key = makeKey(bidRequest, imp);
-
-            Map<Integer, AdDTOWrapper> needLearningCalcAdMap = new HashMap<>();
+            Map<Integer, AdDTOWrapper> learningCalcAdMap = new HashMap<>();
             Map<Integer, AdDTOWrapper> generalCalcAdMap = new HashMap<>();
-            afterPredictAdMap.values().forEach(e -> {
-                AdGroup adGroup = e.getAdDTO().getAdGroup();
-                if (useLearningBidPrice(adGroup.getBidStrategy(), adGroup.getBidAlgorithm())) {
-                    e.setBidAlgorithmEnum(BidAlgorithmEnum.LEARNING);
-                    needLearningCalcAdMap.put(e.getAdDTO().getAd().getId(), e);
-                } else {
-                    generalCalcAdMap.put(e.getAdDTO().getAd().getId(), e);
-                }
-            });
+            groupCalcAdMap(afterPredictAdMap, learningCalcAdMap, generalCalcAdMap, bidRequest);
             params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, afterPredictAdMap);
 
-            threadPool.execute(() -> {
-                try {
-                    generalCalcAdMap.values().forEach(e -> doCalcPriceByGeneral(e, key, bidRequest, imp, affiliate));
-                    messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
-                } catch (Exception e) {
-                    log.error("taskId: {},calculate price by general cause a exception", taskId, e);
-                    messageQueue.putMessage(EventType.CALC_CPC_ERROR);
-                }
-            });
-
-            threadPool.execute(() -> {
-                try {
-                    doCalcPriceByLearningBid(needLearningCalcAdMap, bidRequest, affiliate);
-                    messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
-                } catch (Exception e) {
-                    log.error("taskId: {},calculate price by learning cause a exception", taskId, e);
-                    messageQueue.putMessage(EventType.CALC_CPC_ERROR);
-                }
-            });
-
+            handleGeneralCalcAd(params, bidRequest, imp, affiliate, taskId, generalCalcAdMap);
+            handleLearningCalcAd(params, bidRequest, affiliate, taskId, learningCalcAdMap);
         } catch (Exception e) {
             log.error("taskId: {},calculate cpc cause a exception", taskId, e);
             messageQueue.putMessage(EventType.CALC_CPC_ERROR);
         }
+    }
+
+    private void groupCalcAdMap(Map<Integer, AdDTOWrapper> afterPredictAdMap,
+                                Map<Integer, AdDTOWrapper> learningCalcAdMap,
+                                Map<Integer, AdDTOWrapper> generalCalcAdMap,
+                                BidRequest bidRequest) {
+        afterPredictAdMap.values().forEach(e -> {
+            AdGroup adGroup = e.getAdDTO().getAdGroup();
+            if (BidModeEnum.BASE_BID.getType() == adGroup.getBidMode()) {  // 常规出价
+                groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, e,
+                        adGroup.getBidStrategy(), adGroup.getBidAlgorithm());
+            } else {  // 双阶段出价
+                String queryKey = bidRequest.getApp().getBundle() + StrUtil.COMMA + adGroup.getId();
+                Map<Integer, MultiBidStrategy> twoStageBidMap = e.getAdDTO().getTwoStageBidMap();
+                MultiBidStrategy firstStage = twoStageBidMap.get(MultiBidStageEnum.FIRST.getType());
+                MultiBidStrategy secondStage = twoStageBidMap.get(MultiBidStageEnum.SECOND.getType());
+                if (isUseSecondStageBid(firstStage, adGroupBundleManager.getAdGroupBundleData(queryKey))) {
+                    groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, e,
+                            secondStage.getBidStrategy(), secondStage.getBidAlgorithm());
+                } else {
+                    groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, e,
+                            firstStage.getBidStrategy(), firstStage.getBidAlgorithm());
+                }
+            }
+        });
+    }
+
+    private void groupByBidAlgorithm(Map<Integer, AdDTOWrapper> learningCalcAdMap,
+                                     Map<Integer, AdDTOWrapper> generalCalcAdMap,
+                                     AdDTOWrapper e, Integer bidStrategy, String bidAlgorithm) {
+        Integer adId = e.getAdDTO().getAd().getId();
+        if (useLearningBidPrice(bidStrategy, bidAlgorithm)) {
+            e.setBidAlgorithmEnum(BidAlgorithmEnum.LEARNING);
+            learningCalcAdMap.put(adId, e);
+        } else {
+            generalCalcAdMap.put(adId, e);
+        }
+    }
+
+    /**
+     * 是否使用第二阶段的出价策略
+     */
+    private boolean isUseSecondStageBid(MultiBidStrategy firstStage, BundleCost history) {
+        Integer clickCond = firstStage.getClickCond();
+        Integer impCond = firstStage.getImpCond();
+        Double costCond = firstStage.getCostCond();
+        return (clickCond != null && clickCond <= history.getClickCount())
+                || (impCond != null && impCond <= history.getImpCount())
+                || (costCond != null && costCond <= history.getCost());
+    }
+
+    private void handleGeneralCalcAd(Params params, BidRequest bidRequest, Imp imp, Affiliate affiliate,
+                                     String taskId, Map<Integer, AdDTOWrapper> generalCalcAdMap) {
+        threadPool.execute(() -> {
+            try {
+                String autoExploreKey = makeKey(bidRequest, imp);
+                generalCalcAdMap.values().forEach(e ->
+                        doCalcPriceByGeneral(e, autoExploreKey, bidRequest, imp, affiliate));
+                messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
+            } catch (Exception e) {
+                log.error("taskId: {},calculate price by general cause a exception", taskId, e);
+                messageQueue.putMessage(EventType.CALC_CPC_ERROR);
+            }
+        });
+    }
+
+    private void handleLearningCalcAd(Params params, BidRequest bidRequest, Affiliate affiliate,
+                                      String taskId, Map<Integer, AdDTOWrapper> learningCalcAdMap) {
+        threadPool.execute(() -> {
+            try {
+                doCalcPriceByLearningBid(learningCalcAdMap, bidRequest, affiliate);
+                messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
+            } catch (Exception e) {
+                log.error("taskId: {},calculate price by learning cause a exception", taskId, e);
+                messageQueue.putMessage(EventType.CALC_CPC_ERROR);
+            }
+        });
     }
 
     private void doCalcPriceByLearningBid(Map<Integer, AdDTOWrapper> adMap,
@@ -205,16 +257,12 @@ public class PriceCalcHandler {
 
     private void doCalcPriceByGeneral(AdDTOWrapper adDTOWrapper, String key,
                                       BidRequest bidRequest, Imp imp, Affiliate affiliate) {
-        BigDecimal finalPrice;
-        AdDTO adDTO = adDTOWrapper.getAdDTO();
         BundleData bundleData = bundleDataManager.getBundleData(key);
-        boolean needTest = !bundleDataManager.isImpGtSize(key);
         // 该广告位的曝光量小于指定大小、且开启了Bundle自动化探索开关，则进行探索
-        if (needTest && adDTO.getAdGroup().getBundleTestEnable() && bundleData != null) {
-            finalPrice = bundleAutoExplore(bundleData, affiliate, imp);
-        } else {
-            finalPrice = calcPriceByFormula(adDTOWrapper, bidRequest, imp);
-        }
+        BigDecimal finalPrice = !bundleDataManager.isImpGtSize(key) && bundleData != null
+                && adDTOWrapper.getAdDTO().getAdGroup().getBundleTestEnable()
+                ? bundleAutoExplore(bundleData, affiliate, imp)
+                : calcPriceByFormula(adDTOWrapper, bidRequest, imp);
         finalPrice = maxPriceLimit(finalPrice);
         finalPrice = convertToUscByVivo(finalPrice, affiliate);
         adDTOWrapper.setBidPrice(finalPrice);
@@ -282,9 +330,8 @@ public class PriceCalcHandler {
     }
 
     private BigDecimal maxPriceLimit(BigDecimal finalPrice) {
-        BigDecimal maxPrice = new BigDecimal(this.maxPrice);
-        if (finalPrice.compareTo(maxPrice) > 0) {
-            finalPrice = maxPrice;
+        if (finalPrice.compareTo(this.maxPrice) > 0) {
+            finalPrice = this.maxPrice;
         }
         return finalPrice;
     }
@@ -296,13 +343,13 @@ public class PriceCalcHandler {
         if (winRate < affiliate.getRequireWinRate()) {
             // max(当前底价, ecpm) * 倍率 进行出价
             if (bidPrice < imp.getBidfloor()) {
-                finalPrice = BigDecimal.valueOf(imp.getBidfloor()).multiply(new BigDecimal(multiplier));
+                finalPrice = BigDecimal.valueOf(imp.getBidfloor()).multiply(multiplier);
             } else {
-                finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
+                finalPrice = BigDecimal.valueOf(bidPrice).multiply(multiplier);
             }
         } else {
             if (bundleData.getOldK() == 0 || bundleData.getK() == 0) {
-                finalPrice = BigDecimal.valueOf(bidPrice).multiply(new BigDecimal(multiplier));
+                finalPrice = BigDecimal.valueOf(bidPrice).multiply(multiplier);
             } else {
                 // k = winRate / bidPrice。 出价 = 新k的ecpm * 新k/旧k
                 finalPrice = BigDecimal.valueOf(bidPrice)
