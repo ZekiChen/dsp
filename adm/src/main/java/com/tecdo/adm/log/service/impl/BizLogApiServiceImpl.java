@@ -21,13 +21,17 @@ import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.starter.mp.entity.IdEntity;
 import com.tecdo.starter.mp.entity.StatusEntity;
 import com.tecdo.starter.mp.enums.BaseStatusEnum;
+import com.tecdo.starter.tool.util.BeanUtil;
 import com.tecdo.starter.tool.util.ClassUtil;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.BeanUtils;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -133,7 +137,7 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
      * @param afterVO 修改后对象
      */
     public void compareObj(StringBuilder sb, Object beforeVO, Object afterVO) throws IllegalAccessException {
-        Class<?> clazz = beforeVO.getClass();
+        Class<?> clazz = afterVO.getClass();
         Field[] fields = clazz.getDeclaredFields();
 
         // 获取父类的私有字段
@@ -148,7 +152,8 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
 
             if (!ClassUtil.isPrimitiveOrWrapper(field.getType()) && !(field.getType() == String.class)) continue;
             String fieldName = field.getName();
-            Object beforeValue = field.get(beforeVO), afterValue = field.get(afterVO);
+            Object beforeValue = field.get(beforeVO);
+            Object afterValue = field.get(afterVO);
 
             //为空则证明不被更新
             if (afterValue == null) continue;
@@ -262,7 +267,9 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             List<BizLogApi> bizLogApis = afterVO.getAdGroupIds().stream().map(id -> {
                 StringBuilder sb = new StringBuilder();
                 try {
-                    compareObj(sb, beAdGroupMap.get(id), afterVO);
+                    BatchAdGroupUpdateVO beforeVO = new BatchAdGroupUpdateVO();
+                    BeanUtils.copyProperties(beAdGroupMap.get(id), beforeVO);
+                    compareObj(sb, beforeVO, afterVO);
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
@@ -465,7 +472,9 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             List<BizLogApi> bizLogApis = afterVO.getAdIds().stream().map(id -> {
                 StringBuilder sb = new StringBuilder();
                 try {
-                    compareObj(sb, beAdMap.get(id), afterVO);
+                    BatchAdUpdateVO beforeVO = new BatchAdUpdateVO();
+                    BeanUtils.copyProperties(beAdMap.get(id), beforeVO);
+                    compareObj(sb, beforeVO, afterVO);
                 } catch (IllegalAccessException e) {
                     throw new RuntimeException(e);
                 }
