@@ -103,25 +103,31 @@ public class PredictHandler {
             Integer adId = entry.getKey();
             AdDTOWrapper w = entry.getValue();
             BidStrategyEnum strategy = BidStrategyEnum.of(w.getAdDTO().getAdGroup().getBidStrategy());
-            if (strategy == BidStrategyEnum.CPM || strategy == BidStrategyEnum.DYNAMIC) {
-                noNeedPredict.put(adId, w);
-            } else if (strategy == BidStrategyEnum.CPC
-                    || strategy == BidStrategyEnum.CPA) {
-                strategyAdMap.get(strategy).put(adId, w);
-            } else if (strategy == BidStrategyEnum.CPA_EVENT1
-                    || strategy == BidStrategyEnum.CPA_EVENT2
-                    || strategy == BidStrategyEnum.CPA_EVENT3
-                    || strategy == BidStrategyEnum.CPA_EVENT10) {
-                strategyAdMap.get(BidStrategyEnum.CPC).put(adId, w);
-                strategyAdMap.get(strategy).put(adId, w);
-            } else if (strategy == BidStrategyEnum.CPS) {
-                String forceLink = w.getAdDTO().getAdGroup().getForceLink();
-                if (ResponseTypeEnum.FORCE.equals(protoTransform.getResponseType(forceLink, w))) {
-                    w.setPCtr(forceJumpPCtr);
-                } else {
+            switch (strategy) {
+                case CPC:
+                case CPA:
+                    strategyAdMap.get(strategy).put(adId, w);
+                    break;
+                case CPA_EVENT1:
+                case CPA_EVENT2:
+                case CPA_EVENT3:
+                case CPA_EVENT10:
                     strategyAdMap.get(BidStrategyEnum.CPC).put(adId, w);
-                }
-                strategyAdMap.get(strategy).put(adId, w);
+                    strategyAdMap.get(strategy).put(adId, w);
+                    break;
+                case CPS:
+                    String forceLink = w.getAdDTO().getAdGroup().getForceLink();
+                    if (ResponseTypeEnum.FORCE.equals(protoTransform.getResponseType(forceLink, w))) {
+                        w.setPCtr(forceJumpPCtr);
+                    } else {
+                        strategyAdMap.get(BidStrategyEnum.CPC).put(adId, w);
+                    }
+                    strategyAdMap.get(strategy).put(adId, w);
+                    break;
+                case CPM:
+                case DYNAMIC:
+                default:
+                    noNeedPredict.put(adId, w);
             }
         }
 
