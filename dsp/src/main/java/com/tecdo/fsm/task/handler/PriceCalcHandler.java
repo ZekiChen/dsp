@@ -59,7 +59,6 @@ public class PriceCalcHandler {
     private final MessageQueue messageQueue;
     private final BidPriceService bidPriceService;
     private final BundleDataManager bundleDataManager;
-    private final AdGroupBundleManager adGroupBundleManager;
 
     @Value("${pac.bid-price.learning.url}")
     private String learningBidUrl;
@@ -78,7 +77,7 @@ public class PriceCalcHandler {
         try {
             Map<Integer, AdDTOWrapper> learningCalcAdMap = new HashMap<>();
             Map<Integer, AdDTOWrapper> generalCalcAdMap = new HashMap<>();
-            groupCalcAdMap(afterPredictAdMap, learningCalcAdMap, generalCalcAdMap, bidRequest);
+            groupCalcAdMap(afterPredictAdMap, learningCalcAdMap, generalCalcAdMap);
             params.put(ParamKey.ADS_CALC_PRICE_RESPONSE, afterPredictAdMap);
 
             handleGeneralCalcAd(params, bidRequest, imp, affiliate, taskId, generalCalcAdMap);
@@ -91,24 +90,22 @@ public class PriceCalcHandler {
 
     private void groupCalcAdMap(Map<Integer, AdDTOWrapper> afterPredictAdMap,
                                 Map<Integer, AdDTOWrapper> learningCalcAdMap,
-                                Map<Integer, AdDTOWrapper> generalCalcAdMap,
-                                BidRequest bidRequest) {
-        afterPredictAdMap.values().forEach(e -> {
-            AdGroup adGroup = e.getAdDTO().getAdGroup();
+                                Map<Integer, AdDTOWrapper> generalCalcAdMap) {
+        afterPredictAdMap.values().forEach(w -> {
+            AdGroup adGroup = w.getAdDTO().getAdGroup();
             if (BidModeEnum.BASE_BID.getType() == adGroup.getBidMode()) {  // 常规出价
-                groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, e,
+                groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, w,
                         adGroup.getBidStrategy(), adGroup.getBidAlgorithm());
             } else {  // 双阶段出价
-                String queryKey = bidRequest.getApp().getBundle() + StrUtil.COMMA + adGroup.getId();
-                Map<Integer, MultiBidStrategy> twoStageBidMap = e.getAdDTO().getTwoStageBidMap();
+                Map<Integer, MultiBidStrategy> twoStageBidMap = w.getAdDTO().getTwoStageBidMap();
                 MultiBidStrategy firstStage = twoStageBidMap.get(MultiBidStageEnum.FIRST.getType());
                 MultiBidStrategy secondStage = twoStageBidMap.get(MultiBidStageEnum.SECOND.getType());
-                if (isUseSecondStageBid(firstStage, adGroupBundleManager.getAdGroupBundleData(queryKey))) {
-                    groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, e,
-                            secondStage.getBidStrategy(), secondStage.getBidAlgorithm());
-                } else {
-                    groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, e,
+                if (MultiBidStageEnum.FIRST == w.getBidStageEnum()) {
+                    groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, w,
                             firstStage.getBidStrategy(), firstStage.getBidAlgorithm());
+                } else {
+                    groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, w,
+                            secondStage.getBidStrategy(), secondStage.getBidAlgorithm());
                 }
             }
         });
@@ -116,26 +113,14 @@ public class PriceCalcHandler {
 
     private void groupByBidAlgorithm(Map<Integer, AdDTOWrapper> learningCalcAdMap,
                                      Map<Integer, AdDTOWrapper> generalCalcAdMap,
-                                     AdDTOWrapper e, Integer bidStrategy, String bidAlgorithm) {
-        Integer adId = e.getAdDTO().getAd().getId();
+                                     AdDTOWrapper w, Integer bidStrategy, String bidAlgorithm) {
+        Integer adId = w.getAdDTO().getAd().getId();
         if (useLearningBidPrice(bidStrategy, bidAlgorithm)) {
-            e.setBidAlgorithmEnum(BidAlgorithmEnum.LEARNING);
-            learningCalcAdMap.put(adId, e);
+            w.setBidAlgorithmEnum(BidAlgorithmEnum.LEARNING);
+            learningCalcAdMap.put(adId, w);
         } else {
-            generalCalcAdMap.put(adId, e);
+            generalCalcAdMap.put(adId, w);
         }
-    }
-
-    /**
-     * 是否使用第二阶段的出价策略
-     */
-    private boolean isUseSecondStageBid(MultiBidStrategy firstStage, BundleCost history) {
-        Integer clickCond = firstStage.getClickCond();
-        Integer impCond = firstStage.getImpCond();
-        Double costCond = firstStage.getCostCond();
-        return (clickCond != null && clickCond <= history.getClickCount())
-                || (impCond != null && impCond <= history.getImpCount())
-                || (costCond != null && costCond <= history.getCost());
     }
 
     private void handleGeneralCalcAd(Params params, BidRequest bidRequest, Imp imp, Affiliate affiliate,

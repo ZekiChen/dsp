@@ -1,16 +1,18 @@
 package com.tecdo.fsm.task.handler;
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
 import com.dianping.cat.Cat;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.ab.util.AbTestConfigHelper;
-import com.tecdo.adm.api.delivery.entity.Affiliate;
-import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
-import com.tecdo.adm.api.delivery.entity.Creative;
+import com.tecdo.adm.api.delivery.entity.*;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
+import com.tecdo.adm.api.delivery.enums.BidModeEnum;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
+import com.tecdo.adm.api.delivery.enums.MultiBidStageEnum;
+import com.tecdo.adm.api.doris.dto.BundleCost;
 import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
@@ -29,6 +31,7 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.AbTestConfig;
 import com.tecdo.service.init.AbTestConfigManager;
+import com.tecdo.service.init.doris.AdGroupBundleManager;
 import com.tecdo.service.init.doris.GooglePlayAppManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ResponseTypeEnum;
@@ -81,6 +84,7 @@ public class PredictHandler {
 
     private final AbTestConfigManager abTestConfigManager;
     private final GooglePlayAppManager googlePlayAppManager;
+    private final AdGroupBundleManager adGroupBundleManager;
 
     public int callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap, Params params,
                               BidRequest bidRequest, Imp imp, Affiliate affiliate, IProtoTransform protoTransform) {
@@ -102,7 +106,25 @@ public class PredictHandler {
         for (Map.Entry<Integer, AdDTOWrapper> entry : adDTOMap.entrySet()) {
             Integer adId = entry.getKey();
             AdDTOWrapper w = entry.getValue();
-            BidStrategyEnum strategy = BidStrategyEnum.of(w.getAdDTO().getAdGroup().getBidStrategy());
+            AdGroup adGroup = w.getAdDTO().getAdGroup();
+
+            BidStrategyEnum strategy;
+            if (BidModeEnum.BASE_BID.getType() == adGroup.getBidMode()) {  // 常规出价
+                strategy = BidStrategyEnum.of(adGroup.getBidStrategy());
+            } else {  // 双阶段出价
+                String queryKey = bidRequest.getApp().getBundle() + StrUtil.COMMA + adGroup.getId();
+                Map<Integer, MultiBidStrategy> twoStageBidMap = w.getAdDTO().getTwoStageBidMap();
+                MultiBidStrategy firstStage = twoStageBidMap.get(MultiBidStageEnum.FIRST.getType());
+                MultiBidStrategy secondStage = twoStageBidMap.get(MultiBidStageEnum.SECOND.getType());
+                if (isUseSecondStageBid(firstStage, adGroupBundleManager.getAdGroupBundleData(queryKey))) {
+                    strategy = BidStrategyEnum.of(secondStage.getBidStrategy());
+                    w.setBidStageEnum(MultiBidStageEnum.SECOND);
+                } else {
+                    strategy = BidStrategyEnum.of(firstStage.getBidStrategy());
+                    w.setBidStageEnum(MultiBidStageEnum.FIRST);
+                }
+            }
+
             switch (strategy) {
                 case CPC:
                 case CPA:
@@ -291,5 +313,17 @@ public class PredictHandler {
                 .impFrequency(wrapper.getImpFrequency())
                 .clickFrequency(wrapper.getClickFrequency())
                 .build();
+    }
+
+    /**
+     * 是否使用第二阶段的出价策略
+     */
+    private boolean isUseSecondStageBid(MultiBidStrategy firstStage, BundleCost history) {
+        Integer clickCond = firstStage.getClickCond();
+        Integer impCond = firstStage.getImpCond();
+        Double costCond = firstStage.getCostCond();
+        return (clickCond != null && clickCond <= history.getClickCount())
+                || (impCond != null && impCond <= history.getImpCount())
+                || (costCond != null && costCond <= history.getCost());
     }
 }
