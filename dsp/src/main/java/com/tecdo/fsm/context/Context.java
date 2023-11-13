@@ -1,8 +1,5 @@
 package com.tecdo.fsm.context;
 
-import cn.hutool.core.util.IdUtil;
-import cn.hutool.core.util.StrUtil;
-import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.doris.entity.GooglePlayApp;
@@ -20,6 +17,7 @@ import com.tecdo.fsm.context.state.IContextState;
 import com.tecdo.fsm.context.state.InitState;
 import com.tecdo.fsm.task.Task;
 import com.tecdo.fsm.task.TaskPool;
+import com.tecdo.log.NotBidReasonLogger;
 import com.tecdo.log.RequestLogger;
 import com.tecdo.log.ResponseLogger;
 import com.tecdo.server.request.HttpRequest;
@@ -28,10 +26,22 @@ import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.ActionConsumeRecorder;
 import com.tecdo.util.JsonHelper;
+
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+
+import cn.hutool.core.util.IdUtil;
+import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 import lombok.extern.slf4j.Slf4j;
 
-import java.util.*;
-import static com.tecdo.constant.CountryConstant.*;
+import static com.tecdo.constant.CountryConstant.MEXICO;
+import static com.tecdo.constant.CountryConstant.PARIS;
+import static com.tecdo.constant.CountryConstant.SINGAPORE;
 
 @Slf4j
 public class Context {
@@ -191,9 +201,17 @@ public class Context {
       List<AdDTOWrapper> afterSortAds = entry.getValue();
       for (AdDTOWrapper wrapper : afterSortAds) {
         Integer adId = wrapper.getAdDTO().getAd().getId();
-        if (!impBidAdMap.containsKey(taskId) && !hasBidAdId.contains(adId)) {
-          hasBidAdId.add(adId);
-          impBidAdMap.put(taskId, wrapper);
+        if (!impBidAdMap.containsKey(taskId)) {
+          if (!hasBidAdId.contains(adId)) {
+            hasBidAdId.add(adId);
+            impBidAdMap.put(taskId, wrapper);
+          } else {
+            // 当前imp还没有填充，但是这个ad已经被其他Imp使用了
+            NotBidReasonLogger.log(taskId, adId, "duplicateFilter");
+          }
+        } else {
+          // 当前imp已经有填充了，意味着这个ad不是最高价
+          NotBidReasonLogger.log(taskId, adId, "innerSortFilter");
         }
       }
     }

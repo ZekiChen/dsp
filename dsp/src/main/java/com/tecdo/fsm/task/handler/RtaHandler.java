@@ -40,7 +40,7 @@ public class RtaHandler {
 
     public void requestRta(Params params, Map<Integer, AdDTOWrapper> afterPriceFilterAdMap,
                            BidRequest bidRequest) {
-        Long requestId = params.get(ParamKey.REQUEST_ID);
+        String taskId = params.get(ParamKey.TASK_ID);
 
         threadPool.execute(() -> {
             try {
@@ -48,7 +48,7 @@ public class RtaHandler {
                 messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
                         params.put(ParamKey.REQUEST_LAZADA_RTA_RESPONSE, rtaResMap));
             } catch (Exception e) {
-                log.error("contextId: {}, request lazada rta cause a exception:", requestId, e);
+                log.error("taskId: {}, request lazada rta cause a exception:", taskId, e);
                 messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
             }
         });
@@ -59,7 +59,7 @@ public class RtaHandler {
                 messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
                         params.put(ParamKey.REQUEST_AE_RTA_RESPONSE, rtaResMap));
             } catch (Exception e) {
-                log.error("contextId: {}, request ae rta cause a exception:", requestId, e);
+                log.error("taskId: {}, request ae rta cause a exception:", taskId, e);
                 messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
             }
         });
@@ -70,12 +70,12 @@ public class RtaHandler {
                 messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
                         params.put(ParamKey.REQUEST_MIRAVIA_RTA_RESPONSE, rtaResMap));
             } catch (Exception e) {
-                log.error("contextId: {}, request miravia rta cause a exception:", requestId, e);
+                log.error("taskId: {}, request miravia rta cause a exception:", taskId, e);
                 messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
             }
         });
 
-        log.info("contextId: {}, request rta", requestId);
+        log.info("taskId: {}, request rta", taskId);
     }
 
     private Map<Integer, Target> doRequestRtaByLazada(Map<Integer, AdDTOWrapper> afterPriceFilterAdMap,

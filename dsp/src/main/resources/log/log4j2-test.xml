@@ -78,6 +78,10 @@
             <AppenderRef ref="SDK_PB_LOG"/>
         </Logger>
 
+        <Logger name="not_bid_reason_log" level="INFO" additivity="false">
+            <AppenderRef ref="NOT_BID_REASON_LOG"/>
+        </Logger>
+
         <!-- 减少部分debug日志 -->
         <AsyncLogger name="io.netty" level="INFO"/>
         <AsyncLogger name="com.ctrip.framework.apollo" level="INFO"/>

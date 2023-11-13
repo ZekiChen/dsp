@@ -5,9 +5,11 @@ import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.AbstractRecallFilter;
-import lombok.extern.slf4j.Slf4j;
+import com.tecdo.log.NotBidReasonLogger;
 
 import java.util.List;
+
+import lombok.extern.slf4j.Slf4j;
 
 /**
  *  过滤处理器链 工具
@@ -29,16 +31,26 @@ public class FilterChainHelper {
     /**
      * 每个 AD 都需要被所有 filter 判断一遍
      */
-    public static boolean executeFilter(AbstractRecallFilter curFilter, AdDTO adDTO,
-                                  BidRequest bidRequest, Imp imp, Affiliate affiliate) {
+    public static boolean executeFilter(String bidId,
+                                        AbstractRecallFilter curFilter,
+                                        AdDTO adDTO,
+                                        BidRequest bidRequest,
+                                        Imp imp,
+                                        Affiliate affiliate) {
         boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
         if (!filterFlag) {
+            NotBidReasonLogger.log(bidId,
+                                   adDTO.getAd().getId(),
+                                   curFilter.getClass().getSimpleName());
             log.debug("ad recall fail, filter: {}", curFilter.getClass().getSimpleName());
         }
         while (filterFlag && curFilter.hasNext()) {
             curFilter = curFilter.getNextFilter();
             filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
             if (!filterFlag) {
+                NotBidReasonLogger.log(bidId,
+                                       adDTO.getAd().getId(),
+                                       curFilter.getClass().getSimpleName());
                 log.debug("ad recall fail, filter: {}", curFilter.getClass().getSimpleName());
             }
         }

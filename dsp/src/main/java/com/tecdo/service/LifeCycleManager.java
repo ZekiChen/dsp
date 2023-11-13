@@ -5,6 +5,7 @@ import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
+import com.tecdo.log.NotBidReasonLogger;
 import com.tecdo.server.NetServer;
 import com.tecdo.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.server.request.HttpRequest;
@@ -205,6 +206,7 @@ public class LifeCycleManager {
         cheatingDataManager.init(params);
         eCPXManager.init(params);
         bundleCostManager.init(params);
+        NotBidReasonLogger.init();
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;
       default:
