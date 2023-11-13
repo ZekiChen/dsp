@@ -71,7 +71,7 @@ public class AdRecallHandler {
         return adManager.getAdDTOMap()
                 .values()
                 .stream()
-                .filter(adDTO -> FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate))
+                .filter(adDTO -> FilterChainHelper.executeFilter(params.get(ParamKey.TASK_ID), filters.get(0), adDTO, bidRequest, imp, affiliate))
                 .collect(Collectors.toMap(
                         adDTO -> adDTO.getAd().getId(),
                         adDTO -> buildADDTOWrapper(params.get(ParamKey.TASK_ID), bidRequest, imp.getId(), adDTO))
@@ -87,7 +87,7 @@ public class AdRecallHandler {
         for (AdDTO adDTO : adDTOMap.values()) {
             // 在线程池中处理多个ad的recall
             CompletableFuture<AdDTOWrapper> future = CompletableFuture.supplyAsync(() ->
-                            FilterChainHelper.executeFilter(filters.get(0), adDTO, bidRequest, imp, affiliate)
+                            FilterChainHelper.executeFilter(params.get(ParamKey.TASK_ID), filters.get(0), adDTO, bidRequest, imp, affiliate)
                                     ? buildADDTOWrapper(params.get(ParamKey.TASK_ID), bidRequest, imp.getId(), adDTO)
                                     : null,
                     threadPool.getExecutor());
