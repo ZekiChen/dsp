@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -42,20 +44,21 @@ public class RtaHandler {
                            BidRequest bidRequest) {
         Long requestId = params.get(ParamKey.REQUEST_ID);
 
-        doRta(doRtaByLazada(afterPriceFilterAdMap, bidRequest),
+        doRta(() -> doRtaByLazada(afterPriceFilterAdMap, bidRequest),
                 params, ParamKey.REQUEST_LAZADA_RTA_RESPONSE, "lazada", requestId);
-        doRta(doRtaByAE(afterPriceFilterAdMap, bidRequest),
+        doRta(() -> doRtaByAE(afterPriceFilterAdMap, bidRequest),
                 params, ParamKey.REQUEST_AE_RTA_RESPONSE, "ae", requestId);
-        doRta(doRtaByMiravia(afterPriceFilterAdMap, bidRequest),
+        doRta(() -> doRtaByMiravia(afterPriceFilterAdMap, bidRequest),
                 params, ParamKey.REQUEST_MIRAVIA_RTA_RESPONSE, "miravia", requestId);
 
         log.info("contextId: {}, request rta", requestId);
     }
 
-    private void doRta(Map<Integer, Target> afterRtaAdMap, Params params, String paramKey, String advName, Long requestId) {
+    private void doRta(Callable<Map<Integer, Target>> callable,
+                       Params params, String paramKey, String advName, Long requestId) {
         threadPool.execute(() -> {
             try {
-                messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE, params.put(paramKey, afterRtaAdMap));
+                messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE, params.put(paramKey, callable.call()));
             } catch (Exception e) {
                 log.error("contextId: {}, request {} rta cause a exception:", requestId, advName, e);
                 messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
