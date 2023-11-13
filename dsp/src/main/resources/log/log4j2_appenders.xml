@@ -264,10 +264,11 @@
     </RollingFile>
 
     <RollingFile name="NOT_BID_REASON_LOG" fileName="${BUSINESS_LOG_HOME}/not-bid-reason.log"
-                 filePattern="${BUSINESS_LOG_HOME}/not-bid-reason-%d{yyyy-MM-dd-HH}.log">
+                 filePattern="${BUSINESS_LOG_HOME}/not-bid-reason-%d{yyyy-MM-dd-HH}.%i.log">
         <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
         <Policies>
             <TimeBasedTriggeringPolicy/>
+            <SizeBasedTriggeringPolicy size="1GB"/>
         </Policies>
         <DefaultRolloverStrategy>
             <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
