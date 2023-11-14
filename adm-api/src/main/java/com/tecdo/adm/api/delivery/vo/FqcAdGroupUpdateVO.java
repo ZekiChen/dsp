@@ -1,6 +1,5 @@
 package com.tecdo.adm.api.delivery.vo;
 
-import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiModel;
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
@@ -21,26 +20,15 @@ public class FqcAdGroupUpdateVO implements Serializable {
 	@ApiModelProperty("广告组ID集")
 	@NotEmpty
 	private List<Integer> adGroupIds;
-
 	@ApiModelProperty("曝光频控修改标识")
 	private Boolean isImpUpdate;
 	@ApiModelProperty("点击频控修改标识")
 	private Boolean isClickUpdate;
+	@ApiModelProperty("比较符")
+	private String operation;
 	@ApiModelProperty("曝光频控值")
 	private String impValue;
 	@ApiModelProperty("点击频控值")
 	private String clickValue;
-
-	@ApiModelProperty("光频控修改标识-小时级别")
-	private Boolean isImpUpdateByHour;
-	@ApiModelProperty("点击频控修改标识-小时级别")
-	private Boolean isClickUpdateByHour;
-	@ApiModelProperty("曝光频控值-小时级别")
-	private String impValueByHour;
-	@ApiModelProperty("点击频控值-小时级别")
-	private String clickValueByHour;
-
-	@ApiModelProperty("比较符")
-	private String operation;
 
 }

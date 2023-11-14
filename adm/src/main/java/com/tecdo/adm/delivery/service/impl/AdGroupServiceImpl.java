@@ -425,52 +425,60 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     @Transactional
     public boolean fqcUpdateBatch(FqcAdGroupUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
-        String operation = vo.getOperation();
-
-        fqcUpdate(vo.getIsImpUpdate(), adGroupIds, ConditionEnum.IMP_FREQUENCY.getDesc(),
-                operation, vo.getImpValue());
-        fqcUpdate(vo.getIsClickUpdate(), adGroupIds, ConditionEnum.CLICK_FREQUENCY.getDesc(),
-                operation, vo.getClickValue());
-        fqcUpdate(vo.getIsImpUpdateByHour(), adGroupIds, ConditionEnum.IMP_FREQUENCY_HOUR.getDesc(),
-                operation, vo.getImpValueByHour());
-        fqcUpdate(vo.getIsClickUpdateByHour(), adGroupIds, ConditionEnum.CLICK_FREQUENCY_HOUR.getDesc(),
-                operation, vo.getClickValueByHour());
-
+        if (vo.getIsImpUpdate()) {
+            LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
+                    .in(TargetCondition::getAdGroupId, adGroupIds)
+                    .in(TargetCondition::getAttribute, ConditionEnum.IMP_FREQUENCY.getDesc());
+            Map<Integer, TargetCondition> beConditonMap = conditionService.list(wrapper).stream()
+                    .collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
+            if (!beConditonMap.isEmpty()) {
+                conditionService.remove(wrapper);
+            }
+            if (StrUtil.isNotBlank(vo.getImpValue())) {
+                List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
+                    TargetCondition condition = new TargetCondition();
+                    condition.setAdGroupId(id);
+                    condition.setAttribute(ConditionEnum.IMP_FREQUENCY.getDesc());
+                    condition.setOperation(vo.getOperation());
+                    condition.setValue(vo.getImpValue());
+                    return condition;
+                }).collect(Collectors.toList());
+                conditionService.saveBatch(conditions);
+            }
+            BundleAdGroupUpdateVO bundleUpdateVO = new BundleAdGroupUpdateVO();
+            bundleUpdateVO.setAdGroupIds(adGroupIds);
+            bundleUpdateVO.setOperation(vo.getOperation());
+            bundleUpdateVO.setValue(vo.getImpValue());
+            bizLogApiService.logByUpdateBatchCondition("Imp Frequency", beConditonMap, bundleUpdateVO);
+        }
+        if (vo.getIsClickUpdate()) {
+            LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
+                    .in(TargetCondition::getAdGroupId, adGroupIds)
+                    .in(TargetCondition::getAttribute, ConditionEnum.CLICK_FREQUENCY.getDesc());
+            Map<Integer, TargetCondition> beConditonMap = conditionService.list(wrapper).stream()
+                    .collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
+            if (!beConditonMap.isEmpty()) {
+                conditionService.remove(wrapper);
+            }
+            if (StrUtil.isNotBlank(vo.getClickValue())) {
+                List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
+                    TargetCondition condition = new TargetCondition();
+                    condition.setAdGroupId(id);
+                    condition.setAttribute(ConditionEnum.CLICK_FREQUENCY.getDesc());
+                    condition.setOperation(vo.getOperation());
+                    condition.setValue(vo.getClickValue());
+                    return condition;
+                }).collect(Collectors.toList());
+                conditionService.saveBatch(conditions);
+            }
+            BundleAdGroupUpdateVO bundleUpdateVO = new BundleAdGroupUpdateVO();
+            bundleUpdateVO.setAdGroupIds(adGroupIds);
+            bundleUpdateVO.setOperation(vo.getOperation());
+            bundleUpdateVO.setValue(vo.getClickValue());
+            bizLogApiService.logByUpdateBatchCondition("Click Frequency", beConditonMap, bundleUpdateVO);
+        }
         batchUpdateTime(adGroupIds);
         return true;
-    }
-
-    private void fqcUpdate(Boolean isUpdated, List<Integer> adGroupIds, String attribute, String operation, String value) {
-        if (!isUpdated) return;
-
-        LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
-                .in(TargetCondition::getAdGroupId, adGroupIds)
-                .in(TargetCondition::getAttribute, attribute);
-
-        Map<Integer, TargetCondition> beConditonMap = conditionService.list(wrapper).stream()
-                .collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
-
-        if (!beConditonMap.isEmpty()) {
-            conditionService.remove(wrapper);
-        }
-
-        if (StrUtil.isNotBlank(value)) {
-            List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
-                TargetCondition condition = new TargetCondition();
-                condition.setAdGroupId(id);
-                condition.setAttribute(attribute);
-                condition.setOperation(operation);
-                condition.setValue(value);
-                return condition;
-            }).collect(Collectors.toList());
-            conditionService.saveBatch(conditions);
-        }
-
-        BundleAdGroupUpdateVO bundleUpdateVO = new BundleAdGroupUpdateVO();
-        bundleUpdateVO.setAdGroupIds(adGroupIds);
-        bundleUpdateVO.setOperation(operation);
-        bundleUpdateVO.setValue(value);
-        bizLogApiService.logByUpdateBatchCondition(attribute, beConditonMap, bundleUpdateVO);
     }
 
     private void batchUpdateTime(List<Integer> adGroupIds) {
