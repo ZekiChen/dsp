@@ -21,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 /**
@@ -40,46 +42,32 @@ public class RtaHandler {
 
     public void requestRta(Params params, Map<Integer, AdDTOWrapper> afterPriceFilterAdMap,
                            BidRequest bidRequest) {
-        String taskId = params.get(ParamKey.TASK_ID);
+        Long requestId = params.get(ParamKey.REQUEST_ID);
 
-        threadPool.execute(() -> {
-            try {
-                Map<Integer, Target> rtaResMap = doRequestRtaByLazada(afterPriceFilterAdMap, bidRequest);
-                messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
-                        params.put(ParamKey.REQUEST_LAZADA_RTA_RESPONSE, rtaResMap));
-            } catch (Exception e) {
-                log.error("taskId: {}, request lazada rta cause a exception:", taskId, e);
-                messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
-            }
-        });
+        doRta(() -> doRtaByLazada(afterPriceFilterAdMap, bidRequest),
+                params, ParamKey.REQUEST_LAZADA_RTA_RESPONSE, "lazada", requestId);
+        doRta(() -> doRtaByAE(afterPriceFilterAdMap, bidRequest),
+                params, ParamKey.REQUEST_AE_RTA_RESPONSE, "ae", requestId);
+        doRta(() -> doRtaByMiravia(afterPriceFilterAdMap, bidRequest),
+                params, ParamKey.REQUEST_MIRAVIA_RTA_RESPONSE, "miravia", requestId);
 
-        threadPool.execute(() -> {
-            try {
-                Map<Integer, Target> rtaResMap = doRequestRtaByAE(afterPriceFilterAdMap, bidRequest);
-                messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
-                        params.put(ParamKey.REQUEST_AE_RTA_RESPONSE, rtaResMap));
-            } catch (Exception e) {
-                log.error("taskId: {}, request ae rta cause a exception:", taskId, e);
-                messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
-            }
-        });
-
-        threadPool.execute(() -> {
-            try {
-                Map<Integer, Target> rtaResMap = doRequestRtaByMiravia(afterPriceFilterAdMap, bidRequest);
-                messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE,
-                        params.put(ParamKey.REQUEST_MIRAVIA_RTA_RESPONSE, rtaResMap));
-            } catch (Exception e) {
-                log.error("taskId: {}, request miravia rta cause a exception:", taskId, e);
-                messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
-            }
-        });
-
-        log.info("taskId: {}, request rta", taskId);
+        log.info("contextId: {}, request rta", requestId);
     }
 
-    private Map<Integer, Target> doRequestRtaByLazada(Map<Integer, AdDTOWrapper> afterPriceFilterAdMap,
-                                                      BidRequest bidRequest) {
+    private void doRta(Callable<Map<Integer, Target>> callable,
+                       Params params, String paramKey, String advName, Long requestId) {
+        threadPool.execute(() -> {
+            try {
+                messageQueue.putMessage(EventType.REQUEST_RTA_RESPONSE, params.put(paramKey, callable.call()));
+            } catch (Exception e) {
+                log.error("contextId: {}, request {} rta cause a exception:", requestId, advName, e);
+                messageQueue.putMessage(EventType.WAIT_REQUEST_RTA_RESPONSE_ERROR, params);
+            }
+        });
+    }
+
+    private Map<Integer, Target> doRtaByLazada(Map<Integer, AdDTOWrapper> afterPriceFilterAdMap,
+                                               BidRequest bidRequest) {
         // 协议中的是国家三字码，需要转为对应的二字码
         String country = bidRequest.getDevice().getGeo().getCountry();
         String countryCode = StringConfigUtil.getCountryCode2(country);
@@ -103,8 +91,8 @@ public class RtaHandler {
         return rtaResMap;
     }
 
-    private Map<Integer, Target> doRequestRtaByMiravia(Map<Integer, AdDTOWrapper> afterPriceFilterAdMap,
-                                                       BidRequest bidRequest) {
+    private Map<Integer, Target> doRtaByMiravia(Map<Integer, AdDTOWrapper> afterPriceFilterAdMap,
+                                                BidRequest bidRequest) {
         String country = bidRequest.getDevice().getGeo().getCountry();
         String countryCode = StringConfigUtil.getCountryCode2(country);
         String deviceId = bidRequest.getDevice().getIfa();
@@ -127,8 +115,8 @@ public class RtaHandler {
         return rtaResMap;
     }
 
-    private Map<Integer, Target> doRequestRtaByAE(Map<Integer, AdDTOWrapper> afterPriceFilterAdMap,
-                                                  BidRequest bidRequest) {
+    private Map<Integer, Target> doRtaByAE(Map<Integer, AdDTOWrapper> afterPriceFilterAdMap,
+                                           BidRequest bidRequest) {
         String deviceId = bidRequest.getDevice().getIfa();
         // 只保留ae rta的单子
         Map<Integer, String> cid2AdvCid = //

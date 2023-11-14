@@ -10,6 +10,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
+import com.tecdo.adm.api.delivery.entity.MultiBidStrategy;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
@@ -18,6 +19,7 @@ import com.tecdo.adm.api.delivery.vo.*;
 import com.tecdo.adm.common.cache.AdGroupCache;
 import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.IAdService;
+import com.tecdo.adm.delivery.service.IMultiBidStrategyService;
 import com.tecdo.adm.delivery.service.ITargetConditionService;
 import com.tecdo.adm.doris.IGooglePlayAppService;
 import com.tecdo.adm.doris.IRequestService;
@@ -51,6 +53,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     private final IBizLogApiService bizLogApiService;
     private final IGooglePlayAppService googlePlayAppService;
     private final IRequestService requestService;
+    private final IMultiBidStrategyService strategyService;
 
     @Value("${pac.condition.device-count.period}")
     private Integer deviceCntPeriod;
@@ -59,7 +62,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     @Transactional
     public boolean add(AdGroupVO vo) {
         vo.setForceLink(vo.getClickUrl());  // 测试时发现 deeplink 无法实现强跳
-        return save(vo) && conditionService.saveBatch(vo.listCondition());
+        return save(vo) && strategyService.saveBatch(vo.listStrategies()) && conditionService.saveBatch(vo.listCondition());
     }
 
     @Override
@@ -73,6 +76,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             if (updateById(vo)) {
                 conditionService.deleteByAdGroupIds(Collections.singletonList(vo.getId()));
                 conditionService.saveBatch(vo.listCondition());
+                strategyService.insertOrUpdate(vo.listStrategies());
                 return true;
             }
         }
@@ -80,11 +84,22 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     private void logByUpdate(AdGroupVO afterVO) {
-        AdGroup adGroup = getById(afterVO.getId());
+        Integer adGroupId = afterVO.getId();
+
+        AdGroup adGroup = getById(adGroupId);
         AdGroupVO beforeVO = Objects.requireNonNull(com.tecdo.starter.tool.util.BeanUtil.copy(adGroup, AdGroupVO.class));
-        List<TargetCondition> conditions = conditionService.listCondition(afterVO.getId());
+
+        List<TargetCondition> conditions = conditionService.listCondition(adGroupId);
         List<TargetConditionVO> conditionVOs = Objects.requireNonNull(com.tecdo.starter.tool.util.BeanUtil.copy(conditions, TargetConditionVO.class));
         beforeVO.setConditionVOs(conditionVOs);
+
+        List<MultiBidStrategy> strategies = strategyService.listByAdGroupId(Collections.singletonList(adGroupId));
+        List<MultiBidStrategyVO> strategyVOs = null;
+        if (CollUtil.isNotEmpty(strategies)) {
+            strategyVOs = Objects.requireNonNull(com.tecdo.starter.tool.util.BeanUtil.copy(strategies, MultiBidStrategyVO.class));;
+        }
+        beforeVO.setStrategyVOs(strategyVOs);
+
         bizLogApiService.logByUpdateAdGroup(beforeVO, afterVO);
     }
 
@@ -93,6 +108,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     public boolean delete(List<Integer> ids) {
         removeBatchByIds(ids);
         conditionService.deleteByAdGroupIds(ids);
+        strategyService.deleteByAdGroupIds(ids);
         adService.deleteByAdGroupIds(ids);
         return true;
     }
@@ -151,9 +167,12 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
                 throw new ServiceException("source conditions is empty!");
             }
             List<Integer> sourceAdIds = adService.listIdByGroupIds(Collections.singletonList(sourceAdGroup.getId()));
+            List<MultiBidStrategy> sourceStrategies = strategyService.listByAdGroupId(Collections.singletonList(sourceAdGroup.getId()));
+
             replaceAdGroup(sourceAdGroup, targetCampaignId, targetAdGroupStatus);
             List<AdGroup> targetAdGroups = copyAdGroups(sourceAdGroup, copyNum);
             saveBatch(targetAdGroups);
+
             List<TargetCondition> targetConditions = replaceAndCopyConditions(targetAdGroups, sourceConditions);
             conditionService.saveBatch(targetConditions);
 
@@ -161,6 +180,11 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
                 List<Ad> sourceAds = adService.listByIds(sourceAdIds);
                 List<Ad> targetAds = replaceAndCopyAds(targetAdGroups, sourceAds);
                 adService.saveBatch(targetAds);
+            }
+
+            if (CollUtil.isNotEmpty(sourceStrategies)) {
+                List<MultiBidStrategy> targetStrategies = replaceAndCopyStrategies(targetAdGroups, sourceStrategies);
+                strategyService.saveBatch(targetStrategies);
             }
         }
         return true;
@@ -568,6 +592,19 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
                             newCond.setAdGroupId(group.getId());
                             resetBaseEntity(newCond);
                             return newCond;
+                        }))
+                .collect(Collectors.toList());
+    }
+
+    private static List<MultiBidStrategy> replaceAndCopyStrategies(List<AdGroup> targetAdGroups,
+                                                                   List<MultiBidStrategy> sourceStrategies) {
+        return targetAdGroups.stream()
+                .flatMap(group -> sourceStrategies.stream()
+                        .map(strategy -> {
+                            MultiBidStrategy newStrategy = BeanUtil.copyProperties(strategy, MultiBidStrategy.class);
+                            newStrategy.setAdGroupId(group.getId());
+                            resetBaseEntity(newStrategy);
+                            return newStrategy;
                         }))
                 .collect(Collectors.toList());
     }

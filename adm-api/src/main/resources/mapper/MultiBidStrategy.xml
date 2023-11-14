@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.tecdo.adm.api.delivery.mapper.MultiBidStrategyMapper">
+
+    <select id="insertOrUpdate" parameterType="java.util.List">
+        INSERT INTO multi_bid_strategy
+        (ad_group_id, stage, bid_strategy,
+         opt_price, bid_multiplier, bid_probability,
+         bundle_test_enable, bid_algorithm, imp_cond,
+         click_cond, cost_cond)
+        VALUES
+        <foreach collection="strategies" separator="," item="item" index="index">
+            (#{item.adGroupId}, #{item.stage}, #{item.bidStrategy},
+             #{item.optPrice}, #{item.bidMultiplier}, #{item.bidProbability},
+             #{item.bundleTestEnable}, #{item.bidAlgorithm}, #{item.impCond},
+             #{item.clickCond}, #{item.costCond})
+        </foreach>
+        ON DUPLICATE KEY UPDATE
+        ad_group_id = VALUES(ad_group_id),
+        stage = VALUES(stage),
+        bid_strategy = VALUES(bid_strategy),
+        opt_price = VALUES(opt_price),
+        bid_multiplier = VALUES(bid_multiplier),
+        bid_probability = VALUES(bid_probability),
+        bundle_test_enable = VALUES(bundle_test_enable),
+        bid_algorithm = VALUES(bid_algorithm),
+        imp_cond = VALUES(imp_cond),
+        click_cond = VALUES(click_cond),
+        cost_cond = VALUES(cost_cond)
+    </select>
+
+</mapper>

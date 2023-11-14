@@ -1,6 +1,8 @@
 package com.tecdo.domain.biz.dto;
 
 import com.tecdo.adm.api.delivery.enums.BidAlgorithmEnum;
+import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
+import com.tecdo.adm.api.delivery.enums.MultiBidStageEnum;
 import com.tecdo.transform.ResponseTypeEnum;
 import lombok.Getter;
 import lombok.Setter;
@@ -87,5 +89,12 @@ public class AdDTOWrapper {
 
   private Integer impFrequency;
   private Integer clickFrequency;
+
+  private MultiBidStageEnum bidStageEnum;
+  private BidStrategyEnum bidStrategyEnum;
+  private Double optPrice;
+  private Double bidMultiplier;
+  private Double bidProbability;
+  private Boolean bundleTestEnable;
 
 }

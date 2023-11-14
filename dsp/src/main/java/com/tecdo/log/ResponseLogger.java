@@ -64,7 +64,7 @@ public class ResponseLogger {
                 .bidId(wrapper.getBidId())
                 .advId(wrapper.getAdDTO().getAdv().getId())
                 .advName(wrapper.getAdDTO().getAdv().getName())
-                .bidStrategy(wrapper.getAdDTO().getAdGroup().getBidStrategy())
+                .bidStrategy(wrapper.getBidStrategyEnum().getType())
                 .campaignId(wrapper.getAdDTO().getCampaign().getId())
                 .campaignName(wrapper.getAdDTO().getCampaign().getName())
                 .adGroupId(wrapper.getAdDTO().getAdGroup().getId())
@@ -137,6 +137,7 @@ public class ResponseLogger {
                 .schain(ExtHelper.listSChain(bidRequest.getSource()))
                 .impFrequency(wrapper.getImpFrequency())
                 .clickFrequency(wrapper.getClickFrequency())
+                .bidStage(wrapper.getBidStageEnum().getType())
                 .build();
     }
 }

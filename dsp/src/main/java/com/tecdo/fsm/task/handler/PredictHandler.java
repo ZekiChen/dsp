@@ -1,16 +1,15 @@
 package com.tecdo.fsm.task.handler;
 
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.StrUtil;
 import com.dianping.cat.Cat;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.ab.util.AbTestConfigHelper;
-import com.tecdo.adm.api.delivery.entity.Affiliate;
-import com.tecdo.adm.api.delivery.entity.CampaignRtaInfo;
-import com.tecdo.adm.api.delivery.entity.Creative;
-import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
-import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
+import com.tecdo.adm.api.delivery.entity.*;
+import com.tecdo.adm.api.delivery.enums.*;
+import com.tecdo.adm.api.doris.dto.BundleCost;
 import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
@@ -29,6 +28,7 @@ import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.AbTestConfig;
 import com.tecdo.service.init.AbTestConfigManager;
+import com.tecdo.service.init.doris.AdGroupBundleManager;
 import com.tecdo.service.init.doris.GooglePlayAppManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ResponseTypeEnum;
@@ -81,68 +81,108 @@ public class PredictHandler {
 
     private final AbTestConfigManager abTestConfigManager;
     private final GooglePlayAppManager googlePlayAppManager;
+    private final AdGroupBundleManager adGroupBundleManager;
 
     public int callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap, Params params,
                               BidRequest bidRequest, Imp imp, Affiliate affiliate, IProtoTransform protoTransform) {
-        Map<Integer, AdDTOWrapper> cpcMap = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpaMap = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpa1Map = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpa2Map = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpa3Map = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpa10Map = new HashMap<>();
-        Map<Integer, AdDTOWrapper> cpsMap = new HashMap<>();
         Map<Integer, AdDTOWrapper> noNeedPredict = new HashMap<>();
-        adDTOMap.forEach((k, v) -> {
-            BidStrategyEnum strategyEnum = BidStrategyEnum.of(v.getAdDTO().getAdGroup().getBidStrategy());
-            switch (strategyEnum) {
+        Map<BidStrategyEnum, String> strategyUrlMap = new HashMap<>();
+        strategyUrlMap.put(BidStrategyEnum.CPC, ctrPredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPA, cvrPredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPA_EVENT1, cvrEvent1PredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPA_EVENT2, cvrEvent2PredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPA_EVENT3, cvrEvent3PredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPA_EVENT10, cvrEvent10PredictUrl);
+        strategyUrlMap.put(BidStrategyEnum.CPS, cvrEvent11PredictUrl);
+
+        Map<BidStrategyEnum, Map<Integer, AdDTOWrapper>> strategyAdMap = new HashMap<>();
+        for (BidStrategyEnum strategy : BidStrategyEnum.values()) {
+            strategyAdMap.put(strategy, new HashMap<>());
+        }
+
+        for (Map.Entry<Integer, AdDTOWrapper> entry : adDTOMap.entrySet()) {
+            Integer adId = entry.getKey();
+            AdDTOWrapper w = entry.getValue();
+            AdGroup adGroup = w.getAdDTO().getAdGroup();
+
+            BidStrategyEnum strategy = getBidStrategyByBidMode(bidRequest, w, adGroup);
+
+            switch (strategy) {
                 case CPC:
-                    cpcMap.put(k, v);
-                    break;
                 case CPA:
-                    cpaMap.put(k, v);
+                    strategyAdMap.get(strategy).put(adId, w);
                     break;
                 case CPA_EVENT1:
-                    cpcMap.put(k, v);
-                    cpa1Map.put(k, v);
-                    break;
                 case CPA_EVENT2:
-                    cpcMap.put(k, v);
-                    cpa2Map.put(k, v);
-                    break;
                 case CPA_EVENT3:
-                    cpcMap.put(k, v);
-                    cpa3Map.put(k, v);
-                    break;
                 case CPA_EVENT10:
-                    cpcMap.put(k, v);
-                    cpa10Map.put(k, v);
+                    strategyAdMap.get(BidStrategyEnum.CPC).put(adId, w);
+                    strategyAdMap.get(strategy).put(adId, w);
                     break;
                 case CPS:
-                    String forceLink = v.getAdDTO().getAdGroup().getForceLink();
-                    if (ResponseTypeEnum.FORCE.equals(protoTransform.getResponseType(forceLink, v))) {
-                        v.setPCtr(forceJumpPCtr);
+                    String forceLink = w.getAdDTO().getAdGroup().getForceLink();
+                    if (ResponseTypeEnum.FORCE.equals(protoTransform.getResponseType(forceLink, w))) {
+                        w.setPCtr(forceJumpPCtr);
                     } else {
-                        cpcMap.put(k, v);
+                        strategyAdMap.get(BidStrategyEnum.CPC).put(adId, w);
                     }
-                    cpsMap.put(k, v);
+                    strategyAdMap.get(strategy).put(adId, w);
                     break;
                 case CPM:
                 case DYNAMIC:
                 default:
-                    noNeedPredict.put(k, v);
+                    noNeedPredict.put(adId, w);
             }
-        });
-        int needReceiveCount = callAndMetricPredict(cpcMap, "ctr-batch-size", ctrPredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpaMap, "cvr-batch-size", cvrPredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpa1Map, "cvr-event1-batch-size", cvrEvent1PredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpa2Map, "cvr-event2-batch-size", cvrEvent2PredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpa3Map, "cvr-event3-batch-size", cvrEvent3PredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpa10Map, "cvr-event10-batch-size", cvrEvent10PredictUrl, params, bidRequest, imp, affiliate)
-                + callAndMetricPredict(cpsMap, "cvr-event11-batch-size", cvrEvent11PredictUrl, params, bidRequest, imp, affiliate);
+        }
+
+        int needReceiveCount = 0;
+        for (Map.Entry<BidStrategyEnum, Map<Integer, AdDTOWrapper>> entry : strategyAdMap.entrySet()) {
+            needReceiveCount += callAndMetricPredict(entry.getValue(),
+                    entry.getKey().name() + "-batch-size",
+                    strategyUrlMap.get(entry.getKey()),
+                    params, bidRequest, imp, affiliate);
+        }
 
         messageQueue.putMessage(EventType.PREDICT_FINISH,
                 params.put(ParamKey.ADS_PREDICT_RESPONSE, noNeedPredict));
         return ++needReceiveCount;
+    }
+
+    private BidStrategyEnum getBidStrategyByBidMode(BidRequest bidRequest, AdDTOWrapper w, AdGroup adGroup) {
+        BidStrategyEnum strategy;
+        if (BidModeEnum.BASE_BID.getType() == adGroup.getBidMode()) {  // 常规出价
+            strategy = BidStrategyEnum.of(adGroup.getBidStrategy());
+            w.setBidStageEnum(MultiBidStageEnum.OTHER);
+            w.setBidAlgorithmEnum(BidAlgorithmEnum.of(adGroup.getBidAlgorithm()));
+            w.setOptPrice(adGroup.getOptPrice());
+            w.setBidMultiplier(adGroup.getBidMultiplier());
+            w.setBidProbability(adGroup.getBidProbability());
+            w.setBundleTestEnable(adGroup.getBundleTestEnable());
+        } else {  // 双阶段出价
+            String queryKey = bidRequest.getApp().getBundle() + StrUtil.COMMA + adGroup.getId();
+            Map<Integer, MultiBidStrategy> twoStageBidMap = w.getAdDTO().getTwoStageBidMap();
+            MultiBidStrategy firstStage = twoStageBidMap.get(MultiBidStageEnum.FIRST.getType());
+            MultiBidStrategy secondStage = twoStageBidMap.get(MultiBidStageEnum.SECOND.getType());
+            if (isUseSecondStageBid(firstStage, adGroupBundleManager.getAdGroupBundleData(queryKey))) {
+                strategy = BidStrategyEnum.of(secondStage.getBidStrategy());
+                w.setBidStageEnum(MultiBidStageEnum.SECOND);
+                w.setBidAlgorithmEnum(BidAlgorithmEnum.of(secondStage.getBidAlgorithm()));
+                w.setOptPrice(secondStage.getOptPrice());
+                w.setBidMultiplier(secondStage.getBidMultiplier());
+                w.setBidProbability(secondStage.getBidProbability());
+                w.setBundleTestEnable(secondStage.getBundleTestEnable());
+            } else {
+                strategy = BidStrategyEnum.of(firstStage.getBidStrategy());
+                w.setBidStageEnum(MultiBidStageEnum.FIRST);
+                w.setBidAlgorithmEnum(BidAlgorithmEnum.of(firstStage.getBidAlgorithm()));
+                w.setOptPrice(firstStage.getOptPrice());
+                w.setBidMultiplier(firstStage.getBidMultiplier());
+                w.setBidProbability(firstStage.getBidProbability());
+                w.setBundleTestEnable(firstStage.getBundleTestEnable());
+            }
+        }
+        w.setBidStrategyEnum(strategy);
+        return strategy;
     }
 
     private int callAndMetricPredict(Map<Integer, AdDTOWrapper> adDTOMap,
@@ -292,5 +332,17 @@ public class PredictHandler {
                 .impFrequency(wrapper.getImpFrequency())
                 .clickFrequency(wrapper.getClickFrequency())
                 .build();
+    }
+
+    /**
+     * 是否使用第二阶段的出价策略
+     */
+    private boolean isUseSecondStageBid(MultiBidStrategy firstStage, BundleCost history) {
+        Integer clickCond = firstStage.getClickCond();
+        Integer impCond = firstStage.getImpCond();
+        Double costCond = firstStage.getCostCond();
+        return (clickCond != null && clickCond <= history.getClickCount())
+                || (impCond != null && impCond <= history.getImpCount())
+                || (costCond != null && costCond <= history.getCost());
     }
 }

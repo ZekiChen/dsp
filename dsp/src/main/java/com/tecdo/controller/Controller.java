@@ -90,6 +90,10 @@ public class Controller implements MessageObserver {
       case BUNDLE_COST_LOAD_RESPONSE:
       case BUNDLE_COST_LOAD_ERROR:
       case BUNDLE_COST_LOAD_TIMEOUT:
+      case ADGROUP_BUNDLE_DATA_LOAD:
+      case ADGROUP_BUNDLE_DATA_LOAD_RESPONSE:
+      case ADGROUP_BUNDLE_DATA_LOAD_ERROR:
+      case ADGROUP_BUNDLE_DATA_LOAD_TIMEOUT:
       case ONE_DATA_READY:
       case NETTY_START:
       case RECEIVE_PING_REQUEST:
