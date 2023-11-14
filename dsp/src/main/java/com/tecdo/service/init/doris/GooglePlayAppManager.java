@@ -49,6 +49,9 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
   @Value("${pac.interval.reload.db.default}")
   private long reloadInterval;
 
+  @Value("${pac.init.reload.interval:60000}")
+  private long initReloadInterval;
+
   private static GooglePlayApp EMPTY = new GooglePlayApp();
 
   public GooglePlayApp getGoogleApp(String bundleId) {
@@ -97,6 +100,10 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
 
   private void startNextReloadTimer(Params params) {
     softTimer.startTimer(EventType.GP_APP_LOAD, params, reloadInterval);
+  }
+
+  private void startInitReloadTimer(Params params) {
+    softTimer.startTimer(EventType.GP_APP_LOAD, params, initReloadInterval);
   }
 
   public void switchState(State state) {
@@ -211,10 +218,14 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
   private void handleLoadError(Params params) {
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
+        cancelReloadTimeoutTimer();
+        startInitReloadTimer(params);
+        switchState(State.INIT);
+        break;
       case UPDATING:
         cancelReloadTimeoutTimer();
         startNextReloadTimer(params);
-        switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
+        switchState(State.RUNNING);
         break;
       default:
         log.error("Can't handle event, state: {}", currentState);
@@ -224,10 +235,14 @@ public class GooglePlayAppManager extends ServiceImpl<GooglePlayAppMapper, Googl
   private void handleLoadTimeout(Params params) {
     switch (currentState) {
       case WAIT_INIT_RESPONSE:
+        log.error("timeout load gp app info");
+        startInitReloadTimer(params);
+        switchState(State.INIT);
+        break;
       case UPDATING:
         log.error("timeout load gp app info");
         startNextReloadTimer(params);
-        switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
+        switchState(State.RUNNING);
         break;
       default:
         log.error("Can't handle event, state: {}", currentState);
