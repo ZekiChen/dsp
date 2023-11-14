@@ -50,6 +50,8 @@ public class AdGroupBundleManager extends ServiceImpl<ReportMapper, Report> {
     private long loadTimeout;
     @Value("${pac.interval.reload.doris.adgroup-bundle-data}")
     private long reloadInterval;
+    @Value("${pac.init.reload.interval:60000}")
+    private long initReloadInterval;
 
     /**
      * 从 Doris 加载 历史bundle-group的曝光、点击、花费 集合，每 5 分钟刷新一次缓存
@@ -88,6 +90,10 @@ public class AdGroupBundleManager extends ServiceImpl<ReportMapper, Report> {
 
     private void startNextReloadTimer(Params params) {
         softTimer.startTimer(EventType.ADGROUP_BUNDLE_DATA_LOAD, params, reloadInterval);
+    }
+
+    private void startInitReloadTimer(Params params) {
+        softTimer.startTimer(EventType.ADGROUP_BUNDLE_DATA_LOAD, params, initReloadInterval);
     }
 
     public void switchState(State state) {
@@ -162,10 +168,14 @@ public class AdGroupBundleManager extends ServiceImpl<ReportMapper, Report> {
     private void handleError(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                cancelReloadTimeoutTimer();
+                startInitReloadTimer(params);
+                switchState(State.INIT);
+                break;
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 startNextReloadTimer(params);
-                switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
+                switchState(State.RUNNING);
                 break;
             default:
                 log.error("Can't handle event, state: {}", currentState);
@@ -175,10 +185,14 @@ public class AdGroupBundleManager extends ServiceImpl<ReportMapper, Report> {
     private void handleTimeout(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                log.error("timeout load bundle cost");
+                startInitReloadTimer(params);
+                switchState(State.INIT);
+                break;
             case UPDATING:
                 log.error("timeout load bundle cost");
                 startNextReloadTimer(params);
-                switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
+                switchState(State.RUNNING);
                 break;
             default:
                 log.error("Can't handle event, state: {}", currentState);

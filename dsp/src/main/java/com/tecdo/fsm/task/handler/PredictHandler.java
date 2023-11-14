@@ -152,6 +152,7 @@ public class PredictHandler {
         BidStrategyEnum strategy;
         if (BidModeEnum.BASE_BID.getType() == adGroup.getBidMode()) {  // 常规出价
             strategy = BidStrategyEnum.of(adGroup.getBidStrategy());
+            w.setBidStageEnum(MultiBidStageEnum.OTHER);
             w.setBidAlgorithmEnum(BidAlgorithmEnum.of(adGroup.getBidAlgorithm()));
             w.setOptPrice(adGroup.getOptPrice());
             w.setBidMultiplier(adGroup.getBidMultiplier());
