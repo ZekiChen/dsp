@@ -22,7 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class FilterChainHelper {
 
-    private static HashSet<Class> ignoreFilter = CollUtil.newHashSet(AffiliateFilter.class);
+    private static HashSet<Class> ignoreLogFilter = CollUtil.newHashSet(AffiliateFilter.class);
 
     /**
      * 过滤处理器组装成链
@@ -43,7 +43,7 @@ public class FilterChainHelper {
                                         Imp imp,
                                         Affiliate affiliate) {
         boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
-        if (!filterFlag && !ignoreFilter.contains(curFilter.getClass())) {
+        if (!filterFlag && !ignoreLogFilter.contains(curFilter.getClass())) {
             NotBidReasonLogger.log(bidId,
                                    adDTO.getAd().getId(),
                                    curFilter.getClass().getSimpleName());
@@ -52,7 +52,7 @@ public class FilterChainHelper {
         while (filterFlag && curFilter.hasNext()) {
             curFilter = curFilter.getNextFilter();
             filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
-            if (!filterFlag && !ignoreFilter.contains(curFilter.getClass())) {
+            if (!filterFlag && !ignoreLogFilter.contains(curFilter.getClass())) {
                 NotBidReasonLogger.log(bidId,
                                        adDTO.getAd().getId(),
                                        curFilter.getClass().getSimpleName());
