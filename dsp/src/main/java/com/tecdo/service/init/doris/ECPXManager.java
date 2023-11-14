@@ -44,6 +44,9 @@ public class ECPXManager extends ServiceImpl<ReportMapper, Report> {
     @Value("${pac.interval.reload.doris.report.ecpx}")
     private long reloadInterval;
 
+    @Value("${pac.init.reload.interval:60000}")
+    private long initReloadInterval;
+
     private static final ECPX EMPTY = new ECPX();
 
     /**
@@ -87,6 +90,10 @@ public class ECPXManager extends ServiceImpl<ReportMapper, Report> {
 
     private void startNextReloadTimer(Params params) {
         softTimer.startTimer(EventType.ECPX_LOAD, params, reloadInterval);
+    }
+
+    private void startInitReloadTimer(Params params) {
+        softTimer.startTimer(EventType.ECPX_LOAD, params, initReloadInterval);
     }
 
     public void switchState(State state) {
@@ -162,10 +169,14 @@ public class ECPXManager extends ServiceImpl<ReportMapper, Report> {
     private void handleECPXError(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                cancelReloadTimeoutTimer();
+                startInitReloadTimer(params);
+                switchState(State.INIT);
+                break;
             case UPDATING:
                 cancelReloadTimeoutTimer();
                 startNextReloadTimer(params);
-                switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
+                switchState(State.RUNNING);
                 break;
             default:
                 log.error("Can't handle event, state: {}", currentState);
@@ -175,10 +186,14 @@ public class ECPXManager extends ServiceImpl<ReportMapper, Report> {
     private void handleECPXTimeout(Params params) {
         switch (currentState) {
             case WAIT_INIT_RESPONSE:
+                log.error("timeout load eCPXs");
+                startInitReloadTimer(params);
+                switchState(State.INIT);
+                break;
             case UPDATING:
                 log.error("timeout load eCPXs");
                 startNextReloadTimer(params);
-                switchState(currentState == State.WAIT_INIT_RESPONSE ? State.INIT : State.RUNNING);
+                switchState(State.RUNNING);
                 break;
             default:
                 log.error("Can't handle event, state: {}", currentState);
