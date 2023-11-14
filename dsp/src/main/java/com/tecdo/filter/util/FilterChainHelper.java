@@ -5,10 +5,13 @@ import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.AbstractRecallFilter;
+import com.tecdo.filter.AffiliateFilter;
 import com.tecdo.log.NotBidReasonLogger;
 
+import java.util.HashSet;
 import java.util.List;
 
+import cn.hutool.core.collection.CollUtil;
 import lombok.extern.slf4j.Slf4j;
 
 /**
@@ -18,6 +21,8 @@ import lombok.extern.slf4j.Slf4j;
  **/
 @Slf4j
 public class FilterChainHelper {
+
+    private static HashSet<Class> ignoreLogFilter = CollUtil.newHashSet(AffiliateFilter.class);
 
     /**
      * 过滤处理器组装成链
@@ -38,7 +43,7 @@ public class FilterChainHelper {
                                         Imp imp,
                                         Affiliate affiliate) {
         boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
-        if (!filterFlag) {
+        if (!filterFlag && !ignoreLogFilter.contains(curFilter.getClass())) {
             NotBidReasonLogger.log(bidId,
                                    adDTO.getAd().getId(),
                                    curFilter.getClass().getSimpleName());
@@ -47,7 +52,7 @@ public class FilterChainHelper {
         while (filterFlag && curFilter.hasNext()) {
             curFilter = curFilter.getNextFilter();
             filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
-            if (!filterFlag) {
+            if (!filterFlag && !ignoreLogFilter.contains(curFilter.getClass())) {
                 NotBidReasonLogger.log(bidId,
                                        adDTO.getAd().getId(),
                                        curFilter.getClass().getSimpleName());
