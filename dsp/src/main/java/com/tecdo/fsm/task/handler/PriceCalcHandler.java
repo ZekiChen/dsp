@@ -91,24 +91,8 @@ public class PriceCalcHandler {
     private void groupCalcAdMap(Map<Integer, AdDTOWrapper> afterPredictAdMap,
                                 Map<Integer, AdDTOWrapper> learningCalcAdMap,
                                 Map<Integer, AdDTOWrapper> generalCalcAdMap) {
-        afterPredictAdMap.values().forEach(w -> {
-            AdGroup adGroup = w.getAdDTO().getAdGroup();
-            if (BidModeEnum.BASE_BID.getType() == adGroup.getBidMode()) {  // 常规出价
-                groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, w,
-                        adGroup.getBidStrategy(), adGroup.getBidAlgorithm());
-            } else {  // 双阶段出价
-                Map<Integer, MultiBidStrategy> twoStageBidMap = w.getAdDTO().getTwoStageBidMap();
-                MultiBidStrategy firstStage = twoStageBidMap.get(MultiBidStageEnum.FIRST.getType());
-                MultiBidStrategy secondStage = twoStageBidMap.get(MultiBidStageEnum.SECOND.getType());
-                if (MultiBidStageEnum.FIRST == w.getBidStageEnum()) {
-                    groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, w,
-                            firstStage.getBidStrategy(), firstStage.getBidAlgorithm());
-                } else {
-                    groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap, w,
-                            secondStage.getBidStrategy(), secondStage.getBidAlgorithm());
-                }
-            }
-        });
+        afterPredictAdMap.values().forEach(w -> groupByBidAlgorithm(learningCalcAdMap, generalCalcAdMap,
+                w, w.getBidStrategyEnum().getType(), w.getBidAlgorithmEnum().getType()));
     }
 
     private void groupByBidAlgorithm(Map<Integer, AdDTOWrapper> learningCalcAdMap,
@@ -245,7 +229,7 @@ public class PriceCalcHandler {
         BundleData bundleData = bundleDataManager.getBundleData(key);
         // 该广告位的曝光量小于指定大小、且开启了Bundle自动化探索开关，则进行探索
         BigDecimal finalPrice = !bundleDataManager.isImpGtSize(key) && bundleData != null
-                && adDTOWrapper.getAdDTO().getAdGroup().getBundleTestEnable()
+                && adDTOWrapper.getBundleTestEnable()
                 ? bundleAutoExplore(bundleData, affiliate, imp)
                 : calcPriceByFormula(adDTOWrapper, bidRequest, imp);
         finalPrice = maxPriceLimit(finalPrice);
@@ -254,10 +238,9 @@ public class PriceCalcHandler {
     }
 
     private BigDecimal calcPriceByFormula(AdDTOWrapper adDTOWrapper, BidRequest bidRequest, Imp imp) {
-        AdGroup adGroup = adDTOWrapper.getAdDTO().getAdGroup();
-        BigDecimal optPrice = BigDecimal.valueOf(adGroup.getOptPrice());
-        BidStrategyEnum bidStrategy = BidStrategyEnum.of(adGroup.getBidStrategy());
-        boolean ecpxEnable = useEcpxBidPrice(adGroup.getBidAlgorithm());
+        BigDecimal optPrice = BigDecimal.valueOf(adDTOWrapper.getOptPrice());
+        BidStrategyEnum bidStrategy = BidStrategyEnum.of(adDTOWrapper.getBidStrategyEnum().getType());
+        boolean ecpxEnable = useEcpxBidPrice(adDTOWrapper.getBidAlgorithmEnum().getType());
         BigDecimal finalPrice;
         BigDecimal eCPX = bidPriceService.getECPX(bidStrategy, bidRequest, imp);
         switch (bidStrategy) {
@@ -275,8 +258,8 @@ public class PriceCalcHandler {
                 break;
             case DYNAMIC:
                 ThreadLocalRandom random = ThreadLocalRandom.current();
-                if (adGroup.getBidProbability() > random.nextDouble(100)) {
-                    finalPrice = BigDecimal.valueOf(adGroup.getBidMultiplier())
+                if (adDTOWrapper.getBidProbability() > random.nextDouble(100)) {
+                    finalPrice = BigDecimal.valueOf(adDTOWrapper.getBidMultiplier())
                             .multiply(BigDecimal.valueOf(imp.getBidfloor()))
                             .min(optPrice);  // MAX CPM
                 } else {

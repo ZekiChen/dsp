@@ -8,10 +8,7 @@ import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.ab.util.AbTestConfigHelper;
 import com.tecdo.adm.api.delivery.entity.*;
-import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
-import com.tecdo.adm.api.delivery.enums.BidModeEnum;
-import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
-import com.tecdo.adm.api.delivery.enums.MultiBidStageEnum;
+import com.tecdo.adm.api.delivery.enums.*;
 import com.tecdo.adm.api.doris.dto.BundleCost;
 import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.common.util.Params;
@@ -108,22 +105,7 @@ public class PredictHandler {
             AdDTOWrapper w = entry.getValue();
             AdGroup adGroup = w.getAdDTO().getAdGroup();
 
-            BidStrategyEnum strategy;
-            if (BidModeEnum.BASE_BID.getType() == adGroup.getBidMode()) {  // 常规出价
-                strategy = BidStrategyEnum.of(adGroup.getBidStrategy());
-            } else {  // 双阶段出价
-                String queryKey = bidRequest.getApp().getBundle() + StrUtil.COMMA + adGroup.getId();
-                Map<Integer, MultiBidStrategy> twoStageBidMap = w.getAdDTO().getTwoStageBidMap();
-                MultiBidStrategy firstStage = twoStageBidMap.get(MultiBidStageEnum.FIRST.getType());
-                MultiBidStrategy secondStage = twoStageBidMap.get(MultiBidStageEnum.SECOND.getType());
-                if (isUseSecondStageBid(firstStage, adGroupBundleManager.getAdGroupBundleData(queryKey))) {
-                    strategy = BidStrategyEnum.of(secondStage.getBidStrategy());
-                    w.setBidStageEnum(MultiBidStageEnum.SECOND);
-                } else {
-                    strategy = BidStrategyEnum.of(firstStage.getBidStrategy());
-                    w.setBidStageEnum(MultiBidStageEnum.FIRST);
-                }
-            }
+            BidStrategyEnum strategy = getBidStrategyByBidMode(bidRequest, w, adGroup);
 
             switch (strategy) {
                 case CPC:
@@ -164,6 +146,42 @@ public class PredictHandler {
         messageQueue.putMessage(EventType.PREDICT_FINISH,
                 params.put(ParamKey.ADS_PREDICT_RESPONSE, noNeedPredict));
         return ++needReceiveCount;
+    }
+
+    private BidStrategyEnum getBidStrategyByBidMode(BidRequest bidRequest, AdDTOWrapper w, AdGroup adGroup) {
+        BidStrategyEnum strategy;
+        if (BidModeEnum.BASE_BID.getType() == adGroup.getBidMode()) {  // 常规出价
+            strategy = BidStrategyEnum.of(adGroup.getBidStrategy());
+            w.setBidAlgorithmEnum(BidAlgorithmEnum.of(adGroup.getBidAlgorithm()));
+            w.setOptPrice(adGroup.getOptPrice());
+            w.setBidMultiplier(adGroup.getBidMultiplier());
+            w.setBidProbability(adGroup.getBidProbability());
+            w.setBundleTestEnable(adGroup.getBundleTestEnable());
+        } else {  // 双阶段出价
+            String queryKey = bidRequest.getApp().getBundle() + StrUtil.COMMA + adGroup.getId();
+            Map<Integer, MultiBidStrategy> twoStageBidMap = w.getAdDTO().getTwoStageBidMap();
+            MultiBidStrategy firstStage = twoStageBidMap.get(MultiBidStageEnum.FIRST.getType());
+            MultiBidStrategy secondStage = twoStageBidMap.get(MultiBidStageEnum.SECOND.getType());
+            if (isUseSecondStageBid(firstStage, adGroupBundleManager.getAdGroupBundleData(queryKey))) {
+                strategy = BidStrategyEnum.of(secondStage.getBidStrategy());
+                w.setBidStageEnum(MultiBidStageEnum.SECOND);
+                w.setBidAlgorithmEnum(BidAlgorithmEnum.of(secondStage.getBidAlgorithm()));
+                w.setOptPrice(secondStage.getOptPrice());
+                w.setBidMultiplier(secondStage.getBidMultiplier());
+                w.setBidProbability(secondStage.getBidProbability());
+                w.setBundleTestEnable(secondStage.getBundleTestEnable());
+            } else {
+                strategy = BidStrategyEnum.of(firstStage.getBidStrategy());
+                w.setBidStageEnum(MultiBidStageEnum.FIRST);
+                w.setBidAlgorithmEnum(BidAlgorithmEnum.of(firstStage.getBidAlgorithm()));
+                w.setOptPrice(firstStage.getOptPrice());
+                w.setBidMultiplier(firstStage.getBidMultiplier());
+                w.setBidProbability(firstStage.getBidProbability());
+                w.setBundleTestEnable(firstStage.getBundleTestEnable());
+            }
+        }
+        w.setBidStrategyEnum(strategy);
+        return strategy;
     }
 
     private int callAndMetricPredict(Map<Integer, AdDTOWrapper> adDTOMap,
