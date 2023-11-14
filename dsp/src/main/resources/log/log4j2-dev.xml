@@ -71,6 +71,10 @@
         <Logger name="sdk_pb_log" level="INFO" additivity="false">
             <AppenderRef ref="SDK_PB_LOG"/>
         </Logger>
+
+        <Logger name="not_bid_reason_log" level="INFO" additivity="false">
+            <AppenderRef ref="NOT_BID_REASON_LOG"/>
+        </Logger>
     </Loggers>
 
 </Configuration>

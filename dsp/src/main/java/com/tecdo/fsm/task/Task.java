@@ -1,6 +1,5 @@
 package com.tecdo.fsm.task;
 
-import cn.hutool.extra.spring.SpringUtil;
 import com.dianping.cat.Cat;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.enums.AdvTypeEnum;
@@ -12,22 +11,31 @@ import com.tecdo.controller.SoftTimer;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.fsm.task.state.ITaskState;
-import com.tecdo.fsm.task.state.InitState;
-import com.tecdo.service.rta.Target;
 import com.tecdo.fsm.task.handler.AdRecallHandler;
 import com.tecdo.fsm.task.handler.PredictHandler;
 import com.tecdo.fsm.task.handler.PriceCalcHandler;
 import com.tecdo.fsm.task.handler.RtaHandler;
+import com.tecdo.fsm.task.state.ITaskState;
+import com.tecdo.fsm.task.state.InitState;
+import com.tecdo.log.NotBidReasonLogger;
+import com.tecdo.service.rta.Target;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.util.ActionConsumeRecorder;
-import lombok.Getter;
-import lombok.extern.slf4j.Slf4j;
 
 import java.math.BigDecimal;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
+
+import cn.hutool.extra.spring.SpringUtil;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Getter
@@ -177,13 +185,16 @@ public class Task {
 
     public void priceFilter(Map<Integer, AdDTOWrapper> adDTOMap) {
         // 过滤掉出价低于底价的广告
-        adDTOMap = adDTOMap.values()
-                .stream()
-                .filter(e -> e.getBidPrice()
-                        .compareTo(BigDecimal.valueOf(Optional.of(imp.getBidfloor())
-                                .orElse(0f))) >= 0)
-                .collect(Collectors.toMap(e -> e.getAdDTO().getAd().getId(), e -> e));
-        Params params = assignParams().put(ParamKey.ADS_PRICE_FILTER_RESPONSE, adDTOMap);
+        Map<Integer, AdDTOWrapper> map = new HashMap<>();
+        for (AdDTOWrapper e : adDTOMap.values()) {
+            if (e.getBidPrice()
+                 .compareTo(BigDecimal.valueOf(Optional.of(imp.getBidfloor()).orElse(0f))) >= 0) {
+                map.put(e.getAdDTO().getAd().getId(), e);
+            } else {
+                NotBidReasonLogger.log(taskId, e.getAdDTO().getAd().getId(), "bidFloorFilter");
+            }
+        }
+        Params params = assignParams().put(ParamKey.ADS_PRICE_FILTER_RESPONSE, map);
         messageQueue.putMessage(EventType.PRICE_FILTER_FINISH, params);
         record();
     }
@@ -235,9 +246,15 @@ public class Task {
             });
         }
         // 只保留非rta的单子 和 rta并且匹配的单子
-        this.normalOrRtaTrueAds = this.afterPriceFilterAdMap.values().stream()
-                .filter(i -> i.getAdDTO().getCampaignRtaInfo() == null || i.getRtaRequestTrue() == 1)
-                .collect(Collectors.toList());
+        List<AdDTOWrapper> list = new ArrayList<>();
+        for (AdDTOWrapper i : this.afterPriceFilterAdMap.values()) {
+            if (i.getAdDTO().getCampaignRtaInfo() == null || i.getRtaRequestTrue() == 1) {
+                list.add(i);
+            } else {
+                NotBidReasonLogger.log(taskId, i.getAdDTO().getAd().getId(), "rtaFilter");
+            }
+        }
+        this.normalOrRtaTrueAds = list;
         log.info("contextId: {}, after rta filter, size: {}", requestId, normalOrRtaTrueAds.size());
     }
 
