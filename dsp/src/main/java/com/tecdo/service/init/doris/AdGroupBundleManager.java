@@ -36,6 +36,8 @@ public class AdGroupBundleManager extends ServiceImpl<ReportMapper, Report> {
     private ThreadPool threadPool;
     @Autowired
     private ReportMapper reportMapper;
+    @Value("${pac.load.doris.adgroup-bundle-data.day-period}")
+    private Integer dayPeriod;
 
     private State currentState = State.INIT;
     private long timerId;
@@ -126,7 +128,7 @@ public class AdGroupBundleManager extends ServiceImpl<ReportMapper, Report> {
                 threadPool.execute(() -> {
                     try {
                         long startTime = System.currentTimeMillis();
-                        String startDate = DateUtil.offsetDay(new Date(), -90).toDateStr();
+                        String startDate = DateUtil.offsetDay(new Date(), -dayPeriod).toDateStr();
                         String endDate = DateUtil.today();
                         Map<String, BundleCost> adGroupBundleHistoryMap = reportMapper.listBundleAdGroupData(startDate, endDate)
                                 .stream().collect(Collectors.toMap(BundleCost::toString, cost -> cost));
