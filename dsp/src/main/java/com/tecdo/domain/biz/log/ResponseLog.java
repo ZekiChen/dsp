@@ -333,4 +333,7 @@ public class ResponseLog implements Serializable {
 
     @JsonProperty("bid_stage")
     private Integer bidStage;
+
+    @JsonProperty("offer_id")
+    private Integer offerId;
 }

@@ -63,5 +63,7 @@ public class AdGroup extends BaseEntity {
     private Boolean encryptClickUrlEnable;
     @ApiModelProperty("点击链接加密域名")
     private String encryptClickUrlDomain;
+    @ApiModelProperty("用于映射网盟的offer_id")
+    private Integer offerId;
 
 }
