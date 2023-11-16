@@ -24,6 +24,7 @@ import com.tecdo.adm.delivery.service.ITargetConditionService;
 import com.tecdo.adm.doris.IGooglePlayAppService;
 import com.tecdo.adm.doris.IRequestService;
 import com.tecdo.adm.log.service.IBizLogApiService;
+import com.tecdo.common.util.GoogleURIParserAdapter;
 import com.tecdo.common.util.UrlParamUtil;
 import com.tecdo.starter.log.exception.ServiceException;
 import com.tecdo.starter.mp.entity.BaseEntity;
@@ -52,7 +53,6 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     private final ITargetConditionService conditionService;
     private final IAdService adService;
     private final IBizLogApiService bizLogApiService;
-    private final IGooglePlayAppService googlePlayAppService;
     private final IRequestService requestService;
     private final IMultiBidStrategyService strategyService;
 

@@ -2,6 +2,7 @@ package com.tecdo.common.util;
 
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 /**
  * Url请求参数解析
@@ -14,19 +15,7 @@ public class UrlParamUtil {
         if (urlStr == null || "".equals(urlStr)) {
             return null;
         }
-        try {
-            URL url = new URL(urlStr);
-            String query = url.getQuery();
-            String[] params = query.split("&");
-            for (String param : params) {
-                String[] pair = param.split("=");
-                if (pair[0].equals(key)) {
-                    return pair[1];
-                }
-            }
-        } catch (MalformedURLException e) {
-            throw new RuntimeException("Your URL is not valid. Please check it and try again.");
-        }
-        return null;
+        Map<String, String> paramMap = GoogleURIParserAdapter.getInstance().parseURI(urlStr);
+        return paramMap.get(key);
     }
 }
