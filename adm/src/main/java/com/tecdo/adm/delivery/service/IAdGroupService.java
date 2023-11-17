@@ -57,6 +57,9 @@ public interface IAdGroupService extends IService<AdGroup> {
     boolean hourUpdateBatch(BundleAdGroupUpdateVO vo);
 
     boolean fqcUpdateBatch(FqcAdGroupUpdateVO vo);
+    boolean limitBundleUpdateBatch(LimitBundleUpdateVO vo);
+    boolean autoBundleUpdateBatch(AutoBundleUpdateVO vo);
+
     List<StatusEntity> listStatus(List<Integer> ids);
 
     String countDevice(List<TargetCondition> conditions);
