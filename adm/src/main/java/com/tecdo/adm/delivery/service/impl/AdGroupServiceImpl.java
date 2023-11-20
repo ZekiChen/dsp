@@ -41,6 +41,8 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import static com.tecdo.adm.api.delivery.enums.ConditionEnum.*;
+
 /**
  * Created by Zeki on 2023/3/6
  */
@@ -425,59 +427,64 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     @Transactional
     public boolean fqcUpdateBatch(FqcAdGroupUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
-        if (vo.getIsImpUpdate()) {
-            LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
-                    .in(TargetCondition::getAdGroupId, adGroupIds)
-                    .in(TargetCondition::getAttribute, ConditionEnum.IMP_FREQUENCY.getDesc());
-            Map<Integer, TargetCondition> beConditonMap = conditionService.list(wrapper).stream()
-                    .collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
-            if (!beConditonMap.isEmpty()) {
-                conditionService.remove(wrapper);
-            }
-            if (StrUtil.isNotBlank(vo.getImpValue())) {
-                List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
-                    TargetCondition condition = new TargetCondition();
-                    condition.setAdGroupId(id);
-                    condition.setAttribute(ConditionEnum.IMP_FREQUENCY.getDesc());
-                    condition.setOperation(vo.getOperation());
-                    condition.setValue(vo.getImpValue());
-                    return condition;
-                }).collect(Collectors.toList());
-                conditionService.saveBatch(conditions);
-            }
-            BundleAdGroupUpdateVO bundleUpdateVO = new BundleAdGroupUpdateVO();
-            bundleUpdateVO.setAdGroupIds(adGroupIds);
-            bundleUpdateVO.setOperation(vo.getOperation());
-            bundleUpdateVO.setValue(vo.getImpValue());
-            bizLogApiService.logByUpdateBatchCondition("Imp Frequency", beConditonMap, bundleUpdateVO);
-        }
-        if (vo.getIsClickUpdate()) {
-            LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
-                    .in(TargetCondition::getAdGroupId, adGroupIds)
-                    .in(TargetCondition::getAttribute, ConditionEnum.CLICK_FREQUENCY.getDesc());
-            Map<Integer, TargetCondition> beConditonMap = conditionService.list(wrapper).stream()
-                    .collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
-            if (!beConditonMap.isEmpty()) {
-                conditionService.remove(wrapper);
-            }
-            if (StrUtil.isNotBlank(vo.getClickValue())) {
-                List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
-                    TargetCondition condition = new TargetCondition();
-                    condition.setAdGroupId(id);
-                    condition.setAttribute(ConditionEnum.CLICK_FREQUENCY.getDesc());
-                    condition.setOperation(vo.getOperation());
-                    condition.setValue(vo.getClickValue());
-                    return condition;
-                }).collect(Collectors.toList());
-                conditionService.saveBatch(conditions);
-            }
-            BundleAdGroupUpdateVO bundleUpdateVO = new BundleAdGroupUpdateVO();
-            bundleUpdateVO.setAdGroupIds(adGroupIds);
-            bundleUpdateVO.setOperation(vo.getOperation());
-            bundleUpdateVO.setValue(vo.getClickValue());
-            bizLogApiService.logByUpdateBatchCondition("Click Frequency", beConditonMap, bundleUpdateVO);
-        }
+        String operation = vo.getOperation();
+
+        // 更新
+        updateBatchConditions(vo.getIsImpUpdate(), adGroupIds, ConditionEnum.IMP_FREQUENCY.getDesc(),
+                operation, vo.getImpValue());
+        updateBatchConditions(vo.getIsClickUpdate(), adGroupIds, ConditionEnum.CLICK_FREQUENCY.getDesc(),
+                operation, vo.getClickValue());
+        updateBatchConditions(vo.getIsImpUpdateByHour(), adGroupIds, ConditionEnum.IMP_FREQUENCY_HOUR.getDesc(),
+                operation, vo.getImpValueByHour());
+        updateBatchConditions(vo.getIsClickUpdateByHour(), adGroupIds, ConditionEnum.CLICK_FREQUENCY_HOUR.getDesc(),
+                operation, vo.getClickValueByHour());
+
         batchUpdateTime(adGroupIds);
+        return true;
+    }
+
+    @Override
+    public boolean limitBundleUpdateBatch(LimitBundleUpdateVO vo) {
+        List<Integer> adGroupIds = vo.getAdGroupIds();
+        String operation = vo.getOperation();
+
+        // 更新
+        updateBatchConditions(vo.getIsImpUpdate(), adGroupIds, BUNDLE_IMP_CAP_DAY.getDesc(),
+                operation, vo.getImpValue());
+        updateBatchConditions(vo.getIsClickUpdate(), adGroupIds, BUNDLE_CLICK_CAP_DAY.getDesc(),
+                operation, vo.getClickValue());
+        updateBatchConditions(vo.getIsCostUpdate(), adGroupIds, BUNDLE_COST_CAP_DAY.getDesc(),
+                operation, vo.getCostValue());
+
+        batchUpdateTime(adGroupIds);
+
+        return true;
+    }
+
+    @Override
+    public boolean autoBundleUpdateBatch(AutoBundleUpdateVO vo) {
+        List<Integer> adGroupIds = vo.getAdGroupIds();
+        List<TargetConditionVO> conditionVOs = vo.getConditionVOs();
+        Set<String> attrSet = new HashSet<>(Arrays.asList(BUNDLE_BLACK_IMP.getDesc(), BUNDLE_BLACK_CLICK.getDesc(),
+                BUNDLE_BLACK_CTR.getDesc(), BUNDLE_BLACK_ROI.getDesc()));
+        Set<String> attrUpdated = conditionVOs.stream()
+                .map(TargetConditionVO::getAttribute)
+                .collect(Collectors.toSet());
+
+        // 删除未传入的condition条件
+        attrSet.removeAll(attrUpdated);
+        for (String attr : attrSet) {
+            updateBatchConditions(true, adGroupIds, attr, "", ""); // value为空自动删除，并记录日志
+        }
+
+        // 更新传入的condition条件
+        for (TargetConditionVO conditionVO : conditionVOs) {
+            updateBatchConditions(true, adGroupIds, conditionVO.getAttribute(),
+                    conditionVO.getOperation(), conditionVO.getValue());
+        }
+
+        batchUpdateTime(adGroupIds);
+
         return true;
     }
 
@@ -490,6 +497,50 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             }).collect(Collectors.toList());
             updateBatchById(adGroups);
         }
+    }
+
+    /**
+     * 批量更新Condition，value为空则删除
+     * @param isUpdated 为false则数据无变化
+     * @param adGroupIds 待更新的adGroup列表
+     * @param attribute condition-attribute
+     * @param operation condition-operation
+     * @param value condition-value
+     */
+    public void updateBatchConditions(Boolean isUpdated, List<Integer> adGroupIds, String attribute, String operation, String value) {
+        if (!isUpdated) return;
+
+        LambdaQueryWrapper<TargetCondition> wrapper = Wrappers.<TargetCondition>lambdaQuery()
+                .in(TargetCondition::getAdGroupId, adGroupIds)
+                .in(TargetCondition::getAttribute, attribute);
+
+        // 获取更新前的 conditions
+        Map<Integer, TargetCondition> beConditonMap = conditionService.list(wrapper).stream()
+                .collect(Collectors.toMap(TargetCondition::getAdGroupId, Function.identity()));
+
+        // 删除 conditions
+        if (!beConditonMap.isEmpty()) {
+            conditionService.remove(wrapper);
+        }
+
+        // value 不为空则更新，为空则默认删除
+        if (StrUtil.isNotBlank(value)) {
+            List<TargetCondition> conditions = adGroupIds.stream().map(id -> {
+                TargetCondition condition = new TargetCondition();
+                condition.setAdGroupId(id);
+                condition.setAttribute(attribute);
+                condition.setOperation(operation);
+                condition.setValue(value);
+                return condition;
+            }).collect(Collectors.toList());
+            conditionService.saveBatch(conditions);
+        }
+
+        BundleAdGroupUpdateVO bundleUpdateVO = new BundleAdGroupUpdateVO();
+        bundleUpdateVO.setAdGroupIds(adGroupIds);
+        bundleUpdateVO.setOperation(operation);
+        bundleUpdateVO.setValue(value);
+        bizLogApiService.logByUpdateBatchCondition(attribute, beConditonMap, bundleUpdateVO);
     }
 
     public List<StatusEntity> listStatus(List<Integer> ids) {

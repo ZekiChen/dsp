@@ -221,4 +221,20 @@ public class AdGroupController {
         log.info("count device cost: {}s", (System.currentTimeMillis() - start) / 1000);
         return data;
     }
+
+    @PutMapping("/limit-bundle-update-batch")
+    @ApiOperationSupport(order = 16)
+    @ApiOperation(value = "批量修改bundle投放限制规则", notes = "传入 Objct")
+    public R limitBundleUpdateBatch(@Valid @RequestBody LimitBundleUpdateVO limitBundleUpdateVO) {
+        CacheUtil.clear(AD_GROUP_CACHE);
+        return R.status(service.limitBundleUpdateBatch(limitBundleUpdateVO));
+    }
+
+    @PutMapping("/auto-bundle-update-batch")
+    @ApiOperationSupport(order = 17)
+    @ApiOperation(value = "批量修改bundle自动拉黑规则", notes = "传入 Objct")
+    public R autoBundleUpdateBatch(@Valid @RequestBody AutoBundleUpdateVO autoBundleUpdateVO) {
+        CacheUtil.clear(AD_GROUP_CACHE);
+        return R.status(service.autoBundleUpdateBatch(autoBundleUpdateVO));
+    }
 }

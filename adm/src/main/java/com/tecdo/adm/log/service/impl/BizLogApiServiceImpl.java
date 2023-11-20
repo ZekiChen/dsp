@@ -305,7 +305,7 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                 TargetCondition beCondition = beConditonMap.get(id);
                 if (StrUtil.isBlank(afterVO.getValue())) {
                     if (beConditonMap.containsKey(id)) {
-                        sb.append(attribute).append(": ").append(beCondition.getOperation()).append(" ").append(beCondition.getValue()).append(" -> null");
+                        sb.append(attribute).append(": ").append(beCondition.getOperation()).append(" ").append(beCondition.getValue()).append(" -> null").append("\n");
                     }
                 } else {
                     if (beConditonMap.containsKey(id)) {
@@ -319,7 +319,7 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                                     .append(beCondition.getValue()).append(" -> ").append(afterVO.getOperation()).append(" ").append(afterVO.getValue()).append("\n");
                         }
                     } else {
-                        sb.append(attribute).append(": null -> ").append(afterVO.getOperation()).append(" ").append(afterVO.getValue());
+                        sb.append(attribute).append(": null -> ").append(afterVO.getOperation()).append(" ").append(afterVO.getValue()).append("\n");
                     }
                 }
                 bizLogApi.setCreator("admin");
