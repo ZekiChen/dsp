@@ -84,7 +84,7 @@ public class PriceCalcHandler {
             handleLearningCalcAd(params, bidRequest, affiliate, taskId, learningCalcAdMap);
         } catch (Exception e) {
             log.error("taskId: {},calculate cpc cause a exception", taskId, e);
-            messageQueue.putMessage(EventType.CALC_CPC_ERROR);
+            messageQueue.putMessage(EventType.CALC_CPC_ERROR, params);
         }
     }
 
@@ -117,7 +117,7 @@ public class PriceCalcHandler {
                 messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
             } catch (Exception e) {
                 log.error("taskId: {},calculate price by general cause a exception", taskId, e);
-                messageQueue.putMessage(EventType.CALC_CPC_ERROR);
+                messageQueue.putMessage(EventType.CALC_CPC_ERROR, params);
             }
         });
     }
@@ -130,7 +130,7 @@ public class PriceCalcHandler {
                 messageQueue.putMessage(EventType.CALC_CPC_FINISH, params);
             } catch (Exception e) {
                 log.error("taskId: {},calculate price by learning cause a exception", taskId, e);
-                messageQueue.putMessage(EventType.CALC_CPC_ERROR);
+                messageQueue.putMessage(EventType.CALC_CPC_ERROR, params);
             }
         });
     }
