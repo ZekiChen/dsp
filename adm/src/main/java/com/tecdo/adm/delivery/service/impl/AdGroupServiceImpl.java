@@ -24,6 +24,8 @@ import com.tecdo.adm.delivery.service.ITargetConditionService;
 import com.tecdo.adm.doris.IGooglePlayAppService;
 import com.tecdo.adm.doris.IRequestService;
 import com.tecdo.adm.log.service.IBizLogApiService;
+import com.tecdo.common.util.GoogleURIParserAdapter;
+import com.tecdo.common.util.UrlParamUtil;
 import com.tecdo.starter.log.exception.ServiceException;
 import com.tecdo.starter.mp.entity.BaseEntity;
 import com.tecdo.starter.mp.entity.IdEntity;
@@ -53,7 +55,6 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     private final ITargetConditionService conditionService;
     private final IAdService adService;
     private final IBizLogApiService bizLogApiService;
-    private final IGooglePlayAppService googlePlayAppService;
     private final IRequestService requestService;
     private final IMultiBidStrategyService strategyService;
 
@@ -63,7 +64,13 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     @Override
     @Transactional
     public boolean add(AdGroupVO vo) {
-        vo.setForceLink(vo.getClickUrl());  // 测试时发现 deeplink 无法实现强跳
+        if (StrUtil.isNotBlank(vo.getClickUrl())) {
+            vo.setForceLink(vo.getClickUrl());  // 测试时发现 deeplink 无法实现强跳
+            String offerId = UrlParamUtil.getValue(vo.getClickUrl(), "offer_id");
+            if (StrUtil.isNotBlank(offerId)) {
+                vo.setOfferId(Integer.parseInt(offerId));
+            }
+        }
         return save(vo) && strategyService.saveBatch(vo.listStrategies()) && conditionService.saveBatch(vo.listCondition());
     }
 
@@ -73,6 +80,10 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
         if (vo.getId() != null) {
             if (StrUtil.isNotBlank(vo.getClickUrl())) {
                 vo.setForceLink(vo.getClickUrl());
+                String offerId = UrlParamUtil.getValue(vo.getClickUrl(), "offer_id");
+                if (StrUtil.isNotBlank(offerId)) {
+                    vo.setOfferId(Integer.parseInt(offerId));
+                }
             }
             logByUpdate(vo);
             if (updateById(vo)) {

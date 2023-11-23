@@ -138,6 +138,7 @@ public class ResponseLogger {
                 .impFrequency(wrapper.getImpFrequency())
                 .clickFrequency(wrapper.getClickFrequency())
                 .bidStage(wrapper.getBidStageEnum().getType())
+                .offerId(wrapper.getAdDTO().getAdGroup().getOfferId())
                 .build();
     }
 }
