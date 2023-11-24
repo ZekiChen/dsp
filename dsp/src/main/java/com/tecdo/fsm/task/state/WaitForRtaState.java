@@ -38,12 +38,12 @@ public class WaitForRtaState implements ITaskState {
         }
         break;
       case WAIT_REQUEST_RTA_RESPONSE_TIMEOUT:
-        task.notifyFailed();
+        task.notifyFailed(eventType);
         task.switchState(waiForRecycleState);
         break;
       case WAIT_REQUEST_RTA_RESPONSE_ERROR:
         task.cancelTimer(EventType.WAIT_REQUEST_RTA_RESPONSE_TIMEOUT);
-        task.notifyFailed();
+        task.notifyFailed(eventType);
         task.switchState(waiForRecycleState);
         break;
       default:

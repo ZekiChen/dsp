@@ -224,4 +224,7 @@ public class RequestLog implements Serializable {
 
     @JsonProperty("schain")
     private String schain;
+
+    @JsonProperty("exception_event")
+    private String exceptionEvent;
 }

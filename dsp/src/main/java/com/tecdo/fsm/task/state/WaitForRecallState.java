@@ -46,11 +46,11 @@ public class WaitForRecallState implements ITaskState {
         break;
       case ADS_RECALL_ERROR:
         task.cancelTimer(EventType.ADS_RECALL_TIMEOUT);
-        task.notifyFailed();
+        task.notifyFailed(eventType);
         task.switchState(waitForRecycleState);
         break;
       case ADS_RECALL_TIMEOUT:
-        task.notifyFailed();
+        task.notifyFailed(eventType);
         task.switchState(waitForRecycleState);
         break;
       default:
