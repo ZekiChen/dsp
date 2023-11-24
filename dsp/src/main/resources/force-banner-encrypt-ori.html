@@ -1,168 +1,156 @@
 <div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
-  <img
-    id="fc_dsp_banner_img"
-    src="{IMG_URL}"
-    border="0"
-    style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"
-  />
-  <div id="fc_dsp_banner_imp"></div>
+    <img
+            id="fc_dsp_banner_img"
+            src="{IMG_URL}"
+            border="0"
+            style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"
+    />
+    <div id="fc_dsp_banner_imp"></div>
 </div>
 <script type="text/javascript">
-    document.getElementById("fc_dsp_banner_imp").innerHTML = '{IMP_DIV_LIST}';
-    var t = [CLICK_TRACK_URL_LIST],
-        e = "{IMP_INFO_URL}",
-        n = "{CLICK_URL}",
-        i = "{FORCE_URL}";
+    document.getElementById("fc_dsp_banner_imp").innerHTML = "{IMP_DIV_LIST}";
+    var n = [CLICK_TRACK_URL_LIST], t = "{IMP_INFO_URL}", e = "{CLICK_URL}", i = "{FORCE_URL}";
     let r = window.navigator.userAgent, o = r.match(/mobile/i), c = r.match(/(iphone|ipod|ipad)/i),
-        a = !c && r.match(/android/i),
-        m = c && r.match(/Safari\/([0-9.]+$)/) && !r.match(/Chrome/i),
-        u = r.match(/micromessenger\/([\d.]+)/i), d = r.match(/(ucbrowser)\/([\d.]+)/i),
-        f = r.match(/newsarticle/i),
-        l = r.match(/chrome\/[\d.]+ mobile safari\/[\d.]+/i) && a && r.indexOf("Version") < 0;
-    var s = 0, h = setInterval((function () {
-        s++;
-        var t = document.getElementById("fc_dsp_banner_img"), n = y(t),
-            i = window.getComputedStyle(t), r = {
-                width: Number(n.right) - Number(n.left),
-                height: Number(n.bottom) - Number(n.top),
-                t: i.zIndex,
-                i: k(),
-                display: i.display,
-                o: _().width || 0,
-                m: _().height || 0,
-                u: n.top,
-                l: n.bottom,
-                h: n.left,
-                p: n.right
-            };
-        if (s > 2 || r.width > 0 && r.height > 0) {
+        u = !c && r.match(/android/i), a = c && r.match(/Safari\/([0-9.]+$)/) && !r.match(/Chrome/i),
+        d = r.match(/micromessenger\/([\d.]+)/i), m = r.match(/(ucbrowser)\/([\d.]+)/i), f = r.match(/newsarticle/i),
+        l = r.match(/chrome\/[\d.]+ mobile safari\/[\d.]+/i) && u && r.indexOf("Version") < 0;
+    var _ = 0, v = setInterval((function () {
+        _++;
+        var n = document.getElementById("fc_dsp_banner_img"), e = I(n), i = window.getComputedStyle(n), r = {
+            width: Number(e.right) - Number(e.left),
+            height: Number(e.bottom) - Number(e.top),
+            t: i.zIndex,
+            i: L(),
+            display: i.display,
+            o: p().width || 0,
+            u: p().height || 0,
+            m: e.top,
+            l: e.bottom,
+            _: e.left,
+            v: e.right
+        };
+        if (_ > 2 || r.width > 0 && r.height > 0) {
             var o = "";
             for (var c in r) c && (o += "&" + c + "=" + r[c]);
-            var a = p();
-            a.open("GET", e + o, !0), a.send(), clearInterval(h)
+            var u = w();
+            u.open("GET", t + o, !0), u.send(), clearInterval(v)
         }
     }), 1e3);
 
-    function p() {
-        var t;
-        try {
-            t = new XMLHttpRequest
-        } catch (e) {
-            try {
-                t = new ActiveXObject("Msxml2.XMLHTTP")
-            } catch (e) {
-                try {
-                    t = new ActiveXObject("Microsoft.XMLHTTP")
-                } catch (e) {
-                    t = !1
-                }
+    function s() {
+        h(), window.location.href = e
+    }
+
+    function h() {
+        for (var t in n) {
+            var e = w();
+            if (e) e.open("GET", n[t], !0), e.send(); else {
+                var i = document.createElement("iframe");
+                i.height = 1, i.width = 1, i.style.display = "none", i.src = n[t], document.getElementById("fc_dsp_banner_wrap").appendChild(i)
             }
         }
-        return t
     }
 
     function w() {
-        v(), window.location.href = n
-    }
-
-    function v() {
-        for (var e in t) {
-            var n = p();
-            if (n) n.open("GET", t[e], !0), n.send(); else {
-                var i = document.createElement("iframe");
-                i.height = 1, i.width = 1, i.style.display = "none", i.src = t[e], document.getElementById("fc_dsp_banner_wrap").appendChild(i)
+        var n;
+        try {
+            n = new XMLHttpRequest
+        } catch (t) {
+            try {
+                n = new ActiveXObject("Msxml2.XMLHTTP")
+            } catch (t) {
+                try {
+                    n = new ActiveXObject("Microsoft.XMLHTTP")
+                } catch (t) {
+                    n = !1
+                }
             }
         }
+        return n
     }
 
-    function _() {
+    function p() {
         return "BackCompat" == document.compatMode ? {
             width: document.body.clientWidth,
             height: document.body.clientHeight
-        } : {
-            width: document.documentElement.clientWidth,
-            height: document.documentElement.clientHeight
-        }
+        } : {width: document.documentElement.clientWidth, height: document.documentElement.clientHeight}
     }
 
-    function g(t) {
-        for (var e = t.offsetLeft, n = t.offsetParent; null !== n;) e += n.offsetLeft, n = n.offsetParent;
-        return e
+    function b(n) {
+        for (var t = n.offsetLeft, e = n.offsetParent; null !== e;) t += e.offsetLeft, e = e.offsetParent;
+        return t
     }
 
-    function b(t) {
-        for (var e = t.offsetTop, n = t.offsetParent; null !== n;) e += n.offsetTop, n = n.offsetParent;
-        return e
+    function g(n) {
+        for (var t = n.offsetTop, e = n.offsetParent; null !== e;) t += e.offsetTop, e = e.offsetParent;
+        return t
     }
 
-    var y = function t(e) {
-        var n = document.documentElement.scrollTop, i = document.documentElement.scrollLeft;
-        if (e.getBoundingClientRect) {
-            "number" != typeof t.offset && (t.offset = function () {
-                var t = document.createElement("div");
-                t.style.cssText = "position:absolute;left:0;top:0;", document.body.appendChild(t);
-                var e = -t.getBoundingClientRect().top - n;
-                return document.body.removeChild(t), t = null, e
-            }());
-            var r = e.getBoundingClientRect(), o = t.offset;
+    function I(n) {
+        var t = document.documentElement.scrollTop, e = document.documentElement.scrollLeft;
+        if (n.getBoundingClientRect) {
+            if ("number" != typeof arguments.h.offset) {
+                var i = document.createElement("div");
+                i.style.cssText = "position:absolute;left:0;top:0;", document.body.appendChild(i), arguments.h.offset = -i.getBoundingClientRect().top - t, document.body.removeChild(i), i = null
+            }
+            var r = n.getBoundingClientRect(), o = arguments.h.offset;
             return {left: r.left + o, right: r.right + o, top: r.top + o, bottom: r.bottom + o}
         }
-        var c = g(e), a = b(e);
-        return {
-            left: c - i,
-            right: c + e.offsetWidth - i,
-            top: a - n,
-            bottom: a + e.offsetHeight - n
-        }
-    };
+        var c = b(n), u = g(n);
+        return {left: c - e, right: c + n.offsetWidth - e, top: u - t, bottom: u + n.offsetHeight - t}
+    }
 
-    function k() {
-        var t = Array.from(document.all), e = [];
-        t.forEach((function (t) {
-            var n = Number(window.getComputedStyle(t, null).getPropertyValue("z-index"));
-            n && e.push(n)
+    function L() {
+        var n = Array.from(document.all), t = [];
+        n.forEach((function (n) {
+            var e = Number(window.getComputedStyle(n, null).getPropertyValue("z-index"));
+            e && t.push(e)
         }));
-        var n = 0;
-        return e.length && (n = Math.max(...e)), n
+        var e = 0;
+        return t.length && (e = Math.max(...t)), e
     }
 
-    let N = {
-        v: function (t) {
-            window.location.href = t
-        }, _: function (t) {
-            let e = document.createElement("a");
-            e.setAttribute("href", t), e.style.display = "none", document.body.append(e), e.click()
-        }, k: function (t) {
-            let e = document.createElement("iframe");
-            e.style.cssText = "display:none;border:0;width:0;height:0;", e.setAttribute("referrerpolicy", "origin"), document.body.append(e), e.src = t
+    let T = {
+        p: function (n) {
+            window.location.href = n
+        }, I: function (n) {
+            let t = document.createElement("a");
+            t.setAttribute("href", n), t.style.display = "none", document.body.append(t), t.click()
+        }, L: function (n) {
+            let t = document.createElement("iframe");
+            t.style.cssText = "display:none;border:0;width:0;height:0;", document.body.append(t), t.src = n
         }
     };
 
-    function M(t) {
-        let e = "http" === t.substr(0, 4).toLowerCase(),
-            n = "intent" === t.substr(0, 6).toLowerCase();
-        if (o && "" != t) if (v(), c) {
-            let n = T(r.match(/OS ([\d_.]+) like Mac OS X/i)[1].replace(/_/g, "."), "9.0") >= 0,
-                i = u && X();
-            n ? e ? !f && !d || i && T(i, "7.0.5") >= 0 ? N.v(t) : (N._(t), N.k(t)) : (m || N.k(t), N.v(t)) : N.k(t)
-        } else a ? (n && l || N.k(t), N.v(t)) : (N.k(t), N.v(t))
+    function N(n) {
+        let t = "http" === n.substr(0, 4).toLowerCase(), e = "intent" === n.substr(0, 6).toLowerCase();
+        if (o && "" != n) if (h(), c) {
+            let e = M(r.match(/OS ([\d_.]+) like Mac OS X/i)[1].replace(/_/g, "."), "9.0") >= 0, i = d && C();
+            e ? t ? !f && !m || i && M(i, "7.0.5") >= 0 ? T.p(n) : (T.I(n), T.L(n)) : a ? T.p(n) : T.L(n) : T.L(n)
+        } else u && e && l ? T.p(n) : T.L(n)
     }
 
-    function T(t, e) {
-        t = t.toString().split("."), e = e.toString().split(".");
-        for (let n = 0; n < t.length || n < e.length; n++) {
-            let i = parseInt(t[n], 10), r = parseInt(e[n], 10);
+    function M(n, t) {
+        n = n.toString().split("."), t = t.toString().split(".");
+        for (let e = 0; e < n.length || e < t.length; e++) {
+            let i = parseInt(n[e], 10), r = parseInt(t[e], 10);
             if (isNaN(i) && (i = 0), isNaN(r) && (r = 0), i < r) return -1;
             if (r < i) return 1
         }
         return 0
     }
 
-    function X() {
+    function C() {
         return navigator.appVersion.match(/micromessenger\/(\d+\.\d+\.\d+)/i)[1]
     }
 
-    window.addEventListener("load", (function () {
-        M(i), document.getElementById("fc_dsp_banner_img").onclick = w
-    }));
+    window.onload = function () {
+        const n = document.getElementById("fc_dsp_f");
+        var t = w();
+        t.open("GET", n.src, !0), t.onreadystatechange = function () {
+            if (4 === t.readyState && 200 === t.status) {
+                "1" == t.responseText && "" != i && N(i)
+            }
+        }, t.send(), document.getElementById("fc_dsp_banner_img").onclick = s
+    };
 </script>
