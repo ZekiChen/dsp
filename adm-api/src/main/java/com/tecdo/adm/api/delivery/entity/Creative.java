@@ -44,5 +44,7 @@ public class Creative extends BaseEntity {
     @ApiModelProperty(value = "状态", notes = "BaseStatusEnum")
     @TableField(fill = FieldFill.INSERT)
     private Integer status;
+    @ApiModelProperty(value = "对外id", notes = "External Id")
+    private Integer externalId;
 
 }
