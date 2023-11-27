@@ -130,20 +130,26 @@
         return actualTop;
     }
 
-    function getBoundingClientRect(element) {
+    var getBoundingClientRect = function calculateBoundingClientRect(element) {
         var scrollTop = document.documentElement.scrollTop;
         var scrollLeft = document.documentElement.scrollLeft;
+
+        function calculateOffset() {
+            var temp = document.createElement('div');
+            temp.style.cssText = 'position:absolute;left:0;top:0;';
+            document.body.appendChild(temp);
+            var offset = -temp.getBoundingClientRect().top - scrollTop;
+            document.body.removeChild(temp);
+            temp = null;
+            return offset;
+        }
+
         if (element.getBoundingClientRect) {
-            if (typeof arguments.callee.offset != 'number') {
-                var temp = document.createElement('div');
-                temp.style.cssText = 'position:absolute;left:0;top:0;';
-                document.body.appendChild(temp);
-                arguments.callee.offset = -temp.getBoundingClientRect().top - scrollTop;
-                document.body.removeChild(temp);
-                temp = null;
+            if (typeof calculateBoundingClientRect.offset !== 'number') {
+                calculateBoundingClientRect.offset = calculateOffset();
             }
             var rect = element.getBoundingClientRect();
-            var offset = arguments.callee.offset;
+            var offset = calculateBoundingClientRect.offset;
             return {
                 left: rect.left + offset,
                 right: rect.right + offset,
@@ -160,7 +166,7 @@
                 bottom: actualTop + element.offsetHeight - scrollTop,
             };
         }
-    }
+    };
 
     function getMaxIndex() {
         var allElement = Array.from(document.all);
