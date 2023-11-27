@@ -27,6 +27,7 @@ public class WaitForDistinctState implements IContextState {
         break;
       case DISTINCT_AD_TIMEOUT:
         context.switchState(waiForRecycleState);
+        context.recordExceptionEvent(eventType);
         context.responseData();
         context.requestComplete();
         break;

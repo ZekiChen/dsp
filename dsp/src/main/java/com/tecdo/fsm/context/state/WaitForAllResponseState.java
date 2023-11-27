@@ -2,6 +2,7 @@ package com.tecdo.fsm.context.state;
 
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
+import com.tecdo.constant.ParamKey;
 import com.tecdo.fsm.context.Context;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -34,6 +35,7 @@ public class WaitForAllResponseState implements IContextState {
         break;
       case WAIT_TASK_RESPONSE_TIMEOUT:
         context.switchState(waiForRecycleState);
+        context.recordExceptionEvent(eventType);
         context.responseData();
         context.requestComplete();
         break;
@@ -59,6 +61,7 @@ public class WaitForAllResponseState implements IContextState {
       case BID_TASK_FAILED:
         context.cancelTimer(EventType.WAIT_TASK_RESPONSE_TIMEOUT);
         context.switchState(waiForRecycleState);
+        context.recordExceptionEvent(params.get(ParamKey.EXCEPTION_EVENT));
         context.responseData();
         context.requestComplete();
         break;

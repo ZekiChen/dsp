@@ -42,7 +42,7 @@ public class WaitForPriceFilterState implements ITaskState {
                 task.switchState(waitForRtaState);
                 break;
             case PRICE_FILTER_TIMEOUT:
-                task.notifyFailed();
+                task.notifyFailed(eventType);
                 task.switchState(waitForRecycleState);
                 break;
             default:

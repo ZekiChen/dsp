@@ -24,7 +24,7 @@ public class WaitForSortState implements ITaskState {
         task.switchState(waiForRecycleState);
         break;
       case WAIT_SORT_AD_TIMEOUT:
-        task.notifyFailed();
+        task.notifyFailed(eventType);
         task.switchState(waiForRecycleState);
         break;
       default:

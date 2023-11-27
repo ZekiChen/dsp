@@ -3,6 +3,7 @@ package com.tecdo.log;
 import cn.hutool.core.date.DateUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
+import com.tecdo.constant.EventType;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.log.RequestLog;
 import com.tecdo.domain.openrtb.request.BidRequest;
@@ -35,7 +36,8 @@ public class RequestLogger {
                            Affiliate affiliate,
                            int rtaRequest,
                            int rtaRequestTrue,
-                           GooglePlayApp googlePlayApp) {
+                           GooglePlayApp googlePlayApp,
+                           EventType exceptionEvent) {
         RequestLog requestLog = buildRequestLog(
                 bidId,
                 imp,
@@ -43,7 +45,8 @@ public class RequestLogger {
                 affiliate,
                 rtaRequest,
                 rtaRequestTrue,
-                googlePlayApp
+                googlePlayApp,
+                exceptionEvent
         );
         requestLogger.info(JsonHelper.toJSONString(requestLog));
     }
@@ -54,7 +57,8 @@ public class RequestLogger {
                                               Affiliate affiliate,
                                               int rtaRequest,
                                               int rtaRequestTrue,
-                                              GooglePlayApp googlePlayApp) {
+                                              GooglePlayApp googlePlayApp,
+                                              EventType exceptionEvent) {
         BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
         Device device = bidRequest.getDevice();
         return RequestLog.builder()
@@ -105,6 +109,7 @@ public class RequestLogger {
                 .videoPlacement(imp.getVideo() != null ? imp.getVideo().getPlacement() : -1)
                 .isRewarded(ExtHelper.isRewarded(bidRequest.getExt()) ? 1 : 0)
                 .schain(ExtHelper.listSChain(bidRequest.getSource()))
+                .exceptionEvent(Optional.ofNullable(exceptionEvent).map(Enum::name).orElse(null))
                 .build();
     }
 }

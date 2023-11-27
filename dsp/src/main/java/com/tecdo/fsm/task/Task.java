@@ -144,9 +144,10 @@ public class Task {
         return Params.create(ParamKey.REQUEST_ID, requestId).put(ParamKey.TASK_ID, taskId);
     }
 
-    public void notifyFailed() {
+    public void notifyFailed(EventType exceptionEvent) {
         record();
-        messageQueue.putMessage(EventType.BID_TASK_FAILED, assignParams());
+        messageQueue.putMessage(EventType.BID_TASK_FAILED,
+                                assignParams().put(ParamKey.EXCEPTION_EVENT, exceptionEvent));
     }
 
     public void adRecall(boolean recallBatchEnable) {
