@@ -25,7 +25,6 @@ import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import lombok.RequiredArgsConstructor;
 import lombok.SneakyThrows;
-import org.apache.ibatis.jdbc.Null;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
@@ -54,38 +53,14 @@ public class CreativeController {
     @ApiOperationSupport(order = 1)
     @ApiOperation(value = "新增", notes = "传入素材")
     public R batchUploadFile(@RequestPart("files") MultipartFile[] files, @RequestParam Map<String, String> paramMap) {
-        CacheUtil.clear(CREATIVE_CACHE);
-        List<Creative> entities = new ArrayList<>();
-        for (int i = 0; i < files.length; i++) {
-            PacFile pacFile = ossTemplate.uploadFile(files[i].getOriginalFilename(), files[i].getInputStream());
-            Creative creative = new Creative();
-            creative.setUrl(pacFile.getUrl());
-            creative.setName(paramMap.get("name" + i));
-            creative.setType(Integer.parseInt(paramMap.get("type" + i)));
-            creative.setWidth(Integer.parseInt(paramMap.get("width" + i)));
-            creative.setHeight(Integer.parseInt(paramMap.get("height" + i)));
-            String catIab = paramMap.get("catIab" + i);
-            if (StrUtil.isNotBlank(catIab)) {
-                creative.setCatIab(catIab);
-            }
-            creative.setSuffix(paramMap.get("suffix" + i));
-            String brand = paramMap.get("brand" + i);
-            if (StrUtil.isNotBlank(brand)) {
-                creative.setBrand(brand);
-            }
-            if (CreativeTypeEnum.VIDEO.getType() == creative.getType()) {
-                creative.setDuration(Integer.parseInt(paramMap.get("duration" + i)));
-            }
-            entities.add(creative);
-        }
-        return R.status(service.saveBatch(entities));
+        return service.batchUploadFiles(files, paramMap, ossTemplate);
     }
 
     @SneakyThrows
     @PostMapping(value = "/update", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ApiOperationSupport(order = 2)
     @ApiOperation(value = "修改", notes = "传入素材")
-    public R update(@RequestPart(value = "file", required = false) MultipartFile file,
+    public R<String> update(@RequestPart(value = "file", required = false) MultipartFile file,
                     @RequestParam("id") Integer id,
                     @RequestParam(value = "name", required = false) String name,
                     @RequestParam(value = "width", required = false) Integer width,
@@ -94,35 +69,10 @@ public class CreativeController {
                     @RequestParam(value = "suffix", required = false) String suffix,
                     @RequestParam(value = "duration", required = false) Integer duration,
                     @RequestParam(value = "status", required = false) Integer status,
-                    @RequestParam(value = "brand", required = false) String brand) {
+                    @RequestParam(value = "brand", required = false) String brand,
+                    @RequestParam(value = "externalId", required = false) Integer externalId) {
         CacheUtil.clear(CREATIVE_CACHE);
-        Creative entity = service.getById(id);
-        if (entity == null) {
-            return R.failure();
-        }
-        if (file != null) {
-            PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
-            entity.setUrl(pacFile.getUrl());
-        }
-        entity.setName(name);
-        entity.setWidth(width);
-        entity.setHeight(height);
-        if (StrUtil.isNotBlank(catIab)) {
-            entity.setCatIab(catIab);
-        } else {
-            entity.setCatIab(null);
-        }
-        entity.setSuffix(suffix);
-        if (StrUtil.isNotBlank(brand)) {
-            entity.setBrand(brand);
-        } else {
-            entity.setBrand(null);
-        }
-        if (CreativeTypeEnum.VIDEO.getType() == entity.getType()) {
-            entity.setDuration(duration);
-        }
-        entity.setStatus(status);
-        return R.status(service.updateById(entity));
+        return service.updateCreative(ossTemplate, file, id, name, width, height, catIab, suffix, duration, status, brand, externalId);
     }
 
     @DeleteMapping("/remove")
@@ -190,5 +140,12 @@ public class CreativeController {
             pacFiles.add(pacFile);
         }
         return R.data(pacFiles);
+    }
+
+    @GetMapping("/generate-external-id")
+    @ApiOperationSupport(order = 8)
+    @ApiOperation(value = "无需传参")
+    public R<Integer> generateExternalId() {
+        return R.data(service.getNewExternalId());
     }
 }
