@@ -202,7 +202,7 @@ public abstract class AbstractTransform implements IProtoTransform {
         bid.setW(creative.getWidth());
         bid.setH(creative.getHeight());
         bid.setCid(String.valueOf(adDTO.getCampaign().getId()));
-        bid.setCrid(String.valueOf(creativeId));
+        bid.setCrid(String.valueOf(creative.getExternalId()));
         if (AdTypeEnum.VIDEO.getType() == creative.getType()) {
             bid.setProtocol(VideoProtocolEnum.VAST_4.getType());
         }
