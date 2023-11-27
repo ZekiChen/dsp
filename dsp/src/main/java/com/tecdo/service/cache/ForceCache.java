@@ -19,17 +19,17 @@ public class ForceCache {
     private final PacRedis pacRedis;
     private final static String HAS_FORCE_IMP_CACHE = "has-force-imp";
 
-    @Value("${pac.notice.expire.click}")
-    private long clickExpire;
+    @Value("${pac.notice.expire.imp}")
+    private long impExpire;
 
     /**
-     * 强跳曝光的记录时间为点击窗口
+     * 强跳曝光的记录时间为曝光窗口
      */
     public boolean impMarkIfAbsent(String bidId) {
         String key = CacheConstant.IMP_CACHE
                 .concat(StrUtil.COLON).concat(HAS_FORCE_IMP_CACHE)
                 .concat(StrUtil.COLON).concat(bidId);
-        return pacRedis.setIfAbsent(key, 1, clickExpire, TimeUnit.SECONDS);
+        return pacRedis.setIfAbsent(key, 1, impExpire, TimeUnit.SECONDS);
     }
 
 }
