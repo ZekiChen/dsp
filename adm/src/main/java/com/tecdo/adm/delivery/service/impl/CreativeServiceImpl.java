@@ -90,8 +90,7 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
 
             try {
                 return R.status(saveBatch(entities));
-            }
-            catch (DuplicateKeyException e) {
+            } catch (DuplicateKeyException e) {
                 // 处理external_id duplicate 异常，可以在这里记录日志或执行其他操作
                 System.out.println("Duplicate external_id. Retrying...");
                 attempCnt++;
@@ -107,7 +106,6 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
                             Integer width, Integer height, String catIab,
                             String suffix, Integer duration, Integer status,
                             String brand, Integer externalId) throws IOException {
-        CacheUtil.clear(CREATIVE_CACHE);
         Creative entity = getById(id);
         if (entity == null) {
             return R.failure();
@@ -119,17 +117,9 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
         entity.setName(name);
         entity.setWidth(width);
         entity.setHeight(height);
-        if (StrUtil.isNotBlank(catIab)) {
-            entity.setCatIab(catIab);
-        } else {
-            entity.setCatIab(null);
-        }
+        entity.setCatIab(StrUtil.isNotBlank(catIab) ? catIab : null);
         entity.setSuffix(suffix);
-        if (StrUtil.isNotBlank(brand)) {
-            entity.setBrand(brand);
-        } else {
-            entity.setBrand(null);
-        }
+        entity.setBrand(StrUtil.isNotBlank(brand) ? brand : null);
         if (CreativeTypeEnum.VIDEO.getType() == entity.getType()) {
             entity.setDuration(duration);
         }
@@ -138,8 +128,7 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
 
         try {
             return R.status(updateById(entity));
-        }
-        catch (DuplicateKeyException e) {
+        } catch (DuplicateKeyException e) {
             // 多个用户同时操作，导致生成的external_id冲突
             return R.data("external id被占用，请重新update!");
         }

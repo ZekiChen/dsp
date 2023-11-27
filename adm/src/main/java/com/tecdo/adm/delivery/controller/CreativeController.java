@@ -71,6 +71,7 @@ public class CreativeController {
                     @RequestParam(value = "status", required = false) Integer status,
                     @RequestParam(value = "brand", required = false) String brand,
                     @RequestParam(value = "externalId", required = false) Integer externalId) {
+        CacheUtil.clear(CREATIVE_CACHE);
         return service.updateCreative(ossTemplate, file, id, name, width, height, catIab, suffix, duration, status, brand, externalId);
     }
 
