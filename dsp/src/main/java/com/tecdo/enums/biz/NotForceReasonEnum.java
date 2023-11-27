@@ -12,7 +12,7 @@ import java.util.Arrays;
  */
 @Getter
 @AllArgsConstructor
-public enum NoForceReasonEnum {
+public enum NotForceReasonEnum {
 
     PARAM_MISS(1, "parameter missing"),
     WINDOW_VALID(2, "window valid"),
@@ -24,7 +24,7 @@ public enum NoForceReasonEnum {
     private final int code;
     private final String desc;
 
-    public static NoForceReasonEnum of(int type) {
-        return Arrays.stream(NoForceReasonEnum.values()).filter(e -> type == e.code).findAny().orElse(OTHER);
+    public static NotForceReasonEnum of(int type) {
+        return Arrays.stream(NotForceReasonEnum.values()).filter(e -> type == e.code).findAny().orElse(OTHER);
     }
 }

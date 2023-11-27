@@ -6,14 +6,12 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.constant.RequestKeyByForce;
 import com.tecdo.controller.MessageQueue;
-import com.tecdo.enums.biz.NoForceReasonEnum;
+import com.tecdo.enums.biz.NotForceReasonEnum;
 import com.tecdo.log.NotForceLogger;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.util.ResponseHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.Objects;
 
 /**
  * Created by Zeki on 2023/11/22
@@ -44,11 +42,11 @@ public class ForceService {
         params.put(ParamKey.RESPONSE_BODY, "0");
 
         if (StrUtil.hasBlank(bidId, ip)) {
-            NotForceLogger.log(httpRequest, NoForceReasonEnum.PARAM_MISS.getCode());
+            NotForceLogger.log(httpRequest, NotForceReasonEnum.PARAM_MISS.getCode());
         } else if (!validateService.windowValid(bidId, EventType.RECEIVE_IMP_NOTICE)) {
-            NotForceLogger.log(httpRequest, NoForceReasonEnum.WINDOW_VALID.getCode());
-        } else if (cacheService.getNoticeCache().hasImp(bidId)) {
-            NotForceLogger.log(httpRequest, NoForceReasonEnum.FUNNEL_VALID.getCode());
+            NotForceLogger.log(httpRequest, NotForceReasonEnum.WINDOW_VALID.getCode());
+        } else if (!cacheService.getForceCache().impMarkIfAbsent(bidId)) {
+            NotForceLogger.log(httpRequest, NotForceReasonEnum.FUNNEL_VALID.getCode());
         }
 //        else if (!Objects.equals(ip, httpRequest.getIp())) {
 //            NotForceLogger.log(httpRequest, NoForceReasonEnum.IP_NOT_MATCH.getCode());
