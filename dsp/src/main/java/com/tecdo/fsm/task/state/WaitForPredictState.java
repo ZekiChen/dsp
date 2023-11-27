@@ -48,11 +48,11 @@ public class WaitForPredictState implements ITaskState {
         break;
       case PREDICT_ERROR:
         task.cancelTimer(EventType.PREDICT_TIMEOUT);
-        task.notifyFailed();
+        task.notifyFailed(eventType);
         task.switchState(waitForRecycleState);
         break;
       case PREDICT_TIMEOUT:
-        task.notifyFailed();
+        task.notifyFailed(eventType);
         task.switchState(waitForRecycleState);
         break;
       default:

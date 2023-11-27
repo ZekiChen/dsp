@@ -41,11 +41,11 @@ public class WaitForCalcPriceState implements ITaskState {
         break;
       case CALC_CPC_ERROR:
         task.cancelTimer(EventType.CALC_CPC_TIMEOUT);
-        task.notifyFailed();
+        task.notifyFailed(eventType);
         task.switchState(waitForRecycleState);
         break;
       case CALC_CPC_TIMEOUT:
-        task.notifyFailed();
+        task.notifyFailed(eventType);
         task.switchState(waitForRecycleState);
         break;
       default:
