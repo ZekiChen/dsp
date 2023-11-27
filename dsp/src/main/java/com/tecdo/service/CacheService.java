@@ -1,9 +1,6 @@
 package com.tecdo.service;
 
-import com.tecdo.service.cache.AudienceCache;
-import com.tecdo.service.cache.FrequencyCache;
-import com.tecdo.service.cache.NoticeCache;
-import com.tecdo.service.cache.RtaCache;
+import com.tecdo.service.cache.*;
 
 import org.springframework.stereotype.Service;
 
@@ -20,8 +17,9 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 public class CacheService {
 
-  private final FrequencyCache frequencyCache;
-  private final NoticeCache noticeCache;
-  private final RtaCache rtaCache;
-  private final AudienceCache audienceCache;
+    private final FrequencyCache frequencyCache;
+    private final NoticeCache noticeCache;
+    private final RtaCache rtaCache;
+    private final AudienceCache audienceCache;
+    private final ForceCache forceCache;
 }

@@ -4,10 +4,7 @@ import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.fsm.ContextManager;
-import com.tecdo.service.LifeCycleManager;
-import com.tecdo.service.NoticeService;
-import com.tecdo.service.SDKNoticeService;
-import com.tecdo.service.ValidateService;
+import com.tecdo.service.*;
 import com.tecdo.util.HttpResponseHelper;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -32,7 +29,8 @@ public class Controller implements MessageObserver {
   private NoticeService noticeService;
   @Autowired
   private SDKNoticeService sdkNoticeService;
-
+  @Autowired
+  private ForceService forceService;
 
   @Override
   public void handle(EventType eventType, Params params) {
@@ -113,6 +111,9 @@ public class Controller implements MessageObserver {
         break;
       case RECEIVE_SDK_PB_NOTICE:
         sdkNoticeService.handelEvent(eventType, params);
+        break;
+      case RECEIVE_FORCE_REQUEST:
+        forceService.handelEvent(eventType, params);
         break;
       // context
       case RECEIVE_BID_REQUEST:

@@ -75,6 +75,10 @@
         <Logger name="not_bid_reason_log" level="INFO" additivity="false">
             <AppenderRef ref="NOT_BID_REASON_LOG"/>
         </Logger>
+
+        <Logger name="not_force_log" level="INFO" additivity="false">
+            <AppenderRef ref="NOT_FORCE_LOG"/>
+        </Logger>
     </Loggers>
 
 </Configuration>
