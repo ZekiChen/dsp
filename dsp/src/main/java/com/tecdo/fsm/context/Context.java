@@ -57,6 +57,8 @@ public class Context {
 
   private Long requestId;
 
+  private EventType exceptionEvent;
+
   private ActionConsumeRecorder recorder = new ActionConsumeRecorder();
 
   private Map<String, Task> taskMap = new HashMap<>();
@@ -101,6 +103,7 @@ public class Context {
     this.eventTimerMap.clear();
     this.protoTransform = null;
     this.recorder.reset();
+    this.exceptionEvent = null;
   }
 
   public void switchState(IContextState newState) {
@@ -224,6 +227,10 @@ public class Context {
     log.info("after distinct, contextId: {}, imp bid size: {}", requestId, impBidAdMap.size());
   }
 
+  public void recordExceptionEvent(EventType eventType){
+    this.exceptionEvent = eventType;
+  }
+
   public void responseData() {
     Params params = Params.create();
     EventType eventType = EventType.RESPONSE_RESULT;
@@ -265,7 +272,13 @@ public class Context {
               affiliate,
               rtaRequest,
               rtaRequestTrue,
-              googleApp);
+              googleApp,
+              exceptionEvent);
+      if (exceptionEvent == null) {
+        NotBidReasonLogger.consume(taskId);
+      } else {
+        NotBidReasonLogger.clear(taskId);
+      }
     });
   }
 

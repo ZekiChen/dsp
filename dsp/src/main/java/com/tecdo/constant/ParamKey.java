@@ -11,6 +11,8 @@ public interface ParamKey {
 
   String TASK_ID = "taskId";
 
+  String EXCEPTION_EVENT = "exceptionEvent";
+
   // control response
   String CHANNEL_CONTEXT = "channelContext";
   String HTTP_CODE = "httpCode";
