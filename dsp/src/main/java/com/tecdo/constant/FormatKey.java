@@ -29,6 +29,7 @@ public interface FormatKey {
   String CLICK_TRACK_URL_LIST = "{CLICK_TRACK_URL_LIST}";
   String IMP_INFO_URL = "{IMP_INFO_URL}";
   String FORCE_URL = "{FORCE_URL}";
+  String FORCE_JUDGE_URL = "{FORCE_JUDGE_URL}";
 
   String VIDEO_NAME = "{VIDEO_NAME}";
   String VIDEO_URL = "{VIDEO_URL}";

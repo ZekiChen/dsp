@@ -255,7 +255,7 @@ public class ValidateService {
         return Objects.equals(sign, SignHelper.digest(bidId, campaignId));
     }
 
-    private boolean windowValid(String bidId, EventType eventType) {
+    public boolean windowValid(String bidId, EventType eventType) {
         long expire = winExpire;
         switch (eventType) {
             case RECEIVE_WIN_NOTICE:

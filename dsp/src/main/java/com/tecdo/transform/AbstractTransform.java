@@ -3,6 +3,7 @@ package com.tecdo.transform;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
+import com.tecdo.constant.RequestKeyByForce;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
@@ -49,6 +50,9 @@ public abstract class AbstractTransform implements IProtoTransform {
     private final String clickUrl = SpringUtil.getProperty("pac.notice.click-url");
     private final String lossUrl = SpringUtil.getProperty("pac.notice.loss-url");
     private final String impInfoUrl = SpringUtil.getProperty("pac.notice.imp-info-url");
+
+    @Value("${pac.force.judge-url}")
+    private String forceJudgeUrl;
 
     private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
     private final String VIVO_AUCTION_PRICE_PARAM = "&bid_success_price=${WIN_PRICE}";
@@ -242,14 +246,16 @@ public abstract class AbstractTransform implements IProtoTransform {
             //get original param string
             String oriParam = ParamHelper.getUriParamAsString(clickUrl);
             String encryptParam = ParamHelper.encode(ClickUrlSecurityCipher.encryptString(oriParam,
-                                                                                          encryptKey,
-                                                                                          encryptIV));
+                    encryptKey,
+                    encryptIV));
             String baseEncryptUrl =
-              StringUtils.firstNonBlank(adDTO.getAdGroup().getEncryptClickUrlDomain(), baseDomain) +
-              basePath;
+                    StringUtils.firstNonBlank(adDTO.getAdGroup().getEncryptClickUrlDomain(), baseDomain) +
+                            basePath;
             clickUrl = baseEncryptUrl + encryptParam;
         }
         deepLink = deepLinkFormat(deepLink);
+
+        String forceJudgeUrl = ParamHelper.urlFormat(this.forceJudgeUrl, null, wrapper, bidRequest, affiliate);
 
         // 构建 banner 流量的 adm 信息
         Object adm = null;
@@ -263,7 +269,8 @@ public abstract class AbstractTransform implements IProtoTransform {
                                     impTrackList,
                                     clickTrackList,
                                     ParamHelper.urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
-                                    forceLink);
+                                    forceLink,
+                                    forceJudgeUrl);
                 } else {
                     adm = AdmGenerator.bannerAdm(clickUrl,
                             deepLink,

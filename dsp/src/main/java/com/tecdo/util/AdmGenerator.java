@@ -25,7 +25,8 @@ public class AdmGenerator {
                                       List<String> impTrackUrl,
                                       List<String> clickTrackUrl,
                                       String impInfoUrl,
-                                      String forceLink) {
+                                      String forceLink,
+                                      String forceJudgeUrl) {
     String finalClickUrl = StringUtils.firstNonBlank(deepLink, clickUrl);
     StringBuilder impDivListBuilder = new StringBuilder();
     String impDivTemplate = "<img src=\"{impTrack}\" style=\"display:none\"/>";
@@ -44,7 +45,8 @@ public class AdmGenerator {
                             .replace(FormatKey.IMG_URL, imgUrl)
                             .replace(FormatKey.IMP_DIV_LIST, impDivListBuilder.toString())
                             .replace(FormatKey.CLICK_TRACK_URL_LIST, clickTrackBuilder.toString())
-                            .replace(FormatKey.IMP_INFO_URL, impInfoUrl);
+                            .replace(FormatKey.IMP_INFO_URL, impInfoUrl)
+                            .replace(FormatKey.FORCE_JUDGE_URL, forceJudgeUrl);
     return adm;
   }
 

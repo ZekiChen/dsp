@@ -20,4 +20,6 @@ public interface RequestPath {
 
   String SDK_PB = "/sdk/pb";
 
+  String FORCE = "/f";
+
 }
