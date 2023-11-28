@@ -106,6 +106,7 @@ public class CreativeController {
         wrapper.eq(StrUtil.isNotBlank(creative.getUrl()), Creative::getUrl, creative.getUrl());
         wrapper.eq(StrUtil.isNotBlank(creative.getCatIab()), Creative::getCatIab, creative.getCatIab());
         wrapper.eq(creative.getStatus() != null, Creative::getStatus, creative.getStatus());
+        wrapper.eq(creative.getExternalId() != null, Creative::getExternalId, creative.getExternalId());
         IPage<Creative> pages = service.page(PCondition.getPage(query), wrapper);
         IPage<CreativeVO> voPage = CreativeWrapper.build().pageVO(pages);
         List<CreativeVO> records = voPage.getRecords();
