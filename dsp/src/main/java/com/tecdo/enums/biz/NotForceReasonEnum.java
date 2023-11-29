@@ -14,9 +14,10 @@ import java.util.Arrays;
 @AllArgsConstructor
 public enum NotForceReasonEnum {
 
+    SUCCESS(0, "success"),
     PARAM_MISS(1, "parameter missing"),
     WINDOW_VALID(2, "window valid"),
-    FUNNEL_VALID(3, "funnel valid"),
+    DUPLICATE_VALID(3, "duplicate valid"),
     IP_NOT_MATCH(4, "ip not match"),
     OTHER(-1, "OTHER"),
     ;

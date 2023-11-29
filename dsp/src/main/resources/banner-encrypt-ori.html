@@ -1,51 +1,51 @@
 <div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
   <img id="fc_dsp_banner_img"
-       src="{IMG_URL}"
-       border="0"
+       src="{IMG_URL}" border="0"
        style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"/>
   <div id="fc_dsp_banner_imp"></div>
 </div>
-
 <script type="text/javascript">
-    document.getElementById("fc_dsp_banner_imp").innerHTML = '{IMP_DIV_LIST}';
-    var t = [CLICK_TRACK_URL_LIST],
-        e = "{IMP_INFO_URL}",
-        n = "{CLICK_URL}",
-        r = 0, c = setInterval((function () {
+    document.getElementById("fc_dsp_banner_imp").innerHTML = "{IMP_DIV_LIST}";
+    var t = [CLICK_TRACK_URL_LIST], n = "{IMP_INFO_URL}", e = "{CLICK_URL}", r = 0,
+        o = setInterval((function () {
             r++;
-            var t = document.getElementById("fc_dsp_banner_img"), n = f(t),
-                i = window.getComputedStyle(t), m = {
-                    width: Number(n.right) - Number(n.left),
-                    height: Number(n.bottom) - Number(n.top),
-                    t: i.zIndex,
-                    o: l(),
-                    display: i.display,
-                    i: u().width || 0,
-                    m: u().height || 0,
-                    u: n.top,
-                    l: n.bottom,
-                    h: n.left,
-                    p: n.right
+            var t = document.getElementById("fc_dsp_banner_img"), e = f(t),
+                u = window.getComputedStyle(t), c = {
+                    width: Number(e.right) - Number(e.left),
+                    height: Number(e.bottom) - Number(e.top),
+                    t: u.zIndex,
+                    o: v(),
+                    display: u.display,
+                    i: a().width || 0,
+                    u: a().height || 0,
+                    m: e.top,
+                    v: e.bottom,
+                    _: e.left,
+                    l: e.right
                 };
-            if (r > 2 || m.width > 0 && m.height > 0) {
-                var a = "";
-                for (var d in m) d && (a += "&" + d + "=" + m[d]);
-                var w = o();
-                w.open("GET", e + a, !0), w.send(), clearInterval(c)
+            if (r > 2 || c.width > 0 && c.height > 0) {
+                var m = "";
+                for (var d in c) d && (m += "&" + d + "=" + c[d]);
+                var _ = i();
+                if (_) _.open("GET", n + m, !0), _.send(); else {
+                    var l = document.createElement("iframe");
+                    l.height = 1, l.width = 1, l.style.display = "none", l.src = n + m, document.body.appendChild(l)
+                }
+                clearInterval(o)
             }
         }), 1e3);
 
-    function o() {
+    function i() {
         var t;
         try {
             t = new XMLHttpRequest
-        } catch (e) {
+        } catch (n) {
             try {
                 t = new ActiveXObject("Msxml2.XMLHTTP")
-            } catch (e) {
+            } catch (n) {
                 try {
                     t = new ActiveXObject("Microsoft.XMLHTTP")
-                } catch (e) {
+                } catch (n) {
                     t = !1
                 }
             }
@@ -53,21 +53,21 @@
         return t
     }
 
-    function i() {
-        m(), window.location.href = n
+    function u() {
+        c(), window.location.href = e
     }
 
-    function m() {
-        for (var e in t) {
-            var n = o();
-            if (n) n.open("GET", t[e], !0), n.send(); else {
+    function c() {
+        for (var n in t) {
+            var e = i();
+            if (e) e.open("GET", t[n], !0), e.send(); else {
                 var r = document.createElement("iframe");
-                r.height = 1, r.width = 1, r.style.display = "none", r.src = t[e], document.getElementById("fc_dsp_banner_wrap").appendChild(r)
+                r.height = 1, r.width = 1, r.style.display = "none", r.src = t[n], document.getElementById("fc_dsp_banner_wrap").appendChild(r)
             }
         }
     }
 
-    function u() {
+    function a() {
         return "BackCompat" == document.compatMode ? {
             width: document.body.clientWidth,
             height: document.body.clientHeight
@@ -77,48 +77,48 @@
         }
     }
 
-    function a(t) {
-        for (var e = t.offsetLeft, n = t.offsetParent; null !== n;) e += n.offsetLeft, n = n.offsetParent;
-        return e
+    function m(t) {
+        for (var n = t.offsetLeft, e = t.offsetParent; null !== e;) n += e.offsetLeft, e = e.offsetParent;
+        return n
     }
 
     function d(t) {
-        for (var e = t.offsetTop, n = t.offsetParent; null !== n;) e += n.offsetTop, n = n.offsetParent;
-        return e
+        for (var n = t.offsetTop, e = t.offsetParent; null !== e;) n += e.offsetTop, e = e.offsetParent;
+        return n
     }
 
-    var f = function t(e) {
-        var n = document.documentElement.scrollTop, r = document.documentElement.scrollLeft;
-        if (e.getBoundingClientRect) {
+    var f = function t(n) {
+        var e = document.documentElement.scrollTop, r = document.documentElement.scrollLeft;
+        if (n.getBoundingClientRect) {
             "number" != typeof t.offset && (t.offset = function () {
                 var t = document.createElement("div");
                 t.style.cssText = "position:absolute;left:0;top:0;", document.body.appendChild(t);
-                var e = -t.getBoundingClientRect().top - n;
-                return document.body.removeChild(t), t = null, e
+                var n = -t.getBoundingClientRect().top - e;
+                return document.body.removeChild(t), t = null, n
             }());
-            var c = e.getBoundingClientRect(), o = t.offset;
-            return {left: c.left + o, right: c.right + o, top: c.top + o, bottom: c.bottom + o}
+            var o = n.getBoundingClientRect(), i = t.offset;
+            return {left: o.left + i, right: o.right + i, top: o.top + i, bottom: o.bottom + i}
         }
-        var i = a(e), m = d(e);
+        var u = m(n), c = d(n);
         return {
-            left: i - r,
-            right: i + e.offsetWidth - r,
-            top: m - n,
-            bottom: m + e.offsetHeight - n
+            left: u - r,
+            right: u + n.offsetWidth - r,
+            top: c - e,
+            bottom: c + n.offsetHeight - e
         }
     };
 
-    function l() {
-        var t = Array.from(document.all), e = [];
+    function v() {
+        var t = Array.from(document.all), n = [];
         t.forEach((function (t) {
-            var n = Number(window.getComputedStyle(t, null).getPropertyValue("z-index"));
-            n && e.push(n)
+            var e = Number(window.getComputedStyle(t, null).getPropertyValue("z-index"));
+            e && n.push(e)
         }));
-        var n = 0;
-        return e.length && (n = Math.max(...e)), n
+        var e = 0;
+        return n.length && (e = Math.max(...n)), e
     }
 
     window.addEventListener("load", (function () {
-        document.getElementById("fc_dsp_banner_img").onclick = i
+        document.getElementById("fc_dsp_banner_img").onclick = u
     }));
 </script>

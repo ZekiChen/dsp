@@ -37,8 +37,17 @@
                 }
             }
             var c = createXmlHttp();
-            c.open('GET', impInfoUrl + paramsStr, true);
-            c.send();
+            if (!c) {
+                var f = document.createElement('iframe');
+                f.height = 1;
+                f.width = 1;
+                f.style.display = 'none';
+                f.src = impInfoUrl + paramsStr;
+                document.body.appendChild(f);
+            } else {
+                c.open('GET', impInfoUrl + paramsStr, true);
+                c.send();
+            }
             console.log('send success');
             clearInterval(timer);
         }

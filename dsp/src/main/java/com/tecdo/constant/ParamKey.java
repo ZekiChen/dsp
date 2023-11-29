@@ -18,6 +18,7 @@ public interface ParamKey {
   String HTTP_CODE = "httpCode";
   String RESPONSE_HEADER = "responseHeader";
   String RESPONSE_BODY = "responseBody";
+  String RESPONSE_IMAGE = "responseImage";
 
   // init db data, add into cache
   String AFFILIATES_CACHE_KEY = "affiliates-cache-key";
