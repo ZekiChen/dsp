@@ -282,7 +282,7 @@
     </RollingFile>
 
     <RollingFile name="NOT_FORCE_LOG" fileName="${BUSINESS_LOG_HOME}/not-force.log"
-                 filePattern="${BUSINESS_LOG_HOME}/no-force-%d{yyyy-MM-dd-HH}.log">
+                 filePattern="${BUSINESS_LOG_HOME}/not-force-%d{yyyy-MM-dd-HH}.log">
         <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
         <Policies>
             <TimeBasedTriggeringPolicy/>

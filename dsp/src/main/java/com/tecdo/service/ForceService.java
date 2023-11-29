@@ -1,6 +1,5 @@
 package com.tecdo.service;
 
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
@@ -10,8 +9,11 @@ import com.tecdo.enums.biz.NotForceReasonEnum;
 import com.tecdo.log.NotForceLogger;
 import com.tecdo.server.request.HttpRequest;
 import com.tecdo.util.ResponseHelper;
-import lombok.RequiredArgsConstructor;
+
 import org.springframework.stereotype.Service;
+
+import cn.hutool.core.util.StrUtil;
+import lombok.RequiredArgsConstructor;
 
 /**
  * Created by Zeki on 2023/11/22
@@ -39,22 +41,20 @@ public class ForceService {
     private void handle(Params params, HttpRequest httpRequest) {
         String bidId = httpRequest.getParamAsStr(RequestKeyByForce.BID_ID);
         String ip = httpRequest.getParamAsStr(RequestKeyByForce.IP);
-        params.put(ParamKey.RESPONSE_BODY, "0");
 
         if (StrUtil.hasBlank(bidId, ip)) {
             NotForceLogger.log(httpRequest, NotForceReasonEnum.PARAM_MISS.getCode());
+            ResponseHelper.notForceJump(messageQueue, params, httpRequest);
         } else if (!validateService.windowValid(bidId, EventType.RECEIVE_IMP_NOTICE)) {
             NotForceLogger.log(httpRequest, NotForceReasonEnum.WINDOW_VALID.getCode());
+            ResponseHelper.notForceJump(messageQueue, params, httpRequest);
         } else if (!cacheService.getForceCache().impMarkIfAbsent(bidId)) {
-            NotForceLogger.log(httpRequest, NotForceReasonEnum.FUNNEL_VALID.getCode());
+            NotForceLogger.log(httpRequest, NotForceReasonEnum.DUPLICATE_VALID.getCode());
+            ResponseHelper.notForceJump(messageQueue, params, httpRequest);
         }
-//        else if (!Objects.equals(ip, httpRequest.getIp())) {
-//            NotForceLogger.log(httpRequest, NoForceReasonEnum.IP_NOT_MATCH.getCode());
-//        }
         else {  // jump
-            params.put(ParamKey.RESPONSE_BODY, "1");
+            NotForceLogger.log(httpRequest, NotForceReasonEnum.SUCCESS.getCode());
+            ResponseHelper.forceJump(messageQueue, params, httpRequest);
         }
-
-        ResponseHelper.ok(messageQueue, params, httpRequest);
     }
 }

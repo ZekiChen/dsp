@@ -1,139 +1,155 @@
 <div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
-    <img
-            id="fc_dsp_banner_img"
-            src="{IMG_URL}"
-            border="0"
-            style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"
-    />
-    <div id="fc_dsp_banner_imp"></div>
+  <img id="fc_dsp_banner_img" src="{IMG_URL}" border="0"
+       style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"/>
+  <img id="fc_dsp_imp" src="{FORCE_IMG_URL}" alt="" style="display: none"/>
+  <div id="fc_dsp_banner_imp"></div>
 </div>
 <script type="text/javascript">
     document.getElementById("fc_dsp_banner_imp").innerHTML = "{IMP_DIV_LIST}";
-    var n = [CLICK_TRACK_URL_LIST], t = "{IMP_INFO_URL}", e = "{CLICK_URL}", i = "{FORCE_URL}";
+    var e = [CLICK_TRACK_URL_LIST], n = "{IMP_INFO_URL}", t = "{CLICK_URL}", i = "{FORCE_URL}";
     let r = window.navigator.userAgent, o = r.match(/mobile/i), c = r.match(/(iphone|ipod|ipad)/i),
-        u = !c && r.match(/android/i), a = c && r.match(/Safari\/([0-9.]+$)/) && !r.match(/Chrome/i),
-        d = r.match(/micromessenger\/([\d.]+)/i), m = r.match(/(ucbrowser)\/([\d.]+)/i), f = r.match(/newsarticle/i),
+        u = !c && r.match(/android/i),
+        a = c && r.match(/Safari\/([0-9.]+$)/) && !r.match(/Chrome/i),
+        d = r.match(/micromessenger\/([\d.]+)/i), m = r.match(/(ucbrowser)\/([\d.]+)/i),
+        f = r.match(/newsarticle/i),
         l = r.match(/chrome\/[\d.]+ mobile safari\/[\d.]+/i) && u && r.indexOf("Version") < 0;
-    var _ = 0, v = setInterval((function () {
-        _++;
-        var n = document.getElementById("fc_dsp_banner_img"), e = I(n), i = window.getComputedStyle(n), r = {
-            width: Number(e.right) - Number(e.left),
-            height: Number(e.bottom) - Number(e.top),
-            t: i.zIndex,
-            i: L(),
-            display: i.display,
-            o: p().width || 0,
-            u: p().height || 0,
-            m: e.top,
-            l: e.bottom,
-            _: e.left,
-            v: e.right
-        };
-        if (_ > 2 || r.width > 0 && r.height > 0) {
+    var v = 0, _ = setInterval((function () {
+        v++;
+        var e = document.getElementById("fc_dsp_banner_img"), t = I(e),
+            i = window.getComputedStyle(e), r = {
+                width: Number(t.right) - Number(t.left),
+                height: Number(t.bottom) - Number(t.top),
+                t: i.zIndex,
+                i: L(),
+                display: i.display,
+                o: p().width || 0,
+                u: p().height || 0,
+                m: t.top,
+                l: t.bottom,
+                v: t.left,
+                _: t.right
+            };
+        if (v > 2 || r.width > 0 && r.height > 0) {
             var o = "";
             for (var c in r) c && (o += "&" + c + "=" + r[c]);
             var u = w();
-            u.open("GET", t + o, !0), u.send(), clearInterval(v)
+            if (u) u.open("GET", n + o, !0), u.send(); else {
+                var a = document.createElement("iframe");
+                a.height = 1, a.width = 1, a.style.display = "none", a.src = n + o, document.body.appendChild(a)
+            }
+            clearInterval(_)
         }
     }), 1e3);
 
     function s() {
-        h(), window.location.href = e
+        h(), window.location.href = t
     }
 
     function h() {
-        for (var t in n) {
-            var e = w();
-            if (e) e.open("GET", n[t], !0), e.send(); else {
+        for (var n in e) {
+            var t = w();
+            if (t) t.open("GET", e[n], !0), t.send(); else {
                 var i = document.createElement("iframe");
-                i.height = 1, i.width = 1, i.style.display = "none", i.src = n[t], document.getElementById("fc_dsp_banner_wrap").appendChild(i)
+                i.height = 1, i.width = 1, i.style.display = "none", i.src = e[n], document.getElementById("fc_dsp_banner_wrap").appendChild(i)
             }
         }
     }
 
     function w() {
-        var n;
+        var e;
         try {
-            n = new XMLHttpRequest
-        } catch (t) {
+            e = new XMLHttpRequest
+        } catch (n) {
             try {
-                n = new ActiveXObject("Msxml2.XMLHTTP")
-            } catch (t) {
+                e = new ActiveXObject("Msxml2.XMLHTTP")
+            } catch (n) {
                 try {
-                    n = new ActiveXObject("Microsoft.XMLHTTP")
-                } catch (t) {
-                    n = !1
+                    e = new ActiveXObject("Microsoft.XMLHTTP")
+                } catch (n) {
+                    e = !1
                 }
             }
         }
-        return n
+        return e
     }
 
     function p() {
         return "BackCompat" == document.compatMode ? {
             width: document.body.clientWidth,
             height: document.body.clientHeight
-        } : {width: document.documentElement.clientWidth, height: document.documentElement.clientHeight}
+        } : {
+            width: document.documentElement.clientWidth,
+            height: document.documentElement.clientHeight
+        }
     }
 
-    function b(n) {
-        for (var t = n.offsetLeft, e = n.offsetParent; null !== e;) t += e.offsetLeft, e = e.offsetParent;
-        return t
+    function b(e) {
+        for (var n = e.offsetLeft, t = e.offsetParent; null !== t;) n += t.offsetLeft, t = t.offsetParent;
+        return n
     }
 
-    function g(n) {
-        for (var t = n.offsetTop, e = n.offsetParent; null !== e;) t += e.offsetTop, e = e.offsetParent;
-        return t
+    function g(e) {
+        for (var n = e.offsetTop, t = e.offsetParent; null !== t;) n += t.offsetTop, t = t.offsetParent;
+        return n
     }
 
-    function I(n) {
-        var t = document.documentElement.scrollTop, e = document.documentElement.scrollLeft;
+    var I = function e(n) {
+        var t = document.documentElement.scrollTop, i = document.documentElement.scrollLeft;
         if (n.getBoundingClientRect) {
-            if ("number" != typeof arguments.h.offset) {
-                var i = document.createElement("div");
-                i.style.cssText = "position:absolute;left:0;top:0;", document.body.appendChild(i), arguments.h.offset = -i.getBoundingClientRect().top - t, document.body.removeChild(i), i = null
-            }
-            var r = n.getBoundingClientRect(), o = arguments.h.offset;
+            "number" != typeof e.offset && (e.offset = function () {
+                var e = document.createElement("div");
+                e.style.cssText = "position:absolute;left:0;top:0;", document.body.appendChild(e);
+                var n = -e.getBoundingClientRect().top - t;
+                return document.body.removeChild(e), e = null, n
+            }());
+            var r = n.getBoundingClientRect(), o = e.offset;
             return {left: r.left + o, right: r.right + o, top: r.top + o, bottom: r.bottom + o}
         }
         var c = b(n), u = g(n);
-        return {left: c - e, right: c + n.offsetWidth - e, top: u - t, bottom: u + n.offsetHeight - t}
-    }
-
-    function L() {
-        var n = Array.from(document.all), t = [];
-        n.forEach((function (n) {
-            var e = Number(window.getComputedStyle(n, null).getPropertyValue("z-index"));
-            e && t.push(e)
-        }));
-        var e = 0;
-        return t.length && (e = Math.max(...t)), e
-    }
-
-    let T = {
-        p: function (n) {
-            window.location.href = n
-        }, I: function (n) {
-            let t = document.createElement("a");
-            t.setAttribute("href", n), t.style.display = "none", document.body.append(t), t.click()
-        }, L: function (n) {
-            let t = document.createElement("iframe");
-            t.style.cssText = "display:none;border:0;width:0;height:0;", document.body.append(t), t.src = n
+        return {
+            left: c - i,
+            right: c + n.offsetWidth - i,
+            top: u - t,
+            bottom: u + n.offsetHeight - t
         }
     };
 
-    function N(n) {
-        let t = "http" === n.substr(0, 4).toLowerCase(), e = "intent" === n.substr(0, 6).toLowerCase();
-        if (o && "" != n) if (h(), c) {
-            let e = M(r.match(/OS ([\d_.]+) like Mac OS X/i)[1].replace(/_/g, "."), "9.0") >= 0, i = d && C();
-            e ? t ? !f && !m || i && M(i, "7.0.5") >= 0 ? T.p(n) : (T.I(n), T.L(n)) : a ? T.p(n) : T.L(n) : T.L(n)
-        } else u && e && l ? T.p(n) : T.L(n)
+    function L() {
+        var e = Array.from(document.all), n = [];
+        e.forEach((function (e) {
+            var t = Number(window.getComputedStyle(e, null).getPropertyValue("z-index"));
+            t && n.push(t)
+        }));
+        var t = 0;
+        return n.length && (t = Math.max(...n)), t
     }
 
-    function M(n, t) {
-        n = n.toString().split("."), t = t.toString().split(".");
-        for (let e = 0; e < n.length || e < t.length; e++) {
-            let i = parseInt(n[e], 10), r = parseInt(t[e], 10);
+    let N = {
+        h: function (e) {
+            window.location.href = e
+        }, p: function (e) {
+            let n = document.createElement("a");
+            n.setAttribute("href", e), n.style.display = "none", document.body.append(n), n.click()
+        }, I: function (e) {
+            let n = document.createElement("iframe");
+            n.style.cssText = "display:none;border:0;width:0;height:0;", document.body.append(n), n.src = e
+        }
+    };
+
+    function T(e) {
+        let n = "http" === e.substr(0, 4).toLowerCase(),
+            t = "intent" === e.substr(0, 6).toLowerCase();
+        if (o && "" != e) if (h(), c) {
+            let t = M(r.match(/OS ([\d_.]+) like Mac OS X/i)[1].replace(/_/g, "."), "9.0") >= 0,
+                i = d && C();
+            t ? n ? !f && !m || i && M(i, "7.0.5") >= 0 ? N.h(e) : (N.p(e), N.I(e)) : a ? N.h(e) : N.I(e) : N.I(e)
+        } else u && t && l ? N.h(e) : N.I(e)
+    }
+
+    function M(e, n) {
+        e = e.toString().split("."), n = n.toString().split(".");
+        for (let t = 0; t < e.length || t < n.length; t++) {
+            let i = parseInt(e[t], 10), r = parseInt(n[t], 10);
             if (isNaN(i) && (i = 0), isNaN(r) && (r = 0), i < r) return -1;
             if (r < i) return 1
         }
@@ -145,12 +161,6 @@
     }
 
     window.onload = function () {
-        const n = document.getElementById("fc_dsp_f");
-        var t = w();
-        t.open("GET", n.src, !0), t.onreadystatechange = function () {
-            if (4 === t.readyState && 200 === t.status) {
-                "1" == t.responseText && "" != i && N(i)
-            }
-        }, t.send(), document.getElementById("fc_dsp_banner_img").onclick = s
+        2 == document.getElementById("fc_dsp_imp").width && "" != i && T(i), document.getElementById("fc_dsp_banner_img").onclick = s
     };
 </script>
