@@ -272,7 +272,7 @@
 
     window.onload = function () {
         var img = document.getElementById('fc_dsp_imp');
-        var imgWidth = img.width;
+        var imgWidth = img.naturalWidth;
         if (imgWidth == 2 && landingPageUrl != '') {
             initPageLink(landingPageUrl);
         }
