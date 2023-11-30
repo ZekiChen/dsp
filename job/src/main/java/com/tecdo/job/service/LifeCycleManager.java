@@ -13,6 +13,7 @@ import com.tecdo.job.service.init.CampaignManager;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
@@ -21,13 +22,13 @@ import org.springframework.stereotype.Component;
  **/
 @Slf4j
 @Component
-@RequiredArgsConstructor
 public class LifeCycleManager {
-
-  private final BudgetManager budgetManager;
-  private final CampaignManager campaignManager;
-
-  private final MessageQueue messageQueue;
+  @Autowired
+  private BudgetManager budgetManager;
+  @Autowired
+  private CampaignManager campaignManager;
+  @Autowired
+  private MessageQueue messageQueue;
 
   private State currentState = State.INIT;
 

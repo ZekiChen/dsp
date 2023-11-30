@@ -12,6 +12,7 @@ import com.tecdo.job.controller.SoftTimer;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -23,12 +24,14 @@ import java.util.stream.Collectors;
  **/
 @Slf4j
 @Service
-@RequiredArgsConstructor
 public class CampaignManager extends ServiceImpl<CampaignMapper, Campaign> {
 
-    private final SoftTimer softTimer;
-    private final MessageQueue messageQueue;
-    private final ThreadPool threadPool;
+    @Autowired
+    private SoftTimer softTimer;
+    @Autowired
+    private MessageQueue messageQueue;
+    @Autowired
+    private ThreadPool threadPool;
 
     private State currentState = State.INIT;
     private long timerId;
