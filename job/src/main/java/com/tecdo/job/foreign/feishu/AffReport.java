@@ -7,7 +7,6 @@ import com.tecdo.adm.api.delivery.dto.SpentDTO;
 import com.tecdo.job.domain.vo.camScanner.FeishuPrependReport;
 import com.tecdo.job.domain.vo.camScanner.FeishuSetUnitStyle;
 import com.tecdo.job.domain.vo.camScanner.UnitStyle;
-import com.tecdo.job.util.TimeZoneUtils;
 import com.xxl.job.core.context.XxlJobHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -39,11 +38,6 @@ public class AffReport {
     @Value("${feishu.aff.sheet-prepend.url}")
     private String sheetPrependUrl;
 
-    @Value("${feishu.aff.sheet-unit-range}")
-    private String unitRange;
-    @Value("${feishu.aff.sheet-range}")
-    private String range;
-
     private final String dateFormat = "yyyy/MM/dd";
 
     /**
@@ -65,12 +59,13 @@ public class AffReport {
 
     /**
      * 向飞书表格插入数据
+     *
      * @param impCost 花费
-     * @return true / false
      */
-    public boolean postData(String sheetId, String sheetToken, SpentDTO impCost, String costRatio, String impRatio) {
+    public void postData(LocalDate today, String sheetId, String sheetToken,
+                         SpentDTO impCost, String costRatio, String impRatio, String range) {
         // 处理占位符
-        String range = this.range.replace("?", sheetId);
+        range = range.replace("?", sheetId);
         String sheetPrependUrl = this.sheetPrependUrl.replace("?", sheetToken);
 
         String tenantToken = getAccessToken();
@@ -82,7 +77,7 @@ public class AffReport {
         impCost.setCost(finalCost);
         impCost.setImp(finalImp);
 
-        FeishuPrependReport request = new FeishuPrependReport(range, buildValues(daysFrom1899(), impCost));
+        FeishuPrependReport request = new FeishuPrependReport(range, buildValues(daysFrom1899(today), impCost));
         Map<String, Object> paramMap = MapUtil.newHashMap();
         paramMap.put("valueRange", request);
         HttpResult result = OkHttps.sync(sheetPrependUrl)
@@ -92,15 +87,14 @@ public class AffReport {
                 .post();
         String msg = result.isSuccessful() ? "数据写入成功" : "数据写入失败";
         XxlJobHelper.log(msg);
-        return result.isSuccessful();
     }
 
     /**
      * 由于飞书表格的特殊要求，为了填入日期类型的数据，需要填当前距离1899年12月30日的天数
      * @return 当前距离1899年12月30日的天数
      */
-    public Long daysFrom1899() {
-        LocalDate currentDate = TimeZoneUtils.dateInChina().minusDays(1);
+    public Long daysFrom1899(LocalDate today) {
+        LocalDate currentDate = today.minusDays(1);
         LocalDate date1899 = LocalDate.of(1899, 12, 30);
         return ChronoUnit.DAYS.between(date1899, currentDate);
     }
@@ -128,9 +122,9 @@ public class AffReport {
      * 把日期对应的单元格设置为dateFormat日期类型
      * @return true / false
      */
-    public boolean unitFormatter(String sheetId, String sheetToken) {
+    public boolean unitFormatter(String sheetId, String sheetToken, String unitRange) {
         // 处理占位符
-        String unitRange = this.unitRange.replace("?", sheetId);
+        unitRange = unitRange.replace("?", sheetId);
         String sheetFormatterUrl = this.sheetFormatterUrl.replace("?", sheetToken);
 
         String tenantToken = getAccessToken();
@@ -153,8 +147,8 @@ public class AffReport {
      * 获取前一天时间
      * @return 前一天日期字符串
      */
-    public String dateFormat() {
-        LocalDate currentDate = TimeZoneUtils.dateInChina().minusDays(1);
+    public String dateFormat(LocalDate today) {
+        LocalDate currentDate = today.minusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return currentDate.format(formatter);
     }
