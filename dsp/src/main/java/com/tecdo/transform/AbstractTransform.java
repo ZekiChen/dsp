@@ -73,6 +73,9 @@ public abstract class AbstractTransform implements IProtoTransform {
     @Value("${pac.url.encrypt.baseDomain}")
     private String baseDomain;
 
+    @Value("${pac.response.banner.encrypt:true}")
+    private boolean bannerEncrypt;
+
     public abstract boolean forceBannerEnable();
 
     public abstract String deepLinkFormat(String deepLink);
@@ -270,7 +273,8 @@ public abstract class AbstractTransform implements IProtoTransform {
                                     clickTrackList,
                                     ParamHelper.urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
                                     forceLink,
-                                    forceJudgeUrl);
+                                    forceJudgeUrl,
+                                    bannerEncrypt);
                 } else {
                     adm = AdmGenerator.bannerAdm(clickUrl,
                             deepLink,

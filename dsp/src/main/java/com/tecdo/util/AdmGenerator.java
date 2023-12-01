@@ -1,21 +1,28 @@
 package com.tecdo.util;
 
-import cn.hutool.core.date.DateUtil;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.constant.FormatKey;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.n.NativeRequest;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
-import com.tecdo.domain.openrtb.response.n.*;
+import com.tecdo.domain.openrtb.response.n.Data;
+import com.tecdo.domain.openrtb.response.n.Img;
+import com.tecdo.domain.openrtb.response.n.Link;
+import com.tecdo.domain.openrtb.response.n.NativeResponse;
+import com.tecdo.domain.openrtb.response.n.NativeResponseAsset;
+import com.tecdo.domain.openrtb.response.n.Title;
 import com.tecdo.enums.biz.VideoMimeEnum;
 import com.tecdo.enums.openrtb.DataAssetTypeEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
+
 import org.apache.commons.lang3.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.date.DateUtil;
 
 public class AdmGenerator {
 
@@ -26,7 +33,8 @@ public class AdmGenerator {
                                       List<String> clickTrackUrl,
                                       String impInfoUrl,
                                       String forceLink,
-                                      String forceJudgeUrl) {
+                                      String forceJudgeUrl,
+                                      boolean encrypt) {
     String finalClickUrl = StringUtils.firstNonBlank(deepLink, clickUrl);
     StringBuilder impDivListBuilder = new StringBuilder();
     String impDivTemplate = "<img src=\"{impTrack}\" style=\"display:none\"/>";
@@ -38,8 +46,12 @@ public class AdmGenerator {
       clickTrackBuilder.append("\"").append(s).append("\"").append(",");
     }
     clickTrackBuilder.delete(clickTrackBuilder.length() - 1, clickTrackBuilder.length());
-
-    String admTemplate = StringConfigUtil.getForceBannerTemplate();
+    String admTemplate;
+    if (encrypt) {
+      admTemplate = StringConfigUtil.getForceBannerTemplate();
+    } else {
+      admTemplate = StringConfigUtil.getNotEncryptForceBannerTemplate();
+    }
     String adm = admTemplate.replace(FormatKey.CLICK_URL, finalClickUrl)
                             .replace(FormatKey.FORCE_URL, forceLink)
                             .replace(FormatKey.IMG_URL, imgUrl)
