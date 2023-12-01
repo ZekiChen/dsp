@@ -8,6 +8,7 @@ import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.AffiliateFilter;
 import com.tecdo.log.NotBidReasonLogger;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 

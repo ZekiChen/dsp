@@ -88,7 +88,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
             return false;
         }
         for (NativeRequestAsset asset : native1.getNativeRequest().getAssets()) {
-            if (asset.getImg() != null ) {
+            if (asset.getImg() != null) {
                 Creative creative = getCreativeByImgType(asset, adDTO);
                 if (creative == null) {
                     return false;
@@ -151,17 +151,11 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
     }
 
     private boolean checkImgSize(Img img, Creative creative) {
-        if (isExistMinLimit(img.getWmin(), img.getHmin())) {
-            return isSizeMatchMin(img.getWmin(),
-                                  img.getHmin(),
-                                  creative.getWidth(),
-                                  creative.getHeight());
-        } else {
-            return isSizeMatch(img.getW(), img.getH(), creative.getWidth(), creative.getHeight());
-        }
+        return isSizeMatchMin(img.getWmin(), img.getHmin(), creative.getWidth(), creative.getHeight())
+                || isSizeMatch(img.getW(), img.getH(), creative.getWidth(), creative.getHeight());
     }
 
-    private boolean isExistMinLimit(Integer reqW, Integer reqH){
+    private boolean isExistMinLimit(Integer reqW, Integer reqH) {
         return reqW != null && reqH != null && reqW > 0 && reqH > 0;
     }
 
@@ -175,6 +169,6 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
     // 对于w，h，比例相同就行
     private boolean isSizeMatch(Integer reqW, Integer reqH, Integer creW, Integer creH) {
         return reqW != null && reqH != null && reqW > 0 && reqH > 0
-               && (float) creW / creH == (float) reqW / reqH;
+                && (float) creW / creH == (float) reqW / reqH;
     }
 }
