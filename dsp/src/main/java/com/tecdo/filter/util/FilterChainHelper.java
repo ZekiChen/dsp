@@ -8,6 +8,7 @@ import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.AffiliateFilter;
 import com.tecdo.log.NotBidReasonLogger;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -42,6 +43,10 @@ public class FilterChainHelper {
                                         BidRequest bidRequest,
                                         Imp imp,
                                         Affiliate affiliate) {
+        List<Integer> adIds = Arrays.asList(16853);
+        if (adIds.contains(adDTO.getAd().getId())) {
+            System.out.println(adDTO.getAdGroup().getId());
+        }
         boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
         if (!filterFlag && !ignoreLogFilter.contains(curFilter.getClass())) {
             NotBidReasonLogger.log(bidId,

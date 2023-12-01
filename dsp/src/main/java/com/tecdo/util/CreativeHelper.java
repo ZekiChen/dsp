@@ -74,11 +74,9 @@ public class CreativeHelper {
             bidCreative.setType(AdTypeEnum.NATIVE.getType());
             if (native1.getNativeRequest() != null && CollUtil.isNotEmpty(native1.getNativeRequest().getAssets())) {
                 for (NativeRequestAsset nativeRequestAsset : native1.getNativeRequest().getAssets()) {
-                    if (nativeRequestAsset.getImg() == null) {
-                        continue;
-                    }
-                    if (!Objects.equals(nativeRequestAsset.getImg().getType(),
-                                        ImageAssetTypeEnum.MAIN.getValue())) {
+                    if (nativeRequestAsset.getImg() == null ||
+                            !Objects.equals(nativeRequestAsset.getImg().getType(),
+                                    ImageAssetTypeEnum.MAIN.getValue())) {
                         continue;
                     }
                     // 以下就是img,并且是主图像的判断
