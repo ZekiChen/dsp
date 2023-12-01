@@ -15,6 +15,8 @@ import com.tecdo.starter.redis.CacheUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.interceptor.TransactionAspectSupport;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -58,12 +60,14 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public R batchUploadFiles(MultipartFile[] files, Map<String, String> paramMap, OssTemplate ossTemplate) throws IOException {
         int attempCnt = 0;
 
         while (attempCnt < maxAttemptCnt) {
             CacheUtil.clear(CREATIVE_CACHE);
             List<Creative> entities = new ArrayList<>();
+            Integer newExternalId = getNewExternalId();
             for (int i = 0; i < files.length; i++) {
                 PacFile pacFile = ossTemplate.uploadFile(files[i].getOriginalFilename(), files[i].getInputStream());
                 Creative creative = new Creative();
@@ -72,7 +76,7 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
                 creative.setType(Integer.parseInt(paramMap.get("type" + i)));
                 creative.setWidth(Integer.parseInt(paramMap.get("width" + i)));
                 creative.setHeight(Integer.parseInt(paramMap.get("height" + i)));
-                creative.setExternalId(getNewExternalId());
+                creative.setExternalId(newExternalId + i);
                 String catIab = paramMap.get("catIab" + i);
                 if (StrUtil.isNotBlank(catIab)) {
                     creative.setCatIab(catIab);
@@ -93,6 +97,8 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
             } catch (DuplicateKeyException e) {
                 // 处理external_id duplicate 异常，可以在这里记录日志或执行其他操作
                 System.out.println("Duplicate external_id. Retrying...");
+                // 手动回滚
+                TransactionAspectSupport.currentTransactionStatus().setRollbackOnly();
                 attempCnt++;
             }
         }
