@@ -22,4 +22,6 @@ public interface RequestPath {
 
   String FORCE = "/f";
 
+  String COLLECT_FEATURE = "/collect/feature";
+  String COLLECT_CODE = "/collect/code";
 }

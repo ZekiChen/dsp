@@ -21,6 +21,8 @@ public class NotForceLogger {
         String affiliateId = httpRequest.getParamAsStr(RequestKeyByForce.AFFILIATE_ID);
         String country = httpRequest.getParamAsStr(RequestKeyByForce.COUNTRY);
         String bundle = httpRequest.getParamAsStr(RequestKeyByForce.BUNDLE);
+        String schain = httpRequest.getParamAsStr(RequestKeyByForce.SCHAIN);
+        Integer adGroupId = httpRequest.getParamAsInteger(RequestKeyByForce.AD_GROUP_ID);
 
         Map<String, Object> map = new HashMap<>();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
@@ -30,6 +32,8 @@ public class NotForceLogger {
         map.put("affiliate_id", affiliateId);
         map.put("country", country);
         map.put("bundle", bundle);
+        map.put("schain", schain);
+        map.put("ad_group_id", adGroupId);
         map.put("code", code);
 
         logger.info(JsonHelper.toJSONString(map));

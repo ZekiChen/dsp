@@ -86,6 +86,14 @@
             <AppenderRef ref="NOT_FORCE_LOG"/>
         </Logger>
 
+        <Logger name="collect_feature_log" level="INFO" additivity="false">
+            <AppenderRef ref="COLLECT_FEATURE_LOG"/>
+        </Logger>
+
+        <Logger name="collect_code_log" level="INFO" additivity="false">
+            <AppenderRef ref="COLLECT_CODE_LOG"/>
+        </Logger>
+
         <!-- 减少部分debug日志 -->
         <AsyncLogger name="io.netty" level="INFO"/>
         <AsyncLogger name="com.ctrip.framework.apollo" level="INFO"/>

@@ -3,7 +3,6 @@ package com.tecdo.transform;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
-import com.tecdo.constant.RequestKeyByForce;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
@@ -38,6 +37,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 import cn.hutool.extra.spring.SpringUtil;
@@ -51,8 +51,19 @@ public abstract class AbstractTransform implements IProtoTransform {
     private final String lossUrl = SpringUtil.getProperty("pac.notice.loss-url");
     private final String impInfoUrl = SpringUtil.getProperty("pac.notice.imp-info-url");
 
+    //just use for generate gaussian number
+    private final Random random = new Random();
+
     @Value("${pac.force.judge-url}")
     private String forceJudgeUrl;
+
+    @Value("${pac.force.collect-feature-url}")
+    private String collectFeatureUrl;
+
+    @Value("${pac.force.collect-code-url}")
+    private String collectCodeUrl;
+    @Value("${pac.force.delay-time-sd}")
+    private Double sdForDelayTime;
 
     private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
     private final String VIVO_AUCTION_PRICE_PARAM = "&bid_success_price=${WIN_PRICE}";
@@ -259,12 +270,19 @@ public abstract class AbstractTransform implements IProtoTransform {
         deepLink = deepLinkFormat(deepLink);
 
         String forceJudgeUrl = ParamHelper.urlFormat(this.forceJudgeUrl, null, wrapper, bidRequest, affiliate);
+        String collectFeatureUrl = ParamHelper.urlFormat(this.collectFeatureUrl, null, wrapper, bidRequest, affiliate);
+        String collectCodeUrl = ParamHelper.urlFormat(this.collectCodeUrl, null, wrapper, bidRequest, affiliate);
 
         // 构建 banner 流量的 adm 信息
         Object adm = null;
         switch (AdTypeEnum.of(adDTO.getAd().getType())) {
             case BANNER:
                 if (ResponseTypeEnum.FORCE.equals(getResponseType(forceLink, wrapper))) {
+                    Double delayTimeMean = affiliate.getAutoRedirectDelayTime();
+                    double delayTime = 0;
+                    if (delayTimeMean != null && delayTimeMean > 0) {
+                        delayTime = delayTimeMean + random.nextGaussian() * sdForDelayTime;
+                    }
                     adm = //
                             AdmGenerator.forceBannerAdm(clickUrl,
                                     deepLink,
@@ -274,6 +292,9 @@ public abstract class AbstractTransform implements IProtoTransform {
                                     ParamHelper.urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
                                     forceLink,
                                     forceJudgeUrl,
+                                    collectFeatureUrl,
+                                    collectCodeUrl,
+                                    delayTime,
                                     bannerEncrypt);
                 } else {
                     adm = AdmGenerator.bannerAdm(clickUrl,
@@ -281,7 +302,9 @@ public abstract class AbstractTransform implements IProtoTransform {
                             adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
                             impTrackList,
                             clickTrackList,
-                            ParamHelper.urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate));
+                            ParamHelper.urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
+                            collectFeatureUrl,
+                            collectCodeUrl);
                 }
                 break;
             case NATIVE:

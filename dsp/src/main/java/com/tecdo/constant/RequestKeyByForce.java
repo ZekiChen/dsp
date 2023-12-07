@@ -7,4 +7,6 @@ public interface RequestKeyByForce {
     String COUNTRY = "country";
     String BUNDLE = "bundle";
     String IP = "ip";
+    String SCHAIN = "schain";
+    String AD_GROUP_ID = "ad_group_id";
 }

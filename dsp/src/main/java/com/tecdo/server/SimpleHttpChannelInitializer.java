@@ -8,6 +8,8 @@ import io.netty.channel.ChannelPipeline;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.handler.codec.http.HttpContentCompressor;
 import io.netty.handler.codec.http.HttpContentDecompressor;
+import io.netty.handler.codec.http.HttpHeaderNames;
+import io.netty.handler.codec.http.HttpMethod;
 import io.netty.handler.codec.http.HttpObjectAggregator;
 import io.netty.handler.codec.http.HttpRequestDecoder;
 import io.netty.handler.codec.http.HttpResponseEncoder;
@@ -29,7 +31,12 @@ public class SimpleHttpChannelInitializer extends ChannelInitializer<SocketChann
 
   @Override
   protected void initChannel(SocketChannel ch) throws Exception {
-    CorsConfig corsConfig = CorsConfigBuilder.forAnyOrigin().allowCredentials().allowNullOrigin().build();
+    CorsConfig corsConfig = CorsConfigBuilder.forAnyOrigin()
+                                             .allowCredentials()
+                                             .allowNullOrigin()
+                                             .allowedRequestHeaders(HttpHeaderNames.CONTENT_TYPE)
+                                             .allowedRequestMethods(HttpMethod.GET, HttpMethod.POST)
+                                             .build();
     ChannelPipeline pipe = ch.pipeline();
     pipe.addLast("readTimeoutHandler", new ReadTimeoutHandler(60))
             .addLast("writeTimeoutHandler", new WriteTimeoutHandler(60))

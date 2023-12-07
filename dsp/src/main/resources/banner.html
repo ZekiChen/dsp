@@ -9,8 +9,10 @@
     var clickTrackers = [{CLICK_TRACK_URL_LIST}];
     var impInfoUrl = '{IMP_INFO_URL}';
     var clickUrl = '{CLICK_URL}';
+    var collectCodeUrl = '{COLLECT_CODE_URL}';
+    var collectFeatureUrl = '{COLLECT_FEATURE_URL}';
+
     var i = 0;
-    // 3秒后或图片加载出来后，发送网络请求impInfoUrl，并且附带了一些图片大小，图片位置、图片样式等一堆参数
     var timer = setInterval(function () {
         i++;
         var e = document.getElementById('fc_dsp_banner_img');
@@ -53,14 +55,11 @@
         }
     }, 1000);
 
-    // 创建一个发送网络请求的对象，做了ie和其他浏览器的兼容
     function createXmlHttp() {
         var a;
         try {
-            // 其他浏览器的网络请求实例
             a = new XMLHttpRequest();
         } catch (b) {
-            // ie浏览器的网络请求实例
             try {
                 a = new ActiveXObject('Msxml2.XMLHTTP');
             } catch (b) {
@@ -74,17 +73,14 @@
         return a;
     }
 
-    // 点击图片之后，先访问 clickTrackers 中所有链接，然后再访问 clickUrl
     function fireClickTracker() {
         triggerTrace();
         window.location.href = clickUrl;
     }
 
-    // 访问clickTrackers数组中的所有url，目前只有 https://www.tec-do.com/tec-click.html，这个地址返回了html文件，如果运行在浏览器上就会打开这个页面
     function triggerTrace() {
         for (var a in clickTrackers) {
             var c = createXmlHttp();
-            // 如果浏览器不兼容xml (ie 7 之前的旧版本会不支持xml) 就用iframe标签访问url
             if (!c) {
                 var b = document.createElement('iframe');
                 b.height = 1;
@@ -93,14 +89,12 @@
                 b.src = clickTrackers[a];
                 document.getElementById('fc_dsp_banner_wrap').appendChild(b);
             } else {
-                // 如果有支持xml http请求，直接请求url
                 c.open('GET', clickTrackers[a], true);
                 c.send();
             }
         }
     }
 
-    // 获取页面可见区域的宽高
     function getViewport() {
         if (document.compatMode == 'BackCompat') {
             return {
@@ -115,7 +109,6 @@
         }
     }
 
-    // 不断的获取元素距离定位父元素左边的距离
     function getElementLeft(element) {
         var actualLeft = element.offsetLeft;
         var current = element.offsetParent;
@@ -126,7 +119,6 @@
         return actualLeft;
     }
 
-    // 不断的获取元素距离定位父元素上面的距离
     function getElementTop(element) {
         var actualTop = element.offsetTop;
         var current = element.offsetParent;
@@ -137,7 +129,6 @@
         return actualTop;
     }
 
-    // 计算出这个图片在页面的具体位置
     var getBoundingClientRect = function calculateBoundingClientRect(element) {
         var scrollTop = document.documentElement.scrollTop;
         var scrollLeft = document.documentElement.scrollLeft;
@@ -175,7 +166,6 @@
         }
     };
 
-    // 获取页面中定位层级最高的值(zIndex值最高的元素会呈现在页面层级最上面)
     function getMaxIndex() {
         var allElement = Array.from(document.all);
         var zIndex = [];
@@ -192,9 +182,240 @@
         return max;
     }
 
-    // 页面加载完成之后调用的事件
+    function checkFeatureAttribute () {
+        var unknow = 'unknow';
+        var emptyMap = {};
+        var featureArr = [
+            'userAgent',
+            'webdriver',
+            'plugins',
+            'mimeTypes',
+            'platform',
+            'phantomJSFeatures',
+            'nightmareJS',
+            'seleniumFeatures',
+            'webGL',
+            'canvas',
+            'webRTC',
+            'fonts',
+            'cdp'
+        ];
+
+        var featureAttribute = {
+            userAgent: function() {
+                return  navigator.userAgent;
+            },
+            webdriver: function() {
+                return navigator.webdriver;
+            },
+            plugins: function() {
+                const pluginsRes = [];
+                for (let i = 0; i < navigator.plugins.length; i++) {
+                    const plugin = navigator.plugins[i];
+                    const pluginStr = [plugin.name, plugin.description, plugin.filename, plugin.version].join("::");
+                    let mimeTypes = [];
+                    Object.keys(plugin).forEach((mt) => {
+                        mimeTypes.push([plugin[mt].type, plugin[mt].suffixes, plugin[mt].description].join("~"));
+                    });
+                    mimeTypes = mimeTypes.join(",");
+                    pluginsRes.push(pluginStr + "__" + mimeTypes);
+                }
+                return pluginsRes;
+            },
+            mimeTypes: function()  {
+                const mimeTypes = [];
+                for (let i = 0; i < navigator.mimeTypes.length; i++) {
+                    let mt = navigator.mimeTypes[i];
+                    mimeTypes.push([mt.description, mt.type, mt.suffixes].join("~~"));
+                }
+                return mimeTypes;
+            },
+            platform: function() {
+                if (navigator.platform) {
+                    return navigator.platform;
+                }
+                return unknow;
+            },
+            phantomJSFeatures: function() {
+                return [
+                    'callPhantom' in window,
+                    '_phantom' in window,
+                    'phantom' in window
+                ];
+            },
+            nightmareJS: function() {
+                return !!window.__nightmare;
+            },
+            seleniumFeatures: function () {
+                return [
+                    'webdriver' in window,
+                    '_Selenium_IDE_Recorder' in window,
+                    'callSelenium' in window,
+                    '_selenium' in window,
+                    '__webdriver_script_fn' in document,
+                    '__driver_evaluate' in document,
+                    '__webdriver_evaluate' in document,
+                    '__selenium_evaluate' in document,
+                    '__fxdriver_evaluate' in document,
+                    '__driver_unwrapped' in document,
+                    '__webdriver_unwrapped' in document,
+                    '__selenium_unwrapped' in document,
+                    '__fxdriver_unwrapped' in document,
+                    '__webdriver_script_func' in document,
+                    document.documentElement.getAttribute("selenium") !== null,
+                    document.documentElement.getAttribute("webdriver") !== null,
+                    document.documentElement.getAttribute("driver") !== null
+                ];
+            },
+            webGL: function() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                    let webGLVendor, webGLRenderer;
+                    if (ctx.getSupportedExtensions().indexOf("WEBGL_debug_renderer_info") >= 0) {
+                        webGLVendor = ctx.getParameter(ctx.getExtension('WEBGL_debug_renderer_info').UNMASKED_VENDOR_WEBGL);
+                        webGLRenderer = ctx.getParameter(ctx.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL);
+                    } else {
+                        webGLVendor = "Not supported";
+                        webGLRenderer = "Not supported";
+                    }
+                    return {
+                        webGLVendor: webGLVendor,
+                        webGLRenderer: webGLRenderer,
+                    };
+                } catch (e) {
+                    return {
+                        webGLVendor: "error",
+                        webGLRenderer: "error",
+                    };
+                }
+            },
+            canvas: function () {
+                var canvas = document.createElement('canvas');
+                var canvasCtx = canvas.getContext('2d');
+                if (canvasCtx) {
+                    return {
+                        supportTextMetrics: typeof canvasCtx.measureText === 'function',
+                        supportImageData: typeof canvasCtx.getImageData === 'function',
+                        supportToDataURL: typeof canvas.toDataURL === 'function',
+                    }
+                }
+                return emptyMap;
+            },
+            webRTC: function() {
+                const deviceToCount = {
+                    "audiooutput": 0,
+                    "audioinput": 0,
+                    "videoinput": 0
+                };
+
+                const rtc = {
+                    speakers: 0,
+                    micros: 0,
+                    webcams: 0
+                };
+
+                if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices
+                  && navigator.mediaDevices.enumerateDevices.name !== "bound reportBlock") {
+                    navigator.mediaDevices.enumerateDevices().then((devices) => {
+                        if (typeof devices !== "undefined") {
+                            let name;
+                            for (let i = 0; i < devices.length; i++) {
+                                name = [devices[i].kind];
+                                deviceToCount[name] = deviceToCount[name] + 1;
+                            }
+
+                            rtc.speakers = deviceToCount.audiooutput;
+                            rtc.micros = deviceToCount.audioinput;
+                            rtc.webcams = deviceToCount.videoinput;
+
+                        }
+                    });
+                    return rtc;
+                } else if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices
+                  && navigator.mediaDevices.enumerateDevices.name === "bound reportBlock") {
+                    resolve({
+                        'devicesBlockedByBrave': true
+                    });
+                } else {
+                    return rtc;
+                }
+            },
+            fonts: function () {
+                var span = document.createElement('span');
+                span.textContent = 'font computed';
+                document.body.appendChild(span);
+                var computedStyle = getComputedStyle(span);
+                var fontFamily = computedStyle.getPropertyValue('font-family');
+                var fontSize = computedStyle.getPropertyValue('font-size');
+                var fontWeight = computedStyle.getPropertyValue('font-weight');
+                document.body.removeChild(span);
+                return {
+                    fontFamily: fontFamily,
+                    fontSize: fontSize,
+                    fontWeight: fontWeight
+                }
+            },
+            cdp: function() {
+                var cdp = {};
+                if (navigator.userAgent.indexOf('Chrome') !== -1) {
+
+                    if (typeof chrome !== 'undefined' && typeof chrome.runtime !== 'undefined') {
+
+                        var version = /Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1];
+
+                        chrome.runtime.sendMessage({ type: 'chrome://version' }, response => {
+                            var devToolsVersion = response.match(/DevTools\ ([0-9.]+)/)[1];
+                            cdp.version = version;
+                            cdp.devToolsVersion = devToolsVersion;
+                        });
+                    }
+                }
+                return cdp
+            }
+        }
+
+        var feature = {};
+        for (let i = 0; i < featureArr.length; i++) {
+            let key = featureArr[i];
+            feature[key] = featureAttribute[key]();
+        }
+        return feature;
+
+    }
+
+    function collectScriptsCode () {
+        var scriptContent = "";
+        var scriptTags = document.getElementsByTagName('script');
+        for (var i = 0; i < scriptTags.length; i++) {
+            var script = scriptTags[i].innerHTML;
+            scriptContent += `<script-satrt index=${i}> ${script} <script-end index=${i}>`;
+        }
+        var params = {
+            code: scriptContent
+        }
+        var xmlHttp = createXmlHttp();
+        if (xmlHttp) {
+            xmlHttp.open('POST', collectCodeUrl, true);
+            xmlHttp.setRequestHeader('Content-type', 'application/json');
+            xmlHttp.send(JSON.stringify(params));
+        }
+    }
+
+    function collectFeatureAttribuite () {
+        var params = checkFeatureAttribute();
+        var xmlHttp = createXmlHttp();
+        if (xmlHttp) {
+            xmlHttp.open('POST', collectFeatureUrl, true);
+            xmlHttp.setRequestHeader('Content-type', 'application/json');
+            xmlHttp.send(JSON.stringify(params));
+        }
+    }
+
+
     window.addEventListener("load", function () {
-        // 给图片绑定一个点击事件，用户主动触发后先请求 clickTrackers，在执行强跳clickUrl
         document.getElementById('fc_dsp_banner_img').onclick = fireClickTracker;
+        collectScriptsCode();
+        collectFeatureAttribuite();
     })
 </script>

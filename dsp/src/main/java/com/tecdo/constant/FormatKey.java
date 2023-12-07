@@ -22,6 +22,7 @@ public interface FormatKey {
   String BUNDLE = "{BUNDLE}";
   String RTA_TOKEN = "{RTA_TOKEN}";
   String SIGN = "{SIGN}";
+  String SCHAIN = "{SCHAIN}";
 
   String CLICK_URL = "{CLICK_URL}";
   String IMG_URL = "{IMG_URL}";
@@ -30,6 +31,9 @@ public interface FormatKey {
   String IMP_INFO_URL = "{IMP_INFO_URL}";
   String FORCE_URL = "{FORCE_URL}";
   String FORCE_JUDGE_URL = "{FORCE_JUDGE_URL}";
+  String COLLECT_FEATURE_URL = "{COLLECT_FEATURE_URL}";
+  String COLLECT_CODE_URL = "{COLLECT_CODE_URL}";
+  String DELAY_TIME = "{DELAY_TIME}";
 
   String VIDEO_NAME = "{VIDEO_NAME}";
   String VIDEO_URL = "{VIDEO_URL}";

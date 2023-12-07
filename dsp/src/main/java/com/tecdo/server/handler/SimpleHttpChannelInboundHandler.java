@@ -77,6 +77,12 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
       case RequestPath.FORCE:
         eventType = EventType.RECEIVE_FORCE_REQUEST;
         break;
+      case RequestPath.COLLECT_FEATURE:
+        eventType = EventType.RECEIVE_COLLECT_FEATURE;
+        break;
+      case RequestPath.COLLECT_CODE:
+        eventType = EventType.RECEIVE_COLLECT_CODE;
+        break;
       default:
         eventType = EventType.RESPONSE_RESULT;
         params.put(ParamKey.HTTP_CODE, HttpCode.NOT_FOUND);

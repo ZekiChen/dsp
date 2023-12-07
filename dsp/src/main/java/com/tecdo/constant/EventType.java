@@ -96,6 +96,8 @@ public enum EventType {
   RECEIVE_LOSS_NOTICE(3008, "receive loss notice"),
   RECEIVE_SDK_PB_NOTICE(3009, "receive sdk pb notice"),
   RECEIVE_FORCE_REQUEST(3010, "receive force request"),
+  RECEIVE_COLLECT_FEATURE(3011, "receive collect feature"),
+  RECEIVE_COLLECT_CODE(3012, "receive collect code"),
 
   TASK_START(3101, "task start"),
   BID_TASK_FINISH(3102, "bid task finish"),

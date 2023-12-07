@@ -54,6 +54,7 @@ public class ParamHelper {
                 .replace(FormatKey.AD_FORMAT,
                         AdTypeEnum.of(response.getAdDTO().getAd().getType()).getDesc())
                 .replace(FormatKey.BUNDLE, encode(bidRequest.getApp().getBundle()))
+                .replace(FormatKey.SCHAIN, encode(ExtHelper.listSChain(bidRequest.getSource())))
                 .replace(FormatKey.RTA_TOKEN,
                         encode(StringUtils.firstNonEmpty(response.getRtaToken(), "")));
         return url;
