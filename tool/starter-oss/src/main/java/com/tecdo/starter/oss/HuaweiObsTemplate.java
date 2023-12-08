@@ -1,7 +1,10 @@
 package com.tecdo.starter.oss;
 
 import com.obs.services.ObsClient;
+import com.obs.services.model.ObjectMetadata;
+import com.obs.services.model.ObsObject;
 import com.obs.services.model.PutObjectResult;
+import com.tecdo.starter.oss.domain.OssFile;
 import com.tecdo.starter.oss.domain.PacFile;
 import com.tecdo.starter.oss.props.OssProperties;
 import com.tecdo.starter.oss.rule.OssRule;
@@ -11,7 +14,9 @@ import lombok.SneakyThrows;
 import org.springframework.util.StringUtils;
 import org.springframework.web.multipart.MultipartFile;
 
+import java.io.BufferedReader;
 import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.util.List;
 
 /**
@@ -29,15 +34,15 @@ public class HuaweiObsTemplate implements OssTemplate {
 		return getOssHost().concat(StringPool.SLASH).concat(fileName);
 	}
 
-	@Override
-	public PacFile uploadFile(MultipartFile file) {
-		return uploadFile(ossProperties.getBucketName(), file.getOriginalFilename(), file);
-	}
+//	@Override
+//	public PacFile uploadFile(MultipartFile file) {
+//		return uploadFile(ossProperties.getBucketName(), file.getOriginalFilename(), file);
+//	}
 
-	@Override
-	public PacFile uploadFile(String fileName, MultipartFile file) {
-		return uploadFile(ossProperties.getBucketName(), fileName, file);
-	}
+//	@Override
+//	public PacFile uploadFile(String fileName, MultipartFile file) {
+//		return uploadFile(ossProperties.getBucketName(), fileName, file);
+//	}
 
 	@Override
 	@SneakyThrows
@@ -70,10 +75,10 @@ public class HuaweiObsTemplate implements OssTemplate {
 		fileNames.forEach(this::removeFile);
 	}
 
-	@Override
-	public void removeFiles(String bucketName, List<String> fileNames) {
-		fileNames.forEach(fileName -> removeFile(bucketName, fileName));
-	}
+//	@Override
+//	public void removeFiles(String bucketName, List<String> fileNames) {
+//		fileNames.forEach(fileName -> removeFile(bucketName, fileName));
+//	}
 
 	/**
 	 * 上传文件流
@@ -126,5 +131,39 @@ public class HuaweiObsTemplate implements OssTemplate {
 	 */
 	public String getOssHost() {
 		return ossProperties.getCdnUrl();
+	}
+
+	@Override
+	public boolean existFile(String fileName) {
+		try {
+			statFile(ossProperties.getBucketName(), fileName);
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
+	@Override
+	public OssFile statFile(String bucketName, String fileName) {
+		ObjectMetadata stat = obsClient.getObjectMetadata(bucketName, fileName);
+		OssFile ossFile = new OssFile();
+		ossFile.setName(fileName);
+		ossFile.setUrl(fileLink(ossFile.getName()));
+		ossFile.setHash(stat.getContentMd5());
+		ossFile.setLength(stat.getContentLength());
+		ossFile.setUploadTime(stat.getLastModified());
+		ossFile.setContentType(stat.getContentType());
+		return ossFile;
+	}
+
+	@Override
+	public String fileLink(String fileName) {
+		return getOssHost().concat(StringPool.SLASH).concat(fileName);
+	}
+
+    @Override
+    public BufferedReader download(String fileName) {
+		ObsObject obsObject = obsClient.getObject(ossProperties.getBucketName(), fileName);
+		return new BufferedReader(new InputStreamReader(obsObject.getObjectContent()));
 	}
 }

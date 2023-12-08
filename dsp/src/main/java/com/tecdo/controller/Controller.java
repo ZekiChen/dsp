@@ -94,6 +94,10 @@ public class Controller implements MessageObserver {
       case ADGROUP_BUNDLE_DATA_LOAD_RESPONSE:
       case ADGROUP_BUNDLE_DATA_LOAD_ERROR:
       case ADGROUP_BUNDLE_DATA_LOAD_TIMEOUT:
+      case PIXALATE_FRAUD_LOAD:
+      case PIXALATE_FRAUD_LOAD_RESPONSE:
+      case PIXALATE_FRAUD_LOAD_ERROR:
+      case PIXALATE_FRAUD_LOAD_TIMEOUT:
       case ONE_DATA_READY:
       case NETTY_START:
       case RECEIVE_PING_REQUEST:

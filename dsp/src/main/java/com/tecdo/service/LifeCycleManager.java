@@ -9,15 +9,8 @@ import com.tecdo.log.NotBidReasonLogger;
 import com.tecdo.server.NetServer;
 import com.tecdo.server.handler.SimpleHttpChannelInboundHandler;
 import com.tecdo.server.request.HttpRequest;
-import com.tecdo.service.init.AbTestConfigManager;
-import com.tecdo.service.init.AdManager;
-import com.tecdo.service.init.AfAudienceSyncManager;
-import com.tecdo.service.init.AffCountryBundleListManager;
-import com.tecdo.service.init.AffiliateManager;
+import com.tecdo.service.init.*;
 import com.tecdo.service.init.doris.*;
-import com.tecdo.service.init.CheatingDataManager;
-import com.tecdo.service.init.IpTableManager;
-import com.tecdo.service.init.RtaInfoManager;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -63,10 +56,12 @@ public class LifeCycleManager {
   private BundleCostManager bundleCostManager;
   @Autowired
   private AdGroupBundleManager adGroupBundleManager;
+  @Autowired
+  private PixalateFraudManager pixalateFraudManager;
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 14;
+  private final int needInitCount = 15;
 
   @Value("${server.port}")
   private int serverPort;
@@ -179,6 +174,12 @@ public class LifeCycleManager {
       case ADGROUP_BUNDLE_DATA_LOAD_TIMEOUT:
         adGroupBundleManager.handleEvent(eventType, params);
         break;
+      case PIXALATE_FRAUD_LOAD:
+      case PIXALATE_FRAUD_LOAD_RESPONSE:
+      case PIXALATE_FRAUD_LOAD_ERROR:
+      case PIXALATE_FRAUD_LOAD_TIMEOUT:
+        pixalateFraudManager.handleEvent(eventType, params);
+        break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -211,6 +212,7 @@ public class LifeCycleManager {
         eCPXManager.init(params);
         bundleCostManager.init(params);
         adGroupBundleManager.init(params);
+        pixalateFraudManager.init(params);
         NotBidReasonLogger.init();
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;

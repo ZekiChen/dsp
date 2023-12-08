@@ -24,6 +24,11 @@ public class ValidateLogger {
     private static final Logger requestValidateLog = LoggerFactory.getLogger("validate_request_log");
 
     public static void log(String blockedType, BidRequest bidRequest, Affiliate affiliate, boolean filter) {
+        log(blockedType, bidRequest, affiliate, filter, null, null);
+    }
+
+    public static void log(String blockedType, BidRequest bidRequest, Affiliate affiliate,
+                           boolean filter, Double ipProbability, Double deviceIdProbability) {
         Map<String, Object> map = new HashMap<>();
         Device device = bidRequest.getDevice();
         map.put("create_time", DateUtil.format(new Date(), "yyyy-MM-dd_HH"));
@@ -48,6 +53,8 @@ public class ValidateLogger {
         map.put("screen_ppi", device.getPpi());
         map.put("blocked_type", blockedType);
         map.put("filter", filter ? 1 : 0);
+        map.put("ip_probability", ipProbability);
+        map.put("device_id_probability", deviceIdProbability);
         requestValidateLog.info(JsonHelper.toJSONString(map));
     }
 
