@@ -12,7 +12,6 @@ import com.tecdo.starter.tool.util.StringPool;
 import lombok.AllArgsConstructor;
 import lombok.SneakyThrows;
 import org.springframework.util.StringUtils;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -32,22 +31,6 @@ public class HuaweiObsTemplate implements OssTemplate {
 	@Override
 	public String fileUrl(String fileName) {
 		return getOssHost().concat(StringPool.SLASH).concat(fileName);
-	}
-
-//	@Override
-//	public PacFile uploadFile(MultipartFile file) {
-//		return uploadFile(ossProperties.getBucketName(), file.getOriginalFilename(), file);
-//	}
-
-//	@Override
-//	public PacFile uploadFile(String fileName, MultipartFile file) {
-//		return uploadFile(ossProperties.getBucketName(), fileName, file);
-//	}
-
-	@Override
-	@SneakyThrows
-	public PacFile uploadFile(String bucketName, String fileName, MultipartFile file) {
-		return uploadFile(bucketName, fileName, file.getInputStream());
 	}
 
 	@Override
@@ -74,11 +57,6 @@ public class HuaweiObsTemplate implements OssTemplate {
 	public void removeFiles(List<String> fileNames) {
 		fileNames.forEach(this::removeFile);
 	}
-
-//	@Override
-//	public void removeFiles(String bucketName, List<String> fileNames) {
-//		fileNames.forEach(fileName -> removeFile(bucketName, fileName));
-//	}
 
 	/**
 	 * 上传文件流

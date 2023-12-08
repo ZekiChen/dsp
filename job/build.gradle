@@ -13,7 +13,9 @@ dependencies {
     implementation project(':tool:starter-mybatis')
     implementation project(':tool:starter-xxljob')
     implementation project(path: ':tool:starter-redis')
-    implementation project(':tool:starter-oss')
+    implementation(project(':tool:starter-oss')) {
+        exclude module: 'starter-tool'
+    }
 
     implementation libraries.netty
     

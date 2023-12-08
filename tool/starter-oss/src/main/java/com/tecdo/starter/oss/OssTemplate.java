@@ -2,7 +2,6 @@ package com.tecdo.starter.oss;
 
 import com.tecdo.starter.oss.domain.OssFile;
 import com.tecdo.starter.oss.domain.PacFile;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.BufferedReader;
 import java.io.InputStream;
@@ -20,33 +19,6 @@ public interface OssTemplate {
 	 * @return String
 	 */
 	String fileUrl(String fileName);
-
-	/**
-	 * 上传文件
-	 *
-	 * @param file 上传文件类
-	 * @return PacFile
-	 */
-//	PacFile uploadFile(MultipartFile file);
-
-	/**
-	 * 上传文件
-	 *
-	 * @param file     上传文件类
-	 * @param fileName 上传文件名
-	 * @return PacFile
-	 */
-//	PacFile uploadFile(String fileName, MultipartFile file);
-
-	/**
-	 * 上传文件
-	 *
-	 * @param bucketName 存储桶名称
-	 * @param fileName   上传文件名
-	 * @param file       上传文件类
-	 * @return PacFile
-	 */
-	PacFile uploadFile(String bucketName, String fileName, MultipartFile file);
 
 	/**
 	 * 上传文件
