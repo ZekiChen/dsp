@@ -45,7 +45,7 @@ public class ForceService {
         if (StrUtil.hasBlank(bidId, ip)) {
             NotForceLogger.log(httpRequest, NotForceReasonEnum.PARAM_MISS.getCode());
             ResponseHelper.notForceJump(messageQueue, params, httpRequest);
-        } else if (!validateService.windowValid(bidId, EventType.RECEIVE_IMP_NOTICE)) {
+        } else if (!validateService.windowValid(bidId, EventType.RECEIVE_FORCE_REQUEST)) {
             NotForceLogger.log(httpRequest, NotForceReasonEnum.WINDOW_VALID.getCode());
             ResponseHelper.notForceJump(messageQueue, params, httpRequest);
         } else if (!cacheService.getForceCache().impMarkIfAbsent(bidId)) {

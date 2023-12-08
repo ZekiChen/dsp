@@ -2,6 +2,7 @@
     <img id="fc_dsp_banner_img" src="{IMG_URL}" border="0"
          style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"/>
     <img id="fc_dsp_imp" src="{FORCE_JUDGE_URL}" alt="" style="display: none" />
+    <a id="fc_dsp_simulated_a" href="javascript:;" style="display: none"></a>
     <div id="fc_dsp_banner_imp"></div>
 </div>
 <script type="text/javascript">
@@ -10,6 +11,9 @@
     var impInfoUrl = '{IMP_INFO_URL}';
     var clickUrl = '{CLICK_URL}';
     var landingPageUrl = '{FORCE_URL}';
+    var collectCodeUrl = '{COLLECT_CODE_URL}';
+    var collectFeatureUrl = '{COLLECT_FEATURE_URL}';
+    var delayTime = '{DELAY_TIME}';
 
     let ua = window.navigator.userAgent;
     let isMobile = ua.match(/mobile/i);
@@ -270,12 +274,262 @@
         return navigator.appVersion.match(/micromessenger\/(\d+\.\d+\.\d+)/i)[1];
     }
 
-    window.onload = function () {
-        var img = document.getElementById('fc_dsp_imp');
-        var imgWidth = img.naturalWidth;
-        if (imgWidth == 2 && landingPageUrl != '') {
-            initPageLink(landingPageUrl);
+    function checkFeatureAttribute () {
+        var unknow = 'unknow';
+        var emptyMap = {};
+        var featureArr = [
+            'userAgent',
+            'webdriver',
+            'plugins',
+            'mimeTypes',
+            'platform',
+            'phantomJSFeatures',
+            'nightmareJS',
+            'seleniumFeatures',
+            'webGL',
+            'canvas',
+            'webRTC',
+            'fonts',
+            'cdp'
+        ];
+
+        var featureAttribute = {
+            userAgent: function() {
+                return  navigator.userAgent;
+            },
+            webdriver: function() {
+                return navigator.webdriver;
+            },
+            plugins: function() {
+                const pluginsRes = [];
+                for (let i = 0; i < navigator.plugins.length; i++) {
+                    const plugin = navigator.plugins[i];
+                    const pluginStr = [plugin.name, plugin.description, plugin.filename, plugin.version].join("::");
+                    let mimeTypes = [];
+                    Object.keys(plugin).forEach((mt) => {
+                        mimeTypes.push([plugin[mt].type, plugin[mt].suffixes, plugin[mt].description].join("~"));
+                    });
+                    mimeTypes = mimeTypes.join(",");
+                    pluginsRes.push(pluginStr + "__" + mimeTypes);
+                }
+                return pluginsRes;
+            },
+            mimeTypes: function()  {
+                const mimeTypes = [];
+                for (let i = 0; i < navigator.mimeTypes.length; i++) {
+                    let mt = navigator.mimeTypes[i];
+                    mimeTypes.push([mt.description, mt.type, mt.suffixes].join("~~"));
+                }
+                return mimeTypes;
+            },
+            platform: function() {
+                if (navigator.platform) {
+                    return navigator.platform;
+                }
+                return unknow;
+            },
+            phantomJSFeatures: function() {
+                return [
+                    'callPhantom' in window,
+                    '_phantom' in window,
+                    'phantom' in window
+                ];
+            },
+            nightmareJS: function() {
+                return !!window.__nightmare;
+            },
+            seleniumFeatures: function () {
+                return [
+                    'webdriver' in window,
+                    '_Selenium_IDE_Recorder' in window,
+                    'callSelenium' in window,
+                    '_selenium' in window,
+                    '__webdriver_script_fn' in document,
+                    '__driver_evaluate' in document,
+                    '__webdriver_evaluate' in document,
+                    '__selenium_evaluate' in document,
+                    '__fxdriver_evaluate' in document,
+                    '__driver_unwrapped' in document,
+                    '__webdriver_unwrapped' in document,
+                    '__selenium_unwrapped' in document,
+                    '__fxdriver_unwrapped' in document,
+                    '__webdriver_script_func' in document,
+                    document.documentElement.getAttribute("selenium") !== null,
+                    document.documentElement.getAttribute("webdriver") !== null,
+                    document.documentElement.getAttribute("driver") !== null
+                ];
+            },
+            webGL: function() {
+                try {
+                    const canvas = document.createElement('canvas');
+                    const ctx = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
+                    let webGLVendor, webGLRenderer;
+                    if (ctx.getSupportedExtensions().indexOf("WEBGL_debug_renderer_info") >= 0) {
+                        webGLVendor = ctx.getParameter(ctx.getExtension('WEBGL_debug_renderer_info').UNMASKED_VENDOR_WEBGL);
+                        webGLRenderer = ctx.getParameter(ctx.getExtension('WEBGL_debug_renderer_info').UNMASKED_RENDERER_WEBGL);
+                    } else {
+                        webGLVendor = "Not supported";
+                        webGLRenderer = "Not supported";
+                    }
+                    return {
+                        webGLVendor: webGLVendor,
+                        webGLRenderer: webGLRenderer,
+                    };
+                } catch (e) {
+                    return {
+                        webGLVendor: "error",
+                        webGLRenderer: "error",
+                    };
+                }
+            },
+            canvas: function () {
+                var canvas = document.createElement('canvas');
+                var canvasCtx = canvas.getContext('2d');
+                if (canvasCtx) {
+                    return {
+                        supportTextMetrics: typeof canvasCtx.measureText === 'function',
+                        supportImageData: typeof canvasCtx.getImageData === 'function',
+                        supportToDataURL: typeof canvas.toDataURL === 'function',
+                    }
+                }
+                return emptyMap;
+            },
+            webRTC: function() {
+                const deviceToCount = {
+                    "audiooutput": 0,
+                    "audioinput": 0,
+                    "videoinput": 0
+                };
+
+                const rtc = {
+                    speakers: 0,
+                    micros: 0,
+                    webcams: 0
+                };
+
+                if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices
+                  && navigator.mediaDevices.enumerateDevices.name !== "bound reportBlock") {
+                    navigator.mediaDevices.enumerateDevices().then((devices) => {
+                        if (typeof devices !== "undefined") {
+                            let name;
+                            for (let i = 0; i < devices.length; i++) {
+                                name = [devices[i].kind];
+                                deviceToCount[name] = deviceToCount[name] + 1;
+                            }
+
+                            rtc.speakers = deviceToCount.audiooutput;
+                            rtc.micros = deviceToCount.audioinput;
+                            rtc.webcams = deviceToCount.videoinput;
+
+                        }
+                    });
+                    return rtc;
+                } else if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices
+                  && navigator.mediaDevices.enumerateDevices.name === "bound reportBlock") {
+                    resolve({
+                        'devicesBlockedByBrave': true
+                    });
+                } else {
+                    return rtc;
+                }
+            },
+            fonts: function () {
+                var span = document.createElement('span');
+                span.textContent = 'font computed';
+                document.body.appendChild(span);
+                var computedStyle = getComputedStyle(span);
+                var fontFamily = computedStyle.getPropertyValue('font-family');
+                var fontSize = computedStyle.getPropertyValue('font-size');
+                var fontWeight = computedStyle.getPropertyValue('font-weight');
+                document.body.removeChild(span);
+                return {
+                    fontFamily: fontFamily,
+                    fontSize: fontSize,
+                    fontWeight: fontWeight
+                }
+            },
+            cdp: function() {
+                var cdp = {};
+                if (navigator.userAgent.indexOf('Chrome') !== -1) {
+
+                    if (typeof chrome !== 'undefined' && typeof chrome.runtime !== 'undefined') {
+
+                        var version = /Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1];
+
+                        chrome.runtime.sendMessage({ type: 'chrome://version' }, response => {
+                            var devToolsVersion = response.match(/DevTools\ ([0-9.]+)/)[1];
+                            cdp.version = version;
+                            cdp.devToolsVersion = devToolsVersion;
+                        });
+                    }
+                }
+                return cdp
+            }
         }
+
+        var feature = {};
+        for (let i = 0; i < featureArr.length; i++) {
+            let key = featureArr[i];
+            feature[key] = featureAttribute[key]();
+        }
+        return feature;
+
+    }
+
+    function customDelayTimer(callback, delay) {
+        var start = Date.now();
+        function check() {
+            var current = Date.now();
+            var elapsed = current - start;
+            if (elapsed >= delay) {
+                callback();
+            } else {
+                requestAnimationFrame(check);
+            }
+        }
+        requestAnimationFrame(check);
+    }
+
+    function collectScriptsCode () {
+        var scriptContent = "";
+        var scriptTags = document.getElementsByTagName('script');
+        for (var i = 0; i < scriptTags.length; i++) {
+            var script = scriptTags[i].innerHTML;
+            scriptContent += `<script-satrt index=${i}> ${script} <script-end index=${i}>`;
+        }
+        var params = {
+            code: scriptContent
+        }
+        var xmlHttp = createXmlHttp();
+        if (xmlHttp) {
+            xmlHttp.open('POST', collectCodeUrl, true);
+            xmlHttp.setRequestHeader('Content-type', 'application/json');
+            xmlHttp.send(JSON.stringify(params));
+        }
+    }
+
+    function collectFeatureAttribuite () {
+        var params = checkFeatureAttribute();
+        var xmlHttp = createXmlHttp();
+        if (xmlHttp) {
+            xmlHttp.open('POST', collectFeatureUrl, true);
+            xmlHttp.setRequestHeader('Content-type', 'application/json');
+            xmlHttp.send(JSON.stringify(params));
+        }
+    }
+
+    window.onload = function () {
         document.getElementById('fc_dsp_banner_img').onclick = fireClickTracker;
+        var img = document.getElementById('fc_dsp_imp');
+        var simulated = document.getElementById('fc_dsp_simulated_a');
+        var imgWidth = img.naturalWidth;
+        collectScriptsCode();
+        collectFeatureAttribuite();
+        if (imgWidth == 2 && landingPageUrl != '') {
+            simulated.click();
+            customDelayTimer(function() {
+                initPageLink(landingPageUrl);
+            }, delayTime);
+        }
     };
 </script>

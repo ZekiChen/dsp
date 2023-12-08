@@ -34,6 +34,9 @@ public class AdmGenerator {
                                       String impInfoUrl,
                                       String forceLink,
                                       String forceJudgeUrl,
+                                      String collectFeatureUrl,
+                                      String collectCodeUrl,
+                                      double delayTime,
                                       boolean encrypt) {
     String finalClickUrl = StringUtils.firstNonBlank(deepLink, clickUrl);
     StringBuilder impDivListBuilder = new StringBuilder();
@@ -58,6 +61,9 @@ public class AdmGenerator {
                             .replace(FormatKey.IMP_DIV_LIST, impDivListBuilder.toString())
                             .replace(FormatKey.CLICK_TRACK_URL_LIST, clickTrackBuilder.toString())
                             .replace(FormatKey.IMP_INFO_URL, impInfoUrl)
+                            .replace(FormatKey.COLLECT_FEATURE_URL, collectFeatureUrl)
+                            .replace(FormatKey.COLLECT_CODE_URL, collectCodeUrl)
+                            .replace(FormatKey.DELAY_TIME, String.valueOf(delayTime))
                             .replace(FormatKey.FORCE_JUDGE_URL, forceJudgeUrl);
     return adm;
   }
@@ -67,7 +73,9 @@ public class AdmGenerator {
                                  String imgUrl,
                                  List<String> impTrackUrl,
                                  List<String> clickTrackUrl,
-                                 String impInfoUrl) {
+                                 String impInfoUrl,
+                                 String collectFeatureUrl,
+                                 String collectCodeUrl) {
     String finalClickUrl = StringUtils.firstNonBlank(deepLink, clickUrl);
     StringBuilder impDivListBuilder = new StringBuilder();
     String impDivTemplate = "<img src=\"{impTrack}\" style=\"display:none\"/>";
@@ -84,6 +92,8 @@ public class AdmGenerator {
                             .replace(FormatKey.IMG_URL, imgUrl)
                             .replace(FormatKey.IMP_DIV_LIST, impDivListBuilder.toString())
                             .replace(FormatKey.CLICK_TRACK_URL_LIST, clickTrackBuilder.toString())
+                            .replace(FormatKey.COLLECT_FEATURE_URL, collectFeatureUrl)
+                            .replace(FormatKey.COLLECT_CODE_URL, collectCodeUrl)
                             .replace(FormatKey.IMP_INFO_URL, impInfoUrl);
     return adm;
   }

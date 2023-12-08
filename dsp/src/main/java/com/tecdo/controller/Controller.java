@@ -31,6 +31,8 @@ public class Controller implements MessageObserver {
   private SDKNoticeService sdkNoticeService;
   @Autowired
   private ForceService forceService;
+  @Autowired
+  private CollectService collectService;
 
   @Override
   public void handle(EventType eventType, Params params) {
@@ -114,6 +116,10 @@ public class Controller implements MessageObserver {
         break;
       case RECEIVE_FORCE_REQUEST:
         forceService.handelEvent(eventType, params);
+        break;
+      case RECEIVE_COLLECT_FEATURE:
+      case RECEIVE_COLLECT_CODE:
+        collectService.handelEvent(eventType, params);
         break;
       // context
       case RECEIVE_BID_REQUEST:

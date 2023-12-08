@@ -298,6 +298,39 @@
         </Filters>
     </RollingFile>
 
+    <RollingFile name="COLLECT_FEATURE_LOG" fileName="${BUSINESS_LOG_HOME}/collect-feature.log"
+                 filePattern="${BUSINESS_LOG_HOME}/collect-feature-%d{yyyy-MM-dd-HH}.log">
+        <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+        </Policies>
+        <DefaultRolloverStrategy>
+            <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                <IfFileName glob="collect-feature-*.log"/>
+                <IfLastModified age="360H"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
+
+    <RollingFile name="COLLECT_CODE_LOG" fileName="${BUSINESS_LOG_HOME}/collect-code.log"
+                 filePattern="${BUSINESS_LOG_HOME}/collect-code-%d{yyyy-MM-dd-HH}.log">
+        <PatternLayout pattern="${BUSINESS_ENCODER_PATTERN}"/>
+        <Policies>
+            <TimeBasedTriggeringPolicy/>
+        </Policies>
+        <DefaultRolloverStrategy>
+            <Delete basePath="${BUSINESS_LOG_HOME}/" maxDepth="1">
+                <IfFileName glob="collect-code-*.log"/>
+                <IfLastModified age="360H"/>
+            </Delete>
+        </DefaultRolloverStrategy>
+        <Filters>
+            <ThresholdFilter level="INFO" onMatch="ACCEPT" onMismatch="DENY"/>
+        </Filters>
+    </RollingFile>
     <CatLog4j2Appender name="CatLog4j2Appender">
         <PatternLayout pattern="${ENCODER_PATTERN}"/>
     </CatLog4j2Appender>

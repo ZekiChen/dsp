@@ -55,6 +55,8 @@ public class ValidateService {
     private long clickExpire;
     @Value("${pac.notice.expire.pb}")
     private long pbExpire;
+    @Value("${pac.notice.expire.auto-redirect}")
+    private long autoRedirectExpire;
 
     @Value("${pac.request.validate}")
     private boolean needValidateRequest;
@@ -268,6 +270,9 @@ public class ValidateService {
                 break;
             case RECEIVE_CLICK_NOTICE:
                 expire = clickExpire;
+                break;
+            case RECEIVE_FORCE_REQUEST:
+                expire = autoRedirectExpire;
                 break;
             case RECEIVE_PB_NOTICE:
                 expire = pbExpire;

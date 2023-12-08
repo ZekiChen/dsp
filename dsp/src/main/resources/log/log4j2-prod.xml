@@ -85,6 +85,14 @@
         <Logger name="not_force_log" level="INFO" additivity="false">
             <AppenderRef ref="NOT_FORCE_LOG"/>
         </Logger>
+
+        <Logger name="collect_feature_log" level="INFO" additivity="false">
+            <AppenderRef ref="COLLECT_FEATURE_LOG"/>
+        </Logger>
+
+        <Logger name="collect_code_log" level="INFO" additivity="false">
+            <AppenderRef ref="COLLECT_CODE_LOG"/>
+        </Logger>
     </Loggers>
 
 </Configuration>

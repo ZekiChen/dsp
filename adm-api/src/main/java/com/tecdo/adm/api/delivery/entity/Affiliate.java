@@ -33,4 +33,7 @@ public class Affiliate extends BaseEntity {
     @ApiModelProperty("测试期胜率要求")
     @TableField(updateStrategy = FieldStrategy.IGNORED)
     private Double requireWinRate;
+    @ApiModelProperty("强跳延迟时间")
+    @TableField(updateStrategy = FieldStrategy.IGNORED)
+    private Double autoRedirectDelayTime;
 }
