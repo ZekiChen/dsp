@@ -10,6 +10,7 @@ import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.BufferedReader;
@@ -33,6 +34,9 @@ public class DeviceIdPoolUpdateJob {
     private final OssTemplate ossTemplate;
     private final CacheService cacheService;
     private final ThreadPool threadPool;
+
+    @Value("${pac.pixalate.ip.sync.limit:100000}")
+    private Integer limit;
 
     private final String OSS_PREFIX = "pixalate";
     private final String CSV_SUFFIX = ".csv";
@@ -70,7 +74,6 @@ public class DeviceIdPoolUpdateJob {
     }
 
     private void syncToRedis(String file) {
-        int limit = 5_0000;
         List<String> list = new ArrayList<>(limit);
 
         try (BufferedReader br = ossTemplate.download(file)) {
