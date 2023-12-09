@@ -35,7 +35,7 @@ public class DeviceIdPoolUpdateJob {
     private final CacheService cacheService;
     private final ThreadPool threadPool;
 
-    @Value("${pac.pixalate.ip.sync.limit:100000}")
+    @Value("${pac.pixalate.device-id.sync.limit:100000}")
     private Integer limit;
 
     private final String OSS_PREFIX = "pixalate";
