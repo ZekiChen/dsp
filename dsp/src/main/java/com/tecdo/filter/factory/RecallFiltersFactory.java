@@ -41,6 +41,7 @@ public class RecallFiltersFactory {
     private final AffiliateBlockedAdFilter affiliateBlockedAdFilter;
     private final BundleCapFilter bundleCapFilter;
     private final SChainFilter sChainFilter;
+    private final PmpDealFilter pmpDealFilter;
 
     @Autowired
     public RecallFiltersFactory(AffiliateFilter affiliateFilter,
@@ -63,7 +64,8 @@ public class RecallFiltersFactory {
                                 AfAudienceFilter afAudienceFilter,
                                 AffiliateBlockedAdFilter affiliateBlockedAdFilter,
                                 BundleCapFilter bundleCapFilter,
-                                SChainFilter sChainFilter) {
+                                SChainFilter sChainFilter,
+                                PmpDealFilter pmpDealFilter) {
 
         this.affiliateFilter = affiliateFilter;
         this.affiliateBlockedAdFilter = affiliateBlockedAdFilter;
@@ -83,6 +85,7 @@ public class RecallFiltersFactory {
         this.budgetFilter = budgetFilter;
         this.bundleCapFilter = bundleCapFilter;
         this.sChainFilter = sChainFilter;
+        this.pmpDealFilter = pmpDealFilter;
         // redis
         this.afAudienceFilter = afAudienceFilter;
         this.impFrequencyFilter = impFrequencyFilter;
@@ -107,6 +110,7 @@ public class RecallFiltersFactory {
                 budgetFilter,
                 bundleCapFilter,
                 sChainFilter,
+                pmpDealFilter,
                 // redis
                 afAudienceFilter,
                 impFrequencyFilter,

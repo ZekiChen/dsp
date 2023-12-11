@@ -16,15 +16,13 @@ import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.service.CacheService;
 import com.tecdo.service.cache.FrequencyCache;
 import com.tecdo.service.init.AdManager;
+import com.tecdo.util.PmpHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
@@ -100,6 +98,14 @@ public class AdRecallHandler {
             List<AdDTOWrapper> adDTOWrappers = total.get(recallTimeout, TimeUnit.MILLISECONDS);
             for (AdDTOWrapper wrapper : adDTOWrappers) {
                 if (wrapper != null) {
+                    // 获取ad对应的bidfloor
+                    Float bidfloor = Optional.of(imp.getBidfloor()).orElse(0f);
+                    // 若存在pmp deal条件
+                    if (PmpHelper.hasDealCond(wrapper.getAdDTO())) {
+                        bidfloor = PmpHelper.getBidfloor(wrapper.getAdDTO(), imp, bidfloor);
+                    }
+                    wrapper.setBidfloor(bidfloor);
+
                     res.put(wrapper.getAdDTO().getAd().getId(), wrapper);
                 }
             }

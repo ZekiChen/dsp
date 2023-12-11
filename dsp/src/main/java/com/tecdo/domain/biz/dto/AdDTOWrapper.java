@@ -60,6 +60,11 @@ public class AdDTOWrapper {
   private String impId;
 
   /**
+   * imp/pmp的bidfloor
+   */
+  private Float bidfloor;
+
+  /**
    * bidId,同时也是taskId
    */
   private String bidId;

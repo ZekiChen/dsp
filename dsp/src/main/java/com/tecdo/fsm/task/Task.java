@@ -23,17 +23,12 @@ import com.tecdo.transform.IProtoTransform;
 import com.tecdo.util.ActionConsumeRecorder;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import cn.hutool.extra.spring.SpringUtil;
+import com.tecdo.util.PmpHelper;
 import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 
@@ -189,7 +184,7 @@ public class Task {
         Map<Integer, AdDTOWrapper> map = new HashMap<>();
         for (AdDTOWrapper e : adDTOMap.values()) {
             if (e.getBidPrice()
-                 .compareTo(BigDecimal.valueOf(Optional.of(imp.getBidfloor()).orElse(0f))) >= 0) {
+                 .compareTo(BigDecimal.valueOf(e.getBidfloor())) >= 0) {
                 map.put(e.getAdDTO().getAd().getId(), e);
             } else {
                 NotBidReasonLogger.log(taskId, e.getAdDTO().getAd().getId(), "bidFloorFilter");

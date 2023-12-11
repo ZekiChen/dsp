@@ -289,6 +289,8 @@ public class PredictHandler {
         // 用版位大小
         Integer adWidth = Integer.parseInt(bidCreative.getWidth());
         Integer adHeight = Integer.parseInt(bidCreative.getHeight());
+        // 底价
+        Float bidfloor = wrapper.getBidfloor();
 
         Device device = bidRequest.getDevice();
         GooglePlayApp googleApp =
@@ -309,7 +311,7 @@ public class PredictHandler {
                 .deviceModel(FieldFormatHelper.deviceModelFormat(device.getModel()))
                 .carrier(device.getCarrier())
                 .creativeId(creativeId)
-                .bidFloor(Double.valueOf(imp.getBidfloor()))
+                .bidFloor(Double.valueOf(bidfloor))
                 .feature1(Optional.ofNullable(adDTO.getCampaignRtaInfo())
                         .map(CampaignRtaInfo::getRtaFeature)
                         .orElse(-1))
