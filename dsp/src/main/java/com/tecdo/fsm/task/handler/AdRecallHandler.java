@@ -116,10 +116,13 @@ public class AdRecallHandler {
     private AdDTOWrapper buildADDTOWrapper(String bidId, BidRequest bidRequest, String impId, AdDTO adDTO) {
         FrequencyCache frequencyCache = cacheService.getFrequencyCache();
         String deviceId = bidRequest.getDevice().getIfa();
+        String campaignId = adDTO.getCampaign().getId().toString();
 
         AdDTOWrapper wrapper = new AdDTOWrapper(impId, bidId, adDTO);
-        wrapper.setImpFrequency(frequencyCache.getImpCountToday(adDTO.getCampaign().getId().toString(), deviceId));
-        wrapper.setClickFrequency(frequencyCache.getClickCountToday(adDTO.getCampaign().getId().toString(), deviceId));
+        wrapper.setImpFrequency(frequencyCache.getImpCountToday(campaignId, deviceId));
+        wrapper.setClickFrequency(frequencyCache.getClickCountToday(campaignId, deviceId));
+        wrapper.setImpFrequencyHour(frequencyCache.getImpCountByHour(campaignId, deviceId));
+        wrapper.setClickFrequencyHour(frequencyCache.getClickCountByHour(campaignId, deviceId));
         return wrapper;
     }
 
