@@ -97,9 +97,9 @@ public class IpPoolUpdateJob {
 
     private void doSyncToRedis(List<String> list) {
         List<CompletableFuture<Void>> futures = list.stream()
-                .filter(line -> line.split(StrUtil.COMMA).length == 3)
-                .map(line -> CompletableFuture.runAsync(() -> {
-                    String[] arr = line.split(StrUtil.COMMA);
+                .map(line -> line.split(StrUtil.COMMA))
+                .filter(arr -> arr.length == 3)
+                .map(arr -> CompletableFuture.runAsync(() -> {
                     String ip = arr[0];
                     String fraudType = arr[1];
                     String probability = arr[2];

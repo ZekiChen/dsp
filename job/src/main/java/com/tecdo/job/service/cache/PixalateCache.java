@@ -115,8 +115,7 @@ public class PixalateCache {
                 .concat(StrUtil.COLON).concat(HAS_IP_SYNC_CACHE)
                 .concat(StrUtil.COLON).concat(yesterday)
                 .concat(StrUtil.COLON).concat(version);
-        pacRedis.set(key, 1);
-        pacRedis.expire(key, ipFileExpire * 3600);
+        pacRedis.setEx(key, 1, ipFileExpire * 3600);
     }
 
     /**
@@ -128,8 +127,7 @@ public class PixalateCache {
                 .concat(StrUtil.COLON).concat(HAS_DEVICE_ID_SYNC_CACHE)
                 .concat(StrUtil.COLON).concat(yesterday)
                 .concat(StrUtil.COLON).concat(version);
-        pacRedis.set(key, 1);
-        pacRedis.expire(key, ipFileExpire * 3600);
+        pacRedis.setEx(key, 1, deviceIdFileExpire * 3600);
     }
 
     /**
@@ -139,8 +137,7 @@ public class PixalateCache {
         String key = CacheConstant.PIXALATE_CACHE
                 .concat(StrUtil.COLON).concat(FRAUD_IP_CACHE)
                 .concat(StrUtil.COLON).concat(ip);
-        pacRedis.set(key, fraudType + StrUtil.COMMA + probability);
-        pacRedis.expire(key, ipExpire * 3600);
+        pacRedis.setEx(key, fraudType + StrUtil.COMMA + probability, ipExpire * 3600);
     }
 
     /**
@@ -150,7 +147,6 @@ public class PixalateCache {
         String key = CacheConstant.PIXALATE_CACHE
                 .concat(StrUtil.COLON).concat(FRAUD_DEVICE_ID_CACHE)
                 .concat(StrUtil.COLON).concat(deviceId);
-        pacRedis.set(key, fraudType + StrUtil.COMMA + probability);
-        pacRedis.expire(key, deviceIdExpire * 3600);
+        pacRedis.setEx(key, fraudType + StrUtil.COMMA + probability, deviceIdExpire * 3600);
     }
 }
