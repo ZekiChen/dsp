@@ -14,9 +14,9 @@ import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainHelper;
 import com.tecdo.service.CacheService;
+import com.tecdo.service.PmpService;
 import com.tecdo.service.cache.FrequencyCache;
 import com.tecdo.service.init.AdManager;
-import com.tecdo.util.PmpHelper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -42,6 +42,7 @@ public class AdRecallHandler {
     private final RecallFiltersFactory filtersFactory;
     private final AdManager adManager;
     private final CacheService cacheService;
+    private final PmpService pmpService;
 
     @Value("${pac.timeout.task.ad.recall}")
     private int recallTimeout;
@@ -101,8 +102,8 @@ public class AdRecallHandler {
                     // 获取ad对应的bidfloor
                     Float bidfloor = Optional.of(imp.getBidfloor()).orElse(0f);
                     // 若存在pmp deal条件
-                    if (PmpHelper.hasDealCond(wrapper.getAdDTO())) {
-                        bidfloor = PmpHelper.getBidfloor(wrapper.getAdDTO(), imp, bidfloor);
+                    if (pmpService.hasDealCond(wrapper.getAdDTO())) {
+                        bidfloor = pmpService.getBidfloor(wrapper.getAdDTO(), imp, affiliate.getId(), bidfloor);
                     }
                     wrapper.setBidfloor(bidfloor);
 

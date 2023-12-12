@@ -82,6 +82,11 @@ public enum EventType {
   ADGROUP_BUNDLE_DATA_LOAD_ERROR(2503, "adgroup bundle data load failure"),
   ADGROUP_BUNDLE_DATA_LOAD_TIMEOUT(2504, "adgroup bundle data load timeout"),
 
+  AFFILIATE_PMP_LOAD(2601, "affiliate pmp load"),
+  AFFILIATE_PMP_LOAD_RESPONSE(2602, "affiliate pmp load response"),
+  AFFILIATE_PMP_LOAD_ERROR(2603, "affiliate pmp load failure"),
+  AFFILIATE_PMP_LOAD_TIMEOUT(2604, "affiliate pmp load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

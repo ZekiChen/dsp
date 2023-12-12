@@ -1,16 +1,22 @@
 package com.tecdo.filter;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.entity.AffiliatePmp;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Deal;
 import com.tecdo.domain.openrtb.request.Imp;
+import com.tecdo.service.init.AffiliatePmpManager;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 import static com.tecdo.adm.api.delivery.enums.ConditionEnum.DEALS;
 
@@ -19,7 +25,9 @@ import static com.tecdo.adm.api.delivery.enums.ConditionEnum.DEALS;
  * Created by Elwin on 2023/12/8
  */
 @Component
+@RequiredArgsConstructor
 public class PmpDealFilter extends AbstractRecallFilter{
+    private final AffiliatePmpManager pmpManager;
     @Override
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
         TargetCondition dealsCond = adDTO.getConditionMap().get(DEALS.getDesc());
@@ -28,11 +36,22 @@ public class PmpDealFilter extends AbstractRecallFilter{
         if (dealsCond == null || StrUtil.isBlank(dealsCond.getValue())) {
             return true;
         }
+        // imp的pmp对象为空，直接返回false
+        if (imp.getPmp() == null || CollUtil.isEmpty(imp.getPmp().getDeals())) {
+            return false;
+        }
 
-        // 若imp和ad中的deals有交集，则返回true，否则返回false
-        List<String> deals = Arrays.asList(dealsCond.getValue().split(","));
-        for (Deal deal : imp.getPmp().getDeals()) {
-            if (deals.contains(deal.getId())) {
+        List<String> condDeals = Arrays.asList(dealsCond.getValue().split(","));
+        List<String> pmpDeals = imp.getPmp().getDeals()
+                .stream()
+                .map(Deal::getId)
+                .collect(Collectors.toList());
+
+        // return 是否imp和condition中的deals有交集
+        for (String deal : condDeals) {
+            AffiliatePmp affiliatePmp = pmpManager.getAffiliatePmp(Integer.valueOf(deal));
+            // affiliate * deal维度相等
+            if (Objects.equals(affiliatePmp.getAffiliateId(), affiliate.getId()) && pmpDeals.contains(affiliatePmp.getDealId())) {
                 return true;
             }
         }
