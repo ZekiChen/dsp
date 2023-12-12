@@ -32,6 +32,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.tecdo.common.constant.ConditionConstant.*;
 
@@ -156,17 +158,9 @@ public class ValidateService {
         FraudInfo deviceIdFraudInfo = getFraudInfo(pixalateDeviceIdEnabled, fraudManager,
                 cacheService.getPixalateCache().getFraudByDeviceId(device.getIfa()));
 
+        logFraudInfo(ipFraudInfo, deviceIdFraudInfo, bidRequest, affiliate);
+
         if (ipFraudInfo.isFilter() || deviceIdFraudInfo.isFilter()) {
-            if (ipFraudInfo.isFilter() && deviceIdFraudInfo.isFilter()) {
-                ValidateLogger.log(ipFraudInfo.getType() + StrUtil.COMMA + deviceIdFraudInfo.getType(), bidRequest, affiliate,
-                        true, ipFraudInfo.getProbability(), deviceIdFraudInfo.getProbability());
-            } else if (ipFraudInfo.isFilter()) {
-                ValidateLogger.log(ipFraudInfo.getType(), bidRequest, affiliate,
-                        true, ipFraudInfo.getProbability(), null);
-            } else {
-                ValidateLogger.log(deviceIdFraudInfo.getType(), bidRequest, affiliate,
-                        true, null, deviceIdFraudInfo.getProbability());
-            }
             ResponseHelper.noBid(messageQueue, Params.create(), httpRequest);
             return;
         }
@@ -343,11 +337,22 @@ public class ValidateService {
             if (arr.length == 2) {
                 String fraudType = arr[0];
                 double probability = Double.parseDouble(arr[1]);
-                if (probability >= fraudManager.getProbability(fraudType)) {
-                    return new FraudInfo(fraudType, probability, true);
-                }
+                boolean shouldBeFiltered = probability >= fraudManager.getProbability(fraudType);
+                return new FraudInfo(fraudType, probability, shouldBeFiltered);
             }
         }
         return new FraudInfo(null, null, false);
+    }
+
+    private void logFraudInfo(FraudInfo ipFraudInfo, FraudInfo deviceIdFraudInfo, BidRequest bidRequest, Affiliate affiliate) {
+        if (ipFraudInfo.getType() != null || deviceIdFraudInfo.getType() != null) {
+            boolean shouldBeFiltered = ipFraudInfo.isFilter() || deviceIdFraudInfo.isFilter();
+            Double ipProbability = ipFraudInfo.getProbability() != null ? ipFraudInfo.getProbability() : null;
+            Double deviceIdProbability = deviceIdFraudInfo.getProbability() != null ? deviceIdFraudInfo.getProbability() : null;
+            String types = Stream.of(ipFraudInfo.getType(), deviceIdFraudInfo.getType())
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining(StrUtil.COMMA));
+            ValidateLogger.log(types, bidRequest, affiliate, shouldBeFiltered, ipProbability, deviceIdProbability);
+        }
     }
 }
