@@ -95,6 +95,8 @@ configure(allprojects - toolProjects) { project ->
             }
 
             dependency 'commons-net:commons-net:3.10.0'
+
+            dependency 'io.netty:netty-all:4.1.101.Final'
         }
     }
 }
@@ -125,7 +127,7 @@ configure(subprojects - toolProjects) { project ->
     dependencies {
         implementation 'org.springframework.boot:spring-boot-starter'
         implementation 'org.springframework.boot:spring-boot-starter-log4j2'
-        implementation libraries.disruptor
+        implementation "com.lmax:disruptor:3.4.+"
         annotationProcessor 'org.springframework.boot:spring-boot-configuration-processor'
     }
 
