@@ -94,6 +94,8 @@ public class AdDTOWrapper {
 
   private Integer impFrequency;
   private Integer clickFrequency;
+  private Integer impFrequencyHour;
+  private Integer clickFrequencyHour;
 
   private MultiBidStageEnum bidStageEnum;
   private BidStrategyEnum bidStrategyEnum;

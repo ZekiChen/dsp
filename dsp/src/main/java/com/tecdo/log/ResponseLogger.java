@@ -137,6 +137,8 @@ public class ResponseLogger {
                 .schain(ExtHelper.listSChain(bidRequest.getSource()))
                 .impFrequency(wrapper.getImpFrequency())
                 .clickFrequency(wrapper.getClickFrequency())
+                .impFrequencyHour(wrapper.getImpFrequencyHour())
+                .clickFrequencyHour(wrapper.getClickFrequencyHour())
                 .bidStage(wrapper.getBidStageEnum().getType())
                 .offerId(wrapper.getAdDTO().getAdGroup().getOfferId())
                 .build();

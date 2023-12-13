@@ -330,6 +330,10 @@ public class ResponseLog implements Serializable {
     private Integer impFrequency;
     @JsonProperty("click_frequency")
     private Integer clickFrequency;
+    @JsonProperty("imp_frequency_hour")
+    private Integer impFrequencyHour;
+    @JsonProperty("click_frequency_hour")
+    private Integer clickFrequencyHour;
 
     @JsonProperty("bid_stage")
     private Integer bidStage;

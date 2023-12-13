@@ -10,6 +10,7 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
+import com.tecdo.domain.biz.validate.FraudInfo;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
@@ -31,6 +32,8 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static com.tecdo.common.constant.ConditionConstant.*;
 
@@ -43,6 +46,7 @@ public class ValidateService {
     private final IpTableManager ipTableManager;
     private final AffCountryBundleListManager affCountryBundleListManager;
     private final CheatingDataManager cheatingDataManager;
+    private final PixalateFraudManager fraudManager;
 
     private final MessageQueue messageQueue;
     private final CacheService cacheService;
@@ -63,9 +67,12 @@ public class ValidateService {
 
     @Value("${pac.request.validate.filter-device:}")
     private String deviceFilter;
-
     @Value("${pac.request.validate.filter-ip:}")
     private String ipFilter;
+    @Value("${pac.request.validate.pixalate.ip.enabled}")
+    private boolean pixalateIpEnabled;
+    @Value("${pac.request.validate.pixalate.device-id.enabled}")
+    private boolean pixalateDeviceIdEnabled;
 
     public void validateBidRequest(HttpRequest httpRequest) {
         String token = httpRequest.getParamAsStr(RequestKey.TOKEN);
@@ -144,6 +151,18 @@ public class ValidateService {
                 return;
             }
             ValidateLogger.log(blocked.right, bidRequest, affiliate, false);
+        }
+
+        FraudInfo ipFraudInfo = getFraudInfo(pixalateIpEnabled, fraudManager,
+                cacheService.getPixalateCache().getFraudByIp(ip));
+        FraudInfo deviceIdFraudInfo = getFraudInfo(pixalateDeviceIdEnabled, fraudManager,
+                cacheService.getPixalateCache().getFraudByDeviceId(device.getIfa()));
+
+        logFraudInfo(ipFraudInfo, deviceIdFraudInfo, bidRequest, affiliate);
+
+        if (ipFraudInfo.isFilter() || deviceIdFraudInfo.isFilter()) {
+            ResponseHelper.noBid(messageQueue, Params.create(), httpRequest);
+            return;
         }
 
         messageQueue.putMessage(EventType.RECEIVE_BID_REQUEST,
@@ -308,6 +327,32 @@ public class ValidateService {
                 return cacheService.getNoticeCache().impMark(bidId);
             default:
                 return true;
+        }
+    }
+
+    // 获取欺诈信息
+    private FraudInfo getFraudInfo(boolean enabled, PixalateFraudManager fraudManager, String fraud) {
+        if (enabled && StrUtil.isNotBlank(fraud)) {
+            String[] arr = fraud.split(StrUtil.COMMA);
+            if (arr.length == 2) {
+                String fraudType = arr[0];
+                double probability = Double.parseDouble(arr[1]);
+                boolean shouldBeFiltered = probability >= fraudManager.getProbability(fraudType);
+                return new FraudInfo(fraudType, probability, shouldBeFiltered);
+            }
+        }
+        return new FraudInfo(null, null, false);
+    }
+
+    private void logFraudInfo(FraudInfo ipFraudInfo, FraudInfo deviceIdFraudInfo, BidRequest bidRequest, Affiliate affiliate) {
+        if (ipFraudInfo.getType() != null || deviceIdFraudInfo.getType() != null) {
+            boolean shouldBeFiltered = ipFraudInfo.isFilter() || deviceIdFraudInfo.isFilter();
+            Double ipProbability = ipFraudInfo.getProbability();
+            Double deviceIdProbability = deviceIdFraudInfo.getProbability();
+            String types = Stream.of(ipFraudInfo.getType(), deviceIdFraudInfo.getType())
+                    .filter(Objects::nonNull)
+                    .collect(Collectors.joining(StrUtil.COMMA));
+            ValidateLogger.log(types, bidRequest, affiliate, shouldBeFiltered, ipProbability, deviceIdProbability);
         }
     }
 }

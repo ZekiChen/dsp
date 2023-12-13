@@ -15,6 +15,8 @@ public interface CacheConstant {
 	String RTA_CACHE = "pac:dsp:rta";
 
 	String AUDIENCE_CACHE = "pac:dsp:audience";
+	String PIXALATE_CACHE = "pac:dsp:pixalate";
+
 
 
 	// delivery

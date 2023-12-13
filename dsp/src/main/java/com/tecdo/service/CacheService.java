@@ -22,4 +22,5 @@ public class CacheService {
     private final RtaCache rtaCache;
     private final AudienceCache audienceCache;
     private final ForceCache forceCache;
+    private final PixalateCache pixalateCache;
 }

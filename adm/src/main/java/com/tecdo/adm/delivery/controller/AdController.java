@@ -185,11 +185,10 @@ public class AdController {
         }
         creativeIdList = creativeIdList.stream().distinct().collect(Collectors.toList());
         if (CollUtil.isNotEmpty(creativeIdList)) {
-            wrapper.in(Ad::getImage, creativeIdList)
-                    .or()
-                    .in(Ad::getIcon, creativeIdList)
-                    .or()
-                    .in(Ad::getVideo, creativeIdList);
+            List<Integer> finalCreativeIdList = creativeIdList;
+            wrapper.and(w -> w.in(Ad::getImage, finalCreativeIdList).or()
+                            .in(Ad::getIcon, finalCreativeIdList).or()
+                            .in(Ad::getVideo, finalCreativeIdList));
         }
 
         IPage<Ad> pages = service.page(PCondition.getPage(query), wrapper);

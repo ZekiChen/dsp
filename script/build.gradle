@@ -6,7 +6,7 @@ dependencies {
     implementation project(':tool:starter-mybatis')
     implementation project(':tool:starter-log')
 
-    implementation libraries.netty
+    implementation 'io.netty:netty-all'
 
     implementation 'cn.hutool:hutool-all'
 
