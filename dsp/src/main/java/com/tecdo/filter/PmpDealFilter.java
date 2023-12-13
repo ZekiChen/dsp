@@ -32,16 +32,17 @@ public class PmpDealFilter extends AbstractRecallFilter{
     public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
         TargetCondition dealsCond = adDTO.getConditionMap().get(DEALS.getDesc());
 
-        // 若无定向deals则不工作
-        if (dealsCond == null || StrUtil.isBlank(dealsCond.getValue())) {
-            return true;
-        }
-        // imp的pmp对象为空，直接返回false
-        if (imp.getPmp() == null || CollUtil.isEmpty(imp.getPmp().getDeals())) {
-            return false;
-        }
+        boolean hasDealsCond = dealsCond != null && StrUtil.isNotBlank(dealsCond.getValue());
+        boolean hasPmp = imp.getPmp() != null && CollUtil.isNotEmpty(imp.getPmp().getDeals());
+        /*
+         * cond && pmp -> 开始判断匹配情况
+         * !cond && !pmp -> return true(filter不工作)
+         * cond && !pmp -> return false(包含deals定向，则不接受非pmp请求)
+         * !cond && pmp -> return false(不包含deals定向，则不接受pmp请求)
+         */
+        if (!(hasDealsCond && hasPmp)) return !hasDealsCond && !hasPmp;
 
-        List<String> condDeals = Arrays.asList(dealsCond.getValue().split(","));
+        String[] condDeals = dealsCond.getValue().split(",");
         List<String> pmpDeals = imp.getPmp().getDeals()
                 .stream()
                 .map(Deal::getId)

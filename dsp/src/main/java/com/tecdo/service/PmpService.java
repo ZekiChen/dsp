@@ -1,5 +1,6 @@
 package com.tecdo.service;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.AffiliatePmp;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
@@ -37,8 +38,8 @@ public class PmpService {
      */
     public Float getBidfloor(AdDTO adDTO, Imp imp, Integer affiliateId, Float defaultValue) {
         TargetCondition pmpCond = adDTO.getConditionMap().get(DEALS.getDesc());
-        Float bidfloor = Float.MAX_VALUE;
-        List<String> condDeals = Arrays.asList(pmpCond.getValue().split(",")); // affiliate_pmp表id
+        float bidfloor = Float.MAX_VALUE;
+        String[] condDeals = pmpCond.getValue().split(","); // affiliate_pmp表id
         Map<String, Deal> pmpDealMap = imp.getPmp().getDeals().stream()
                 .collect(Collectors.toMap(Deal::getId, deal -> deal));
 
@@ -50,8 +51,8 @@ public class PmpService {
             AffiliatePmp affiliatePmp = pmpManager.getAffiliatePmp(Integer.valueOf(condDeal));
             // affiliate * deal维度相等
             if (Objects.equals(affiliatePmp.getAffiliateId(), affiliateId) && pmpDealMap.containsKey(affiliatePmp.getDealId())) {
-                Float tmp_bid = pmpDealMap.get(affiliatePmp.getDealId()).getBidfloor();
-                bidfloor = Math.min(bidfloor, tmp_bid);
+                Float tmpBid = pmpDealMap.get(affiliatePmp.getDealId()).getBidfloor();
+                bidfloor = Math.min(bidfloor, tmpBid);
             }
         }
 
@@ -60,12 +61,11 @@ public class PmpService {
     }
 
     /**
-     * 目标ad是否存在deal定向条件
-     * @param adDTO ad
-     * @return true or false
+     * 判断imp是否包含pmp对象
+     * @param imp 展示位
+     * @return imp是否包含pmp对象
      */
-    public boolean hasDealCond(AdDTO adDTO) {
-        TargetCondition pmpCond = adDTO.getConditionMap().get(DEALS.getDesc());
-        return pmpCond != null && StrUtil.isNotBlank(pmpCond.getValue());
+    public boolean isPmpRequest(Imp imp) {
+        return imp.getPmp() != null && CollUtil.isNotEmpty(imp.getPmp().getDeals());
     }
 }

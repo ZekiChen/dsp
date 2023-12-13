@@ -97,16 +97,14 @@ public class AdRecallHandler {
         CompletableFuture<List<AdDTOWrapper>> total = sequence(futureList);
         try {
             List<AdDTOWrapper> adDTOWrappers = total.get(recallTimeout, TimeUnit.MILLISECONDS);
+            boolean isPmpRequest = pmpService.isPmpRequest(imp);
             for (AdDTOWrapper wrapper : adDTOWrappers) {
                 if (wrapper != null) {
                     // 获取ad对应的bidfloor
-                    Float bidfloor = imp.getBidfloor();
-                    // 若存在pmp deal条件
-                    if (pmpService.hasDealCond(wrapper.getAdDTO())) {
-                        bidfloor = pmpService.getBidfloor(wrapper.getAdDTO(), imp, affiliate.getId(), bidfloor);
-                    }
+                    Float bidfloor = isPmpRequest ?
+                            pmpService.getBidfloor(wrapper.getAdDTO(), imp, affiliate.getId(), imp.getBidfloor())
+                            : imp.getBidfloor();
                     wrapper.setBidfloor(bidfloor);
-
                     res.put(wrapper.getAdDTO().getAd().getId(), wrapper);
                 }
             }
