@@ -82,6 +82,11 @@ public enum EventType {
   ADGROUP_BUNDLE_DATA_LOAD_ERROR(2503, "adgroup bundle data load failure"),
   ADGROUP_BUNDLE_DATA_LOAD_TIMEOUT(2504, "adgroup bundle data load timeout"),
 
+  PIXALATE_FRAUD_LOAD(2601, "pixalate praud load"),
+  PIXALATE_FRAUD_LOAD_RESPONSE(2602, "pixalate praud load response"),
+  PIXALATE_FRAUD_LOAD_ERROR(2603, "pixalate praud load failure"),
+  PIXALATE_FRAUD_LOAD_TIMEOUT(2604, "pixalate praud load timeout"),
+
   ONE_DATA_READY(1998, "a data finish init, enter ready, count increased"),
   NETTY_START(1999, "all data finish init, netty start"),
 

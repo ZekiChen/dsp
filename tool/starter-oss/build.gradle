@@ -3,5 +3,4 @@ dependencies {
     implementation project(':tool:starter-tool')
 
     api 'com.huaweicloud:esdk-obs-java'
-    implementation 'org.springframework.boot:spring-boot-starter-web'
 }

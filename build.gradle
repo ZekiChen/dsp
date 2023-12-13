@@ -93,6 +93,8 @@ configure(allprojects - toolProjects) { project ->
                 entry 'protostuff-core'
                 entry 'protostuff-runtime'
             }
+
+            dependency 'commons-net:commons-net:3.10.0'
         }
     }
 }
@@ -128,7 +130,7 @@ configure(subprojects - toolProjects) { project ->
     }
 
     test {
-        enabled false
+        enabled true
         useJUnitPlatform()
     }
 }
