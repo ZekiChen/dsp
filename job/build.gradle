@@ -17,7 +17,7 @@ dependencies {
         exclude module: 'starter-tool'
     }
 
-    implementation libraries.netty
+    implementation 'io.netty:netty-all'
     
     implementation 'cn.hutool:hutool-all'
 
