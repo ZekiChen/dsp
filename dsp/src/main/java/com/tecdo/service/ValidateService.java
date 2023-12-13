@@ -347,8 +347,8 @@ public class ValidateService {
     private void logFraudInfo(FraudInfo ipFraudInfo, FraudInfo deviceIdFraudInfo, BidRequest bidRequest, Affiliate affiliate) {
         if (ipFraudInfo.getType() != null || deviceIdFraudInfo.getType() != null) {
             boolean shouldBeFiltered = ipFraudInfo.isFilter() || deviceIdFraudInfo.isFilter();
-            Double ipProbability = ipFraudInfo.getProbability() != null ? ipFraudInfo.getProbability() : null;
-            Double deviceIdProbability = deviceIdFraudInfo.getProbability() != null ? deviceIdFraudInfo.getProbability() : null;
+            Double ipProbability = ipFraudInfo.getProbability();
+            Double deviceIdProbability = deviceIdFraudInfo.getProbability();
             String types = Stream.of(ipFraudInfo.getType(), deviceIdFraudInfo.getType())
                     .filter(Objects::nonNull)
                     .collect(Collectors.joining(StrUtil.COMMA));
