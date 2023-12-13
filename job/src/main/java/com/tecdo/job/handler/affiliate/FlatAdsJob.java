@@ -22,6 +22,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
@@ -128,7 +129,8 @@ public class FlatAdsJob {
     }
 
     private SpentDTO doGetReportSpentForFlatAds() {
-        return reportMapper.getReportSpentForFlatAds(93, DateUtil.yesterday().toDateStr());
+        List<Integer> affIds = Arrays.asList(93, 130);
+        return reportMapper.getReportSpentForFlatAds(affIds, DateUtil.yesterday().toDateStr());
     }
 
 }

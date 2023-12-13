@@ -22,7 +22,7 @@ public interface ReportMapper extends BaseMapper<Report> {
   List<Report> getAeDailyReportInUsWest(@Param("dateHours") List<String> dateHours,
                                         @Param("campaignIds") Set<Integer> campaignIds);
 
-  SpentDTO getReportSpentForFlatAds(@Param("affId") Integer affId,
+  SpentDTO getReportSpentForFlatAds(@Param("affIds") List<Integer> affIds,
                                     @Param("createDate") String createDate);
 
   List<BundleData> getDataImpCountGtSize(@Param("startDate") String startDate,

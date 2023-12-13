@@ -30,7 +30,10 @@
         FROM
             pac_dsp_report
         WHERE
-            affiliate_id = #{affId}
+            affiliate_id in
+            <foreach collection="affIds" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
             and report_date = #{createDate}
     </select>
 
