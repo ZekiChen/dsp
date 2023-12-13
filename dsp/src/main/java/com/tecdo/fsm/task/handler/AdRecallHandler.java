@@ -100,7 +100,7 @@ public class AdRecallHandler {
             for (AdDTOWrapper wrapper : adDTOWrappers) {
                 if (wrapper != null) {
                     // 获取ad对应的bidfloor
-                    Float bidfloor = Optional.of(imp.getBidfloor()).orElse(0f);
+                    Float bidfloor = imp.getBidfloor();
                     // 若存在pmp deal条件
                     if (pmpService.hasDealCond(wrapper.getAdDTO())) {
                         bidfloor = pmpService.getBidfloor(wrapper.getAdDTO(), imp, affiliate.getId(), bidfloor);

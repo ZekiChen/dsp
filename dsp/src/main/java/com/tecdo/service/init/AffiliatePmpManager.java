@@ -12,6 +12,7 @@ import com.tecdo.constant.ParamKey;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.controller.SoftTimer;
 import com.tecdo.core.launch.thread.ThreadPool;
+import com.tecdo.starter.mp.entity.IdEntity;
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /**
  * Created by Elwin on 2023/12/11
@@ -153,10 +155,7 @@ public class AffiliatePmpManager extends ServiceImpl<AffiliatePmpMapper, Affilia
             case RUNNING:
                 threadPool.execute(() -> {
                     try {
-                        List<AffiliatePmp> affiliatePmpList = list();
-                        for (AffiliatePmp affiliatePmp : affiliatePmpList) {
-                            affiliatePmpIdMap.put(affiliatePmp.getId(), affiliatePmp);
-                        }
+                        affiliatePmpIdMap = list().stream().collect(Collectors.toMap(IdEntity::getId, e->e));
                         params.put(ParamKey.AFFILIATE_PMP_ID_CACHE_KEY, affiliatePmpIdMap);
                         messageQueue.putMessage(EventType.AFFILIATE_PMP_LOAD_RESPONSE, params);
                     } catch (Exception e) {
