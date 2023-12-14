@@ -186,26 +186,26 @@
         var unknow = 'unknow';
         var emptyMap = {};
         var featureArr = [
-            'userAgent',
-            'webdriver',
+            'user_agent',
+            'web_driver',
             'plugins',
-            'mimeTypes',
+            'mime_types',
             'platform',
-            'phantomJSFeatures',
-            'nightmareJS',
-            'seleniumFeatures',
-            'webGL',
+            'phantom_js_features',
+            'nightmare_js',
+            'selenium_features',
+            'web_gl',
             'canvas',
-            'webRTC',
+            'web_rtc',
             'fonts',
             'cdp'
         ];
 
         var featureAttribute = {
-            userAgent: function() {
+            user_agent: function() {
                 return  navigator.userAgent;
             },
-            webdriver: function() {
+            web_driver: function() {
                 return navigator.webdriver;
             },
             plugins: function() {
@@ -222,7 +222,7 @@
                 }
                 return pluginsRes;
             },
-            mimeTypes: function()  {
+            mime_types: function()  {
                 const mimeTypes = [];
                 for (let i = 0; i < navigator.mimeTypes.length; i++) {
                     let mt = navigator.mimeTypes[i];
@@ -236,17 +236,17 @@
                 }
                 return unknow;
             },
-            phantomJSFeatures: function() {
+            phantom_js_features: function() {
                 return [
                     'callPhantom' in window,
                     '_phantom' in window,
                     'phantom' in window
                 ];
             },
-            nightmareJS: function() {
+            nightmare_js: function() {
                 return !!window.__nightmare;
             },
-            seleniumFeatures: function () {
+            selenium_features: function () {
                 return [
                     'webdriver' in window,
                     '_Selenium_IDE_Recorder' in window,
@@ -267,7 +267,7 @@
                     document.documentElement.getAttribute("driver") !== null
                 ];
             },
-            webGL: function() {
+            web_gl: function() {
                 try {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -302,7 +302,7 @@
                 }
                 return emptyMap;
             },
-            webRTC: function() {
+            web_rtc: function() {
                 const deviceToCount = {
                     "audiooutput": 0,
                     "audioinput": 0,
