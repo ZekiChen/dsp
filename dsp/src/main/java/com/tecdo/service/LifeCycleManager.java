@@ -63,7 +63,7 @@ public class LifeCycleManager {
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 15;
+  private final int needInitCount = 16;
 
   @Value("${server.port}")
   private int serverPort;

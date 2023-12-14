@@ -42,6 +42,10 @@ public class Controller implements MessageObserver {
       case AFFILIATES_LOAD_RESPONSE:
       case AFFILIATES_LOAD_ERROR:
       case AFFILIATES_LOAD_TIMEOUT:
+      case AFFILIATE_PMP_LOAD:
+      case AFFILIATE_PMP_LOAD_RESPONSE:
+      case AFFILIATE_PMP_LOAD_ERROR:
+      case AFFILIATE_PMP_LOAD_TIMEOUT:
       case ADS_LOAD:
       case ADS_LOAD_RESPONSE:
       case ADS_LOAD_ERROR:
