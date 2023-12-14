@@ -62,6 +62,10 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     @Value("${pac.force.collect-code-url}")
     private String collectCodeUrl;
+
+    @Value("${pac.force.collect-error-url}")
+    private String collectErrorUrl;
+
     @Value("${pac.force.delay-time-sd}")
     private Double sdForDelayTime;
 
@@ -272,6 +276,7 @@ public abstract class AbstractTransform implements IProtoTransform {
         String forceJudgeUrl = ParamHelper.urlFormat(this.forceJudgeUrl, null, wrapper, bidRequest, affiliate);
         String collectFeatureUrl = ParamHelper.urlFormat(this.collectFeatureUrl, null, wrapper, bidRequest, affiliate);
         String collectCodeUrl = ParamHelper.urlFormat(this.collectCodeUrl, null, wrapper, bidRequest, affiliate);
+        String collectErrorUrl = ParamHelper.urlFormat(this.collectErrorUrl, null, wrapper, bidRequest, affiliate);
 
         // 构建 banner 流量的 adm 信息
         Object adm = null;
@@ -294,6 +299,7 @@ public abstract class AbstractTransform implements IProtoTransform {
                                     forceJudgeUrl,
                                     collectFeatureUrl,
                                     collectCodeUrl,
+                                    collectErrorUrl,
                                     delayTime,
                                     bannerEncrypt);
                 } else {
@@ -304,7 +310,8 @@ public abstract class AbstractTransform implements IProtoTransform {
                             clickTrackList,
                             ParamHelper.urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
                             collectFeatureUrl,
-                            collectCodeUrl);
+                            collectCodeUrl,
+                            collectErrorUrl);
                 }
                 break;
             case NATIVE:

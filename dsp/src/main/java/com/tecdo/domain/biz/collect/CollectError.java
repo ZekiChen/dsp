@@ -7,8 +7,8 @@ import lombok.Setter;
 
 @Setter
 @Getter
-public class CollectCode {
-  private String code;
+public class CollectError {
+  private String msg;
 
   @JsonProperty("bid_id")
   private String bidId;
