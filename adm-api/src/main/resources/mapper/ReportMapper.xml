@@ -109,7 +109,7 @@
         ad_group_id      as adGroupId,
         SUM(click_count) as clickCount,
         SUM(imp_count)   as impCount,
-        SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN bid_price_total ELSE 0 END) / 1000 as bidPriceTotal,
+        SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN price_total ELSE 0 END) / 1000 as bidPriceTotal,
         SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN ad_estimated_commission ELSE 0 END) as adEstimatedCommission
         FROM
             ads.dsp_report_fall_one
