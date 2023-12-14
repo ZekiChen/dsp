@@ -40,16 +40,19 @@ import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
 
-import cn.hutool.extra.spring.SpringUtil;
-
 @Component
 public abstract class AbstractTransform implements IProtoTransform {
 
-    private final String winUrl = SpringUtil.getProperty("pac.notice.win-url");
-    private final String impUrl = SpringUtil.getProperty("pac.notice.imp-url");
-    private final String clickUrl = SpringUtil.getProperty("pac.notice.click-url");
-    private final String lossUrl = SpringUtil.getProperty("pac.notice.loss-url");
-    private final String impInfoUrl = SpringUtil.getProperty("pac.notice.imp-info-url");
+    @Value("${pac.notice.win-url}")
+    private String winUrl;
+    @Value("${pac.notice.imp-url}")
+    private String impUrl;
+    @Value("${pac.notice.click-url}")
+    private String clickUrl;
+    @Value("${pac.notice.loss-url}")
+    private String lossUrl;
+    @Value("${pac.notice.imp-info-url}")
+    private String impInfoUrl;
 
     //just use for generate gaussian number
     private final Random random = new Random();
@@ -62,6 +65,10 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     @Value("${pac.force.collect-code-url}")
     private String collectCodeUrl;
+
+    @Value("${pac.force.collect-error-url}")
+    private String collectErrorUrl;
+
     @Value("${pac.force.delay-time-sd}")
     private Double sdForDelayTime;
 
@@ -272,6 +279,7 @@ public abstract class AbstractTransform implements IProtoTransform {
         String forceJudgeUrl = ParamHelper.urlFormat(this.forceJudgeUrl, null, wrapper, bidRequest, affiliate);
         String collectFeatureUrl = ParamHelper.urlFormat(this.collectFeatureUrl, null, wrapper, bidRequest, affiliate);
         String collectCodeUrl = ParamHelper.urlFormat(this.collectCodeUrl, null, wrapper, bidRequest, affiliate);
+        String collectErrorUrl = ParamHelper.urlFormat(this.collectErrorUrl, null, wrapper, bidRequest, affiliate);
 
         // 构建 banner 流量的 adm 信息
         Object adm = null;
@@ -294,6 +302,7 @@ public abstract class AbstractTransform implements IProtoTransform {
                                     forceJudgeUrl,
                                     collectFeatureUrl,
                                     collectCodeUrl,
+                                    collectErrorUrl,
                                     delayTime,
                                     bannerEncrypt);
                 } else {
@@ -304,7 +313,8 @@ public abstract class AbstractTransform implements IProtoTransform {
                             clickTrackList,
                             ParamHelper.urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
                             collectFeatureUrl,
-                            collectCodeUrl);
+                            collectCodeUrl,
+                            collectErrorUrl);
                 }
                 break;
             case NATIVE:

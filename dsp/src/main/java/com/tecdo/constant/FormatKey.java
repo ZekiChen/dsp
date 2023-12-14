@@ -33,6 +33,7 @@ public interface FormatKey {
   String FORCE_JUDGE_URL = "{FORCE_JUDGE_URL}";
   String COLLECT_FEATURE_URL = "{COLLECT_FEATURE_URL}";
   String COLLECT_CODE_URL = "{COLLECT_CODE_URL}";
+  String COLLECT_ERROR_URL = "{COLLECT_ERROR_URL}";
   String DELAY_TIME = "{DELAY_TIME}";
 
   String VIDEO_NAME = "{VIDEO_NAME}";

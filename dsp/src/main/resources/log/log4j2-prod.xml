@@ -93,6 +93,10 @@
         <Logger name="collect_code_log" level="INFO" additivity="false">
             <AppenderRef ref="COLLECT_CODE_LOG"/>
         </Logger>
+
+        <Logger name="collect_error_log" level="INFO" additivity="false">
+            <AppenderRef ref="COLLECT_ERROR_LOG"/>
+        </Logger>
     </Loggers>
 
 </Configuration>
