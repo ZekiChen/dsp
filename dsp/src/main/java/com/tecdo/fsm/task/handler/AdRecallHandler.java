@@ -8,6 +8,7 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
+import com.tecdo.domain.biz.dto.BidfloorDTO;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.AbstractRecallFilter;
@@ -101,10 +102,11 @@ public class AdRecallHandler {
             for (AdDTOWrapper wrapper : adDTOWrappers) {
                 if (wrapper != null) {
                     // 获取ad对应的bidfloor
-                    Float bidfloor = isPmpRequest ?
+                    BidfloorDTO bidfloorDTO = isPmpRequest ?
                             pmpService.getBidfloor(wrapper.getAdDTO(), imp, affiliate.getId(), imp.getBidfloor())
-                            : imp.getBidfloor();
-                    wrapper.setBidfloor(bidfloor);
+                            : new BidfloorDTO(imp.getBidfloor(), null);
+                    wrapper.setBidfloor(bidfloorDTO.getBidfloor());
+                    wrapper.setDealid(bidfloorDTO.getDealid());
                     res.put(wrapper.getAdDTO().getAd().getId(), wrapper);
                 }
             }

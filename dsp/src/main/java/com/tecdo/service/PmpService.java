@@ -1,10 +1,10 @@
 package com.tecdo.service;
 
 import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.AffiliatePmp;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.domain.biz.dto.AdDTO;
+import com.tecdo.domain.biz.dto.BidfloorDTO;
 import com.tecdo.domain.openrtb.request.Deal;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.service.init.AffiliatePmpManager;
@@ -12,8 +12,6 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -36,12 +34,13 @@ public class PmpService {
      * @param defaultValue imp的默认底价
      * @return deals交集底价，若无则返回defaultValue
      */
-    public Float getBidfloor(AdDTO adDTO, Imp imp, Integer affiliateId, Float defaultValue) {
+    public BidfloorDTO getBidfloor(AdDTO adDTO, Imp imp, Integer affiliateId, Float defaultValue) {
         TargetCondition pmpCond = adDTO.getConditionMap().get(DEALS.getDesc());
         float bidfloor = Float.MAX_VALUE;
         String[] condDeals = pmpCond.getValue().split(","); // affiliate_pmp表id
         Map<String, Deal> pmpDealMap = imp.getPmp().getDeals().stream()
                 .collect(Collectors.toMap(Deal::getId, deal -> deal));
+        String targetDealid = null;
 
         /*
          * 通过遍历ad的定向deals
@@ -53,11 +52,13 @@ public class PmpService {
             if (Objects.equals(affiliatePmp.getAffiliateId(), affiliateId) && pmpDealMap.containsKey(affiliatePmp.getDealId())) {
                 Float tmpBid = pmpDealMap.get(affiliatePmp.getDealId()).getBidfloor();
                 bidfloor = Math.min(bidfloor, tmpBid);
+                targetDealid = affiliatePmp.getDealId();
             }
         }
 
-        // 若没有命中定向条件则返回defaultValue
-        return Float.compare(bidfloor, Float.MAX_VALUE) < 0 ? bidfloor : defaultValue;
+        // 若没有命中定向条件则返回defaultValue，且targetDealid为null
+        bidfloor = Float.compare(bidfloor, Float.MAX_VALUE) < 0 ? bidfloor : defaultValue;
+        return new BidfloorDTO(bidfloor, targetDealid);
     }
 
     /**

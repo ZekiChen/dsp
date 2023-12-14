@@ -178,6 +178,7 @@ public abstract class AbstractTransform implements IProtoTransform {
         Bid bid = new Bid();
         bid.setId(bidId);
         bid.setPrice(wrapper.getBidPrice().floatValue());
+        bid.setDealid(wrapper.getDealid());
 
         String sign = SignHelper.digest(bidId, adDTO.getCampaign().getId().toString());
         String winUrl = ParamHelper.urlFormat(this.winUrl, sign, wrapper, bidRequest, affiliate);

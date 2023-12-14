@@ -65,6 +65,11 @@ public class AdDTOWrapper {
   private Float bidfloor;
 
   /**
+   * pmp出价下对应的dealid
+   */
+  private String dealid;
+
+  /**
    * bidId,同时也是taskId
    */
   private String bidId;
