@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import static com.tecdo.adm.api.delivery.enums.ConditionEnum.DEALS;
@@ -43,10 +44,10 @@ public class PmpDealFilter extends AbstractRecallFilter{
         if (!(hasDealsCond && hasPmp)) return !hasDealsCond && !hasPmp;
 
         String[] condDeals = dealsCond.getValue().split(",");
-        List<String> pmpDeals = imp.getPmp().getDeals()
+        Set<String> pmpDeals = imp.getPmp().getDeals()
                 .stream()
                 .map(Deal::getId)
-                .collect(Collectors.toList());
+                .collect(Collectors.toSet());
 
         // return 是否imp和condition中的deals有交集
         for (String deal : condDeals) {

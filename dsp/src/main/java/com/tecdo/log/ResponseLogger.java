@@ -108,7 +108,7 @@ public class ResponseLogger {
                 .ua(device.getUa())
                 .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
                 .deviceId(device.getIfa())
-                .bidFloor(imp.getBidfloor().doubleValue())
+                .bidFloor(wrapper.getBidfloor().doubleValue())
                 .city(FieldFormatHelper.cityFormat(device.getGeo().getCity()))
                 .region(FieldFormatHelper.regionFormat(device.getGeo().getRegion()))
                 .deviceType(DeviceTypeEnum.of(device.getDevicetype()).name())

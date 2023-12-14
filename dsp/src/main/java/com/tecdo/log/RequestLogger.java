@@ -64,8 +64,8 @@ public class RequestLogger {
         BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
         Device device = bidRequest.getDevice();
         Float bidFloor = imp.getBidfloor();
-        // 若存在pmp需求，求deals中bidFloor均值
-        if (imp.getPmp() != null && !CollUtil.isNotEmpty(imp.getPmp().getDeals())) {
+        // 若存在pmp对象，求deals中bidFloor均值
+        if (imp.getPmp() != null && CollUtil.isNotEmpty(imp.getPmp().getDeals())) {
             bidFloor = (float) imp.getPmp().getDeals().stream()
                     .mapToDouble(Deal::getBidfloor)
                     .average()
