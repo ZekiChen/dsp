@@ -12,5 +12,6 @@ public interface RequestKeyByCollectInfo {
   String DEVICE_ID = "device_id";
   String IP = "ip";
   String AD_GROUP_ID = "ad_group_id";
-  String MSG = "msg";
+  String TYPE = "type";
+  String ERROR = "error";
 }

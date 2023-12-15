@@ -53,6 +53,10 @@ public class CollectService {
     }
     CollectFeature collectFeature =
       JsonHelper.parseObject(httpRequest.getBody(), CollectFeature.class);
+    if (collectFeature == null || collectFeature.getSeleniumFeatures() == null) {
+      ResponseHelper.ok(messageQueue, params, httpRequest);
+      return;
+    }
 
     collectFeature.setBundle(httpRequest.getParamAsStr(RequestKeyByCollectInfo.BUNDLE));
     collectFeature.setBidId(httpRequest.getParamAsStr(RequestKeyByCollectInfo.BID_ID));
@@ -92,7 +96,8 @@ public class CollectService {
 
   private void handleCollectError(Params params, HttpRequest httpRequest) {
     CollectError collectError = new CollectError();
-    collectError.setMsg(httpRequest.getParamAsStr(RequestKeyByCollectInfo.MSG));
+    collectError.setError(httpRequest.getParamAsStr(RequestKeyByCollectInfo.ERROR));
+    collectError.setType(httpRequest.getParamAsStr(RequestKeyByCollectInfo.TYPE));
     collectError.setBundle(httpRequest.getParamAsStr(RequestKeyByCollectInfo.BUNDLE));
     collectError.setBidId(httpRequest.getParamAsStr(RequestKeyByCollectInfo.BID_ID));
     collectError.setSchain(httpRequest.getParamAsStr(RequestKeyByCollectInfo.SCHAIN));
