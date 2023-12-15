@@ -60,7 +60,7 @@ public class RecallFilterTest {
         this.bidRequest = initBidRequest("example-bid-request/banner-format.json");
         adDTO.setCreativeMap(buildCreativeMap("example-creative/creatives-format.json"));
         CreativeFormatFilter filter = filtersFactory.getCreativeFormatFilter();
-        bidRequest.getImp().forEach(imp -> filter.doFilter(bidRequest, imp, adDTO, affiliate));
+        bidRequest.getImp().forEach(imp -> filter.doFilter(bidRequest, imp, adDTOWrapper, affiliate));
     }
 
     @Test
@@ -72,7 +72,7 @@ public class RecallFilterTest {
         NativeRequest nativeRequest = buildNativeRequest("example-bid-request/native-nativeRequest.json");
         bidRequest.getImp().forEach(imp -> {
             imp.getNative1().setNativeRequest(nativeRequest);
-            filter.doFilter(bidRequest, imp, adDTO, affiliate);
+            filter.doFilter(bidRequest, imp, adDTOWrapper, affiliate);
         });
     }
 
@@ -81,14 +81,14 @@ public class RecallFilterTest {
         adDTO.setConditionMap(buildConditions("example-condition/conditions-frequency.json"));
         ImpFrequencyFilter impFilter = filtersFactory.getImpFrequencyFilter();
         ClickFrequencyFilter clickFilter = filtersFactory.getClickFrequencyFilter();
-        bidRequest.getImp().forEach(imp -> impFilter.doFilter(bidRequest, imp, adDTO, affiliate));
-        bidRequest.getImp().forEach(imp -> clickFilter.doFilter(bidRequest, imp, adDTO, affiliate));
+        bidRequest.getImp().forEach(imp -> impFilter.doFilter(bidRequest, imp, adDTOWrapper, affiliate));
+        bidRequest.getImp().forEach(imp -> clickFilter.doFilter(bidRequest, imp, adDTOWrapper, affiliate));
     }
 
     @Test
     public void test_BudgetFilter() {
         BudgetFilter filter = filtersFactory.getBudgetFilter();
-        bidRequest.getImp().forEach(imp -> filter.doFilter(bidRequest, imp, adDTO, affiliate));
+        bidRequest.getImp().forEach(imp -> filter.doFilter(bidRequest, imp, adDTOWrapper, affiliate));
     }
 
     // ====================================================================================================
