@@ -109,14 +109,15 @@
         ad_group_id      as adGroupId,
         SUM(click_count) as clickCount,
         SUM(imp_count)   as impCount,
-        SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN price_total ELSE 0 END) / 1000 as bidPriceTotal,
-        SUM(CASE WHEN create_date BETWEEN #{startDate} AND #{endDate} THEN ad_estimated_commission ELSE 0 END) as adEstimatedCommission
+        SUM(price_total) / 1000 as bidPriceTotal,
+        SUM(ad_estimated_commission) as adEstimatedCommission
         FROM
             ads.dsp_report_fall_one
         WHERE ad_group_id IN
         <foreach collection="adGroupIds" item="item" index="index" open="(" close=")" separator=",">
             #{item}
         </foreach>
+        and create_date BETWEEN #{startDate} AND #{endDate}
         GROUP BY
             ad_group_id, bundle_id
     </select>

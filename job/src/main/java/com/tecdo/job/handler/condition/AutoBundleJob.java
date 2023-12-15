@@ -16,6 +16,7 @@ import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.collections.SetUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
@@ -37,6 +38,13 @@ public class AutoBundleJob {
     private final ReportMapper reportMapper;
     private final BizLogApiMapper bizLogApiMapper;
     private final String TITLE = "Ad Group Auto Update Bundle";
+
+    @Value("${pac.auto-bundle.start-day:9}")
+    private Integer startDay;
+
+    @Value("${pac.auto-bundle.end-day:3}")
+    private Integer endDay;
+
     @XxlJob("autoBundleRefresh")
     public void autoBundleRefresh() {
         XxlJobHelper.log("获取bundle拉黑的定向条件");
@@ -52,8 +60,8 @@ public class AutoBundleJob {
         XxlJobHelper.log("获取参与校验的ad_group-bundle信息列表");
         List<AutoBundle> autoBundleInfoList = reportMapper
                 .getAutoBundleInfoList(conditionMap.keySet(),
-                        LocalDate.now().minusDays(7).toString(),
-                        LocalDate.now().minusDays(3).toString());
+                        LocalDate.now().minusDays(startDay).toString(),
+                        LocalDate.now().minusDays(endDay).toString());
 
         XxlJobHelper.log("根据定向条件生成新黑名单");
         Map<Integer, Set<String>> newBlackListMap = generateBlackListMap(autoBundleInfoList, conditionMap);
