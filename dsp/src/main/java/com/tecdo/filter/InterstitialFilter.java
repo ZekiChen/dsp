@@ -5,6 +5,7 @@ import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.util.ConditionHelper;
@@ -22,7 +23,8 @@ public class InterstitialFilter extends AbstractRecallFilter {
     private static final String VIDEO_INSTL = ConditionEnum.VIDEO_INSTL.getDesc();
 
     @Override
-    public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
+    public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTOWrapper adDTOWrapper, Affiliate affiliate) {
+        AdDTO adDTO = adDTOWrapper.getAdDTO();
         TargetCondition imageCond = adDTO.getConditionMap().get(IMAGE_INSTL);
         TargetCondition videoCond = adDTO.getConditionMap().get(VIDEO_INSTL);
         if (imageCond == null && videoCond == null) {
