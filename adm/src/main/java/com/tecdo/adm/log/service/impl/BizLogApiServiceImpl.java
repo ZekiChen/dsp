@@ -56,31 +56,54 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
 
             List<TargetConditionVO> beConditionVOs = beforeVO.getConditionVOs();
             List<MultiBidStrategyVO> beStrategyVOs = beforeVO.getStrategyVOs();
-
             List<TargetCondition> afterConditions = afterVO.listCondition();
+
+            /*
+             * 日志覆盖操作：增、删、改
+             */
             if (CollUtil.isNotEmpty(afterConditions)) {
-                Map<String, TargetCondition> afterCondMap = afterConditions.stream().collect(Collectors.toMap(TargetCondition::getAttribute, v -> v));
+                Map<String, TargetCondition> afterCondMap = afterConditions.stream()
+                        .collect(Collectors.toMap(TargetCondition::getAttribute, v -> v));
+                /*
+                 * 操作对象：before中存在的cond
+                 * 操作内容：删、改
+                 */
                 for (TargetConditionVO before : beConditionVOs) {
-                    if (afterCondMap.containsKey(before.getAttribute())) {
+                    String attr = before.getAttribute();
+                    // afterCondMap不存在改attr，说明未做修改
+                    if (!afterCondMap.containsKey(attr)) continue;
+                    // value不为空：修改或不变；value为空：删除该条condition
+                    if (StrUtil.isNotBlank(afterCondMap.get(attr).getValue())) {
                         TargetCondition after = afterCondMap.get(before.getAttribute());
                         // before和after都有，但值不一致
                         if (!before.getOperation().equals(after.getOperation()) || !before.getValue().equals(after.getValue())) {
-                            sb.append(before.getAttribute()).append(": ").append(before.getOperation()).append(" ")
-                                    .append(before.getValue()).append(" -> ").append(after.getOperation()).append(" ").append(after.getValue()).append("\n");
+                            sb.append(before.getAttribute())
+                                    .append(": ").append(before.getOperation())
+                                    .append(" ").append(before.getValue())
+                                    .append(" -> ").append(after.getOperation())
+                                    .append(" ").append(after.getValue())
+                                    .append("\n");
                         }
-                    } else {
-                        // before有，after没有
-                        sb.append(before.getAttribute()).append(": ").append(before.getOperation()).append(" ")
-                                .append(before.getValue()).append(" -> null\n");
+                    } else { // 删除
+                        sb.append(before.getAttribute())
+                                .append(": ").append(before.getOperation())
+                                .append(" ").append(before.getValue())
+                                .append(" -> null\n");
                     }
                 }
-                Map<String, TargetConditionVO> beforeMap = beConditionVOs.stream().collect(Collectors.toMap(TargetConditionVO::getAttribute, v -> v));
+                Map<String, TargetConditionVO> beforeMap = beConditionVOs.stream()
+                        .collect(Collectors.toMap(TargetConditionVO::getAttribute, v -> v));
+                /*
+                 * 操作对象：before中不存在&after中存在的对象
+                 * 操作内容：新增
+                 */
                 for (TargetCondition after : afterConditions) {
-                    // before没有，after有
-                    if (!beforeMap.containsKey(after.getAttribute())) {
-                        sb.append(after.getAttribute()).append(": null -> ")
-                                .append(after.getOperation()).append(" ").append(after.getValue()).append("\n");
-                    }
+                    if (beforeMap.containsKey(after.getAttribute()) || StrUtil.isBlank(after.getValue())) continue;
+                    sb.append(after.getAttribute())
+                            .append(": null -> ")
+                            .append(after.getOperation())
+                            .append(" ")
+                            .append(after.getValue()).append("\n");
                 }
             }
 

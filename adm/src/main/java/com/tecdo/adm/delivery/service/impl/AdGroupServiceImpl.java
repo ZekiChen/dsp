@@ -21,10 +21,8 @@ import com.tecdo.adm.delivery.service.IAdGroupService;
 import com.tecdo.adm.delivery.service.IAdService;
 import com.tecdo.adm.delivery.service.IMultiBidStrategyService;
 import com.tecdo.adm.delivery.service.ITargetConditionService;
-import com.tecdo.adm.doris.IGooglePlayAppService;
 import com.tecdo.adm.doris.IRequestService;
 import com.tecdo.adm.log.service.IBizLogApiService;
-import com.tecdo.common.util.GoogleURIParserAdapter;
 import com.tecdo.common.util.UrlParamUtil;
 import com.tecdo.starter.log.exception.ServiceException;
 import com.tecdo.starter.mp.entity.BaseEntity;
@@ -87,8 +85,19 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             }
             logByUpdate(vo);
             if (updateById(vo)) {
-                conditionService.deleteByAdGroupIds(Collections.singletonList(vo.getId()));
-                conditionService.saveBatch(vo.listCondition());
+                Map<Integer, List<String>> groupIdToAttrMap = new HashMap<>();
+                List<AdGroupVO> adGroupVOList = Collections.singletonList(vo);
+                // adGroupId -> attributes（多个用逗号分割）
+                groupIdToAttrMap = adGroupVOList.stream()
+                        .collect(Collectors.toMap(AdGroupVO::getId, adGroupVO -> {
+                            List<TargetConditionVO> conditionVOs = adGroupVO.getConditionVOs();
+                            return conditionVOs.stream()
+                                    .map(TargetConditionVO::getAttribute)
+                                    .collect(Collectors.toList());
+                        }));
+
+                conditionService.deleteByAdGroupIdsAndAttr(groupIdToAttrMap);
+                conditionService.insertConditionsIfHasVal(vo.listCondition());
                 strategyService.insertOrUpdate(vo.listStrategies());
                 return true;
             }
