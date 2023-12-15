@@ -1,8 +1,8 @@
 package com.tecdo.filter;
 
 import com.tecdo.adm.api.delivery.entity.Affiliate;
-import com.tecdo.common.constant.ConditionConstant;
-import com.tecdo.domain.biz.dto.AdDTO;
+
+import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import lombok.Getter;
@@ -29,10 +29,10 @@ public abstract class AbstractRecallFilter{
     /**
      * 判断当前的AD是否需要召回
      *
-     * @param bidRequest 竞价请求对象
-     * @param imp        展示对象
-     * @param adDTO      AD完整数据
-     * @return           true: 召回
+     * @param bidRequest   竞价请求对象
+     * @param imp          展示对象
+     * @param adDTOWrapper AD完整数据
+     * @return             true: 召回
      */
-    public abstract boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate);
+    public abstract boolean doFilter(BidRequest bidRequest, Imp imp, AdDTOWrapper adDTOWrapper, Affiliate affiliate);
 }

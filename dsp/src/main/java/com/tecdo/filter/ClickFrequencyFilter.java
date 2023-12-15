@@ -2,6 +2,7 @@ package com.tecdo.filter;
 
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
@@ -22,7 +23,8 @@ public class ClickFrequencyFilter extends AbstractRecallFilter {
   private final CacheService cacheService;
 
   @Override
-  public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
+  public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTOWrapper adDTOWrapper, Affiliate affiliate) {
+    AdDTO adDTO = adDTOWrapper.getAdDTO();
     TargetCondition conditionToday = adDTO.getConditionMap().get(CLICK_FREQUENCY);
     TargetCondition conditionByhour = adDTO.getConditionMap().get(CLICK_FREQUENCY_HOUR);
     boolean isPassedToday = true, isPassedByHour = true;
@@ -32,6 +34,7 @@ public class ClickFrequencyFilter extends AbstractRecallFilter {
 
     if (conditionToday != null) {
       Integer countToday = cacheService.getFrequencyCache().getClickCountToday(campaignId.toString(), deviceId);
+      adDTOWrapper.setClickFrequency(countToday);
       isPassedToday = ConditionHelper.compare(String.valueOf(countToday),
               conditionToday.getOperation(),
               conditionToday.getValue());
@@ -39,6 +42,7 @@ public class ClickFrequencyFilter extends AbstractRecallFilter {
 
     if (conditionByhour != null) {
       Integer countByHour = cacheService.getFrequencyCache().getClickCountByHour(campaignId.toString(), deviceId);
+      adDTOWrapper.setClickFrequencyHour(countByHour);
       isPassedByHour = ConditionHelper.compare(String.valueOf(countByHour),
               conditionByhour.getOperation(),
               conditionByhour.getValue());

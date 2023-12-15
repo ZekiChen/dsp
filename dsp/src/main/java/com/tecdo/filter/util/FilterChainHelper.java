@@ -1,14 +1,13 @@
 package com.tecdo.filter.util;
 
 import com.tecdo.adm.api.delivery.entity.Affiliate;
-import com.tecdo.domain.biz.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.AffiliateFilter;
 import com.tecdo.log.NotBidReasonLogger;
 
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 
@@ -39,23 +38,23 @@ public class FilterChainHelper {
      */
     public static boolean executeFilter(String bidId,
                                         AbstractRecallFilter curFilter,
-                                        AdDTO adDTO,
+                                        AdDTOWrapper adDTOWrapper,
                                         BidRequest bidRequest,
                                         Imp imp,
                                         Affiliate affiliate) {
-        boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
+        boolean filterFlag = curFilter.doFilter(bidRequest, imp, adDTOWrapper, affiliate);
         if (!filterFlag && !ignoreLogFilter.contains(curFilter.getClass())) {
             NotBidReasonLogger.log(bidId,
-                                   adDTO.getAd().getId(),
+                                   adDTOWrapper.getAdDTO().getAd().getId(),
                                    curFilter.getClass().getSimpleName());
             log.debug("ad recall fail, filter: {}", curFilter.getClass().getSimpleName());
         }
         while (filterFlag && curFilter.hasNext()) {
             curFilter = curFilter.getNextFilter();
-            filterFlag = curFilter.doFilter(bidRequest, imp, adDTO, affiliate);
+            filterFlag = curFilter.doFilter(bidRequest, imp, adDTOWrapper, affiliate);
             if (!filterFlag && !ignoreLogFilter.contains(curFilter.getClass())) {
                 NotBidReasonLogger.log(bidId,
-                                       adDTO.getAd().getId(),
+                                       adDTOWrapper.getAdDTO().getAd().getId(),
                                        curFilter.getClass().getSimpleName());
                 log.debug("ad recall fail, filter: {}", curFilter.getClass().getSimpleName());
             }

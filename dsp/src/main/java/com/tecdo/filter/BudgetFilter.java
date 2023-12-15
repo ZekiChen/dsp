@@ -2,6 +2,7 @@ package com.tecdo.filter;
 
 import com.tecdo.common.constant.ConditionConstant;
 import com.tecdo.domain.biz.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
@@ -22,7 +23,8 @@ public class BudgetFilter extends AbstractRecallFilter {
   private BudgetManager budgetManager;
 
   @Override
-  public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
+  public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTOWrapper adDTOWrapper, Affiliate affiliate) {
+    AdDTO adDTO = adDTOWrapper.getAdDTO();
     Double campaignBudget = adDTO.getCampaign().getDailyBudget();
     Double adGroupBudget = adDTO.getAdGroup().getDailyBudget();
     // 每个 campaign + adGroup 一天的消耗控制
