@@ -153,8 +153,8 @@ public class ValidateService {
             ValidateLogger.log(blocked.right, bidRequest, affiliate, false);
         }
 
-        FraudInfo ipFraudInfo = getFraudInfoByIp(pixalateIpEnabled, fraudManager, ip);
-        FraudInfo deviceIdFraudInfo = getFraudInfoByDeviceId(pixalateDeviceIdEnabled, fraudManager, device.getIfa());
+        FraudInfo ipFraudInfo = getFraudInfoByIp(ip);
+        FraudInfo deviceIdFraudInfo = getFraudInfoByDeviceId(device.getIfa());
 
         logFraudInfo(ipFraudInfo, deviceIdFraudInfo, bidRequest, affiliate);
 
@@ -329,27 +329,27 @@ public class ValidateService {
     }
 
     // 获取欺诈信息
-    private FraudInfo getFraudInfoByIp(boolean enabled, PixalateFraudManager fraudManager, String ip) {
-        if (enabled) {
+    private FraudInfo getFraudInfoByIp(String ip) {
+        if (pixalateIpEnabled) {
             String fraud = cacheService.getPixalateCache().getFraudByIp(ip);
-            FraudInfo fraudInfo = parseFraudInfo(fraudManager, fraud);
+            FraudInfo fraudInfo = parseFraudInfo(fraud);
             if (fraudInfo != null)
                 return fraudInfo;
         }
         return new FraudInfo(null, null, false);
     }
 
-    private FraudInfo getFraudInfoByDeviceId(boolean enabled, PixalateFraudManager fraudManager, String deviceId) {
-        if (enabled) {
+    private FraudInfo getFraudInfoByDeviceId(String deviceId) {
+        if (pixalateDeviceIdEnabled) {
             String fraud = cacheService.getPixalateCache().getFraudByDeviceId(deviceId);
-            FraudInfo fraudInfo = parseFraudInfo(fraudManager, fraud);
+            FraudInfo fraudInfo = parseFraudInfo(fraud);
             if (fraudInfo != null)
                 return fraudInfo;
         }
         return new FraudInfo(null, null, false);
     }
 
-    private static FraudInfo parseFraudInfo(PixalateFraudManager fraudManager, String fraud) {
+    private FraudInfo parseFraudInfo(String fraud) {
         if (StrUtil.isNotBlank(fraud)) {
             String[] arr = fraud.split(StrUtil.COMMA);
             if (arr.length == 2) {
