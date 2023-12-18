@@ -153,10 +153,8 @@ public class ValidateService {
             ValidateLogger.log(blocked.right, bidRequest, affiliate, false);
         }
 
-        FraudInfo ipFraudInfo = getFraudInfo(pixalateIpEnabled, fraudManager,
-                cacheService.getPixalateCache().getFraudByIp(ip));
-        FraudInfo deviceIdFraudInfo = getFraudInfo(pixalateDeviceIdEnabled, fraudManager,
-                cacheService.getPixalateCache().getFraudByDeviceId(device.getIfa()));
+        FraudInfo ipFraudInfo = getFraudInfoByIp(pixalateIpEnabled, fraudManager, ip);
+        FraudInfo deviceIdFraudInfo = getFraudInfoByDeviceId(pixalateDeviceIdEnabled, fraudManager, device.getIfa());
 
         logFraudInfo(ipFraudInfo, deviceIdFraudInfo, bidRequest, affiliate);
 
@@ -331,8 +329,28 @@ public class ValidateService {
     }
 
     // 获取欺诈信息
-    private FraudInfo getFraudInfo(boolean enabled, PixalateFraudManager fraudManager, String fraud) {
-        if (enabled && StrUtil.isNotBlank(fraud)) {
+    private FraudInfo getFraudInfoByIp(boolean enabled, PixalateFraudManager fraudManager, String ip) {
+        if (enabled) {
+            String fraud = cacheService.getPixalateCache().getFraudByIp(ip);
+            FraudInfo fraudInfo = getFraudInfo(fraudManager, fraud);
+            if (fraudInfo != null)
+                return fraudInfo;
+        }
+        return new FraudInfo(null, null, false);
+    }
+
+    private FraudInfo getFraudInfoByDeviceId(boolean enabled, PixalateFraudManager fraudManager, String deviceId) {
+        if (enabled) {
+            String fraud = cacheService.getPixalateCache().getFraudByDeviceId(deviceId);
+            FraudInfo fraudInfo = getFraudInfo(fraudManager, fraud);
+            if (fraudInfo != null)
+                return fraudInfo;
+        }
+        return new FraudInfo(null, null, false);
+    }
+
+    private static FraudInfo getFraudInfo(PixalateFraudManager fraudManager, String fraud) {
+        if (StrUtil.isNotBlank(fraud)) {
             String[] arr = fraud.split(StrUtil.COMMA);
             if (arr.length == 2) {
                 String fraudType = arr[0];
@@ -341,7 +359,7 @@ public class ValidateService {
                 return new FraudInfo(fraudType, probability, shouldBeFiltered);
             }
         }
-        return new FraudInfo(null, null, false);
+        return null;
     }
 
     private void logFraudInfo(FraudInfo ipFraudInfo, FraudInfo deviceIdFraudInfo, BidRequest bidRequest, Affiliate affiliate) {
