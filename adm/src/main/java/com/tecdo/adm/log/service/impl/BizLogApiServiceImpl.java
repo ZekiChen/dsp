@@ -70,7 +70,7 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
                  */
                 for (TargetConditionVO before : beConditionVOs) {
                     String attr = before.getAttribute();
-                    // afterCondMap不存在改attr，说明未做修改
+                    // afterCondMap不存在该attr，说明未做修改
                     if (!afterCondMap.containsKey(attr)) continue;
                     // value不为空：修改或不变；value为空：删除该条condition
                     if (StrUtil.isNotBlank(afterCondMap.get(attr).getValue())) {
