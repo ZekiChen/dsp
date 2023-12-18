@@ -108,6 +108,7 @@ public enum EventType {
   RECEIVE_FORCE_REQUEST(3010, "receive force request"),
   RECEIVE_COLLECT_FEATURE(3011, "receive collect feature"),
   RECEIVE_COLLECT_CODE(3012, "receive collect code"),
+  RECEIVE_COLLECT_ERROR(3013, "receive collect error"),
 
   TASK_START(3101, "task start"),
   BID_TASK_FINISH(3102, "bid task finish"),

@@ -24,4 +24,5 @@ public interface RequestPath {
 
   String COLLECT_FEATURE = "/collect/feature";
   String COLLECT_CODE = "/collect/code";
+  String COLLECT_ERROR = "/collect/error";
 }

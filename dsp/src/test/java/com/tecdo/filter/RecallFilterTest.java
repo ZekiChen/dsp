@@ -6,6 +6,7 @@ import com.alibaba.fastjson.TypeReference;
 import com.tecdo.adm.api.delivery.entity.*;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.domain.openrtb.request.n.NativeRequest;
@@ -37,19 +38,21 @@ public class RecallFilterTest {
     private BidRequest bidRequest;
     private Affiliate affiliate;
     private AdDTO adDTO;
+    private AdDTOWrapper adDTOWrapper;
 
     @BeforeEach
     public void init() {
         this.firstFilter = initAllRecallFilter().get(0);
         this.affiliate = initDefaultAffiliate();
         this.adDTO = initDefaultAdDTO();
+        this.adDTOWrapper = new AdDTOWrapper("","",adDTO);
         this.bidRequest = initDefaultBidRequest();
     }
 
     @Test
     public void test_all_filter_by_banner_request() {
         List<Imp> imps = bidRequest.getImp();
-        imps.forEach(imp -> FilterChainHelper.executeFilter("", firstFilter, adDTO, bidRequest, imp, affiliate));
+        imps.forEach(imp -> FilterChainHelper.executeFilter("", firstFilter, adDTOWrapper, bidRequest, imp, affiliate));
     }
 
     @Test
@@ -57,7 +60,7 @@ public class RecallFilterTest {
         this.bidRequest = initBidRequest("example-bid-request/banner-format.json");
         adDTO.setCreativeMap(buildCreativeMap("example-creative/creatives-format.json"));
         CreativeFormatFilter filter = filtersFactory.getCreativeFormatFilter();
-        bidRequest.getImp().forEach(imp -> filter.doFilter(bidRequest, imp, adDTO, affiliate));
+        bidRequest.getImp().forEach(imp -> filter.doFilter(bidRequest, imp, adDTOWrapper, affiliate));
     }
 
     @Test
@@ -69,7 +72,7 @@ public class RecallFilterTest {
         NativeRequest nativeRequest = buildNativeRequest("example-bid-request/native-nativeRequest.json");
         bidRequest.getImp().forEach(imp -> {
             imp.getNative1().setNativeRequest(nativeRequest);
-            filter.doFilter(bidRequest, imp, adDTO, affiliate);
+            filter.doFilter(bidRequest, imp, adDTOWrapper, affiliate);
         });
     }
 
@@ -78,14 +81,14 @@ public class RecallFilterTest {
         adDTO.setConditionMap(buildConditions("example-condition/conditions-frequency.json"));
         ImpFrequencyFilter impFilter = filtersFactory.getImpFrequencyFilter();
         ClickFrequencyFilter clickFilter = filtersFactory.getClickFrequencyFilter();
-        bidRequest.getImp().forEach(imp -> impFilter.doFilter(bidRequest, imp, adDTO, affiliate));
-        bidRequest.getImp().forEach(imp -> clickFilter.doFilter(bidRequest, imp, adDTO, affiliate));
+        bidRequest.getImp().forEach(imp -> impFilter.doFilter(bidRequest, imp, adDTOWrapper, affiliate));
+        bidRequest.getImp().forEach(imp -> clickFilter.doFilter(bidRequest, imp, adDTOWrapper, affiliate));
     }
 
     @Test
     public void test_BudgetFilter() {
         BudgetFilter filter = filtersFactory.getBudgetFilter();
-        bidRequest.getImp().forEach(imp -> filter.doFilter(bidRequest, imp, adDTO, affiliate));
+        bidRequest.getImp().forEach(imp -> filter.doFilter(bidRequest, imp, adDTOWrapper, affiliate));
     }
 
     // ====================================================================================================

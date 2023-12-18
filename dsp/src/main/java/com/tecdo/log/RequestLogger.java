@@ -12,6 +12,7 @@ import com.tecdo.domain.openrtb.request.Deal;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.adm.api.doris.entity.GooglePlayApp;
+import com.tecdo.domain.openrtb.request.Video;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.ExtHelper;
@@ -117,7 +118,7 @@ public class RequestLogger {
                 .bAdv(bidRequest.getBadv())
                 .bApp(bidRequest.getBapp())
                 .bCat(bidRequest.getBcat())
-                .videoPlacement(imp.getVideo() != null ? imp.getVideo().getPlacement() : -1)
+                .videoPlacement(Optional.ofNullable(imp.getVideo()).map(Video::getPlacement).orElse(-1))
                 .isRewarded(ExtHelper.isRewarded(bidRequest.getExt()) ? 1 : 0)
                 .schain(ExtHelper.listSChain(bidRequest.getSource()))
                 .exceptionEvent(Optional.ofNullable(exceptionEvent).map(Enum::name).orElse(null))

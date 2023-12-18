@@ -22,6 +22,8 @@ public class NotForceLogger {
         String country = httpRequest.getParamAsStr(RequestKeyByForce.COUNTRY);
         String bundle = httpRequest.getParamAsStr(RequestKeyByForce.BUNDLE);
         String schain = httpRequest.getParamAsStr(RequestKeyByForce.SCHAIN);
+        String ip = httpRequest.getParamAsStr(RequestKeyByForce.IP);
+        String impIp = httpRequest.getIp();
         Integer adGroupId = httpRequest.getParamAsInteger(RequestKeyByForce.AD_GROUP_ID);
 
         Map<String, Object> map = new HashMap<>();
@@ -34,6 +36,8 @@ public class NotForceLogger {
         map.put("bundle", bundle);
         map.put("schain", schain);
         map.put("ad_group_id", adGroupId);
+        map.put("ip", ip);
+        map.put("imp_ip", impIp);
         map.put("code", code);
 
         logger.info(JsonHelper.toJSONString(map));

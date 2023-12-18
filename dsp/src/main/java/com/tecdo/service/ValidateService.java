@@ -1,7 +1,5 @@
 package com.tecdo.service;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.AffCountryBundleList;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.common.constant.Constant;
@@ -10,20 +8,25 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.constant.RequestKey;
 import com.tecdo.controller.MessageQueue;
+import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.validate.FraudInfo;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.log.ValidateLogger;
 import com.tecdo.server.request.HttpRequest;
-import com.tecdo.service.init.*;
+import com.tecdo.service.init.AffCountryBundleListManager;
+import com.tecdo.service.init.AffiliateManager;
+import com.tecdo.service.init.CheatingDataManager;
+import com.tecdo.service.init.IpTableManager;
+import com.tecdo.service.init.Pair;
+import com.tecdo.service.init.PixalateFraudManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ProtoTransformFactory;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.ResponseHelper;
 import com.tecdo.util.SignHelper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -35,7 +38,13 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import static com.tecdo.common.constant.ConditionConstant.*;
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.StrUtil;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+
+import static com.tecdo.common.constant.ConditionConstant.EXCLUDE;
+import static com.tecdo.common.constant.ConditionConstant.INCLUDE;
 
 @Slf4j
 @Service
@@ -50,6 +59,7 @@ public class ValidateService {
 
     private final MessageQueue messageQueue;
     private final CacheService cacheService;
+    private final ThreadPool threadPool;
 
     @Value("${pac.notice.expire.win}")
     private long winExpire;
@@ -153,23 +163,23 @@ public class ValidateService {
             ValidateLogger.log(blocked.right, bidRequest, affiliate, false);
         }
 
-        FraudInfo ipFraudInfo = getFraudInfo(pixalateIpEnabled, fraudManager,
-                cacheService.getPixalateCache().getFraudByIp(ip));
-        FraudInfo deviceIdFraudInfo = getFraudInfo(pixalateDeviceIdEnabled, fraudManager,
-                cacheService.getPixalateCache().getFraudByDeviceId(device.getIfa()));
+        // need query redis,so put into threadPool
+        threadPool.execute(() -> {
+            FraudInfo ipFraudInfo = getFraudInfoByIp(ip);
+            FraudInfo deviceIdFraudInfo = getFraudInfoByDeviceId(device.getIfa());
 
-        logFraudInfo(ipFraudInfo, deviceIdFraudInfo, bidRequest, affiliate);
+            logFraudInfo(ipFraudInfo, deviceIdFraudInfo, bidRequest, affiliate);
 
-        if (ipFraudInfo.isFilter() || deviceIdFraudInfo.isFilter()) {
-            ResponseHelper.noBid(messageQueue, Params.create(), httpRequest);
-            return;
-        }
+            if (ipFraudInfo.isFilter() || deviceIdFraudInfo.isFilter()) {
+                ResponseHelper.noBid(messageQueue, Params.create(), httpRequest);
+                return;
+            }
 
-        messageQueue.putMessage(EventType.RECEIVE_BID_REQUEST,
-                Params.create(ParamKey.BID_REQUEST, bidRequest)
-                        .put(ParamKey.HTTP_REQUEST, httpRequest)
-                        .put(ParamKey.AFFILIATE, affiliate));
-
+            messageQueue.putMessage(EventType.RECEIVE_BID_REQUEST,
+                                    Params.create(ParamKey.BID_REQUEST, bidRequest)
+                                          .put(ParamKey.HTTP_REQUEST, httpRequest)
+                                          .put(ParamKey.AFFILIATE, affiliate));
+        });
     }
 
     private boolean validateAffCountryBundleList(Integer affiliateId, String country, String bundle) {
@@ -331,8 +341,28 @@ public class ValidateService {
     }
 
     // 获取欺诈信息
-    private FraudInfo getFraudInfo(boolean enabled, PixalateFraudManager fraudManager, String fraud) {
-        if (enabled && StrUtil.isNotBlank(fraud)) {
+    private FraudInfo getFraudInfoByIp(String ip) {
+        if (pixalateIpEnabled) {
+            String fraud = cacheService.getPixalateCache().getFraudByIp(ip);
+            FraudInfo fraudInfo = parseFraudInfo(fraud);
+            if (fraudInfo != null)
+                return fraudInfo;
+        }
+        return new FraudInfo(null, null, false);
+    }
+
+    private FraudInfo getFraudInfoByDeviceId(String deviceId) {
+        if (pixalateDeviceIdEnabled) {
+            String fraud = cacheService.getPixalateCache().getFraudByDeviceId(deviceId);
+            FraudInfo fraudInfo = parseFraudInfo(fraud);
+            if (fraudInfo != null)
+                return fraudInfo;
+        }
+        return new FraudInfo(null, null, false);
+    }
+
+    private FraudInfo parseFraudInfo(String fraud) {
+        if (StrUtil.isNotBlank(fraud)) {
             String[] arr = fraud.split(StrUtil.COMMA);
             if (arr.length == 2) {
                 String fraudType = arr[0];
@@ -341,7 +371,7 @@ public class ValidateService {
                 return new FraudInfo(fraudType, probability, shouldBeFiltered);
             }
         }
-        return new FraudInfo(null, null, false);
+        return null;
     }
 
     private void logFraudInfo(FraudInfo ipFraudInfo, FraudInfo deviceIdFraudInfo, BidRequest bidRequest, Affiliate affiliate) {

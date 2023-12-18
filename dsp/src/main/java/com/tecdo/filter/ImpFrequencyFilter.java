@@ -4,6 +4,7 @@ import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.domain.biz.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.util.ConditionHelper;
@@ -25,7 +26,8 @@ public class ImpFrequencyFilter extends AbstractRecallFilter {
   private boolean filterEnabled;
 
   @Override
-  public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
+  public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTOWrapper adDTOWrapper, Affiliate affiliate) {
+    AdDTO adDTO = adDTOWrapper.getAdDTO();
     TargetCondition conditionToday = adDTO.getConditionMap().get(IMP_FREQUENCY);
     TargetCondition conditionByHour = adDTO.getConditionMap().get(IMP_FREQUENCY_HOUR);
     boolean isPassedToday = true, isPassedByHour = true;
@@ -39,12 +41,14 @@ public class ImpFrequencyFilter extends AbstractRecallFilter {
 
     if (conditionToday != null) {
       Integer countToday = cacheService.getFrequencyCache().getImpCountToday(campaignId.toString(), deviceId);
+      adDTOWrapper.setImpFrequency(countToday);
       isPassedToday = ConditionHelper.compare(String.valueOf(countToday),
               conditionToday.getOperation(),
               conditionToday.getValue());
     }
     if (conditionByHour != null) {
       Integer countByHour = cacheService.getFrequencyCache().getImpCountByHour(campaignId.toString(), deviceId);
+      adDTOWrapper.setImpFrequencyHour(countByHour);
       isPassedByHour = ConditionHelper.compare(String.valueOf(countByHour),
               conditionByHour.getOperation(),
               conditionByHour.getValue());

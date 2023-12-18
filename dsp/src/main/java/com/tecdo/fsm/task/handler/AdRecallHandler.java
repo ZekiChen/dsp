@@ -14,19 +14,20 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.AbstractRecallFilter;
 import com.tecdo.filter.factory.RecallFiltersFactory;
 import com.tecdo.filter.util.FilterChainHelper;
-import com.tecdo.service.CacheService;
 import com.tecdo.service.PmpService;
-import com.tecdo.service.cache.FrequencyCache;
 import com.tecdo.service.init.AdManager;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
+import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 /**
  * 广告召回
@@ -42,7 +43,6 @@ public class AdRecallHandler {
     private final MessageQueue messageQueue;
     private final RecallFiltersFactory filtersFactory;
     private final AdManager adManager;
-    private final CacheService cacheService;
     private final PmpService pmpService;
 
     @Value("${pac.timeout.task.ad.recall}")
@@ -65,32 +65,52 @@ public class AdRecallHandler {
         });
     }
 
-    private Map<Integer, AdDTOWrapper> doAdRecall(Params params, BidRequest bidRequest,
+    private Map<Integer, AdDTOWrapper> doAdRecall(Params params,
+                                                  BidRequest bidRequest,
                                                   Imp imp, Affiliate affiliate) {
         List<AbstractRecallFilter> filters = filtersFactory.createFilters();
+        String bidId = params.get(ParamKey.TASK_ID);
         return adManager.getAdDTOMap()
-                .values()
-                .stream()
-                .filter(adDTO -> FilterChainHelper.executeFilter(params.get(ParamKey.TASK_ID), filters.get(0), adDTO, bidRequest, imp, affiliate))
-                .collect(Collectors.toMap(
-                        adDTO -> adDTO.getAd().getId(),
-                        adDTO -> buildADDTOWrapper(params.get(ParamKey.TASK_ID), bidRequest, imp.getId(), adDTO))
-                );
+                        .values()
+                        .stream()
+                        .map(adDTO -> buildADDTOWrapper(bidId, imp.getId(), adDTO))
+                        .filter(adDTOWrapper -> FilterChainHelper.executeFilter(bidId,
+                                                                                filters.get(0),
+                                                                                adDTOWrapper,
+                                                                                bidRequest,
+                                                                                imp,
+                                                                                affiliate))
+                        .collect(Collectors.toMap(adDTOWrapper -> adDTOWrapper.getAdDTO()
+                                                                              .getAd()
+                                                                              .getId(),
+                                                  Function.identity()));
     }
 
-    private Map<Integer, AdDTOWrapper> doAdRecallBatch(Params params, BidRequest bidRequest,
-                                                       Imp imp, Affiliate affiliate) {
+    private Map<Integer, AdDTOWrapper> doAdRecallBatch(Params params,
+                                                       BidRequest bidRequest,
+                                                       Imp imp,
+                                                       Affiliate affiliate) {
         List<AbstractRecallFilter> filters = filtersFactory.createFilters();
+        String bidId = params.get(ParamKey.TASK_ID);
         Map<Integer, AdDTO> adDTOMap = adManager.getAdDTOMap();
+        List<AdDTOWrapper> adDTOWrapperList = //
+          adDTOMap.values()
+                  .stream()
+                  .map(adDTO -> buildADDTOWrapper(bidId, imp.getId(), adDTO))
+                  .collect(Collectors.toList());
         List<CompletableFuture<AdDTOWrapper>> futureList = new ArrayList<>();
         Map<Integer, AdDTOWrapper> res = new HashMap<>();
-        for (AdDTO adDTO : adDTOMap.values()) {
+        for (AdDTOWrapper adDTOWrapper : adDTOWrapperList) {
             // 在线程池中处理多个ad的recall
-            CompletableFuture<AdDTOWrapper> future = CompletableFuture.supplyAsync(() ->
-                            FilterChainHelper.executeFilter(params.get(ParamKey.TASK_ID), filters.get(0), adDTO, bidRequest, imp, affiliate)
-                                    ? buildADDTOWrapper(params.get(ParamKey.TASK_ID), bidRequest, imp.getId(), adDTO)
-                                    : null,
-                    threadPool.getExecutor());
+            CompletableFuture<AdDTOWrapper> future =
+              CompletableFuture.supplyAsync(() -> FilterChainHelper.executeFilter(bidId,
+                                                                                  filters.get(0),
+                                                                                  adDTOWrapper,
+                                                                                  bidRequest,
+                                                                                  imp,
+                                                                                  affiliate)
+                ? adDTOWrapper
+                : null, threadPool.getExecutor());
             futureList.add(future);
         }
 
@@ -120,17 +140,8 @@ public class AdRecallHandler {
         return res;
     }
 
-    private AdDTOWrapper buildADDTOWrapper(String bidId, BidRequest bidRequest, String impId, AdDTO adDTO) {
-        FrequencyCache frequencyCache = cacheService.getFrequencyCache();
-        String deviceId = bidRequest.getDevice().getIfa();
-        String campaignId = adDTO.getCampaign().getId().toString();
-
-        AdDTOWrapper wrapper = new AdDTOWrapper(impId, bidId, adDTO);
-        wrapper.setImpFrequency(frequencyCache.getImpCountToday(campaignId, deviceId));
-        wrapper.setClickFrequency(frequencyCache.getClickCountToday(campaignId, deviceId));
-        wrapper.setImpFrequencyHour(frequencyCache.getImpCountByHour(campaignId, deviceId));
-        wrapper.setClickFrequencyHour(frequencyCache.getClickCountByHour(campaignId, deviceId));
-        return wrapper;
+    private AdDTOWrapper buildADDTOWrapper(String bidId, String impId, AdDTO adDTO) {
+        return new AdDTOWrapper(impId, bidId, adDTO);
     }
 
     private <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> com) {

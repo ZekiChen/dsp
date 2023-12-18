@@ -120,11 +120,11 @@
 
     function v() {
         var e = {},
-            t = ["userAgent", "webdriver", "plugins", "mimeTypes", "platform", "phantomJSFeatures", "nightmareJS", "seleniumFeatures", "webGL", "canvas", "webRTC", "fonts", "cdp"],
+            t = ["user_agent", "web_driver", "plugins", "mime_types", "platform", "phantom_js_features", "nightmare_js", "selenium_features", "web_gl", "canvas", "web_rtc", "fonts", "cdp"],
             n = {
-                userAgent: function () {
+                user_agent: function () {
                     return navigator.userAgent
-                }, webdriver: function () {
+                }, web_driver: function () {
                     return navigator.webdriver
                 }, plugins: function () {
                     const e = [];
@@ -137,7 +137,7 @@
                         })), r = r.join(","), e.push(o + "__" + r)
                     }
                     return e
-                }, mimeTypes: function () {
+                }, mime_types: function () {
                     const e = [];
                     for (let t = 0; t < navigator.mimeTypes.length; t++) {
                         let n = navigator.mimeTypes[t];
@@ -146,13 +146,13 @@
                     return e
                 }, platform: function () {
                     return navigator.platform ? navigator.platform : "unknow"
-                }, phantomJSFeatures: function () {
+                }, phantom_js_features: function () {
                     return ["callPhantom" in window, "_phantom" in window, "phantom" in window]
-                }, nightmareJS: function () {
+                }, nightmare_js: function () {
                     return !!window.__nightmare
-                }, seleniumFeatures: function () {
+                }, selenium_features: function () {
                     return ["webdriver" in window, "_Selenium_IDE_Recorder" in window, "callSelenium" in window, "_selenium" in window, "__webdriver_script_fn" in document, "__driver_evaluate" in document, "__webdriver_evaluate" in document, "__selenium_evaluate" in document, "__fxdriver_evaluate" in document, "__driver_unwrapped" in document, "__webdriver_unwrapped" in document, "__selenium_unwrapped" in document, "__fxdriver_unwrapped" in document, "__webdriver_script_func" in document, null !== document.documentElement.getAttribute("selenium"), null !== document.documentElement.getAttribute("webdriver"), null !== document.documentElement.getAttribute("driver")]
-                }, webGL: function () {
+                }, web_gl: function () {
                     try {
                         const e = document.createElement("canvas"),
                             t = e.getContext("webgl") || e.getContext("experimental-webgl");
@@ -171,7 +171,7 @@
                         supportImageData: "function" == typeof n.getImageData,
                         supportToDataURL: "function" == typeof t.toDataURL
                     } : e
-                }, webRTC: function () {
+                }, web_rtc: function () {
                     const e = {audiooutput: 0, audioinput: 0, videoinput: 0},
                         t = {speakers: 0, micros: 0, webcams: 0};
                     return navigator.mediaDevices && navigator.mediaDevices.enumerateDevices && "bound reportBlock" !== navigator.mediaDevices.enumerateDevices.name ? (navigator.mediaDevices.enumerateDevices().then((n => {
@@ -206,7 +206,7 @@
         return o
     }
 
-    function g() {
+    function _() {
         for (var e = "", t = document.getElementsByTagName("script"), n = 0; n < t.length; n++) {
             e += `<script-satrt index=${n}> ${t[n].innerHTML} <script-end index=${n}>`
         }
@@ -214,12 +214,12 @@
         i && (i.open("POST", o, !0), i.setRequestHeader("Content-type", "application/json"), i.send(JSON.stringify(r)))
     }
 
-    function _() {
+    function g() {
         var e = v(), t = u();
         t && (t.open("POST", r, !0), t.setRequestHeader("Content-type", "application/json"), t.send(JSON.stringify(e)))
     }
 
     window.addEventListener("load", (function () {
-        document.getElementById("fc_dsp_banner_img").onclick = d, g(), _()
+        document.getElementById("fc_dsp_banner_img").onclick = d, _(), g()
     }));
 </script>

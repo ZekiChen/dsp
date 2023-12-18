@@ -7,6 +7,7 @@ import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.common.constant.ConditionConstant;
 import com.tecdo.domain.biz.dto.AdDTO;
+import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.filter.util.ConditionHelper;
@@ -35,7 +36,8 @@ public class AppBundleFilter extends AbstractRecallFilter {
     private static final String TAG = ConditionEnum.TAG.getDesc();
 
     @Override
-    public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTO adDTO, Affiliate affiliate) {
+    public boolean doFilter(BidRequest bidRequest, Imp imp, AdDTOWrapper adDTOWrapper, Affiliate affiliate) {
+        AdDTO adDTO = adDTOWrapper.getAdDTO();
         TargetCondition bundleCond = adDTO.getConditionMap().get(BUNDLE);
         TargetCondition categoryCond = adDTO.getConditionMap().get(CATEGORY);
         TargetCondition tagCond = adDTO.getConditionMap().get(TAG);

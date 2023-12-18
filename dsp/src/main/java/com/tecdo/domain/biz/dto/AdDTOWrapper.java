@@ -97,10 +97,10 @@ public class AdDTOWrapper {
 
   private double random = Math.random();
 
-  private Integer impFrequency;
-  private Integer clickFrequency;
-  private Integer impFrequencyHour;
-  private Integer clickFrequencyHour;
+  private Integer impFrequency = 0;
+  private Integer clickFrequency = 0;
+  private Integer impFrequencyHour = 0;
+  private Integer clickFrequencyHour = 0;
 
   private MultiBidStageEnum bidStageEnum;
   private BidStrategyEnum bidStrategyEnum;
