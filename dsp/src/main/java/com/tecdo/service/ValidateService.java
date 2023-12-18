@@ -332,7 +332,7 @@ public class ValidateService {
     private FraudInfo getFraudInfoByIp(boolean enabled, PixalateFraudManager fraudManager, String ip) {
         if (enabled) {
             String fraud = cacheService.getPixalateCache().getFraudByIp(ip);
-            FraudInfo fraudInfo = getFraudInfo(fraudManager, fraud);
+            FraudInfo fraudInfo = parseFraudInfo(fraudManager, fraud);
             if (fraudInfo != null)
                 return fraudInfo;
         }
@@ -342,14 +342,14 @@ public class ValidateService {
     private FraudInfo getFraudInfoByDeviceId(boolean enabled, PixalateFraudManager fraudManager, String deviceId) {
         if (enabled) {
             String fraud = cacheService.getPixalateCache().getFraudByDeviceId(deviceId);
-            FraudInfo fraudInfo = getFraudInfo(fraudManager, fraud);
+            FraudInfo fraudInfo = parseFraudInfo(fraudManager, fraud);
             if (fraudInfo != null)
                 return fraudInfo;
         }
         return new FraudInfo(null, null, false);
     }
 
-    private static FraudInfo getFraudInfo(PixalateFraudManager fraudManager, String fraud) {
+    private static FraudInfo parseFraudInfo(PixalateFraudManager fraudManager, String fraud) {
         if (StrUtil.isNotBlank(fraud)) {
             String[] arr = fraud.split(StrUtil.COMMA);
             if (arr.length == 2) {
