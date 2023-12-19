@@ -144,9 +144,9 @@ public class Task {
                                 assignParams().put(ParamKey.EXCEPTION_EVENT, exceptionEvent));
     }
 
-    public void adRecall(boolean recallBatchEnable) {
+    public void adRecall() {
         adRecallHandler.adRecall(assignParams(),
-                this.bidRequest, this.imp, this.affiliate, recallBatchEnable);
+                this.bidRequest, this.imp, this.affiliate);
     }
 
     public void impNotBid() {

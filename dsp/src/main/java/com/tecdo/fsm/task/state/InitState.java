@@ -23,15 +23,12 @@ public class InitState implements ITaskState {
   @Value("${pac.timeout.task.ad.recall}")
   private long timeoutRecall;
 
-  @Value("${pac.task.ad.recall.batch-enable:false}")
-  private boolean recallBatchEnable;
-
   @Override
   public void handleEvent(EventType eventType, Params params, Task task) {
     switch (eventType) {
       case TASK_START:
         task.tick("task-ad-recall");
-        task.adRecall(recallBatchEnable);
+        task.adRecall();
         task.startTimer(EventType.ADS_RECALL_TIMEOUT,
                         task.assignParams(),
                         timeoutRecall);

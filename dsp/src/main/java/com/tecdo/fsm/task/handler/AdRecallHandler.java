@@ -23,7 +23,6 @@ import org.springframework.stereotype.Service;
 import java.util.*;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.TimeUnit;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import lombok.RequiredArgsConstructor;
@@ -49,12 +48,10 @@ public class AdRecallHandler {
     private int recallTimeout;
 
     public void adRecall(Params params, BidRequest bidRequest, Imp imp,
-                         Affiliate affiliate, boolean recallBatchEnable) {
+                         Affiliate affiliate) {
         threadPool.execute(() -> {
             try {
-                Map<Integer, AdDTOWrapper> res = recallBatchEnable
-                        ? doAdRecallBatch(params, bidRequest, imp, affiliate)
-                        : doAdRecall(params, bidRequest, imp, affiliate);
+                Map<Integer, AdDTOWrapper> res = doAdRecallBatch(params, bidRequest, imp, affiliate);
                 params.put(ParamKey.ADS_RECALL_RESPONSE, res);
                 messageQueue.putMessage(EventType.ADS_RECALL_FINISH, params);
             } catch (Exception e) {
@@ -63,34 +60,6 @@ public class AdRecallHandler {
                 messageQueue.putMessage(EventType.ADS_RECALL_ERROR, params);
             }
         });
-    }
-
-    private Map<Integer, AdDTOWrapper> doAdRecall(Params params,
-                                                  BidRequest bidRequest,
-                                                  Imp imp, Affiliate affiliate) {
-        List<AbstractRecallFilter> filters = filtersFactory.createFilters();
-        String bidId = params.get(ParamKey.TASK_ID);
-        return adManager.getAdDTOMap()
-                        .values()
-                        .stream()
-                        .map(adDTO -> buildADDTOWrapper(bidId, imp.getId(), adDTO))
-                        .filter(adDTOWrapper -> FilterChainHelper.executeFilter(bidId,
-                                                                                filters.get(0),
-                                                                                adDTOWrapper,
-                                                                                bidRequest,
-                                                                                imp,
-                                                                                affiliate))
-                        .collect(Collectors.toMap(adDTOWrapper -> adDTOWrapper.getAdDTO()
-                                                                              .getAd()
-                                                                              .getId(),
-                                                  v -> {
-                                                      BidfloorDTO bidfloorDTO = pmpService.isPmpRequest(imp) ?
-                                                              pmpService.getBidfloor(v.getAdDTO(), imp, affiliate.getId(), imp.getBidfloor())
-                                                              : new BidfloorDTO(imp.getBidfloor(), null);
-                                                      v.setBidfloor(bidfloorDTO.getBidfloor());
-                                                      v.setDealid(bidfloorDTO.getDealid());
-                                                      return v;
-                                                  }));
     }
 
     private Map<Integer, AdDTOWrapper> doAdRecallBatch(Params params,
@@ -129,9 +98,7 @@ public class AdRecallHandler {
             for (AdDTOWrapper wrapper : adDTOWrappers) {
                 if (wrapper != null) {
                     // 获取ad对应的bidfloor
-                    BidfloorDTO bidfloorDTO = isPmpRequest ?
-                            pmpService.getBidfloor(wrapper.getAdDTO(), imp, affiliate.getId(), imp.getBidfloor())
-                            : new BidfloorDTO(imp.getBidfloor(), null);
+                    BidfloorDTO bidfloorDTO = buildBidfloorDTO(imp, affiliate, wrapper, isPmpRequest);
                     wrapper.setBidfloor(bidfloorDTO.getBidfloor());
                     wrapper.setDealid(bidfloorDTO.getDealid());
                     res.put(wrapper.getAdDTO().getAd().getId(), wrapper);
@@ -145,6 +112,12 @@ public class AdRecallHandler {
             }
         }
         return res;
+    }
+
+    private BidfloorDTO buildBidfloorDTO(Imp imp, Affiliate affiliate, AdDTOWrapper wrapper, boolean isPmpRequest) {
+        return isPmpRequest ?
+                pmpService.getBidfloor(wrapper.getAdDTO(), imp, affiliate.getId(), imp.getBidfloor())
+                : new BidfloorDTO(imp.getBidfloor(), null);
     }
 
     private AdDTOWrapper buildADDTOWrapper(String bidId, String impId, AdDTO adDTO) {
