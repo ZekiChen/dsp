@@ -12,7 +12,7 @@ import org.apache.ibatis.annotations.Select;
 @DS("doris-ads")
 public interface DspReportMapper{
     @Select("SELECT SUM(imp_count) as imp, ROUND(SUM(imp_success_price_total) / 1000, 4) as cost " +
-            "FROM dsp_report " +
+            "FROM dsp_report_fall_one " +
             "WHERE Date(CONVERT_TZ(STR_TO_DATE(create_time, '%Y-%m-%d_%H'), '+00:00', '+08:00')) = #{date} " +
             "and affiliate_id = #{affId}")
     SpentDTO getImpCostForAffUTC8(@Param("date") String date, @Param("affId") Integer affId);
