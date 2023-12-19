@@ -52,6 +52,8 @@ public enum ConditionEnum {
     BUNDLE_BLACK_ROI("bundle_black_roi"),
 
     SCHAIN("schain"),
+
+    DEALS("deals"),
     ;
 
     private final String desc;

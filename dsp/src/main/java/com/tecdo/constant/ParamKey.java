@@ -42,6 +42,7 @@ public interface ParamKey {
   String BUNDLE_COST_CACHE_KEY = "bundle-cost-cache-key";
   String BUNDLE_ADGROUP_DATA_CACHE_KEY = "bundle-adgroup-data-cache-key";
   String PIXALATE_FRAUD_CACHE_KEY = "pixalate-fraud-cache-key";
+  String AFFILIATE_PMP_ID_CACHE_KEY = "affiliate-pmp-id-cache-key";
 
   String CHEATING_DATA_FILTER = "cheating-data-filter";
 

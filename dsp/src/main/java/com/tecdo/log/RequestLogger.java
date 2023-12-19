@@ -1,5 +1,6 @@
 package com.tecdo.log;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
@@ -7,6 +8,7 @@ import com.tecdo.constant.EventType;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.log.RequestLog;
 import com.tecdo.domain.openrtb.request.BidRequest;
+import com.tecdo.domain.openrtb.request.Deal;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.adm.api.doris.entity.GooglePlayApp;
@@ -62,6 +64,15 @@ public class RequestLogger {
                                               EventType exceptionEvent) {
         BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
         Device device = bidRequest.getDevice();
+        Float bidFloor = imp.getBidfloor();
+        // 若存在pmp对象，求deals中bidFloor均值
+        if (imp.getPmp() != null && CollUtil.isNotEmpty(imp.getPmp().getDeals())) {
+            bidFloor = (float) imp.getPmp().getDeals().stream()
+                    .mapToDouble(Deal::getBidfloor)
+                    .average()
+                    .orElse(0.0);
+        }
+
         return RequestLog.builder()
                 .createTime(DateUtil.format(new Date(), "yyyy-MM-dd_HH"))
                 .bidId(bidId)
@@ -89,7 +100,7 @@ public class RequestLogger {
                 .ua(device.getUa())
                 .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
                 .deviceId(device.getIfa())
-                .bidFloor(imp.getBidfloor().doubleValue())
+                .bidFloor(bidFloor.doubleValue())
                 .city(FieldFormatHelper.cityFormat(device.getGeo().getCity()))
                 .region(FieldFormatHelper.regionFormat(device.getGeo().getRegion()))
                 .deviceType(DeviceTypeEnum.of(device.getDevicetype()).name())

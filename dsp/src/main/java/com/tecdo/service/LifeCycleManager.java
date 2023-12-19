@@ -29,6 +29,8 @@ public class LifeCycleManager {
   @Autowired
   private AffiliateManager affManager;
   @Autowired
+  private AffiliatePmpManager pmpManager;
+  @Autowired
   private AbTestConfigManager abTestConfigManager;
   @Autowired
   private AdManager adManager;
@@ -61,7 +63,7 @@ public class LifeCycleManager {
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 15;
+  private final int needInitCount = 16;
 
   @Value("${server.port}")
   private int serverPort;
@@ -95,6 +97,12 @@ public class LifeCycleManager {
       case AFFILIATES_LOAD_ERROR:
       case AFFILIATES_LOAD_TIMEOUT:
         affManager.handleEvent(eventType, params);
+        break;
+      case AFFILIATE_PMP_LOAD:
+      case AFFILIATE_PMP_LOAD_RESPONSE:
+      case AFFILIATE_PMP_LOAD_ERROR:
+      case AFFILIATE_PMP_LOAD_TIMEOUT:
+        pmpManager.handleEvent(eventType, params);
         break;
       case AF_AUDIENCE_SYNC_TABLE_LOAD:
       case AF_AUDIENCE_SYNC_LOAD_RESPONSE:
@@ -199,6 +207,7 @@ public class LifeCycleManager {
       case INIT:
         Params params = Params.create();
         affManager.init(params);
+        pmpManager.init(params);
         adManager.init(params);
         rtaManager.init(params);
         budgetManager.init(params);

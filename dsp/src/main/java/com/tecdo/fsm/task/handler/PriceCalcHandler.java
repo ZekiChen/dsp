@@ -1,15 +1,11 @@
 package com.tecdo.fsm.task.handler;
 
-import cn.hutool.core.util.StrUtil;
 import com.ejlchina.data.TypeRef;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.google.common.base.MoreObjects;
-import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
-import com.tecdo.adm.api.delivery.entity.MultiBidStrategy;
 import com.tecdo.adm.api.delivery.enums.*;
-import com.tecdo.adm.api.doris.dto.BundleCost;
 import com.tecdo.adm.api.doris.entity.BundleData;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
@@ -18,7 +14,6 @@ import com.tecdo.controller.MessageQueue;
 import com.tecdo.core.launch.response.R;
 import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.BidCreative;
-import com.tecdo.domain.biz.dto.AdDTO;
 import com.tecdo.domain.biz.dto.AdDTOWrapper;
 import com.tecdo.domain.biz.request.BidPriceInfo;
 import com.tecdo.domain.biz.request.BidPriceRequest;
@@ -27,13 +22,9 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.service.BidPriceService;
-import com.tecdo.service.init.doris.AdGroupBundleManager;
 import com.tecdo.service.init.doris.BundleDataManager;
 import com.tecdo.transform.ProtoTransformFactory;
-import com.tecdo.util.CreativeHelper;
-import com.tecdo.util.FieldFormatHelper;
-import com.tecdo.util.JsonHelper;
-import com.tecdo.util.UnitConvertUtil;
+import com.tecdo.util.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -230,7 +221,7 @@ public class PriceCalcHandler {
         // 该广告位的曝光量小于指定大小、且开启了Bundle自动化探索开关，则进行探索
         BigDecimal finalPrice = !bundleDataManager.isImpGtSize(key) && bundleData != null
                 && adDTOWrapper.getBundleTestEnable()
-                ? bundleAutoExplore(bundleData, affiliate, imp)
+                ? bundleAutoExplore(bundleData, affiliate, imp, adDTOWrapper)
                 : calcPriceByFormula(adDTOWrapper, bidRequest, imp);
         finalPrice = maxPriceLimit(finalPrice);
         finalPrice = convertToUscByVivo(finalPrice, affiliate);
@@ -243,6 +234,9 @@ public class PriceCalcHandler {
         boolean ecpxEnable = useEcpxBidPrice(adDTOWrapper.getBidAlgorithmEnum().getType());
         BigDecimal finalPrice;
         BigDecimal eCPX = bidPriceService.getECPX(bidStrategy, bidRequest, imp);
+        // 底价
+        Float bidfloor = adDTOWrapper.getBidfloor();
+
         switch (bidStrategy) {
             case CPC:
                 optPrice = getEcpxIfNotNull(adDTOWrapper, optPrice, ecpxEnable, eCPX);
@@ -260,7 +254,7 @@ public class PriceCalcHandler {
                 ThreadLocalRandom random = ThreadLocalRandom.current();
                 if (adDTOWrapper.getBidProbability() > random.nextDouble(100)) {
                     finalPrice = BigDecimal.valueOf(adDTOWrapper.getBidMultiplier())
-                            .multiply(BigDecimal.valueOf(imp.getBidfloor()))
+                            .multiply(BigDecimal.valueOf(bidfloor))
                             .min(optPrice);  // MAX CPM
                 } else {
                     finalPrice = BigDecimal.ZERO;
@@ -304,14 +298,14 @@ public class PriceCalcHandler {
         return finalPrice;
     }
 
-    private BigDecimal bundleAutoExplore(BundleData bundleData, Affiliate affiliate, Imp imp) {
+    private BigDecimal bundleAutoExplore(BundleData bundleData, Affiliate affiliate, Imp imp, AdDTOWrapper adDTOWrapper) {
         BigDecimal finalPrice;
         Double winRate = bundleData.getWinRate();
         Double bidPrice = bundleData.getBidPrice();
         if (winRate < affiliate.getRequireWinRate()) {
             // max(当前底价, ecpm) * 倍率 进行出价
-            if (bidPrice < imp.getBidfloor()) {
-                finalPrice = BigDecimal.valueOf(imp.getBidfloor()).multiply(multiplier);
+            if (bidPrice < adDTOWrapper.getBidfloor()) {
+                finalPrice = BigDecimal.valueOf(adDTOWrapper.getBidfloor()).multiply(multiplier);
             } else {
                 finalPrice = BigDecimal.valueOf(bidPrice).multiply(multiplier);
             }
