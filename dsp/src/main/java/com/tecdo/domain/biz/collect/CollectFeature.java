@@ -45,6 +45,9 @@ public class CollectFeature {
 
   private Map<String, Object> cdp;
 
+  @JsonProperty("mraid_exist")
+  private Boolean mraidExist;
+
   private Boolean selenium;
 
   @JsonProperty("phantom_js")
