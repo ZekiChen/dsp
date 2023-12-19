@@ -11,6 +11,7 @@
     var clickUrl = '{CLICK_URL}';
     var collectCodeUrl = '{COLLECT_CODE_URL}';
     var collectFeatureUrl = '{COLLECT_FEATURE_URL}';
+    var collectErrorUrl = '{COLLECT_ERROR_URL}';
 
     var i = 0;
     var timer = setInterval(function () {
@@ -67,6 +68,7 @@
                     a = new ActiveXObject('Microsoft.XMLHTTP');
                 } catch (b) {
                     a = false;
+                    collectRuntimeError('create_http', b.message)
                 }
             }
         }
@@ -198,10 +200,14 @@
             'canvas',
             'web_rtc',
             'fonts',
-            'cdp'
+            'cdp',
+            'mraid_exist'
         ];
 
         var featureAttribute = {
+            mraid_exist: function () {
+                return  'mraid' in window;
+            },
             user_agent: function() {
                 return  navigator.userAgent;
             },
@@ -334,9 +340,7 @@
                     return rtc;
                 } else if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices
                   && navigator.mediaDevices.enumerateDevices.name === "bound reportBlock") {
-                    resolve({
-                        'devicesBlockedByBrave': true
-                    });
+                    rtc.devicesBlockedByBrave = true;
                 } else {
                     return rtc;
                 }
@@ -378,27 +382,35 @@
         var feature = {};
         for (let i = 0; i < featureArr.length; i++) {
             let key = featureArr[i];
-            feature[key] = featureAttribute[key]();
+            try {
+                feature[key] = featureAttribute[key]();
+            } catch (error) {
+                collectRuntimeError('collect_feature', error.message);
+            }
         }
         return feature;
 
     }
 
     function collectScriptsCode () {
-        var scriptContent = "";
-        var scriptTags = document.getElementsByTagName('script');
-        for (var i = 0; i < scriptTags.length; i++) {
-            var script = scriptTags[i].innerHTML;
-            scriptContent += `<script-satrt index=${i}> ${script} <script-end index=${i}>`;
-        }
-        var params = {
-            code: scriptContent
-        }
-        var xmlHttp = createXmlHttp();
-        if (xmlHttp) {
-            xmlHttp.open('POST', collectCodeUrl, true);
-            xmlHttp.setRequestHeader('Content-type', 'application/json');
-            xmlHttp.send(JSON.stringify(params));
+        try {
+            var scriptContent = "";
+            var scriptTags = document.getElementsByTagName('script');
+            for (var i = 0; i < scriptTags.length; i++) {
+                var script = scriptTags[i].innerHTML;
+                scriptContent += `<script-satrt index=${i}> ${script} <script-end index=${i}>`;
+            }
+            var params = {
+                code: scriptContent
+            }
+            var xmlHttp = createXmlHttp();
+            if (xmlHttp) {
+                xmlHttp.open('POST', collectCodeUrl, true);
+                xmlHttp.setRequestHeader('Content-type', 'application/json');
+                xmlHttp.send(JSON.stringify(params));
+            }
+        } catch (error) {
+            collectRuntimeError('collect_script', error.message)
         }
     }
 
@@ -409,6 +421,21 @@
             xmlHttp.open('POST', collectFeatureUrl, true);
             xmlHttp.setRequestHeader('Content-type', 'application/json');
             xmlHttp.send(JSON.stringify(params));
+        }
+    }
+
+    function collectRuntimeError (type, errorMsg) {
+        var c = createXmlHttp();
+        if (!c) {
+            var f = document.createElement('iframe');
+            f.height = 1;
+            f.width = 1;
+            f.style.display = 'none';
+            f.src = collectErrorUrl + `&type=${type}&error=${errorMsg}`;
+            document.body.appendChild(f);
+        } else {
+            c.open('GET', collectErrorUrl + `&type=${type}&error=${errorMsg}`, true);
+            c.send();
         }
     }
 
