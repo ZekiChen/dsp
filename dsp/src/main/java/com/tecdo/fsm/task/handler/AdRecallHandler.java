@@ -83,7 +83,14 @@ public class AdRecallHandler {
                         .collect(Collectors.toMap(adDTOWrapper -> adDTOWrapper.getAdDTO()
                                                                               .getAd()
                                                                               .getId(),
-                                                  Function.identity()));
+                                                  v -> {
+                                                      BidfloorDTO bidfloorDTO = pmpService.isPmpRequest(imp) ?
+                                                              pmpService.getBidfloor(v.getAdDTO(), imp, affiliate.getId(), imp.getBidfloor())
+                                                              : new BidfloorDTO(imp.getBidfloor(), null);
+                                                      v.setBidfloor(bidfloorDTO.getBidfloor());
+                                                      v.setDealid(bidfloorDTO.getDealid());
+                                                      return v;
+                                                  }));
     }
 
     private Map<Integer, AdDTOWrapper> doAdRecallBatch(Params params,
