@@ -145,12 +145,16 @@ public class NoticeService {
     private void generalHandle(EventType eventType, Params params, HttpRequest httpRequest) {
         NoticeInfo info = NoticeInfo.buildInfo(httpRequest);
         threadPool.execute(() -> {
-            ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
-                    info.getSign(), info.getCampaignId(), eventType);
-            if (code == ValidateCode.SUCCESS) {
-                logValidateSucceed(eventType, httpRequest, info);
-            } else {
-                logValidateFailed(eventType, httpRequest, code, info);
+            try {
+                ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
+                        info.getSign(), info.getCampaignId(), eventType);
+                if (code == ValidateCode.SUCCESS) {
+                    logValidateSucceed(eventType, httpRequest, info);
+                } else {
+                    logValidateFailed(eventType, httpRequest, code, info);
+                }
+            } catch (Exception e) {
+                log.error("validate notice request error", e);
             }
         });
         ResponseHelper.ok(messageQueue, params, httpRequest);
