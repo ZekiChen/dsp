@@ -8,5 +8,6 @@ public interface RequestKeyByForce {
     String BUNDLE = "bundle";
     String IP = "ip";
     String SCHAIN = "schain";
+    String DEVICE_ID = "device_id";
     String AD_GROUP_ID = "ad_group_id";
 }
