@@ -5,6 +5,7 @@ import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
 import com.tecdo.constant.RequestKeyByCollectInfo;
 import com.tecdo.controller.MessageQueue;
+import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.collect.CollectCode;
 import com.tecdo.domain.biz.collect.CollectError;
 import com.tecdo.domain.biz.collect.CollectFeature;
@@ -19,7 +20,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CollectService {
@@ -29,6 +32,8 @@ public class CollectService {
   private static final Logger collectErrorLog = LoggerFactory.getLogger("collect_error_log");
 
   private final MessageQueue messageQueue;
+  private final ThreadPool threadPool;
+  private final CacheService cacheService;
 
   public void handelEvent(EventType eventType, Params params) {
     switch (eventType) {
@@ -40,6 +45,9 @@ public class CollectService {
         break;
       case RECEIVE_COLLECT_ERROR:
         handleCollectError(params, params.get(ParamKey.HTTP_REQUEST));
+        break;
+      case RECEIVE_CHECK_COUNT:
+        handleCheckCount(params, params.get(ParamKey.HTTP_REQUEST));
         break;
       default:
         break;
@@ -107,6 +115,14 @@ public class CollectService {
     collectError.setAffiliateId(httpRequest.getParamAsInteger(RequestKeyByCollectInfo.AFFILIATE_ID));
     collectError.setAdGroupId(httpRequest.getParamAsInteger(RequestKeyByCollectInfo.AD_GROUP_ID));
     collectErrorLog.info(JsonHelper.toJSONString(collectError));
+    ResponseHelper.ok(messageQueue, params, httpRequest);
+  }
+
+  private void handleCheckCount(Params params, HttpRequest httpRequest) {
+    threadPool.execute(() -> {
+      cacheService.getPixalateCache().incrCheckCount();
+    });
+    log.info("receive pixalate post bid check count,uri is :{}", httpRequest.getUri());
     ResponseHelper.ok(messageQueue, params, httpRequest);
   }
 

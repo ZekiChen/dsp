@@ -34,6 +34,8 @@ public interface FormatKey {
   String COLLECT_FEATURE_URL = "{COLLECT_FEATURE_URL}";
   String COLLECT_CODE_URL = "{COLLECT_CODE_URL}";
   String COLLECT_ERROR_URL = "{COLLECT_ERROR_URL}";
+  String PIXALATE_CHECK_URL = "{PIXALATE_CHECK_URL}";
+  String PIXALATE_CHECK_COUNT_URL = "{PIXALATE_CHECK_COUNT_URL}";
   String DELAY_TIME = "{DELAY_TIME}";
 
   String VIDEO_NAME = "{VIDEO_NAME}";
@@ -45,4 +47,27 @@ public interface FormatKey {
   String HEIGHT = "{HEIGHT}";
   String IMP_TRACK_LIST = "{IMP_TRACK_LIST}";
   String CLICK_TRACK_LIST = "{CLICK_TRACK_LIST}";
+
+  String ADV_ID = "{ADV_ID}";
+  String PUBLISH_ID = "{PUBLISH_ID}";
+  String SITE_ID = "{SITE_ID}";
+  String BID_PRICE = "{BID_PRICE}";
+  String CREATIVE_SIZE = "{CREATIVE_SIZE}";
+  String SITE_PAGE = "{SITE_PAGE}";
+  String USER_ID = "{USER_ID}";
+  String MCCMNC = "{MCCMNC}";
+  String CONTENT_ID = "{CONTENT_ID}";
+  String LAT = "{LAT}";
+  String LON = "{LON}";
+  String CARRIER = "{CARRIER}";
+  String AD_FORMAT_2 = "{AD_FORMAT_2}";
+  String APP_NAME = "{APP_NAME}";
+  String UA = "{UA}";
+  String SUPPLY_CHAIN = "{SUPPLY_CHAIN}";
+  String APP_VERSION = "{APP_VERSION}";
+  String AFFILIATE_TYPE = "{AFFILIATE_TYPE}";
+  String COPPA = "{COPPA}";
+  String RANDOM = "{RANDOM}";
+  String PIXALATE_CLIENT_ID = "{PIXALATE_CLIENT_ID}";
+  String PIXALATE_PLATFORM_ID = "{PIXALATE_PLATFORM_ID}";
 }

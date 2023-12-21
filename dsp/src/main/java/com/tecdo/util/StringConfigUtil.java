@@ -12,6 +12,7 @@ public class StringConfigUtil {
   private static Map<String, String> countryCode3To2Map;
   private static Map<String, String> countryCode2To3Map;
   private static String bannerTemplate;
+  private static String bannerTemplateWithCheck;
   private static String forceBannerTemplate;
   private static String videoVast4Template;
   private static String notEncryptForceBannerTemplate;
@@ -36,6 +37,13 @@ public class StringConfigUtil {
     try (InputStream is = StringConfigUtil.class.getResourceAsStream("/banner-encrypt-for-replace.html")) {
       byte[] bytes = ByteStreams.toByteArray(is);
       bannerTemplate = new String(bytes, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
+    try (InputStream is = StringConfigUtil.class.getResourceAsStream("/banner-encrypt-for-replace-with-check.html")) {
+      byte[] bytes = ByteStreams.toByteArray(is);
+      bannerTemplateWithCheck = new String(bytes, StandardCharsets.UTF_8);
     } catch (IOException e) {
       e.printStackTrace();
     }
@@ -84,6 +92,10 @@ public class StringConfigUtil {
 
   public static String getNotEncryptForceBannerTemplate(){
     return notEncryptForceBannerTemplate;
+  }
+
+  public static String getBannerTemplateWithCheck(){
+    return bannerTemplateWithCheck;
   }
 
 }
