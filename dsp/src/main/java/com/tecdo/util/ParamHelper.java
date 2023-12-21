@@ -1,6 +1,5 @@
 package com.tecdo.util;
 
-import com.google.common.collect.Sets;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
@@ -23,7 +22,6 @@ import java.net.URLEncoder;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
-import java.util.Set;
 
 import cn.hutool.crypto.SecureUtil;
 
@@ -58,7 +56,7 @@ public class ParamHelper {
     replaceMap.put(FormatKey.AD_ID, adId);
     replaceMap.put(FormatKey.AD_ID_MD5, SecureUtil.md5().digestHex(adId));
     replaceMap.put(FormatKey.AD_ID_SHA256, SecureUtil.sha256().digestHex(adId));
-    replaceMap.put(FormatKey.CREATIVE_ID, String.valueOf(creativeId));
+    replaceMap.put(FormatKey.CREATIVE_ID, creativeId);
     replaceMap.put(FormatKey.DEVICE_ID, device.getIfa());
     replaceMap.put(FormatKey.DEVICE_ID_MD5, SecureUtil.md5().digestHex(device.getIfa()));
     replaceMap.put(FormatKey.IP, Optional.ofNullable(device.getIp()).orElse(device.getIpv6()));
@@ -70,7 +68,7 @@ public class ParamHelper {
     replaceMap.put(FormatKey.BUNDLE, bidRequest.getApp().getBundle());
     replaceMap.put(FormatKey.SCHAIN, ExtHelper.listSChain(bidRequest.getSource()));
     replaceMap.put(FormatKey.RTA_TOKEN, StringUtils.firstNonEmpty(response.getRtaToken(), ""));
-    replaceMap.put(FormatKey.ADV_ID, String.valueOf(adDTO.getAdv().getId()));
+    replaceMap.put(FormatKey.ADV_ID, adDTO.getAdv().getId());
     replaceMap.put(FormatKey.PUBLISH_ID,
                    Optional.ofNullable(bidRequest.getApp().getPublisher())
                            .map(Publisher::getId)
@@ -104,15 +102,10 @@ public class ParamHelper {
     replaceMap.put(FormatKey.PIXALATE_PLATFORM_ID, "");
     replaceMap.put(FormatKey.PIXALATE_CLIENT_ID, "");
 
-    Set<String> notNeedEncodeKey = Sets.newHashSet(FormatKey.SUPPLY_CHAIN);
     for (Map.Entry<String, Object> entry : replaceMap.entrySet()) {
       String k = entry.getKey();
       Object v = entry.getValue();
-      if (!notNeedEncodeKey.contains(k)) {
-        url = url.replace(k, encode(v));
-      } else {
-        url = url.replace(k, v.toString());
-      }
+      url = url.replace(k, encode(v));
     }
     return url;
   }

@@ -56,10 +56,6 @@ public class ExtHelper {
     return null;
   }
 
-  /**
-   * @param source
-   * @return do not encode return value
-   */
   public static String listSChainForPixalate(Source source) {
     if (source != null) {
       try {
