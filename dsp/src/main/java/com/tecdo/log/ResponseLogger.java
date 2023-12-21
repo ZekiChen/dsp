@@ -61,6 +61,7 @@ public class ResponseLogger {
         Device device = bidRequest.getDevice();
         return ResponseLog.builder()
                 .createTime(DateUtil.format(new Date(), "yyyy-MM-dd_HH"))
+                .requestId(bidRequest.getId())
                 .bidId(wrapper.getBidId())
                 .advId(wrapper.getAdDTO().getAdv().getId())
                 .advName(wrapper.getAdDTO().getAdv().getName())

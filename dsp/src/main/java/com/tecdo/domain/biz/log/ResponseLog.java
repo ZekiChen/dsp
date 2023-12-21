@@ -26,6 +26,8 @@ public class ResponseLog implements Serializable {
     @JsonProperty("create_time")
     private String createTime;
 
+    @JsonProperty("request_id")
+    private String requestId;
     @JsonProperty("bid_id")
     private String bidId;
 
