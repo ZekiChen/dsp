@@ -25,6 +25,9 @@ public class RequestLog implements Serializable {
     @JsonProperty("create_time")
     private String createTime;
 
+    @JsonProperty("request_id")
+    private String requestId;
+
     /**
      * 后13位为unix时间戳
      */

@@ -75,6 +75,7 @@ public class RequestLogger {
 
         return RequestLog.builder()
                 .createTime(DateUtil.format(new Date(), "yyyy-MM-dd_HH"))
+                .requestId(bidRequest.getId())
                 .bidId(bidId)
                 .affiliateId(affiliate.getId())
                 .affiliateName(affiliate.getName())
