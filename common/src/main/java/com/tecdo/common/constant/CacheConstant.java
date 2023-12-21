@@ -16,6 +16,7 @@ public interface CacheConstant {
 
 	String AUDIENCE_CACHE = "pac:dsp:audience";
 	String PIXALATE_CACHE = "pac:dsp:pixalate";
+	String PIXALATE_COUNT_CACHE = "pac:dsp:pixalate-count";
 
 
 

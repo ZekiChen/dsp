@@ -78,7 +78,10 @@ public class AdmGenerator {
                                  String impInfoUrl,
                                  String collectFeatureUrl,
                                  String collectCodeUrl,
-                                 String collectErrorUrl) {
+                                 String collectErrorUrl,
+                                 String checkUrl,
+                                 String checkCountUrl,
+                                 boolean needCheck) {
     String finalClickUrl = StringUtils.firstNonBlank(deepLink, clickUrl);
     StringBuilder impDivListBuilder = new StringBuilder();
     String impDivTemplate = "<img src=\"{impTrack}\" style=\"display:none\"/>";
@@ -90,7 +93,12 @@ public class AdmGenerator {
       clickTrackBuilder.append("\"").append(s).append("\"").append(",");
     }
     clickTrackBuilder.delete(clickTrackBuilder.length() - 1, clickTrackBuilder.length());
-    String admTemplate = StringConfigUtil.getBannerTemplate();
+    String admTemplate;
+    if (needCheck) {
+      admTemplate = StringConfigUtil.getBannerTemplateWithCheck();
+    }else {
+      admTemplate = StringConfigUtil.getBannerTemplate();
+    }
     String adm = admTemplate.replace(FormatKey.CLICK_URL, finalClickUrl)
                             .replace(FormatKey.IMG_URL, imgUrl)
                             .replace(FormatKey.IMP_DIV_LIST, impDivListBuilder.toString())
@@ -98,6 +106,8 @@ public class AdmGenerator {
                             .replace(FormatKey.COLLECT_FEATURE_URL, collectFeatureUrl)
                             .replace(FormatKey.COLLECT_CODE_URL, collectCodeUrl)
                             .replace(FormatKey.COLLECT_ERROR_URL, collectErrorUrl)
+                            .replace(FormatKey.PIXALATE_CHECK_URL, checkUrl)
+                            .replace(FormatKey.PIXALATE_CHECK_COUNT_URL, checkCountUrl)
                             .replace(FormatKey.IMP_INFO_URL, impInfoUrl);
     return adm;
   }

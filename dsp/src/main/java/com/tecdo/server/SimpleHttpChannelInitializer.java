@@ -45,7 +45,7 @@ public class SimpleHttpChannelInitializer extends ChannelInitializer<SocketChann
             .addLast("encoder", new HttpResponseEncoder())
             .addLast("compressor", new HttpContentCompressor())
             .addLast("deCompressor", new HttpContentDecompressor())
-            .addLast("aggregator", new HttpObjectAggregator(65536))
+            .addLast("aggregator", new HttpObjectAggregator(50 * 1024 * 1024))
             .addLast("streamer", new ChunkedWriteHandler())
             .addLast(new CorsHandler(corsConfig))
             .addLast("handler", channelInboundHandlerAdapter);

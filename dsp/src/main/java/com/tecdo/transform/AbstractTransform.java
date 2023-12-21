@@ -15,6 +15,7 @@ import com.tecdo.domain.openrtb.response.SeatBid;
 import com.tecdo.domain.openrtb.response.n.NativeResponse;
 import com.tecdo.domain.openrtb.response.n.NativeResponseWrapper;
 import com.tecdo.enums.biz.VideoProtocolEnum;
+import com.tecdo.service.CacheService;
 import com.tecdo.service.response.VivoResponseBuilder;
 import com.tecdo.service.rta.ae.AeHelper;
 import com.tecdo.service.track.ClickTrackBuilder;
@@ -54,7 +55,6 @@ public abstract class AbstractTransform implements IProtoTransform {
     @Value("${pac.notice.imp-info-url}")
     private String impInfoUrl;
 
-    //just use for generate gaussian number
     private final Random random = new Random();
 
     @Value("${pac.force.judge-url}")
@@ -75,6 +75,7 @@ public abstract class AbstractTransform implements IProtoTransform {
     private final String AUCTION_PRICE_PARAM = "&bid_success_price=${AUCTION_PRICE}";
     private final String VIVO_AUCTION_PRICE_PARAM = "&bid_success_price=${WIN_PRICE}";
     private final String AUCTION_LOSS_PARAM = "&loss_code=${AUCTION_LOSS}";
+    private final String CHECK_AUCTION_PRICE_PARAM = "&pricePaid=${AUCTION_PRICE}";
 
     @Value("${pac.ae.rta.deeplink.ratio}")
     private Double aeDeeplinkRatio;
@@ -94,6 +95,21 @@ public abstract class AbstractTransform implements IProtoTransform {
     @Value("${pac.response.banner.encrypt:true}")
     private boolean bannerEncrypt;
 
+    @Value("${pac.response.pixalate.check-enable:false}")
+    private boolean checkEnable;
+
+    @Value("${pac.response.pixalate.check-probability:1}")
+    private double checkProbability;
+
+    @Value("${pac.response.pixalate.check-max-count:50000}")
+    private double checkMaxCount;
+
+    @Value("${pac.response.pixalate.check-url}")
+    private String checkUrl;
+
+    @Value("${pac.response.pixalate.check-count-url}")
+    private String checkCountUrl;
+
     public abstract boolean forceBannerEnable();
 
     public abstract String deepLinkFormat(String deepLink);
@@ -111,6 +127,9 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     @Autowired
     private VivoResponseBuilder vivoResponseBuilder;
+
+    @Autowired
+    private CacheService cacheService;
 
     @Override
     public ResponseTypeEnum getResponseType(String forceLink, AdDTOWrapper wrapper) {
@@ -281,6 +300,8 @@ public abstract class AbstractTransform implements IProtoTransform {
         String collectFeatureUrl = ParamHelper.urlFormat(this.collectFeatureUrl, null, wrapper, bidRequest, affiliate);
         String collectCodeUrl = ParamHelper.urlFormat(this.collectCodeUrl, null, wrapper, bidRequest, affiliate);
         String collectErrorUrl = ParamHelper.urlFormat(this.collectErrorUrl, null, wrapper, bidRequest, affiliate);
+        String checkUrl = ParamHelper.urlFormat(this.checkUrl, null, wrapper, bidRequest, affiliate) + CHECK_AUCTION_PRICE_PARAM;
+        String checkCountUrl = ParamHelper.urlFormat(this.checkCountUrl, null, wrapper, bidRequest, affiliate);
 
         // 构建 banner 流量的 adm 信息
         Object adm = null;
@@ -307,6 +328,11 @@ public abstract class AbstractTransform implements IProtoTransform {
                                     delayTime,
                                     bannerEncrypt);
                 } else {
+                    boolean needCheck = false;
+                    if (checkEnable && random.nextDouble() * 100 < checkProbability &&
+                        cacheService.getPixalateCache().getCheckCountToday() < checkMaxCount) {
+                        needCheck = true;
+                    }
                     adm = AdmGenerator.bannerAdm(clickUrl,
                             deepLink,
                             adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
@@ -315,7 +341,10 @@ public abstract class AbstractTransform implements IProtoTransform {
                             ParamHelper.urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
                             collectFeatureUrl,
                             collectCodeUrl,
-                            collectErrorUrl);
+                            collectErrorUrl,
+                            checkUrl,
+                            checkCountUrl,
+                            needCheck);
                 }
                 break;
             case NATIVE:

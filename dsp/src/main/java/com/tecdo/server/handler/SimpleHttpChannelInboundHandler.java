@@ -86,6 +86,9 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
       case RequestPath.COLLECT_ERROR:
         eventType = EventType.RECEIVE_COLLECT_ERROR;
         break;
+      case RequestPath.CHECK_COUNT:
+        eventType = EventType.RECEIVE_CHECK_COUNT;
+          break;
       default:
         eventType = EventType.RESPONSE_RESULT;
         params.put(ParamKey.HTTP_CODE, HttpCode.NOT_FOUND);

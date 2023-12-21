@@ -128,6 +128,7 @@ public class Controller implements MessageObserver {
       case RECEIVE_COLLECT_FEATURE:
       case RECEIVE_COLLECT_CODE:
       case RECEIVE_COLLECT_ERROR:
+      case RECEIVE_CHECK_COUNT:
         collectService.handelEvent(eventType, params);
         break;
       // context
