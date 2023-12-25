@@ -76,7 +76,7 @@ public class ParamHelper {
     replaceMap.put(FormatKey.SITE_ID,
                    Optional.ofNullable(bidRequest.getSite()).map(Site::getId).orElse(""));
     replaceMap.put(FormatKey.BID_PRICE, response.getBidPrice());
-    replaceMap.put(FormatKey.CREATIVE_SIZE, creative.getWidth() + "_" + creative.getHeight());
+    replaceMap.put(FormatKey.CREATIVE_SIZE, creative.getWidth() + "x" + creative.getHeight());
     replaceMap.put(FormatKey.SITE_PAGE,
                    Optional.ofNullable(bidRequest.getSite()).map(Site::getPage).orElse(""));
     replaceMap.put(FormatKey.USER_ID,
@@ -93,7 +93,7 @@ public class ParamHelper {
                    AdTypeEnumForPixalate.parse(adDTO.getAd().getType()).getDesc());
     replaceMap.put(FormatKey.APP_NAME, bidRequest.getApp().getName());
     replaceMap.put(FormatKey.UA, device.getUa());
-    replaceMap.put(FormatKey.SUPPLY_CHAIN, ExtHelper.listSChainForPixalate(bidRequest.getSource()));
+    replaceMap.put(FormatKey.SUPPLY_CHAIN, ExtHelper.listSChainForPixalate(bidRequest.getSource(),affiliate.getId()));
     replaceMap.put(FormatKey.APP_VERSION, bidRequest.getApp().getVer());
     replaceMap.put(FormatKey.AFFILIATE_TYPE, "1");
     replaceMap.put(FormatKey.COPPA,
