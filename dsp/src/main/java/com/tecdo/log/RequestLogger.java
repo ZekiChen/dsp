@@ -2,6 +2,7 @@ package com.tecdo.log;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.constant.EventType;
@@ -21,8 +22,11 @@ import com.tecdo.util.JsonHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 /**
  * 构建 RequestLog 并持久化至本地文件中
@@ -65,12 +69,15 @@ public class RequestLogger {
         BidCreative bidCreative = CreativeHelper.getAdFormat(imp);
         Device device = bidRequest.getDevice();
         Float bidFloor = imp.getBidfloor();
+        String dealIds = null;
         // 若存在pmp对象，求deals中bidFloor均值
         if (imp.getPmp() != null && CollUtil.isNotEmpty(imp.getPmp().getDeals())) {
             bidFloor = (float) imp.getPmp().getDeals().stream()
                     .mapToDouble(Deal::getBidfloor)
                     .average()
                     .orElse(0.0);
+            dealIds = imp.getPmp().getDeals().stream()
+                    .map(Deal::getId).collect(Collectors.joining(StrUtil.COMMA));
         }
 
         return RequestLog.builder()
@@ -123,6 +130,7 @@ public class RequestLogger {
                 .isRewarded(ExtHelper.isRewarded(bidRequest.getExt()) ? 1 : 0)
                 .schain(ExtHelper.listSChain(bidRequest.getSource()))
                 .exceptionEvent(Optional.ofNullable(exceptionEvent).map(Enum::name).orElse(null))
+                .dealIds(dealIds)
                 .build();
     }
 }

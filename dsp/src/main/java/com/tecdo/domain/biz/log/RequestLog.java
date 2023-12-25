@@ -230,4 +230,7 @@ public class RequestLog implements Serializable {
 
     @JsonProperty("exception_event")
     private String exceptionEvent;
+
+    @JsonProperty("deal_ids")
+    private String dealIds;
 }
