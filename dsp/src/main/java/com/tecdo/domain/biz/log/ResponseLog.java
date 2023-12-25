@@ -221,6 +221,12 @@ public class ResponseLog implements Serializable {
     @JsonProperty("bid_floor")
     private Double bidFloor;
 
+    /**
+     * pmp出价下对应的dealid
+     */
+    @JsonProperty("deal_id")
+    private String dealId;
+
     @JsonProperty("city")
     private String city;
 
