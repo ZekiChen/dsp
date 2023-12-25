@@ -110,6 +110,7 @@ public class ResponseLogger {
                 .lang(FieldFormatHelper.languageFormat(device.getLanguage()))
                 .deviceId(device.getIfa())
                 .bidFloor(wrapper.getBidfloor().doubleValue())
+                .dealId(wrapper.getDealid())
                 .city(FieldFormatHelper.cityFormat(device.getGeo().getCity()))
                 .region(FieldFormatHelper.regionFormat(device.getGeo().getRegion()))
                 .deviceType(DeviceTypeEnum.of(device.getDevicetype()).name())
