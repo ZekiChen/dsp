@@ -60,10 +60,12 @@ public class LifeCycleManager {
   private AdGroupBundleManager adGroupBundleManager;
   @Autowired
   private PixalateFraudManager pixalateFraudManager;
+  @Autowired
+  private AffBundleDataManager affBundleDataManager;
   private State currentState = State.INIT;
 
   private int readyCount = 0;
-  private final int needInitCount = 16;
+  private final int needInitCount = 17;
 
   @Value("${server.port}")
   private int serverPort;
@@ -188,6 +190,12 @@ public class LifeCycleManager {
       case PIXALATE_FRAUD_LOAD_TIMEOUT:
         pixalateFraudManager.handleEvent(eventType, params);
         break;
+      case AFFILIATE_BUNDLE_DATA_LOAD:
+      case AFFILIATE_BUNDLE_DATA_LOAD_RESPONSE:
+      case AFFILIATE_BUNDLE_DATA_LOAD_ERROR:
+      case AFFILIATE_BUNDLE_DATA_LOAD_TIMEOUT:
+        affBundleDataManager.handleEvent(eventType, params);
+        break;
       case ONE_DATA_READY:
         handleFinishDbDataInit();
         break;
@@ -222,6 +230,7 @@ public class LifeCycleManager {
         bundleCostManager.init(params);
         adGroupBundleManager.init(params);
         pixalateFraudManager.init(params);
+        affBundleDataManager.init(params);
         NotBidReasonLogger.init();
         switchState(State.WAIT_DATA_INIT_COMPLETED);
         break;

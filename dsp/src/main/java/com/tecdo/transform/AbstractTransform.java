@@ -1,5 +1,6 @@
 package com.tecdo.transform;
 
+import cn.hutool.core.collection.CollUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
@@ -33,6 +34,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
@@ -131,6 +134,9 @@ public abstract class AbstractTransform implements IProtoTransform {
     @Autowired
     private CacheService cacheService;
 
+    @Value("${pac.affiliate.default-bidfloor:0.05f}")
+    private Float defaultBibFloor;
+
     @Override
     public ResponseTypeEnum getResponseType(String forceLink, AdDTOWrapper wrapper) {
         if (isForceJump(forceLink, wrapper)) {
@@ -156,6 +162,8 @@ public abstract class AbstractTransform implements IProtoTransform {
             return bidRequest;
         }
         for (Imp imp : bidRequest.getImp()) {
+            imp.setBidfloor(imp.getBidfloor() == 0f ? defaultBibFloor : imp.getBidfloor());
+
             if (imp.getNative1() != null) {
                 String nativeRequestString = imp.getNative1().getRequest();
                 // 有些adx没有按照协议中ver的定义，比如传了1.2，但还是有native的wrapper

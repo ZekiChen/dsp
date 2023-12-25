@@ -35,6 +35,7 @@ public interface ReportMapper extends BaseMapper<Report> {
 
   List<BundleCost> getBundleCostByDay(@Param("createDate") String createDate);
   List<BundleCost> listBundleAdGroupData(@Param("startDate") String startDate, @Param("endDate") String endDate);
+  List<Report> listAffBundleData(@Param("startDate") String startDate, @Param("endDate") String endDate);
 
   /**
    * 获取当日指定adGroup列表内的bundle
