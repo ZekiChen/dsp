@@ -1,5 +1,6 @@
 package com.tecdo.util;
 
+import com.google.common.base.MoreObjects;
 import com.tecdo.domain.openrtb.request.Source;
 import com.tecdo.enums.biz.PlacementTypeEnum;
 
@@ -10,6 +11,7 @@ import java.util.stream.Collectors;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.util.StrUtil;
+import cn.hutool.extra.spring.SpringUtil;
 
 /**
  * 扩展位解析工具
@@ -18,6 +20,10 @@ import cn.hutool.core.util.StrUtil;
 public class ExtHelper {
 
   private final static String LOOKME_PLACEMENT_TYPE = "placementType";
+  private final static String BASIC_SID =
+    MoreObjects.firstNonNull(SpringUtil.getProperty("pac.schain.base-sid"), "brainx");
+  private final static String asi =
+    MoreObjects.firstNonNull(SpringUtil.getProperty("pac.schain.asi"), "tec-do.com");
 
   public static boolean isRewarded(Object ext) {
     try {
@@ -56,7 +62,7 @@ public class ExtHelper {
     return null;
   }
 
-  public static String listSChainForPixalate(Source source) {
+  public static String listSChainForPixalate(Source source,Integer affiliateId) {
     if (source != null) {
       try {
         LinkedHashMap<String, Object> extMap = (LinkedHashMap) source.getExt();
@@ -83,6 +89,18 @@ public class ExtHelper {
                   .append(",")
                   .append(encode(i.getOrDefault("domain","")));
               });
+              sb.append("!")
+                .append(encode(asi))
+                .append(",")
+                .append(encode(BASIC_SID + affiliateId))
+                .append(",")
+                .append(encode("1"))
+                .append(",")
+                .append(encode(""))
+                .append(",")
+                .append(encode(""))
+                .append(",")
+                .append(encode(""));
               return sb.toString();
             }
           }
