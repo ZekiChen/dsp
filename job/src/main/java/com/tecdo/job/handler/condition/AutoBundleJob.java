@@ -10,12 +10,10 @@ import com.tecdo.adm.api.log.enums.BizTypeEnum;
 import com.tecdo.adm.api.log.enums.OptTypeEnum;
 import com.tecdo.adm.api.log.mapper.BizLogApiMapper;
 import com.tecdo.job.util.ConditionHelper;
-import com.tecdo.starter.mp.entity.IdEntity;
 import com.xxl.job.core.context.XxlJobHelper;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.commons.collections.SetUtils;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
