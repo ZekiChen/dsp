@@ -180,10 +180,10 @@ public class AutoBundleJob {
      */
     public List<String> attributeList() {
         return Arrays.asList(
-                BUNDLE_BLACK_IMP.toString(),
-                BUNDLE_BLACK_CLICK.toString(),
-                BUNDLE_BLACK_CTR.toString(),
-                BUNDLE_BLACK_ROI.toString()
+                BUNDLE_BLACK_IMP.getDesc(),
+                BUNDLE_BLACK_CLICK.getDesc(),
+                BUNDLE_BLACK_CTR.getDesc(),
+                BUNDLE_BLACK_ROI.getDesc()
         );
     }
 }
