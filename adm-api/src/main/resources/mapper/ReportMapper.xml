@@ -155,4 +155,87 @@
             ad_group_id, bundle_id
     </select>
 
+    <select id="getAffWeekReport" resultType="com.tecdo.adm.api.doris.dto.AffWeekReport">
+        SELECT
+            date_format(date_add(create_time,INTERVAL 8 HOUR ), '%Y-%m-%d') as date,
+            sum(request_count) as request,
+            sum(response_count) as response,
+            sum(response_count)/sum(request_count) as bid_rate,
+            sum(win_count) as wins,
+            sum(win_count)/sum(response_count) as win_rate,
+            sum(bid_price_total)/sum(response_count) as bid_price,
+            sum(imp_count) as imp,
+            sum(price_total)/sum(imp_count) as cpm,
+            sum(imp_count)/sum(win_count) as imp_rate,
+            sum(click_count) as click,
+            sum(price_total)/1000/sum(click_count) as cpc,
+            sum(click_count)/sum(imp_count) as ctr,
+            sum(p_ctr_exp_total)/sum(imp_count) as p_ctr_imp,
+            sum(price_total)/1000 as cost,
+            sum(event11_count) as orders,
+            sum(event11_count)/sum(click_count) as order_cvr,
+            sum(ad_estimated_commission) as revenue,
+            if(sum(price_total)>0,sum(ad_estimated_commission)/(sum(price_total)/1000),null) as roi,
+            sum(event11_count_rt)/sum(click_count) as order_cvr_rt,
+            if(sum(event11_count_rt)>0,sum(price_total)/1000/sum(event11_count_rt),null) as order_cpa_rt,
+            sum(ad_estimated_commission_rt) as revenue_rt,
+            if(sum(price_total)>0,sum(ad_estimated_commission_rt)/(sum(price_total)/1000),null) as roi_rt,
+            sum(bid_floor_total)/sum(request_count) as bid_floor,
+            sum(p_cvr_ck_total)/sum(click_count) as p_cvr_click
+        FROM
+            ads.dsp_report_fall_one
+        WHERE
+            create_time > #{startDate} AND
+            create_time &lt; #{endDate} AND
+            affiliate_id = #{affId} AND
+            country IN
+            <foreach collection="countries" item="item" index="index" open="(" close=")" separator=",">
+                #{item}
+            </foreach>
+        GROUP BY
+            date
+        ORDER BY
+            date DESC
+    </select>
+
+    <select id="getAffWeekReportByCountry" resultType="com.tecdo.adm.api.doris.dto.AffWeekReport">
+        SELECT
+            date_format(date_add(create_time,INTERVAL 8 HOUR ), '%Y-%m-%d') as date,
+            sum(request_count) as request,
+            sum(response_count) as response,
+            sum(response_count)/sum(request_count) as bid_rate,
+            sum(win_count) as wins,
+            sum(win_count)/sum(response_count) as win_rate,
+            sum(bid_price_total)/sum(response_count) as bid_price,
+            sum(imp_count) as imp,
+            sum(price_total)/sum(imp_count) as cpm,
+            sum(imp_count)/sum(win_count) as imp_rate,
+            sum(click_count) as click,
+            sum(price_total)/1000/sum(click_count) as cpc,
+            sum(click_count)/sum(imp_count) as ctr,
+            sum(p_ctr_exp_total)/sum(imp_count) as p_ctr_imp,
+            sum(price_total)/1000 as cost,
+            sum(event11_count) as orders,
+            sum(event11_count)/sum(click_count) as order_cvr,
+            sum(ad_estimated_commission) as revenue,
+            if(sum(price_total)>0,sum(ad_estimated_commission)/(sum(price_total)/1000),null) as roi,
+            sum(event11_count_rt)/sum(click_count) as order_cvr_rt,
+            if(sum(event11_count_rt)>0,sum(price_total)/1000/sum(event11_count_rt),null) as order_cpa_rt,
+            sum(ad_estimated_commission_rt) as revenue_rt,
+            if(sum(price_total)>0,sum(ad_estimated_commission_rt)/(sum(price_total)/1000),null) as roi_rt,
+            sum(bid_floor_total)/sum(request_count) as bid_floor,
+            sum(p_cvr_ck_total)/sum(click_count) as p_cvr_click
+        FROM
+            ads.dsp_report_fall_one
+        WHERE
+            create_time > #{startDate} AND
+            create_time &lt; #{endDate} AND
+            affiliate_id = #{affId} AND
+            country = #{country}
+        GROUP BY
+            date
+        ORDER BY
+            date DESC
+    </select>
+
 </mapper>
