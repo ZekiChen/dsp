@@ -61,7 +61,7 @@ public class NoticeLogger {
         map.put("creative_id", info.getCreativeId());
         map.put("affiliate_id", info.getAffiliateId());
 
-        String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
+        String affiliateApi = affiliateManager.getAffiliate(info.getAffiliateId()).getApi();
         if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
             bidSuccessPrice = AdxSecurityCipher.decryptString(bidSuccessPrice,
                     vivoEKey.getBytes(StandardCharsets.UTF_8));
@@ -111,7 +111,7 @@ public class NoticeLogger {
         map.put("device_id", info.getDeviceId());
 
         String bidSuccessPrice = info.getBidSuccessPrice();
-        String affiliateApi = affiliateManager.getApi(info.getAffiliateId());
+        String affiliateApi = affiliateManager.getAffiliate(info.getAffiliateId()).getApi();
         if (StrUtil.isNotBlank(affiliateApi) && affiliateApi.equals(ProtoTransformFactory.VIVO)) {
             bidSuccessPrice = AdxSecurityCipher.decryptString(bidSuccessPrice,
                     vivoEKey.getBytes(StandardCharsets.UTF_8));

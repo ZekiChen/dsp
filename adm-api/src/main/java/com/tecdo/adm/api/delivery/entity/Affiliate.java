@@ -36,4 +36,6 @@ public class Affiliate extends BaseEntity {
     @ApiModelProperty("强跳延迟时间")
     @TableField(updateStrategy = FieldStrategy.IGNORED)
     private Double autoRedirectDelayTime;
+    @ApiModelProperty("曝光窗口")
+    private Long impExpire;
 }
