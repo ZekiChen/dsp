@@ -3,6 +3,7 @@ package com.tecdo.adm.api.doris.mapper;
 import com.baomidou.dynamic.datasource.annotation.DS;
 import com.baomidou.mybatisplus.core.mapper.BaseMapper;
 import com.tecdo.adm.api.delivery.dto.SpentDTO;
+import com.tecdo.adm.api.doris.dto.AffWeekReport;
 import com.tecdo.adm.api.doris.dto.AutoBundle;
 import com.tecdo.adm.api.doris.dto.BundleCost;
 import com.tecdo.adm.api.doris.dto.ECPX;
@@ -55,4 +56,29 @@ public interface ReportMapper extends BaseMapper<Report> {
   List<AutoBundle> getAutoBundleInfo(@Param("bundles") List<AutoBundle> bundles,
                                      @Param("startDate") String startDate,
                                      @Param("endDate") String endDate);
+
+  /**
+   * 根据AffId获取渠道汇总周报数据（日期为左开右闭区间）
+   * @param startDate 开始日期
+   * @param endDate 结束日期
+   * @param affId 渠道id
+   * @return 周报数据
+   */
+  List<AffWeekReport> getAffWeekReport(@Param("startDate") String startDate,
+                                       @Param("endDate") String endDate,
+                                       @Param("affId") Integer affId,
+                                       @Param("countries") String[] countries);
+
+  /**
+   * 根据AffId获取 渠道*国家 汇总周报数据（日期为左开右闭区间）
+   * @param startDate 开始日期
+   * @param endDate 结束日期
+   * @param affId 渠道id
+   * @param country 国家
+   * @return 周报数据
+   */
+  List<AffWeekReport> getAffWeekReportByCountry(@Param("startDate") String startDate,
+                                                @Param("endDate") String endDate,
+                                                @Param("affId") Integer affId,
+                                                @Param("country") String country);
 }
