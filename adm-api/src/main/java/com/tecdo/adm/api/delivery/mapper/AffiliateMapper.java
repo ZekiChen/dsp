@@ -12,6 +12,5 @@ import java.util.List;
  * Created by Zeki on 2022/12/26
  **/
 public interface AffiliateMapper extends BaseMapper<Affiliate> {
-
     List<BaseVO> listIdAndName();
 }

@@ -1,10 +1,15 @@
 package com.tecdo.job.foreign.feishu;
 
+import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
+import com.ejlchina.data.Array;
+import com.ejlchina.data.Mapper;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.adm.api.delivery.dto.SpentDTO;
-import com.tecdo.job.domain.vo.camScanner.FeishuPrependReport;
+import com.tecdo.adm.api.doris.dto.AffWeekReport;
+import com.tecdo.job.domain.vo.affReport.InsertDimensionVO;
+import com.tecdo.job.domain.vo.camScanner.FeishuValRange;
 import com.tecdo.job.domain.vo.camScanner.FeishuSetUnitStyle;
 import com.tecdo.job.domain.vo.camScanner.UnitStyle;
 import com.xxl.job.core.context.XxlJobHelper;
@@ -12,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.lang.reflect.Field;
 import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -37,8 +43,10 @@ public class AffReport {
     private String sheetFormatterUrl;
     @Value("${feishu.aff.sheet-prepend.url}")
     private String sheetPrependUrl;
-
     private final String dateFormat = "yyyy/MM/dd";
+    private final String insertDimensionUrl = "https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/?/insert_dimension_range";
+    private final String valBatchUpdateUrl = "https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/?/values_batch_update";
+    private final String getMetaInfoUrl = "https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/?/metainfo";
 
     /**
      * token有过期时间，每次使用token前调用此接口刷新token
@@ -55,6 +63,77 @@ public class AffReport {
             return tenantToken;
         }
         return "";
+    }
+
+    public void postWeekData(String sheetId, String sheetToken, List<AffWeekReport> data, String tenantToken) {
+        if (CollUtil.isEmpty(data)) return;
+        // 思路：插入一空行，继承前一行的格式，编辑前7天（7行）的数据
+        // 插入空行
+        if (!insertRow(tenantToken, sheetId, sheetToken)) {
+            // 插入失败则退出
+            XxlJobHelper.log("空行插入失败, sheetId: " + sheetId +
+                    " sheetToekn: " + sheetToken + "\n");
+            return;
+        }
+        XxlJobHelper.log("空行插入成功!");
+
+        // 构造前7行数据
+        List<FeishuValRange> valRanges = new ArrayList<>();
+        for (int i = 0; i < data.size(); i++) {
+            String range = sheetId + "!" + "A" + (i + 2) + ":" + "Y" + (i + 2);
+            List<List<Object>> value = buildRecurList(data.get(i));
+            FeishuValRange valRange = new FeishuValRange(range, value);
+            valRanges.add(valRange);
+        }
+
+        // 修改前7行数据
+        if (!valueBatchUpdate(tenantToken, sheetToken, valRanges)) {
+            // 修改失败
+            XxlJobHelper.log("数据填充失败, sheetId: " + sheetId +
+                    " sheetToekn: " + sheetToken + "\n");
+            return;
+        }
+        XxlJobHelper.log("数据填充成功!");
+
+    }
+
+    /**
+     * 调用飞书多范围更新接口
+     * @param tenantToken tenantToken
+     * @param sheetToken sheetToken
+     * @param valRanges valRanges
+     * @return 成功/失败
+     */
+    public boolean valueBatchUpdate(String tenantToken, String sheetToken, List<FeishuValRange> valRanges) {
+        String valBatchUpdateUrl = this.valBatchUpdateUrl.replace("?", sheetToken);
+        Map<String, Object> paramMap = MapUtil.newHashMap();
+        paramMap.put("valueRanges", valRanges);
+        HttpResult result = OkHttps.sync(valBatchUpdateUrl)
+                .bodyType(OkHttps.JSON)
+                .addHeader("Authorization", "Bearer " + tenantToken)
+                .addBodyPara(paramMap)
+                .post();
+        return result.isSuccessful();
+    }
+
+    public boolean insertRow(String tenantToken, String sheetId, String sheetToken) {
+        String insertDimensionUrl = this.insertDimensionUrl.replace("?", sheetToken);
+        InsertDimensionVO dimensionVO = new InsertDimensionVO();
+        dimensionVO.setSheetId(sheetId);
+        dimensionVO.setMajorDimension("ROWS");
+        dimensionVO.setStartIndex(1);
+        dimensionVO.setEndIndex(2);
+
+        Map<String, Object> paramMap = MapUtil.newHashMap();
+        paramMap.put("inheritStyle", "AFTER");
+        paramMap.put("dimension", dimensionVO);
+
+        HttpResult result = OkHttps.sync(insertDimensionUrl)
+                .bodyType(OkHttps.JSON)
+                .addHeader("Authorization", "Bearer " + tenantToken)
+                .addBodyPara(paramMap)
+                .post();
+        return result.isSuccessful();
     }
 
     /**
@@ -77,7 +156,7 @@ public class AffReport {
         impCost.setCost(finalCost);
         impCost.setImp(finalImp);
 
-        FeishuPrependReport request = new FeishuPrependReport(range, buildValues(daysFrom1899(today), impCost));
+        FeishuValRange request = new FeishuValRange(range, buildSpentDTO(daysFrom1899(today), impCost));
         Map<String, Object> paramMap = MapUtil.newHashMap();
         paramMap.put("valueRange", request);
         HttpResult result = OkHttps.sync(sheetPrependUrl)
@@ -100,12 +179,42 @@ public class AffReport {
     }
 
     /**
+     * 构造双层嵌套list = [subList], subList = [prop1, prop2, ..., propN]
+     * @param yourObj value
+     * @return 双层了list
+     */
+    public List<List<Object>> buildRecurList(Object yourObj) {
+        List<List<Object>> list = new ArrayList<>();
+        List<Object> subList = new ArrayList<>();
+
+        // 获取类的所有字段
+        Field[] fields = yourObj.getClass().getDeclaredFields();
+
+        // 通过反射获取字段值并添加到List中
+        for (Field field : fields) {
+            try {
+                // 设置字段可访问，即使是私有字段
+                field.setAccessible(true);
+
+                // 获取字段值并添加到List中
+                Object value = field.get(yourObj);
+                subList.add(value);
+            } catch (IllegalAccessException e) {
+                e.printStackTrace();
+            }
+        }
+
+        list.add(subList);
+        return list;
+    }
+
+    /**
      * 获取sheetPrependUrl中二维数组请求参数
      * @param date 日期字符串
      * @param spentDTO 曝光量+花费
      * @return List<List<Object>>对象
      */
-    public List<List<Object>> buildValues(Long date, SpentDTO spentDTO) {
+    public List<List<Object>> buildSpentDTO(Long date, SpentDTO spentDTO) {
         List<List<Object>> list = new ArrayList<>();
         List<Object> subList = new ArrayList<>();
 
@@ -151,5 +260,14 @@ public class AffReport {
         LocalDate currentDate = today.minusDays(1);
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
         return currentDate.format(formatter);
+    }
+
+    public Mapper getMetaInfo(String sheetToken, String tenantToken) {
+        String getMetaInfoUrl = this.getMetaInfoUrl.replace("?", sheetToken);
+        HttpResult result = OkHttps.sync(getMetaInfoUrl)
+                .bodyType(OkHttps.JSON)
+                .addHeader("Authorization", "Bearer " + tenantToken)
+                .get();
+        return result.getBody().toMapper();
     }
 }
