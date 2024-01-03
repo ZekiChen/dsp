@@ -109,4 +109,6 @@ public class AdDTOWrapper {
   private Double bidProbability;
   private Boolean bundleTestEnable;
 
+  private Integer pos;
+
 }

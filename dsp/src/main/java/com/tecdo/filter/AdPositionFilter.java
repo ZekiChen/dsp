@@ -39,9 +39,11 @@ public class AdPositionFilter extends AbstractRecallFilter {
         switch (AdTypeEnum.of(adDTO.getAd().getType())) {
             case BANNER:
                 pos = imp.getBanner().getPos();
+                adDTOWrapper.setPos(pos);
                 return isMatchPos(bannerCond, pos);
             case VIDEO:
                 pos = imp.getVideo().getPos();
+                adDTOWrapper.setPos(pos);
                 return isMatchPos(videoCond, pos);
             default:
                 return true;
