@@ -10,6 +10,7 @@ import com.tecdo.job.util.TimeZoneUtils;
 import com.xxl.job.core.handler.annotation.XxlJob;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
@@ -27,19 +28,8 @@ public class WeekReportJob {
     private final ReportMapper reportMapper;
 
     // 渠道表token数组
-    private final String sheetTokensStr = "NZpKseICthAuyftWXoAcH4Munjg," +
-            "PGT3s3f3ehjIa5tXT2WcAFnMnoc," +
-            "KnhFsvZxKhYEPytltUDcMHoLn0e," +
-            "H9Qpss0buh4YottZRYIcKweqnUh," +
-            "XouPsDUtPhvnY2tRoTNcM9ZonWn," +
-            "B5Rms8xJXhzZBGtt3CwcRs8Wntc," +
-            "Ehqls6oy0hZskQtYxDzcVq42nHf," +
-            "ABRMscxkYhXrgvtVAuucLVW8ncb," +
-            "Sxeks4PkBh2LVhtLVcNc5asenuc," +
-            "HoEtsqB2ih8OvRtfPz4cpZ0anab," +
-            "AaH2sDrrzhcxVRtz5vIcLnVUnqb," +
-            "TbqJsxfaChv8XCtzzWmcVm4Xntf," +
-            "OJImsGyK2hSWGCtdAClcBSh7nAf";
+    @Value("${feishu.aff.week-report.sheetTokens}")
+    private String sheetTokensStr;
 
     @XxlJob("affWeekReportJob")
     public void dspReport() {
@@ -47,8 +37,7 @@ public class WeekReportJob {
         String tenantToken = affReport.getAccessToken();
 
         // 按渠道表更新
-        for (int i = 1; i < sheetTokens.length; i++) {
-            String sheetToken = sheetTokens[i];
+        for (String sheetToken : sheetTokens) {
             Mapper metaInfo = affReport.getMetaInfo(sheetToken, tenantToken); // 获取渠道表的meta信息
             int affId = Integer.parseInt(metaInfo.getMapper("data").getMapper("properties").getString("title"));
 

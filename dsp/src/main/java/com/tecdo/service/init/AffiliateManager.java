@@ -57,8 +57,8 @@ public class AffiliateManager extends ServiceImpl<AffiliateMapper, Affiliate> {
         return affiliateMap.get(secret);
     }
 
-    public String getApi(Integer id) {
-        return affiliateIdMap.getOrDefault(id, EMPTY).getApi();
+    public Affiliate getAffiliate(Integer id) {
+        return affiliateIdMap.getOrDefault(id, EMPTY);
     }
 
     @AllArgsConstructor

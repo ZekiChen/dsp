@@ -106,7 +106,7 @@ public class NoticeService {
         List<NoticeInfo> infos = new ArrayList<>();
         for (NoticeInfo info : noticeInfos) {
             ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
-                    info.getSign(), info.getCampaignId(), eventType);
+                    info.getSign(), info.getCampaignId(), eventType, info.getAffiliateId());
             if (code != ValidateCode.SUCCESS) {
                 logValidateFailed(eventType, httpRequest, code, info);
                 ResponseHelper.aeParamError(messageQueue, params, httpRequest);
@@ -132,7 +132,7 @@ public class NoticeService {
     private void impInfoHandle(EventType eventType, Params params, HttpRequest httpRequest) {
         ImpInfoNoticeInfo info = ImpInfoNoticeInfo.buildInfo(httpRequest);
         ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
-                info.getSign(), info.getCampaignId(), eventType);
+                info.getSign(), info.getCampaignId(), eventType, info.getAffiliateId());
         if (code == ValidateCode.SUCCESS) {
             logImpInfoValidateSuccess(httpRequest, info);
             ResponseHelper.ok(messageQueue, params, httpRequest);
@@ -147,7 +147,7 @@ public class NoticeService {
         threadPool.execute(() -> {
             try {
                 ValidateCode code = validateService.validateNoticeRequest(info.getBidId(),
-                        info.getSign(), info.getCampaignId(), eventType);
+                        info.getSign(), info.getCampaignId(), eventType, info.getAffiliateId());
                 if (code == ValidateCode.SUCCESS) {
                     logValidateSucceed(eventType, httpRequest, info);
                 } else {

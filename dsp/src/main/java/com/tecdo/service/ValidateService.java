@@ -263,14 +263,15 @@ public class ValidateService {
      *
      * @return ValidateCode
      */
-    public ValidateCode validateNoticeRequest(String bidId, String sign, Integer campaignId, EventType eventType) {
+    public ValidateCode validateNoticeRequest(String bidId, String sign, Integer campaignId,
+                                              EventType eventType, Integer affiliateId) {
         if (StrUtil.hasBlank(bidId, sign) || campaignId == null) {
             return ValidateCode.BLANK_VALID_FAILED;
         }
         if (!bidIdValid(bidId, sign, campaignId.toString())) {
             return ValidateCode.BID_ID_VALID_FAILED;
         }
-        if (!windowValid(bidId, eventType)) {
+        if (!windowValid(bidId, eventType, affiliateId)) {
             return ValidateCode.WINDOW_VALID_FAILED;
         }
         if (!funnelValid(bidId, eventType)) {
@@ -286,8 +287,9 @@ public class ValidateService {
         return Objects.equals(sign, SignHelper.digest(bidId, campaignId));
     }
 
-    public boolean windowValid(String bidId, EventType eventType) {
+    public boolean windowValid(String bidId, EventType eventType, Integer affiliateId) {
         long expire = winExpire;
+        Long affImpExpire = affiliateManager.getAffiliate(affiliateId).getImpExpire();
         switch (eventType) {
             case RECEIVE_WIN_NOTICE:
             case RECEIVE_LOSS_NOTICE:
@@ -295,7 +297,7 @@ public class ValidateService {
                 break;
             case RECEIVE_IMP_NOTICE:
             case RECEIVE_IMP_INFO_NOTICE:
-                expire = impExpire;
+                expire = affImpExpire != null ? affImpExpire : impExpire;
                 break;
             case RECEIVE_CLICK_NOTICE:
                 expire = clickExpire;

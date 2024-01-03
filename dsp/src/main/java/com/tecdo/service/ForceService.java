@@ -44,10 +44,11 @@ public class ForceService {
         threadPool.execute(() -> {
             String bidId = httpRequest.getParamAsStr(RequestKeyByForce.BID_ID);
             String ip = httpRequest.getParamAsStr(RequestKeyByForce.IP);
+            Integer affId = httpRequest.getParamAsInteger(RequestKeyByForce.AFFILIATE_ID);
             if (StrUtil.hasBlank(bidId, ip)) {
                 NotForceLogger.log(httpRequest, NotForceReasonEnum.PARAM_MISS.getCode());
                 ResponseHelper.notForceJump(messageQueue, params, httpRequest);
-            } else if (!validateService.windowValid(bidId, EventType.RECEIVE_FORCE_REQUEST)) {
+            } else if (!validateService.windowValid(bidId, EventType.RECEIVE_FORCE_REQUEST, affId)) {
                 NotForceLogger.log(httpRequest, NotForceReasonEnum.WINDOW_VALID.getCode());
                 ResponseHelper.notForceJump(messageQueue, params, httpRequest);
             } else if (!cacheService.getForceCache().impMarkIfAbsent(bidId)) {
@@ -58,6 +59,5 @@ public class ForceService {
                 ResponseHelper.forceJump(messageQueue, params, httpRequest);
             }
         });
-
     }
 }
