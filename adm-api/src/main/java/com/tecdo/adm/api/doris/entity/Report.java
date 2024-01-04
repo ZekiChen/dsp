@@ -17,6 +17,10 @@ public class Report implements Serializable {
     private Integer campaignId;
     private Integer affiliateId;
     private String bundle;
+    private String country;
+    private Integer position;
+    private Integer Interstitial;
+    private String firstSsp;
 
     private Long impCount;
     private Long clickCount;

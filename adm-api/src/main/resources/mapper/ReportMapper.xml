@@ -239,14 +239,33 @@
     </select>
 
     <select id="listAffBundleData" resultType="com.tecdo.adm.api.doris.entity.Report">
-        select affiliate_id                 as affiliateId,
-               bundle_id                    as bundle,
-               avg(click_count / imp_count) as ctr
-        from pac_dsp_report_fall_two
-        where response_type = 1
-          and report_date >= #{startDate}
-          and report_date &lt;= #{endDate}
-        group by affiliate_id, bundle_id;
+        SELECT
+            affiliate_id                 as affiliateId,
+            bundle_id                    as bundle,
+            country                      as country,
+            pos                          as position,
+            instl                        as interstitial,
+            first_ssp                    as firstSsp,
+            CASE
+                WHEN
+                    sum(imp_count) > #{minImp}
+                THEN
+                    AVG(click_count / imp_count)
+                ELSE 0.95
+            END                          as ctr
+        FROM
+            pac_dsp_report_fall_two
+        WHERE
+            response_type = 1 and
+            report_date >= #{startDate} and
+            report_date &lt;= #{endDate}
+        GROUP BY
+            affiliate_id,
+            bundle_id,
+            country,
+            pos,
+            instl,
+            first_ssp
     </select>
 
 </mapper>

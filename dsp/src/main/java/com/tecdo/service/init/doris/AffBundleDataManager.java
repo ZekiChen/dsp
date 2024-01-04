@@ -20,6 +20,7 @@ import org.springframework.stereotype.Service;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.tecdo.constant.ParamKey.AFFILIATE_BUNDLE_DATA_CACHE_KEY;
@@ -40,6 +41,8 @@ public class AffBundleDataManager extends ServiceImpl<ReportMapper, Report> {
     private ReportMapper reportMapper;
     @Value("${pac.load.doris.affiliate-bundle-ctr.day-period:14}")
     private Integer dayPeriod;
+    @Value("${pac.load.doris.affiliate-bundle-ctr.min-imp:2000}")
+    private Integer minImp;
     @Value("${pac.force-jump.pctr}")
     private Double forceJumpPCtr;
 
@@ -137,13 +140,22 @@ public class AffBundleDataManager extends ServiceImpl<ReportMapper, Report> {
                         long startTime = System.currentTimeMillis();
                         String startDate = DateUtil.offsetDay(new Date(), -dayPeriod).toDateStr();
                         String endDate = DateUtil.today();
-                        Map<String, Double> map = reportMapper.listAffBundleData(startDate, endDate)
+                        Map<String, Double> map = reportMapper
+                                .listAffBundleData(startDate, endDate, minImp)
                                 .stream()
                                 .filter(data -> data.getCtr() != null)
-                                .collect(Collectors.toMap(
-                                        k -> k.getAffiliateId() + StrUtil.COMMA + k.getBundle(),
+                                .collect(
+                                        Collectors.toMap(
+                                        k ->
+                                                k.getAffiliateId() + StrUtil.COMMA
+                                                        + k.getBundle() + StrUtil.COMMA
+                                                        + k.getCountry() + StrUtil.COMMA
+                                                        + k.getPosition() + StrUtil.COMMA
+                                                        + Optional.ofNullable(k.getFirstSsp()).orElse("") + StrUtil.COMMA
+                                                        + k.getInterstitial() + StrUtil.COMMA,
                                         Report::getCtr,
-                                        (o, n) -> n)
+                                        (o, n) -> n
+                                        )
                                 );
                         log.info(LOG_INFO + " load time: {}s", (System.currentTimeMillis() - startTime) / 1000);
                         params.put(AFFILIATE_BUNDLE_DATA_CACHE_KEY, map);

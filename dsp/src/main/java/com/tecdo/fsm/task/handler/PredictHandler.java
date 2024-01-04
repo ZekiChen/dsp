@@ -34,6 +34,7 @@ import com.tecdo.service.init.doris.GooglePlayAppManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ResponseTypeEnum;
 import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.ExtHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
 import lombok.RequiredArgsConstructor;
@@ -100,7 +101,12 @@ public class PredictHandler {
         }
 
         // 使用历史强跳真实ctr
-        String queryKey = affiliate.getId() + StrUtil.COMMA + bidRequest.getApp().getBundle();
+        String queryKey = affiliate.getId() + StrUtil.COMMA +
+                bidRequest.getApp().getBundle() + StrUtil.COMMA +
+                bidRequest.getDevice().getGeo().getCountry() + StrUtil.COMMA +
+                adDTOMap.values().iterator().next().getPos() + StrUtil.COMMA +
+                Optional.ofNullable(ExtHelper.getFirstSSP(bidRequest.getSource())).orElse("") + StrUtil.COMMA +
+                imp.getInstl();
         Double historyCTR = affBundleDataManager.getCtr(queryKey);
 
         for (Map.Entry<Integer, AdDTOWrapper> entry : adDTOMap.entrySet()) {
