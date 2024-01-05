@@ -69,6 +69,11 @@ public class AdWrapper extends EntityWrapper<Ad, AdVO> {
 						vo.setDuration(video.getDuration());
 						vo.setVideoSize("w" + video.getWidth() + "h" + video.getHeight());
 					}
+					if (vo.getImage() != null) {
+						image = CreativeCache.getCreative(vo.getImage());
+						vo.setImageUrl(image.getUrl());
+						vo.setImageSize("w" + image.getWidth() + "h" + image.getHeight());
+					}
 					break;
 				case AUDIO:
 					throw new ServiceException("AD type not supported yet!");
