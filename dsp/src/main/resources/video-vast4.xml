@@ -22,6 +22,7 @@
                         </MediaFiles>
                     </Linear>
                 </Creative>
+                {COMPANION_AD}
             </Creatives>
         </InLine>
     </Ad>
