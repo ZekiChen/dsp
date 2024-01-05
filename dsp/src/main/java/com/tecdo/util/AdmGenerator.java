@@ -190,7 +190,7 @@ public class AdmGenerator {
     return nativeResponse;
   }
 
-  public static String videoAdm(Integer adId, Creative creative,
+  public static String videoAdm(Integer adId, Creative video, Creative image,
                                 String clickUrl, String deepLink,
                                 List<String> impTrackUrl, List<String> clickTrackUrl) {
     String impTemplate = "<Impression><![CDATA[{IMP_TRACK}]]></Impression>";
@@ -201,17 +201,38 @@ public class AdmGenerator {
     String clickTracks = clickTrackUrl.stream()
             .map(s -> clickTemplate.replace("{CLICK_TRACK}", s)).collect(Collectors.joining());
 
+    String companionAdsTemplate = "<CompanionClickTracking><![CDATA[{CLICK_TRACK}]]></CompanionClickTracking>";
+    String companionClickTracks = clickTrackUrl.stream()
+            .map(s -> companionAdsTemplate.replace("{CLICK_TRACK}", s)).collect(Collectors.joining());
+
+    String companionAdTemplate = "";
+    if (image != null) {
+      companionAdTemplate = "<Creative><CompanionAds>"
+              + "<Companion width=\"{WIDTH}\" height=\"{HEIGHT}\">"
+              + "<StaticResource><![CDATA[{IMG_URL}]]></StaticResource>"
+              + "<CompanionClickThrough><![CDATA[{LANDING_PAGE}]]></CompanionClickThrough>"
+              + companionClickTracks
+              + "</Companion></CompanionAds></Creative>";
+        companionAdTemplate = companionAdTemplate
+                .replace(FormatKey.WIDTH, image.getWidth().toString())
+                .replace(FormatKey.HEIGHT, image.getHeight().toString())
+                .replace(FormatKey.IMG_URL, image.getUrl())
+                .replace(FormatKey.LANDING_PAGE, StringUtils.firstNonBlank(deepLink, clickUrl));
+    }
+
     return StringConfigUtil.getVideoVast4Template()
             .replace(FormatKey.AD_ID, adId.toString())
-            .replace(FormatKey.VIDEO_NAME, creative.getName() + "." + creative.getSuffix())
-            .replace(FormatKey.VIDEO_URL, creative.getUrl())
-            .replace(FormatKey.VIDEO_DURATION, DateUtil.secondToTime(creative.getDuration()))
+            .replace(FormatKey.VIDEO_NAME, video.getName() + "." + video.getSuffix())
+            .replace(FormatKey.VIDEO_URL, video.getUrl())
+            .replace(FormatKey.VIDEO_DURATION, DateUtil.secondToTime(video.getDuration()))
             .replace(FormatKey.LANDING_PAGE, StringUtils.firstNonBlank(deepLink, clickUrl))
-            .replace(FormatKey.MIME_TYPE, VideoMimeEnum.of(creative.getSuffix()).getMime())
-            .replace(FormatKey.WIDTH, creative.getWidth().toString())
-            .replace(FormatKey.HEIGHT, creative.getHeight().toString())
+            .replace(FormatKey.MIME_TYPE, VideoMimeEnum.of(video.getSuffix()).getMime())
+            .replace(FormatKey.WIDTH, video.getWidth().toString())
+            .replace(FormatKey.HEIGHT, video.getHeight().toString())
             .replace(FormatKey.CLICK_TRACK_LIST, clickTracks)
-            .replace(FormatKey.IMP_TRACK_LIST, impTracks);
+            .replace(FormatKey.IMP_TRACK_LIST, impTracks)
+            .replace(FormatKey.COMPANION_AD, companionAdTemplate)
+            ;
   }
 
 }

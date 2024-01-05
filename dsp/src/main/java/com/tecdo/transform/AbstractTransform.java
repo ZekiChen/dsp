@@ -110,6 +110,9 @@ public abstract class AbstractTransform implements IProtoTransform {
     @Value("${pac.response.pixalate.check-count-url}")
     private String checkCountUrl;
 
+    @Value("${pac.affiliate.default-bidfloor:0.05f}")
+    private Float defaultBibFloor;
+
     public abstract boolean forceBannerEnable();
 
     public abstract String deepLinkFormat(String deepLink);
@@ -156,6 +159,8 @@ public abstract class AbstractTransform implements IProtoTransform {
             return bidRequest;
         }
         for (Imp imp : bidRequest.getImp()) {
+            imp.setBidfloor(imp.getBidfloor() == 0f ? defaultBibFloor : imp.getBidfloor());
+
             if (imp.getNative1() != null) {
                 String nativeRequestString = imp.getNative1().getRequest();
                 // 有些adx没有按照协议中ver的定义，比如传了1.2，但还是有native的wrapper
@@ -377,6 +382,7 @@ public abstract class AbstractTransform implements IProtoTransform {
             case VIDEO:
                 adm = AdmGenerator.videoAdm(adDTO.getAd().getId(),
                         adDTO.getCreativeMap().get(adDTO.getAd().getVideo()),
+                        wrapper.getImage(),
                         clickUrl, deepLink,
                         impTrackList, clickTrackList);
                 break;

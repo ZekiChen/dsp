@@ -47,6 +47,7 @@ public interface FormatKey {
   String HEIGHT = "{HEIGHT}";
   String IMP_TRACK_LIST = "{IMP_TRACK_LIST}";
   String CLICK_TRACK_LIST = "{CLICK_TRACK_LIST}";
+  String COMPANION_AD = "{COMPANION_AD}";
 
   String ADV_ID = "{ADV_ID}";
   String PUBLISH_ID = "{PUBLISH_ID}";
