@@ -163,10 +163,10 @@ public class AdServiceImpl extends ServiceImpl<AdMapper, Ad> implements IAdServi
         logByUpdate(entity);
         LambdaUpdateWrapper<Ad> wrapper = new LambdaUpdateWrapper<>();
         wrapper.eq(IdEntity::getId, entity.getId());
-        if (image != null && entity.getVideo() != null) {
+        if (AdTypeEnum.NATIVE.getType() == entity.getType() && image != null && entity.getVideo() != null) {
             wrapper.set(Ad::getImage, null);
             return update(entity, wrapper);
-        } else if (video != null && entity.getImage() != null) {
+        } else if (AdTypeEnum.NATIVE.getType() == entity.getType() && video != null && entity.getImage() != null) {
             wrapper.set(Ad::getVideo, null);
             return update(entity, wrapper);
         } else {
