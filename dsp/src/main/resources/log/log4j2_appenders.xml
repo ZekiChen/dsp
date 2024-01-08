@@ -5,16 +5,15 @@
     </Console>
 
     <RollingFile name="DEBUG" fileName="${LOG_HOME}/debug.log"
-                 filePattern="${LOG_HOME}/history/debug-%d{yyyy-MM-dd-HH}.%i.zip">
+                 filePattern="${LOG_HOME}/history/debug-%d{yyyy-MM-dd-HH}.log">
         <PatternLayout pattern="${ENCODER_PATTERN}"/>
         <Policies>
             <TimeBasedTriggeringPolicy/>
-            <SizeBasedTriggeringPolicy size="200MB"/>
         </Policies>
-        <DefaultRolloverStrategy compressionLevel="1" max="64">
+        <DefaultRolloverStrategy>
             <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
-                <IfFileName glob="debug-*.zip"/>
-                <IfLastModified age="360H"/>
+                <IfFileName glob="debug-*.log"/>
+                <IfLastModified age="2H"/>
             </Delete>
         </DefaultRolloverStrategy>
         <Filters>
@@ -23,16 +22,15 @@
     </RollingFile>
 
     <RollingFile name="INFO" fileName="${LOG_HOME}/info.log"
-                 filePattern="${LOG_HOME}/history/info-%d{yyyy-MM-dd-HH}.%i.zip">
+                 filePattern="${LOG_HOME}/history/info-%d{yyyy-MM-dd-HH}.log">
         <PatternLayout pattern="${ENCODER_PATTERN}"/>
         <Policies>
             <TimeBasedTriggeringPolicy/>
-            <SizeBasedTriggeringPolicy size="200MB"/>
         </Policies>
-        <DefaultRolloverStrategy compressionLevel="1" max="64">
+        <DefaultRolloverStrategy>
             <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
-                <IfFileName glob="info-*.zip"/>
-                <IfLastModified age="360H"/>
+                <IfFileName glob="info-*.log"/>
+                <IfAccumulatedFileSize exceeds="10GB"/>
             </Delete>
         </DefaultRolloverStrategy>
         <Filters>
@@ -41,16 +39,15 @@
     </RollingFile>
 
     <RollingFile name="WARN" fileName="${LOG_HOME}/warn.log"
-                 filePattern="${LOG_HOME}/history/warn-%d{yyyy-MM-dd-HH}.%i.zip">
+                 filePattern="${LOG_HOME}/history/warn-%d{yyyy-MM-dd-HH}.log">
         <PatternLayout pattern="${ENCODER_PATTERN}"/>
         <Policies>
             <TimeBasedTriggeringPolicy/>
-            <SizeBasedTriggeringPolicy size="200MB"/>
         </Policies>
-        <DefaultRolloverStrategy compressionLevel="1" max="64">
+        <DefaultRolloverStrategy>
             <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
-                <IfFileName glob="warn-*.zip"/>
-                <IfLastModified age="360H"/>
+                <IfFileName glob="warn-*.log"/>
+                <IfLastModified age="120H"/>
             </Delete>
         </DefaultRolloverStrategy>
         <Filters>
@@ -59,16 +56,15 @@
     </RollingFile>
 
     <RollingFile name="ERROR" fileName="${LOG_HOME}/error.log"
-                 filePattern="${LOG_HOME}/history/error-%d{yyyy-MM-dd-HH}.%i.zip">
+                 filePattern="${LOG_HOME}/history/error-%d{yyyy-MM-dd-HH}.log">
         <PatternLayout pattern="${ENCODER_PATTERN}"/>
         <Policies>
             <TimeBasedTriggeringPolicy/>
-            <SizeBasedTriggeringPolicy size="200MB"/>
         </Policies>
-        <DefaultRolloverStrategy compressionLevel="1" max="64">
+        <DefaultRolloverStrategy>
             <Delete basePath="${LOG_HOME}/history/" maxDepth="1">
-                <IfFileName glob="error-*.zip"/>
-                <IfLastModified age="360H"/>
+                <IfFileName glob="error-*.log"/>
+                <IfLastModified age="120H"/>
             </Delete>
         </DefaultRolloverStrategy>
         <Filters>
