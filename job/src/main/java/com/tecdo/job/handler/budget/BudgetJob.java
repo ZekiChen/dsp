@@ -49,6 +49,8 @@ public class BudgetJob {
     private String receive_id;
     @Value("${feishu.chat.warn.budget.template-id}")
     private String template_id;
+    @Value("${feishu.chat.warn.budget.over-budget}")
+    private String overBudget;
 
     private static final String WARNED_AD_GROUP_CACHE = "pac:dsp:budget:warned:ad_group";
     private static final String WARNED_CAMPAIGN_CACHE = "pac:dsp:budget:warned:campaign";
@@ -75,10 +77,10 @@ public class BudgetJob {
         List<AdGroupCost> impCosts = impCostMapper.listByGroup();
 
         // 获得ad group, campaign列表，并过滤掉已经被Redis记录的部分
-        List<AdGroup> groupList = getOverBudgetGroups(impCosts).stream()
+        List<AdGroup> groupList = getOverBudgetGroups(impCosts, Double.parseDouble(overBudget)).stream()
                 .filter(adGroup -> !isWarned(false, adGroup.getId()))
                 .collect(Collectors.toList());
-        List<Campaign> campaignList = getOverBudgetCampaigns(impCosts).stream()
+        List<Campaign> campaignList = getOverBudgetCampaigns(impCosts, Double.parseDouble(overBudget)).stream()
                 .filter(campaign -> !isWarned(true, campaign.getId()))
                 .collect(Collectors.toList());
 
@@ -180,7 +182,7 @@ public class BudgetJob {
      * @param impCosts 产生花费的campaign的花费情况
      * @return 超预算的ad_group列表
      */
-    public List<Campaign> getOverBudgetCampaigns(List<AdGroupCost> impCosts) {
+    public List<Campaign> getOverBudgetCampaigns(List<AdGroupCost> impCosts, Double overBudget) {
         // 构建campaignImpCostMap映射(id, Campaign花费)
         campaignImpCostMap = impCosts.stream()
                 .collect(Collectors.groupingBy(AdGroupCost::getCampaignId,
@@ -197,7 +199,7 @@ public class BudgetJob {
         List<Campaign> result = campaigns.stream()
                 .filter(campaign -> {
                     double impCost = campaignImpCostMap.getOrDefault(campaign.getId().toString(), -1.0);
-                    return impCost / 1000 >= campaign.getDailyBudget();
+                    return impCost / 1000 - campaign.getDailyBudget() >= overBudget;
                 })
                 .collect(Collectors.toList());
 
@@ -210,7 +212,7 @@ public class BudgetJob {
      * @param impCosts 产生花费的ad_group的花费情况
      * @return 超预算的ad_group列表
      */
-    public List<AdGroup> getOverBudgetGroups(List<AdGroupCost> impCosts) {
+    public List<AdGroup> getOverBudgetGroups(List<AdGroupCost> impCosts, Double overBudget) {
         // 构建groupImpCostMap映射(id, ad group花费)
         groupImpCostMap = impCosts.stream()
                 .collect(Collectors.toMap(AdGroupCost::getAdGroupId, Function.identity()));
@@ -226,7 +228,7 @@ public class BudgetJob {
         List<AdGroup> filteredAdGroups = adGroups.stream()
                 .filter(adGroup -> {
                     AdGroupCost impCost = groupImpCostMap.getOrDefault(adGroup.getId().toString(), null);
-                    return impCost != null && impCost.getSumSuccessPrice() / 1000 >= adGroup.getDailyBudget();
+                    return impCost != null && impCost.getSumSuccessPrice() / 1000 - adGroup.getDailyBudget() >= overBudget;
                 })
                 .collect(Collectors.toList());
 
