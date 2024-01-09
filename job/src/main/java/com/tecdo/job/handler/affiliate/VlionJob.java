@@ -20,22 +20,17 @@ import java.time.LocalDate;
 @Component
 @RequiredArgsConstructor
 public class VlionJob {
+    private final DspReportMapper reportMapper;
+    private final AffReport affReport;
+
     @Value("${feishu.aff.vlion.cost-ratio}")
     private String costRatio;
     @Value("${feishu.aff.vlion.imp-ratio}")
     private String impRatio;
-    @Value("${feishu.aff.vlion.sheet-id}")
-    private String sheetId;
-    @Value("${feishu.aff.vlion.sheet-token}")
-    private String sheetToken;
-    @Value("${feishu.aff.vlion.sheet-unit-range}")
-    private String unitRange;
-    @Value("${feishu.aff.vlion.sheet-range}")
-    private String range;
-
-    private final DspReportMapper reportMapper;
-    private final AffReport affReport;
-
+    private final String sheetId = "4abee8";
+    private final String sheetToken = "E0gvsATOGhwcHptB9w5cOHfSnsf";
+    private final String unitRange = "?!A3:A3";
+    private final String range = "?!A3:C3";
     private final Integer affId = 134;
 
     @XxlJob("FeishuAff134Job")

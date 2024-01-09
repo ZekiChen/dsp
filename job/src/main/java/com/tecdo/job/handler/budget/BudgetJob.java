@@ -3,7 +3,6 @@ package com.tecdo.job.handler.budget;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.core.toolkit.sql.StringEscape;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
@@ -30,6 +29,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.tecdo.job.constant.ReportConstant.*;
+
 /**
  * Created by Elwin on 2023/9/26
  */
@@ -37,14 +38,6 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class BudgetJob {
-    @Value("${feishu.aff.app-id}")
-    private String appId;
-    @Value("${feishu.aff.app-secret}")
-    private String appSecret;
-    @Value("${feishu.aff.get-token.url}")
-    private String tenantTokenUrl;
-    @Value("${feishu.chat.warn.budget.url}")
-    private String sendMsgUrl;
     @Value("${feishu.chat.warn.budget.receive-id}")
     private String receive_id;
     @Value("${feishu.chat.warn.budget.template-id}")
@@ -62,7 +55,7 @@ public class BudgetJob {
     private Map<String, Double> campaignImpCostMap;
     private Map<String, AdGroupCost> groupImpCostMap;
     private String tenantToken = "";
-    private String msg_type = "interactive";
+    private final String msg_type = "interactive";
 
     @XxlJob("FeishuBudgetWarning")
     public void BudgetWarning() {
@@ -115,7 +108,7 @@ public class BudgetJob {
             request.put("uuid", UUID.randomUUID().toString());
 
             // 发送请求
-            HttpResult result = OkHttps.sync(sendMsgUrl.concat("?").concat("receive_id_type=chat_id"))
+            HttpResult result = OkHttps.sync(FEISHU_SEND_MSG_URL.concat("?").concat("receive_id_type=chat_id"))
                     .bodyType(OkHttps.JSON)
                     .addHeader("Authorization", "Bearer " + tenantToken)
                     .addBodyPara(request)
@@ -254,9 +247,9 @@ public class BudgetJob {
      */
     public String getAccessToken() {
         Map<String, Object> paramMap = MapUtil.newHashMap();
-        paramMap.put("app_id", appId);
-        paramMap.put("app_secret", appSecret);
-        HttpResult result = OkHttps.sync(tenantTokenUrl).bodyType(OkHttps.JSON).addBodyPara(paramMap).post();
+        paramMap.put("app_id", FEISHU_APP_ID);
+        paramMap.put("app_secret", FEISHU_APP_SECRET);
+        HttpResult result = OkHttps.sync(FEISHU_GET_TOKEN_URL).bodyType(OkHttps.JSON).addBodyPara(paramMap).post();
         String tenantToken;
         if (result.isSuccessful()) {
             tenantToken = result.getBody().toMapper().getString("tenant_access_token");
