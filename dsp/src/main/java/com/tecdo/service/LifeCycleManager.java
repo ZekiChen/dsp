@@ -197,7 +197,6 @@ public class LifeCycleManager {
         handleNettyStart();
         long serverStartUpTime = System.currentTimeMillis() - Dsp.serverStartTime;
         log.info("It takes {}s to start the server", serverStartUpTime / 1000);
-        Cat.logMetricForDuration("server-start", serverStartUpTime);
         break;
       case RECEIVE_PING_REQUEST:
         handlePingRequest(params);
