@@ -41,7 +41,7 @@ public class TradPlusJob {
         String targetDate = affReport.dateFormat(today);
         SpentDTO spent = reportMapper.getImpCostForAffUTC8(targetDate, affId);
 
-        affReport.postData(today, sheetId, sheetToken, spent, costRatio, impRatio, range);
+        affReport.postData(today, sheetId, sheetToken, spent, null, costRatio, impRatio, range);
         affReport.unitFormatter(sheetId, sheetToken, unitRange);
     }
 }
