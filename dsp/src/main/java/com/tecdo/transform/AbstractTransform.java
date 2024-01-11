@@ -322,7 +322,7 @@ public abstract class AbstractTransform implements IProtoTransform {
                 } else {
                     boolean needCheck = false;
                     if (checkEnable && random.nextDouble() * 100 < checkProbability &&
-                        cacheService.getPixalateCache().getCheckCountToday() < checkMaxCount) {
+                            cacheService.getPixalateCache().getCheckCountToday() < checkMaxCount) {
                         needCheck = true;
                     }
                     adm = AdmGenerator.bannerAdm(clickUrl,
@@ -367,7 +367,7 @@ public abstract class AbstractTransform implements IProtoTransform {
                 }
                 break;
             case VIDEO:
-                if (isForce) {
+                if (isForce && adDTO.getAd().getImage() != null) {
                     Object forceBannerAdm = buildForceBannerAdm(wrapper, bidRequest, affiliate, adDTO, sign, impTrackList, clickTrackList, deepLink, forceLink, clickUrl, forceJudgeUrl, collectFeatureUrl, collectCodeUrl, collectErrorUrl);
                     adm = AdmGenerator.forceVideoAdm(adDTO.getAd().getId(),
                             adDTO.getCreativeMap().get(adDTO.getAd().getVideo()),
