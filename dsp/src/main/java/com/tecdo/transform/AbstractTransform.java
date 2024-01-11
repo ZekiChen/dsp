@@ -113,6 +113,9 @@ public abstract class AbstractTransform implements IProtoTransform {
     @Value("${pac.affiliate.default-bidfloor:0.05f}")
     private Float defaultBibFloor;
 
+    @Value("${pac.video.force.enabled:true}")
+    private boolean videoForceEnabled;
+
     public abstract boolean forceBannerEnable();
 
     public abstract String deepLinkFormat(String deepLink);
@@ -145,7 +148,8 @@ public abstract class AbstractTransform implements IProtoTransform {
 
     private boolean isForceJump(String forceLink, AdDTOWrapper wrapper) {
         AdDTO adDTO = wrapper.getAdDTO();
-        return Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())
+        return (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())
+                || (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.VIDEO.getType())) && videoForceEnabled)
                 && forceBannerEnable()
                 && adDTO.getAdGroup().getForceJumpEnable()
                 && StringUtils.isNotBlank(forceLink)
@@ -310,28 +314,11 @@ public abstract class AbstractTransform implements IProtoTransform {
 
         // 构建 banner 流量的 adm 信息
         Object adm = null;
+        boolean isForce = ResponseTypeEnum.FORCE.equals(getResponseType(forceLink, wrapper));
         switch (AdTypeEnum.of(adDTO.getAd().getType())) {
             case BANNER:
-                if (ResponseTypeEnum.FORCE.equals(getResponseType(forceLink, wrapper))) {
-                    Double delayTimeMean = affiliate.getAutoRedirectDelayTime();
-                    double delayTime = 0;
-                    if (delayTimeMean != null && delayTimeMean > 0) {
-                        delayTime = delayTimeMean + random.nextGaussian() * sdForDelayTime;
-                    }
-                    adm = //
-                            AdmGenerator.forceBannerAdm(clickUrl,
-                                    deepLink,
-                                    adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
-                                    impTrackList,
-                                    clickTrackList,
-                                    ParamHelper.urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
-                                    forceLink,
-                                    forceJudgeUrl,
-                                    collectFeatureUrl,
-                                    collectCodeUrl,
-                                    collectErrorUrl,
-                                    delayTime,
-                                    bannerEncrypt);
+                if (isForce) {
+                    adm = buildForceBannerAdm(wrapper, bidRequest, affiliate, adDTO, sign, impTrackList, clickTrackList, deepLink, forceLink, clickUrl, forceJudgeUrl, collectFeatureUrl, collectCodeUrl, collectErrorUrl);
                 } else {
                     boolean needCheck = false;
                     if (checkEnable && random.nextDouble() * 100 < checkProbability &&
@@ -380,14 +367,47 @@ public abstract class AbstractTransform implements IProtoTransform {
                 }
                 break;
             case VIDEO:
-                adm = AdmGenerator.videoAdm(adDTO.getAd().getId(),
-                        adDTO.getCreativeMap().get(adDTO.getAd().getVideo()),
-                        wrapper.getImage(),
-                        clickUrl, deepLink,
-                        impTrackList, clickTrackList);
+                if (isForce) {
+                    Object forceBannerAdm = buildForceBannerAdm(wrapper, bidRequest, affiliate, adDTO, sign, impTrackList, clickTrackList, deepLink, forceLink, clickUrl, forceJudgeUrl, collectFeatureUrl, collectCodeUrl, collectErrorUrl);
+                    adm = AdmGenerator.forceVideoAdm(adDTO.getAd().getId(),
+                            adDTO.getCreativeMap().get(adDTO.getAd().getVideo()),
+                            wrapper.getImage(),
+                            clickUrl, deepLink,
+                            impTrackList, clickTrackList, forceBannerAdm.toString());
+                } else {
+                    adm = AdmGenerator.videoAdm(adDTO.getAd().getId(),
+                            adDTO.getCreativeMap().get(adDTO.getAd().getVideo()),
+                            wrapper.getImage(),
+                            clickUrl, deepLink,
+                            impTrackList, clickTrackList);
+                }
                 break;
         }
 
+        return adm;
+    }
+
+    private Object buildForceBannerAdm(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate, AdDTO adDTO, String sign, List<String> impTrackList, List<String> clickTrackList, String deepLink, String forceLink, String clickUrl, String forceJudgeUrl, String collectFeatureUrl, String collectCodeUrl, String collectErrorUrl) {
+        Object adm;
+        Double delayTimeMean = affiliate.getAutoRedirectDelayTime();
+        double delayTime = 0;
+        if (delayTimeMean != null && delayTimeMean > 0) {
+            delayTime = delayTimeMean + random.nextGaussian() * sdForDelayTime;
+        }
+        adm = //
+                AdmGenerator.forceBannerAdm(clickUrl,
+                        deepLink,
+                        adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
+                        impTrackList,
+                        clickTrackList,
+                        ParamHelper.urlFormat(impInfoUrl, sign, wrapper, bidRequest, affiliate),
+                        forceLink,
+                        forceJudgeUrl,
+                        collectFeatureUrl,
+                        collectCodeUrl,
+                        collectErrorUrl,
+                        delayTime,
+                        bannerEncrypt);
         return adm;
     }
 }
