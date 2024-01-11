@@ -13,6 +13,7 @@ import com.tecdo.adm.api.doris.mapper.ReportMapper;
 import com.tecdo.job.domain.entity.ReportAffGap;
 import com.tecdo.job.domain.vo.flatads.FlatAdsReportVO;
 import com.tecdo.job.domain.vo.flatads.FlatAdsResponse;
+import com.tecdo.job.foreign.feishu.AffReport;
 import com.tecdo.job.mapper.ReportAffGapMapper;
 import com.tecdo.common.util.WeChatRobotUtils;
 import com.xxl.job.core.context.XxlJobHelper;
@@ -22,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -44,72 +46,31 @@ public class FlatAdsJob {
 
     private final ReportMapper reportMapper;
     private final ReportAffGapMapper reportAffGapMapper;
+    private final AffReport affReport;
 
-    @XxlJob("flatAdsGap")
-    public void flatAdsGap() {
-        XxlJobHelper.log("获取前一天数据，落库FlatAds和报表gap，超过阈值则告警");
-        DateTime yesterday = DateUtil.yesterday();
-        String stdYesterday = yesterday.toDateStr();
-        String yesterdayStr = DateUtil.format(yesterday, DatePattern.PURE_DATE_PATTERN);
-        Map<String, String> conditionMap = MapUtil.newHashMap();
-        conditionMap.put("dt_from", yesterdayStr);
-        conditionMap.put("dt_to", yesterdayStr);
-        Map<String, Object> paramMap = MapUtil.newHashMap();
-        paramMap.put("condition", conditionMap);
-        HttpResult result = OkHttps.sync(flatAdsReportUrl).bodyType(OkHttps.JSON).addBodyPara(paramMap).post();
-        if (result.isSuccessful()) {
-            FlatAdsResponse response = result.getBody().toBean(FlatAdsResponse.class);
-            List<FlatAdsReportVO> reportVOs = response.getData();
-            if (CollUtil.isEmpty(reportVOs)) {
-                XxlJobHelper.log("call FlatAds report error, data is empty, date: {}" + stdYesterday);
-                return;
-            }
-            FlatAdsReportVO reportVO = reportVOs.get(0);
-            Long flatAdsImp = reportVO.getImpression();
-            Double flatAdsCost = reportVO.getGrossRevenue();
-            if (flatAdsCost == null || flatAdsImp == null) {
-                XxlJobHelper.log("call FlatAds report error, data is empty, date: {}" + stdYesterday);
-                return;
-            }
-            SpentDTO dspSpent = doGetReportSpentForFlatAds();
-            if (dspSpent == null) {
-                XxlJobHelper.log("get report spent for flatAds is null, date: " + stdYesterday);
-                return;
-            }
-            long dspImp = dspSpent.getImp() != null ? dspSpent.getImp() : 0L;
-            double dspCost = dspSpent.getCost() != null ? dspSpent.getCost() : 0d;
-            if (dspImp == 0L || dspCost == 0d) {
-                XxlJobHelper.log("get report imp/cost for flatAds is 0, date: " + stdYesterday);
-                return;
-            }
-            double impGap = Math.abs((double) (dspImp - flatAdsImp) / dspImp) * 100;
-            double costGap = Math.abs((dspCost - flatAdsCost) / dspCost) * 100;
-            // 群消息通知时，保留2位小数
-            String flatAdsCostStr = NumberUtil.round(flatAdsCost, 2).toString();
-            String dspCostStr = NumberUtil.round(dspCost, 2).toString();
-            String impGapStr = NumberUtil.round(impGap, 2).toString();
-            String costGapStr = NumberUtil.round(costGap, 2).toString();
-            if (costGap > gap) {
-                String msg = "报表与渠道gap差异监控\n"
-                        + "渠道：FlatAds\n"
-                        + "日期：" + DateUtil.yesterday().toDateStr() + "\n"
-                        + "渠道imp：" + flatAdsImp + "\n"
-                        + "报表imp：" + dspImp + "\n"
-                        + "imp gap：" + impGapStr + "%\n"
-                        + "渠道cost：" + flatAdsCostStr + "$\n"
-                        + "报表cost：" + dspCostStr + "$\n"
-                        + "cost gap：" + costGapStr + "%";
-                try {
-                    WeChatRobotUtils.sendTextMsg(MONITOR_GROUP, msg);
-                } catch (Exception e) {
-                    logError("flatAdsGap: send text msg error: " + e.getMessage(), true);
-                    return;
-                }
-            }
-            ReportAffGap entity = buildDspAffGap(93, stdYesterday,
-                    flatAdsImp, flatAdsCostStr, dspImp, dspCostStr, impGapStr, costGapStr);
-            reportAffGapMapper.insert(entity);
-        }
+    @Value("${feishu.aff.flatads.cost-ratio}")
+    private String costRatio;
+    @Value("${feishu.aff.flatads.imp-ratio}")
+    private String impRatio;
+    private final String sheetId = "a8a102";
+    private final String sheetToken = "HeBqs614FhkS0NtOWb0cCjvjntc";
+    private final String unitRange = "?!A3:A3";
+    private final String range = "?!A3:G3";
+
+    @XxlJob("FeishuAff93&130Job")
+    public void dspReport() {
+        XxlJobHelper.log("获取FlatAds doris库dsp_report表前一天数据(UTC-0)，写入飞书文档");
+        LocalDate today = LocalDate.now();
+
+        String targetDate = affReport.dateFormat(today);
+        SpentDTO dspSpent = doGetReportSpentForFlatAds();
+        SpentDTO affSpent = getFlatAdsSpent(targetDate.replace("-", ""));
+        if (affSpent == null) return;
+
+        affReport.postData(today, sheetId, sheetToken, dspSpent, affSpent, costRatio, impRatio, range);
+        affReport.unitFormatter(sheetId, sheetToken, unitRange);
+
+        affReport.insertGapReport(93, targetDate, dspSpent, affSpent);
     }
 
     private static ReportAffGap buildDspAffGap(Integer affiliateId, String createDate,
@@ -131,6 +92,37 @@ public class FlatAdsJob {
     private SpentDTO doGetReportSpentForFlatAds() {
         List<Integer> affIds = Arrays.asList(93, 130);
         return reportMapper.getReportSpentForFlatAds(affIds, DateUtil.yesterday().toDateStr());
+    }
+
+    private SpentDTO getFlatAdsSpent(String date) {
+        Map<String, String> conditionMap = MapUtil.newHashMap();
+        conditionMap.put("dt_from", date);
+        conditionMap.put("dt_to", date);
+        Map<String, Object> paramMap = MapUtil.newHashMap();
+        paramMap.put("condition", conditionMap);
+        HttpResult result = OkHttps.sync(flatAdsReportUrl).bodyType(OkHttps.JSON).addBodyPara(paramMap).post();
+
+        if (result.isSuccessful()) {
+            FlatAdsResponse response = result.getBody().toBean(FlatAdsResponse.class);
+            List<FlatAdsReportVO> reportVOs = response.getData();
+            if (CollUtil.isEmpty(reportVOs)) {
+                XxlJobHelper.log("call FlatAds report error, data is empty, date: {}" + date);
+                return null;
+            }
+            FlatAdsReportVO reportVO = reportVOs.get(0);
+            Long flatAdsImp = reportVO.getImpression();
+            Double flatAdsCost = reportVO.getGrossRevenue();
+            if (flatAdsCost == null || flatAdsImp == null) {
+                XxlJobHelper.log("call FlatAds report error, data is empty, date: {}" + date);
+                return null;
+            }
+
+            SpentDTO flatadsDTO = new SpentDTO();
+            flatadsDTO.setCost(flatAdsCost);
+            flatadsDTO.setImp(flatAdsImp);
+            return flatadsDTO;
+        }
+        return null;
     }
 
 }

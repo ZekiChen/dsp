@@ -14,6 +14,8 @@ import org.springframework.stereotype.Component;
 import java.time.LocalDate;
 
 /**
+ * UTC+8
+ *
  * Created by Elwin on 2023/12/14
  */
 @Slf4j
@@ -41,7 +43,7 @@ public class VlionJob {
         String targetDate = affReport.dateFormat(today);
         SpentDTO spent = reportMapper.getImpCostForAffUTC8(targetDate, affId);
 
-        affReport.postData(today, sheetId, sheetToken, spent, costRatio, impRatio, range);
+        affReport.postData(today, sheetId, sheetToken, spent, null, costRatio, impRatio, range);
         affReport.unitFormatter(sheetId, sheetToken, unitRange);
     }
 

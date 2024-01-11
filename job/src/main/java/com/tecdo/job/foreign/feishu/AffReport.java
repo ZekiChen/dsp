@@ -2,15 +2,20 @@ package com.tecdo.job.foreign.feishu;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
+import cn.hutool.core.util.NumberUtil;
 import com.ejlchina.data.Mapper;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.adm.api.delivery.dto.SpentDTO;
 import com.tecdo.adm.api.doris.dto.AffWeekReport;
+import com.tecdo.job.domain.entity.ReportAffGap;
 import com.tecdo.job.domain.vo.affReport.InsertDimensionVO;
 import com.tecdo.job.domain.vo.camScanner.FeishuValRange;
 import com.tecdo.job.domain.vo.camScanner.FeishuSetUnitStyle;
 import com.tecdo.job.domain.vo.camScanner.UnitStyle;
+import com.tecdo.job.mapper.DspReportMapper;
+import com.tecdo.job.mapper.ReportAffGapMapper;
+import com.tecdo.job.util.TimeZoneUtils;
 import com.xxl.job.core.context.XxlJobHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
@@ -32,6 +37,7 @@ import static com.tecdo.job.constant.ReportConstant.*;
 @Component
 @RequiredArgsConstructor
 public class AffReport {
+    private final ReportAffGapMapper reportAffGapMapper;
     private String appId = FEISHU_APP_ID;
     private String appSecret = FEISHU_APP_SECRET;
     private String tenantTokenUrl = FEISHU_GET_TOKEN_URL;
@@ -77,29 +83,29 @@ public class AffReport {
 
     /**
      * 向飞书表格插入数据
-     * @param impCost 花费
+     * @param dspSpent dsp视角
+     * @Param affSpent 渠道视角，未提供api则传入null
      */
     public void postData(LocalDate today, String sheetId, String sheetToken,
-                         SpentDTO impCost, String costRatio, String impRatio, String range) {
+                         SpentDTO dspSpent, SpentDTO affSpent, String costRatio, String impRatio, String range) {
         // 处理占位符
         range = range.replace("?", sheetId);
         String sheetPrependUrl = this.sheetPrependUrl.replace("?", sheetToken);
 
-        String tenantToken = getAccessToken();
-
+        // 处理小数位和缩放比例
         DecimalFormat df = new DecimalFormat("#.0000"); // 保留4位小数
-        double finalCost = Double.parseDouble(df.format(impCost.getCost() * Double.parseDouble(costRatio)));
-        Long finalImp = Math.round(impCost.getImp() * Double.parseDouble(impRatio));
+        double finalCost = Double.parseDouble(df.format(dspSpent.getCost() * Double.parseDouble(costRatio)));
+        Long finalImp = Math.round(dspSpent.getImp() * Double.parseDouble(impRatio));
+        dspSpent.setCost(finalCost);
+        dspSpent.setImp(finalImp);
 
-        impCost.setCost(finalCost);
-        impCost.setImp(finalImp);
-
-        FeishuValRange request = new FeishuValRange(range, buildSpentDTO(daysFrom1899(today), impCost));
+        // 发送网络请求
+        FeishuValRange request = new FeishuValRange(range, buildSpentDTO(daysFrom1899(today), dspSpent, affSpent));
         Map<String, Object> paramMap = MapUtil.newHashMap();
         paramMap.put("valueRange", request);
         HttpResult result = OkHttps.sync(sheetPrependUrl)
                 .bodyType(OkHttps.JSON)
-                .addHeader("Authorization", "Bearer " + tenantToken)
+                .addHeader("Authorization", "Bearer " + getAccessToken())
                 .addBodyPara(paramMap)
                 .post();
         String msg = result.isSuccessful() ? "数据写入成功" : "数据写入失败";
@@ -176,16 +182,31 @@ public class AffReport {
     /**
      * 获取sheetPrependUrl中二维数组请求参数
      * @param date 日期字符串
-     * @param spentDTO 曝光量+花费
+     * @param dspSpent dsp视角的spent
+     * @param affSpent 渠道视角的revenue
      * @return List<List<Object>>对象
      */
-    public List<List<Object>> buildSpentDTO(Long date, SpentDTO spentDTO) {
+    public List<List<Object>> buildSpentDTO(Long date, SpentDTO dspSpent, SpentDTO affSpent) {
         List<List<Object>> list = new ArrayList<>();
         List<Object> subList = new ArrayList<>();
+        Long dspImp = dspSpent.getImp();
+        Double dspCost = dspSpent.getCost();
 
         subList.add(date);
-        subList.add(spentDTO.getImp());
-        subList.add(spentDTO.getCost());
+        subList.add(dspImp);
+        subList.add(dspCost);
+
+        if (affSpent != null) {
+            Long affImp = affSpent.getImp();
+            Double affRevenue = affSpent.getCost();
+            double impGap = (dspImp - affImp) / (double)affImp;
+            double costGap = (dspCost - affRevenue) / affRevenue;
+
+            subList.add(affImp);
+            subList.add(NumberUtil.round(affRevenue, 4)); // 同步dspSpent保留4位小数
+            subList.add(NumberUtil.formatPercent(impGap, 2));
+            subList.add(NumberUtil.formatPercent(costGap, 2));
+        }
 
         list.add(subList);
 
@@ -274,4 +295,22 @@ public class AffReport {
                 .post();
         return result.isSuccessful();
     }
+
+    public void insertGapReport(Integer affId, String date, SpentDTO dspSpent, SpentDTO affSpent) {
+        // TODO: examine either affSpent or dspSpent should be Denominator
+        double impGap = ((dspSpent.getImp() - affSpent.getImp()) / (double)affSpent.getImp()) * 100;
+        double costGap = ((dspSpent.getCost() - affSpent.getCost()) / affSpent.getCost()) * 100;
+        ReportAffGap entity = new ReportAffGap();
+        entity.setCreateDate(date);
+        entity.setAffId(affId);
+        entity.setAffImp(affSpent.getImp());
+        entity.setDspImp(dspSpent.getImp());
+        entity.setGapImp(impGap);
+        entity.setAffCost(affSpent.getCost());
+        entity.setDspCost(dspSpent.getCost());
+        entity.setGapCost(costGap);
+        reportAffGapMapper.insert(entity);
+    }
+
+
 }
