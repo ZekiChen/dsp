@@ -1,5 +1,7 @@
 package com.tecdo.service;
 
+import com.dianping.cat.Cat;
+import com.tecdo.Dsp;
 import com.tecdo.common.constant.HttpCode;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
@@ -193,6 +195,8 @@ public class LifeCycleManager {
         break;
       case NETTY_START:
         handleNettyStart();
+        long serverStartUpTime = System.currentTimeMillis() - Dsp.serverStartTime;
+        log.info("It takes {}s to start the server", serverStartUpTime / 1000);
         break;
       case RECEIVE_PING_REQUEST:
         handlePingRequest(params);
