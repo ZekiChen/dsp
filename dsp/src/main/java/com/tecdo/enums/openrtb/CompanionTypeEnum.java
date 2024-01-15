@@ -12,10 +12,10 @@ import lombok.Getter;
 @AllArgsConstructor
 public enum CompanionTypeEnum {
 
-    STATIC("1", "Static Resource"),
-    HTML("2", "HTML Resource"),
-    IFRAME("3", "iframe Resource");
+    STATIC(1, "Static Resource"),
+    HTML(2, "HTML Resource"),
+    IFRAME(3, "iframe Resource");
 
-    private final String value;
+    private final Integer value;
     private final String desc;
 }
