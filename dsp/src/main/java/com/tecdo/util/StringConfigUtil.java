@@ -14,6 +14,7 @@ public class StringConfigUtil {
   private static String bannerTemplate;
   private static String bannerTemplateWithCheck;
   private static String forceBannerTemplate;
+  private static String forceBannerTemplateWithCheck;
   private static String videoVast4Template;
   private static String notEncryptForceBannerTemplate;
 
@@ -55,6 +56,13 @@ public class StringConfigUtil {
       e.printStackTrace();
     }
 
+    try (InputStream is = StringConfigUtil.class.getResourceAsStream("/force-banner-encrypt-for-replace-with-check.html")) {
+      byte[] bytes = ByteStreams.toByteArray(is);
+      forceBannerTemplateWithCheck = new String(bytes, StandardCharsets.UTF_8);
+    } catch (IOException e) {
+      e.printStackTrace();
+    }
+
     try (InputStream is = StringConfigUtil.class.getResourceAsStream("/force-banner.html")) {
       byte[] bytes = ByteStreams.toByteArray(is);
       notEncryptForceBannerTemplate = new String(bytes, StandardCharsets.UTF_8);
@@ -84,6 +92,10 @@ public class StringConfigUtil {
 
   public static String getForceBannerTemplate() {
     return forceBannerTemplate;
+  }
+
+  public static String getForceBannerTemplateWithCheck() {
+    return forceBannerTemplateWithCheck;
   }
 
   public static String getVideoVast4Template() {
