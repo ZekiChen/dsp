@@ -144,7 +144,7 @@ public abstract class AbstractTransform implements IProtoTransform {
     private boolean isForceJump(String forceLink, AdDTOWrapper wrapper) {
         AdDTO adDTO = wrapper.getAdDTO();
         return (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.BANNER.getType())
-                || (Objects.equals(adDTO.getAd().getType(), AdTypeEnum.VIDEO.getType())) && videoForceEnabled)
+                || (wrapper.getImage() != null && videoForceEnabled))
                 && forceBannerEnable()
                 && adDTO.getAdGroup().getForceJumpEnable()
                 && StringUtils.isNotBlank(forceLink)
@@ -361,7 +361,7 @@ public abstract class AbstractTransform implements IProtoTransform {
                 }
                 break;
             case VIDEO:
-                if (isForce && adDTO.getAd().getImage() != null) {
+                if (isForce) {
                     Object forceBannerAdm = buildForceBannerAdm(wrapper, bidRequest, affiliate, adDTO, sign,
                             impTrackList, clickTrackList, deepLink, forceLink, clickUrl, forceJudgeUrl,
                             collectFeatureUrl, collectCodeUrl, collectErrorUrl, checkUrl, checkCountUrl, needCheck);
