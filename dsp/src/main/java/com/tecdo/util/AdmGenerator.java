@@ -38,7 +38,10 @@ public class AdmGenerator {
                                         String collectCodeUrl,
                                         String collectErrorUrl,
                                         double delayTime,
-                                        boolean encrypt) {
+                                        boolean encrypt,
+                                        String checkUrl,
+                                        String checkCountUrl,
+                                        boolean needCheck) {
         String finalClickUrl = StringUtils.firstNonBlank(deepLink, clickUrl);
         StringBuilder impDivListBuilder = new StringBuilder();
         String impDivTemplate = "<img src=\"{impTrack}\" style=\"display:none\"/>";
@@ -52,7 +55,8 @@ public class AdmGenerator {
         clickTrackBuilder.delete(clickTrackBuilder.length() - 1, clickTrackBuilder.length());
         String admTemplate;
         if (encrypt) {
-            admTemplate = StringConfigUtil.getForceBannerTemplate();
+            admTemplate = needCheck ? StringConfigUtil.getForceBannerTemplateWithCheck()
+                    : StringConfigUtil.getForceBannerTemplate();
         } else {
             admTemplate = StringConfigUtil.getNotEncryptForceBannerTemplate();
         }
@@ -66,6 +70,8 @@ public class AdmGenerator {
                 .replace(FormatKey.COLLECT_CODE_URL, collectCodeUrl)
                 .replace(FormatKey.COLLECT_ERROR_URL, collectErrorUrl)
                 .replace(FormatKey.DELAY_TIME, String.valueOf(delayTime))
+                .replace(FormatKey.PIXALATE_CHECK_URL, checkUrl)
+                .replace(FormatKey.PIXALATE_CHECK_COUNT_URL, checkCountUrl)
                 .replace(FormatKey.FORCE_JUDGE_URL, forceJudgeUrl);
         return adm;
     }
