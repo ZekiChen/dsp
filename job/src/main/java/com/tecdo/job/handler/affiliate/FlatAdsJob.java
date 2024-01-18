@@ -41,8 +41,6 @@ public class FlatAdsJob {
 
     @Value("${foreign.flat-ads.report-url}")
     private String flatAdsReportUrl;
-    @Value("${pac.dsp.aff.gap}")
-    private Double gap;
 
     private final ReportMapper reportMapper;
     private final ReportAffGapMapper reportAffGapMapper;
@@ -65,10 +63,10 @@ public class FlatAdsJob {
         String targetDate = affReport.dateFormat(today);
         SpentDTO dspSpent = doGetReportSpentForFlatAds();
         SpentDTO affSpent = getFlatAdsSpent(targetDate.replace("-", ""));
-        if (affSpent == null) return;
 
         affReport.postData(today, sheetId, sheetToken, dspSpent, affSpent, costRatio, impRatio, range);
         affReport.unitFormatter(sheetId, sheetToken, unitRange);
+        affReport.gapMsgWarn(dspSpent, affSpent, 93, "FlatAds", targetDate);
 
         affReport.insertGapReport(93, targetDate, dspSpent, affSpent);
     }

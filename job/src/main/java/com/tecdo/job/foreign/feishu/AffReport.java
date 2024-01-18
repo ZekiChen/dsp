@@ -3,21 +3,25 @@ package com.tecdo.job.foreign.feishu;
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import com.ejlchina.data.Mapper;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.adm.api.delivery.dto.SpentDTO;
 import com.tecdo.adm.api.doris.dto.AffWeekReport;
 import com.tecdo.job.domain.entity.ReportAffGap;
+import com.tecdo.job.domain.vo.affReport.GapWarnUnit;
 import com.tecdo.job.domain.vo.affReport.InsertDimensionVO;
 import com.tecdo.job.domain.vo.camScanner.FeishuValRange;
 import com.tecdo.job.domain.vo.camScanner.FeishuSetUnitStyle;
 import com.tecdo.job.domain.vo.camScanner.UnitStyle;
-import com.tecdo.job.mapper.DspReportMapper;
+import com.tecdo.job.domain.vo.feishu.ContentData;
+import com.tecdo.job.domain.vo.feishu.MsgContent;
 import com.tecdo.job.mapper.ReportAffGapMapper;
-import com.tecdo.job.util.TimeZoneUtils;
+import com.tecdo.job.util.JsonHelper;
 import com.xxl.job.core.context.XxlJobHelper;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.lang.reflect.Field;
@@ -25,9 +29,7 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 import static com.tecdo.job.constant.ReportConstant.*;
 
@@ -48,6 +50,9 @@ public class AffReport {
     private final String insertDimensionUrl = FEISHU_SHEET_INSERT_DIMENSION_URL;
     private final String valBatchUpdateUrl = FEISHU_SHEET_VAL_BATCH_UPDATE_URL;
     private final String getMetaInfoUrl = FEISHU_SHEET_GET_META_INFO_URL;
+    private final String gapWarnReceiveId = "oc_6b40445785b746681a81b3bc31ac5bbd";
+    @Value("${pac.dsp.aff.gap}")
+    private Double gap;
 
     public void postWeekData(String sheetId, String sheetToken, List<AffWeekReport> data, String tenantToken) {
         if (CollUtil.isEmpty(data)) return;
@@ -99,7 +104,7 @@ public class AffReport {
         dspSpent.setCost(finalCost);
         dspSpent.setImp(finalImp);
 
-        // 发送网络请求
+        // 写入飞书文档
         FeishuValRange request = new FeishuValRange(range, buildSpentDTO(daysFrom1899(today), dspSpent, affSpent));
         Map<String, Object> paramMap = MapUtil.newHashMap();
         paramMap.put("valueRange", request);
@@ -150,8 +155,6 @@ public class AffReport {
         return result.getBody().toMapper();
     }
 
-    /* ------------------------------ Inner Util ------------------------------ */
-
     /**
      * token有过期时间，每次使用token前调用此接口刷新token
      * @return 返回应用的tenant token
@@ -168,6 +171,66 @@ public class AffReport {
         }
         return "";
     }
+
+    /**
+     * 通过飞书群组发送gap报警
+     */
+    public void gapMsgWarn(SpentDTO dspSpent, SpentDTO affSpent, Integer affId, String affName, String date) {
+        if (affSpent == null) return;
+        // 若affSpent可用，则进行gap报警判断
+        Long affImp = affSpent.getImp();
+        Double affRevenue = affSpent.getCost();
+        Long dspImp = dspSpent.getImp();
+        Double dspCost = dspSpent.getCost();
+        double impGap = (dspImp - affImp) * 100 / (double)affImp;
+        double costGap = (dspCost - affRevenue) * 100 / affRevenue;
+        if (Math.abs(costGap) > gap) {
+            GapWarnUnit costWarn = new GapWarnUnit("Cost",
+                    NumberUtil.round(dspCost, 2).toString(),
+                    NumberUtil.round(affRevenue, 2).toString(),
+                    NumberUtil.round(costGap, 2).toString().concat("%"));
+            GapWarnUnit impWarn = new GapWarnUnit("Imp",
+                    StrUtil.toString(dspImp),
+                    StrUtil.toString(affImp),
+                    NumberUtil.round(impGap, 2).toString().concat("%"));
+            List<GapWarnUnit> groupTable = new ArrayList<>();
+            groupTable.add(costWarn);
+            groupTable.add(impWarn);
+
+            Map<String, Object> var = new HashMap<>();
+            var.put("group_table", groupTable);
+            var.put("aff_id", StrUtil.toString(affId));
+            var.put("aff_name", affName);
+            var.put("date", date);
+
+            // 构建消息模板
+            ContentData<Map<String, Object>> contentData = new ContentData<>("ctp_AAi3ekgnsGb5", var);
+            MsgContent<Map<String, Object>> content = new MsgContent<>("template", contentData);
+            // 把消息模板序列化为json，并去掉首尾单引号
+            String escapedContent = JsonHelper.toJSONString(content)
+                    .replaceAll("^'+|'+$", "");
+
+            // 构建请求体request
+            Map<String, Object> request = MapUtil.newHashMap();
+            request.put("receive_id", gapWarnReceiveId);
+            request.put("msg_type", "interactive");
+            request.put("content", escapedContent);
+            request.put("uuid", UUID.randomUUID().toString());
+
+            // 发送请求
+            HttpResult result = OkHttps.sync(FEISHU_SEND_MSG_URL.concat("?").concat("receive_id_type=chat_id"))
+                    .bodyType(OkHttps.JSON)
+                    .addHeader("Authorization", "Bearer " + getAccessToken())
+                    .addBodyPara(request)
+                    .post();
+
+            if (!result.isSuccessful()) {
+                XxlJobHelper.handleFail("消息发送失败");
+            }
+        }
+    }
+
+    /* ------------------------------ Inner Util ------------------------------ */
 
     /**
      * 获取前一天时间
@@ -297,7 +360,6 @@ public class AffReport {
     }
 
     public void insertGapReport(Integer affId, String date, SpentDTO dspSpent, SpentDTO affSpent) {
-        // TODO: examine either affSpent or dspSpent should be Denominator
         double impGap = ((dspSpent.getImp() - affSpent.getImp()) / (double)affSpent.getImp()) * 100;
         double costGap = ((dspSpent.getCost() - affSpent.getCost()) / affSpent.getCost()) * 100;
         ReportAffGap entity = new ReportAffGap();
