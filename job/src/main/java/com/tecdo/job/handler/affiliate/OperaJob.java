@@ -53,6 +53,7 @@ public class OperaJob {
 
         affReport.postData(today, sheetId, sheetToken, dspSpent, affSpent, costRatio, impRatio, range);
         affReport.unitFormatter(sheetId, sheetToken, unitRange);
+        affReport.gapMsgWarn(dspSpent, affSpent, 141, "Opera", targetDate);
 
         affReport.insertGapReport(affId, targetDate, dspSpent, affSpent);
     }

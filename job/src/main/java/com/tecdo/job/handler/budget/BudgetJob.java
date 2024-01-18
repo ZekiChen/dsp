@@ -11,8 +11,8 @@ import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
 import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
 import com.tecdo.adm.api.doris.entity.AdGroupCost;
 import com.tecdo.job.domain.vo.budget.BudgetWarn;
-import com.tecdo.job.domain.vo.budget.ContentData;
-import com.tecdo.job.domain.vo.budget.MsgContent;
+import com.tecdo.job.domain.vo.feishu.ContentData;
+import com.tecdo.job.domain.vo.feishu.MsgContent;
 import com.tecdo.job.mapper.ImpCostMapper;
 import com.tecdo.job.util.JsonHelper;
 import com.tecdo.job.util.TimeZoneUtils;
@@ -95,7 +95,8 @@ public class BudgetJob {
         // 依次发送budgetWarnList
         for (BudgetWarn warn : budgetWarnList) {
             // 构建消息模板
-            MsgContent content = new MsgContent("template", new ContentData(template_id, warn));
+            ContentData<BudgetWarn> contentData = new ContentData<>(template_id, warn);
+            MsgContent<BudgetWarn> content = new MsgContent<>("template", contentData);
             // 把消息模板序列化为json，并去掉首尾单引号
             String escapedContent = JsonHelper.toJSONString(content)
                     .replaceAll("^'+|'+$", "");

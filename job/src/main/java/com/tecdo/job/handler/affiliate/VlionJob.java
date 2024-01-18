@@ -50,6 +50,7 @@ public class VlionJob {
 
         affReport.postData(today, sheetId, sheetToken, dspSpent, affSpent, costRatio, impRatio, range);
         affReport.unitFormatter(sheetId, sheetToken, unitRange);
+        affReport.gapMsgWarn(dspSpent, affSpent, 134, "Vlion", targetDate);
 
         affReport.insertGapReport(affId, targetDate, dspSpent, affSpent);
     }

@@ -1,4 +1,4 @@
-package com.tecdo.job.domain.vo.budget;
+package com.tecdo.job.domain.vo.feishu;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,7 +8,7 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-public class ContentData {
+public class ContentData<T> {
     private String template_id;
-    private BudgetWarn template_variable;
+    private T template_variable;
 }
