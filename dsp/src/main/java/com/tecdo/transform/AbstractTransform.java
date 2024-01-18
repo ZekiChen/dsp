@@ -20,12 +20,7 @@ import com.tecdo.service.response.VivoResponseBuilder;
 import com.tecdo.service.rta.ae.AeHelper;
 import com.tecdo.service.track.ClickTrackBuilder;
 import com.tecdo.service.track.ImpTrackBuilder;
-import com.tecdo.util.AdmGenerator;
-import com.tecdo.util.ClickUrlSecurityCipher;
-import com.tecdo.util.CreativeHelper;
-import com.tecdo.util.JsonHelper;
-import com.tecdo.util.ParamHelper;
-import com.tecdo.util.SignHelper;
+import com.tecdo.util.*;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -315,16 +310,15 @@ public abstract class AbstractTransform implements IProtoTransform {
         // 构建 banner 流量的 adm 信息
         Object adm = null;
         boolean isForce = ResponseTypeEnum.FORCE.equals(getResponseType(forceLink, wrapper));
+        boolean needCheck = checkEnable && random.nextDouble() * 100 < checkProbability
+                && cacheService.getPixalateCache().getCheckCountToday() < checkMaxCount;
         switch (AdTypeEnum.of(adDTO.getAd().getType())) {
             case BANNER:
                 if (isForce) {
-                    adm = buildForceBannerAdm(wrapper, bidRequest, affiliate, adDTO, sign, impTrackList, clickTrackList, deepLink, forceLink, clickUrl, forceJudgeUrl, collectFeatureUrl, collectCodeUrl, collectErrorUrl);
+                    adm = buildForceBannerAdm(wrapper, bidRequest, affiliate, adDTO, sign, impTrackList, clickTrackList,
+                            deepLink, forceLink, clickUrl, forceJudgeUrl, collectFeatureUrl, collectCodeUrl, collectErrorUrl,
+                            checkUrl, checkCountUrl, needCheck);
                 } else {
-                    boolean needCheck = false;
-                    if (checkEnable && random.nextDouble() * 100 < checkProbability &&
-                            cacheService.getPixalateCache().getCheckCountToday() < checkMaxCount) {
-                        needCheck = true;
-                    }
                     adm = AdmGenerator.bannerAdm(clickUrl,
                             deepLink,
                             adDTO.getCreativeMap().get(adDTO.getAd().getImage()).getUrl(),
@@ -368,7 +362,9 @@ public abstract class AbstractTransform implements IProtoTransform {
                 break;
             case VIDEO:
                 if (isForce) {
-                    Object forceBannerAdm = buildForceBannerAdm(wrapper, bidRequest, affiliate, adDTO, sign, impTrackList, clickTrackList, deepLink, forceLink, clickUrl, forceJudgeUrl, collectFeatureUrl, collectCodeUrl, collectErrorUrl);
+                    Object forceBannerAdm = buildForceBannerAdm(wrapper, bidRequest, affiliate, adDTO, sign,
+                            impTrackList, clickTrackList, deepLink, forceLink, clickUrl, forceJudgeUrl,
+                            collectFeatureUrl, collectCodeUrl, collectErrorUrl, checkUrl, checkCountUrl, needCheck);
                     adm = AdmGenerator.forceVideoAdm(adDTO.getAd().getId(),
                             adDTO.getCreativeMap().get(adDTO.getAd().getVideo()),
                             wrapper.getImage(),
@@ -387,7 +383,11 @@ public abstract class AbstractTransform implements IProtoTransform {
         return adm;
     }
 
-    private Object buildForceBannerAdm(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate, AdDTO adDTO, String sign, List<String> impTrackList, List<String> clickTrackList, String deepLink, String forceLink, String clickUrl, String forceJudgeUrl, String collectFeatureUrl, String collectCodeUrl, String collectErrorUrl) {
+    private Object buildForceBannerAdm(AdDTOWrapper wrapper, BidRequest bidRequest, Affiliate affiliate, AdDTO adDTO,
+                                       String sign, List<String> impTrackList, List<String> clickTrackList,
+                                       String deepLink, String forceLink, String clickUrl, String forceJudgeUrl,
+                                       String collectFeatureUrl, String collectCodeUrl, String collectErrorUrl,
+                                       String checkUrl, String checkCountUrl, boolean needCheck) {
         Object adm;
         Double delayTimeMean = affiliate.getAutoRedirectDelayTime();
         double delayTime = 0;
@@ -407,7 +407,10 @@ public abstract class AbstractTransform implements IProtoTransform {
                         collectCodeUrl,
                         collectErrorUrl,
                         delayTime,
-                        bannerEncrypt);
+                        bannerEncrypt,
+                        checkUrl,
+                        checkCountUrl,
+                        needCheck);
         return adm;
     }
 }
