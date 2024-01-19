@@ -86,6 +86,9 @@ public class SimpleHttpChannelInboundHandler extends SimpleChannelInboundHandler
       case RequestPath.COLLECT_ERROR:
         eventType = EventType.RECEIVE_COLLECT_ERROR;
         break;
+      case RequestPath.COLLECT_DEBUG:
+        eventType = EventType.RECEIVE_COLLECT_DEBUG;
+        break;
       case RequestPath.CHECK_COUNT:
         eventType = EventType.RECEIVE_CHECK_COUNT;
           break;

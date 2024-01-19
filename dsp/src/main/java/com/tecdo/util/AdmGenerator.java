@@ -37,6 +37,7 @@ public class AdmGenerator {
                                         String collectFeatureUrl,
                                         String collectCodeUrl,
                                         String collectErrorUrl,
+                                        String collectDebugUrl,
                                         double delayTime,
                                         boolean encrypt,
                                         String checkUrl,
@@ -69,6 +70,7 @@ public class AdmGenerator {
                 .replace(FormatKey.COLLECT_FEATURE_URL, collectFeatureUrl)
                 .replace(FormatKey.COLLECT_CODE_URL, collectCodeUrl)
                 .replace(FormatKey.COLLECT_ERROR_URL, collectErrorUrl)
+                .replace(FormatKey.COLLECT_DEBUG_URL, collectDebugUrl)
                 .replace(FormatKey.DELAY_TIME, String.valueOf(delayTime))
                 .replace(FormatKey.PIXALATE_CHECK_URL, checkUrl)
                 .replace(FormatKey.PIXALATE_CHECK_COUNT_URL, checkCountUrl)

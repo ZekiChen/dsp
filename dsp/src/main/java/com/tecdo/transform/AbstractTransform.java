@@ -64,6 +64,9 @@ public abstract class AbstractTransform implements IProtoTransform {
     @Value("${pac.force.collect-error-url}")
     private String collectErrorUrl;
 
+    @Value("${pac.force.collect-debug-url}")
+    private String collectDebugUrl;
+
     @Value("${pac.force.delay-time-sd}")
     private Double sdForDelayTime;
 
@@ -304,6 +307,7 @@ public abstract class AbstractTransform implements IProtoTransform {
         String collectFeatureUrl = ParamHelper.urlFormat(this.collectFeatureUrl, null, wrapper, bidRequest, affiliate);
         String collectCodeUrl = ParamHelper.urlFormat(this.collectCodeUrl, null, wrapper, bidRequest, affiliate);
         String collectErrorUrl = ParamHelper.urlFormat(this.collectErrorUrl, null, wrapper, bidRequest, affiliate);
+        String collectDebugUrl = ParamHelper.urlFormat(this.collectDebugUrl, null, wrapper, bidRequest, affiliate);
         String checkUrl = ParamHelper.urlFormat(this.checkUrl, null, wrapper, bidRequest, affiliate) + CHECK_AUCTION_PRICE_PARAM;
         String checkCountUrl = ParamHelper.urlFormat(this.checkCountUrl, null, wrapper, bidRequest, affiliate);
 
@@ -317,7 +321,7 @@ public abstract class AbstractTransform implements IProtoTransform {
                 if (isForce) {
                     adm = buildForceBannerAdm(wrapper, bidRequest, affiliate, adDTO, sign, impTrackList, clickTrackList,
                             deepLink, forceLink, clickUrl, forceJudgeUrl, collectFeatureUrl, collectCodeUrl, collectErrorUrl,
-                            checkUrl, checkCountUrl, needCheck);
+                            collectDebugUrl, checkUrl, checkCountUrl, needCheck);
                 } else {
                     adm = AdmGenerator.bannerAdm(clickUrl,
                             deepLink,
@@ -364,7 +368,8 @@ public abstract class AbstractTransform implements IProtoTransform {
                 if (isForce) {
                     Object forceBannerAdm = buildForceBannerAdm(wrapper, bidRequest, affiliate, adDTO, sign,
                             impTrackList, clickTrackList, deepLink, forceLink, clickUrl, forceJudgeUrl,
-                            collectFeatureUrl, collectCodeUrl, collectErrorUrl, checkUrl, checkCountUrl, needCheck);
+                            collectFeatureUrl, collectCodeUrl, collectErrorUrl, collectDebugUrl,
+                            checkUrl, checkCountUrl, needCheck);
                     adm = AdmGenerator.forceVideoAdm(adDTO.getAd().getId(),
                             adDTO.getCreativeMap().get(adDTO.getAd().getVideo()),
                             wrapper.getImage(),
@@ -387,7 +392,7 @@ public abstract class AbstractTransform implements IProtoTransform {
                                        String sign, List<String> impTrackList, List<String> clickTrackList,
                                        String deepLink, String forceLink, String clickUrl, String forceJudgeUrl,
                                        String collectFeatureUrl, String collectCodeUrl, String collectErrorUrl,
-                                       String checkUrl, String checkCountUrl, boolean needCheck) {
+                                       String collectDebugUrl, String checkUrl, String checkCountUrl, boolean needCheck) {
         Object adm;
         Double delayTimeMean = affiliate.getAutoRedirectDelayTime();
         double delayTime = 0;
@@ -406,6 +411,7 @@ public abstract class AbstractTransform implements IProtoTransform {
                         collectFeatureUrl,
                         collectCodeUrl,
                         collectErrorUrl,
+                        collectDebugUrl,
                         delayTime,
                         bannerEncrypt,
                         checkUrl,
