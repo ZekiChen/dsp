@@ -90,9 +90,6 @@ public abstract class AbstractTransform implements IProtoTransform {
     @Value("${pac.url.encrypt.baseDomain}")
     private String baseDomain;
 
-    @Value("${pac.response.banner.encrypt:true}")
-    private boolean bannerEncrypt;
-
     @Value("${pac.response.pixalate.check-enable:false}")
     private boolean checkEnable;
 
@@ -413,7 +410,6 @@ public abstract class AbstractTransform implements IProtoTransform {
                         collectErrorUrl,
                         collectDebugUrl,
                         delayTime,
-                        bannerEncrypt,
                         checkUrl,
                         checkCountUrl,
                         needCheck);

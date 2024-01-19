@@ -1,14 +1,13 @@
 <div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
     <img id="fc_dsp_banner_img" src="{IMG_URL}" border="0"
          style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"/>
+    {PIXALATE_CHECK}
     <img id="fc_dsp_imp" src="{FORCE_JUDGE_URL}" alt="" style="display: none"/>
     <a id="fc_dsp_simulated_a" href="javascript:;" style="display: none"></a>
-    <div id="fc_dsp_banner_imp"></div>
+    <div id="fc_dsp_banner_imp">{IMP_DIV_LIST}</div>
 </div>
 <script type="text/javascript">
     collectCurrentStep("current_step=exposure");
-
-    document.getElementById('fc_dsp_banner_imp').innerHTML = '{IMP_DIV_LIST}';
     var clickTrackers = [{CLICK_TRACK_URL_LIST}];
     var impInfoUrl = '{IMP_INFO_URL}';
     var clickUrl = '{CLICK_URL}';

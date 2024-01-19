@@ -22,12 +22,12 @@ public class ResponseHelper {
 
     static {
 
-        try (InputStream is = ResponseHelper.class.getResourceAsStream("/2_2.png")) {
+        try (InputStream is = ResponseHelper.class.getResourceAsStream("/pixel/2_2.png")) {
             jumpPixel = ByteStreams.toByteArray(is);
         } catch (Exception e) {
             e.printStackTrace();
         }
-        try (InputStream is = ResponseHelper.class.getResourceAsStream("/1_1.png")) {
+        try (InputStream is = ResponseHelper.class.getResourceAsStream("/pixel/1_1.png")) {
             notJumpPixel = ByteStreams.toByteArray(is);
         } catch (Exception e) {
             e.printStackTrace();

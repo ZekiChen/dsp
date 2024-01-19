@@ -39,7 +39,6 @@ public class AdmGenerator {
                                         String collectErrorUrl,
                                         String collectDebugUrl,
                                         double delayTime,
-                                        boolean encrypt,
                                         String checkUrl,
                                         String checkCountUrl,
                                         boolean needCheck) {
@@ -54,14 +53,14 @@ public class AdmGenerator {
             clickTrackBuilder.append("\"").append(s).append("\"").append(",");
         }
         clickTrackBuilder.delete(clickTrackBuilder.length() - 1, clickTrackBuilder.length());
-        String admTemplate;
-        if (encrypt) {
-            admTemplate = needCheck ? StringConfigUtil.getForceBannerTemplateWithCheck()
-                    : StringConfigUtil.getForceBannerTemplate();
-        } else {
-            admTemplate = StringConfigUtil.getNotEncryptForceBannerTemplate();
-        }
-        String adm = admTemplate.replace(FormatKey.CLICK_URL, finalClickUrl)
+
+        String pixalateCode = "<img id=\"fc_dsp_c\" src=\"" + checkUrl + "\" alt=\"\" style=\"display: none\"/>\n" +
+                "    <img id=\"fc_dsp_cc\" src=\"" + checkCountUrl + "\" alt=\"\" style=\"display: none\"/>";
+        String admTemplate = needCheck
+                ? StringConfigUtil.getForceBannerTemplate().replace(FormatKey.PIXALATE_CHECK, pixalateCode)
+                : StringConfigUtil.getForceBannerTemplate().replace(FormatKey.PIXALATE_CHECK, "");
+
+        return admTemplate.replace(FormatKey.CLICK_URL, finalClickUrl)
                 .replace(FormatKey.FORCE_URL, forceLink)
                 .replace(FormatKey.IMG_URL, imgUrl)
                 .replace(FormatKey.IMP_DIV_LIST, impDivListBuilder.toString())
@@ -72,10 +71,7 @@ public class AdmGenerator {
                 .replace(FormatKey.COLLECT_ERROR_URL, collectErrorUrl)
                 .replace(FormatKey.COLLECT_DEBUG_URL, collectDebugUrl)
                 .replace(FormatKey.DELAY_TIME, String.valueOf(delayTime))
-                .replace(FormatKey.PIXALATE_CHECK_URL, checkUrl)
-                .replace(FormatKey.PIXALATE_CHECK_COUNT_URL, checkCountUrl)
                 .replace(FormatKey.FORCE_JUDGE_URL, forceJudgeUrl);
-        return adm;
     }
 
     public static String bannerAdm(String clickUrl,
@@ -101,23 +97,21 @@ public class AdmGenerator {
             clickTrackBuilder.append("\"").append(s).append("\"").append(",");
         }
         clickTrackBuilder.delete(clickTrackBuilder.length() - 1, clickTrackBuilder.length());
-        String admTemplate;
-        if (needCheck) {
-            admTemplate = StringConfigUtil.getBannerTemplateWithCheck();
-        } else {
-            admTemplate = StringConfigUtil.getBannerTemplate();
-        }
-        String adm = admTemplate.replace(FormatKey.CLICK_URL, finalClickUrl)
+
+        String pixalateCode = "<img id=\"fc_dsp_c\" src=\"" + checkUrl + "\" alt=\"\" style=\"display: none\"/>\n" +
+                "    <img id=\"fc_dsp_cc\" src=\"" + checkCountUrl + "\" alt=\"\" style=\"display: none\"/>";
+        String admTemplate = needCheck
+                ? StringConfigUtil.getBannerTemplate().replace(FormatKey.PIXALATE_CHECK, pixalateCode)
+                : StringConfigUtil.getBannerTemplate().replace(FormatKey.PIXALATE_CHECK, "");
+
+        return admTemplate.replace(FormatKey.CLICK_URL, finalClickUrl)
                 .replace(FormatKey.IMG_URL, imgUrl)
                 .replace(FormatKey.IMP_DIV_LIST, impDivListBuilder.toString())
                 .replace(FormatKey.CLICK_TRACK_URL_LIST, clickTrackBuilder.toString())
                 .replace(FormatKey.COLLECT_FEATURE_URL, collectFeatureUrl)
                 .replace(FormatKey.COLLECT_CODE_URL, collectCodeUrl)
                 .replace(FormatKey.COLLECT_ERROR_URL, collectErrorUrl)
-                .replace(FormatKey.PIXALATE_CHECK_URL, checkUrl)
-                .replace(FormatKey.PIXALATE_CHECK_COUNT_URL, checkCountUrl)
                 .replace(FormatKey.IMP_INFO_URL, impInfoUrl);
-        return adm;
     }
 
     public static NativeResponse nativeAdm(NativeRequest nativeRequest,
