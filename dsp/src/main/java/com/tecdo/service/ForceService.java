@@ -79,7 +79,7 @@ public class ForceService {
         String[] respIpByDot = respIp.split("\\.");
         String[] impIpByDot = impIp.split("\\.");
         if (respIpByDot.length != 4 || impIpByDot.length != 4) {
-            return false;
+            return true;
         }
         return respIpByDot[0].equals(impIpByDot[0])
                 && respIpByDot[1].equals(impIpByDot[1])
