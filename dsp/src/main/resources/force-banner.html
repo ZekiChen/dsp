@@ -6,7 +6,7 @@
     <div id="fc_dsp_banner_imp"></div>
 </div>
 <script type="text/javascript">
-    documipent.getElementById('fc_dsp_banner_imp').innerHTML = '{IMP_DIV_LIST}';
+    document.getElementById('fc_dsp_banner_imp').innerHTML = '{IMP_DIV_LIST}';
     var clickTrackers = [{CLICK_TRACK_URL_LIST}];
     var impInfoUrl = '{IMP_INFO_URL}';
     var clickUrl = '{CLICK_URL}';
@@ -15,7 +15,6 @@
     var collectFeatureUrl = '{COLLECT_FEATURE_URL}';
     var delayTime = '{DELAY_TIME}';
     var collectErrorUrl = '{COLLECT_ERROR_URL}';
-    var collectDebugUrl = '{COLLECT_DEBUG_URL}';
 
     let ua = window.navigator.userAgent;
     let isMobile = ua.match(/mobile/i);
