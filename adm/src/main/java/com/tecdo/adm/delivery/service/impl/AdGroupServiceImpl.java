@@ -468,6 +468,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean limitBundleUpdateBatch(LimitBundleUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
         String operation = vo.getOperation();
@@ -486,6 +487,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean autoBundleUpdateBatch(AutoBundleUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
         List<TargetConditionVO> conditionVOs = vo.getConditionVOs();
