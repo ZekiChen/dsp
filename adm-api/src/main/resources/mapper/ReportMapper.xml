@@ -246,19 +246,13 @@
             pos                          as position,
             instl                        as interstitial,
             first_ssp                    as firstSsp,
-            CASE
-                WHEN
-                    sum(imp_count) > #{minImp}
-                THEN
-                    AVG(click_count / imp_count)
-                ELSE 0.95
-            END                          as ctr
+            AVG(click_count / imp_count) as ctr
         FROM
-            pac_dsp_report_fall_two
+            dsp_report_fall_six
         WHERE
             response_type = 1 and
-            report_date >= #{startDate} and
-            report_date &lt;= #{endDate}
+            create_date >= #{startDate} and
+            create_date &lt;= #{endDate}
         GROUP BY
             affiliate_id,
             bundle_id,
@@ -266,6 +260,8 @@
             pos,
             instl,
             first_ssp
+        HAVING
+            sum(imp_count) > #{minImp}
     </select>
 
 </mapper>
