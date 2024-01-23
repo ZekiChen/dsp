@@ -12,6 +12,7 @@ import com.tecdo.domain.biz.log.ResponseLog;
 import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
+import com.tecdo.domain.openrtb.request.Publisher;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.fsm.task.handler.PriceCalcHandler;
 import com.tecdo.util.CreativeHelper;
@@ -143,6 +144,9 @@ public class ResponseLogger {
                 .clickFrequencyHour(wrapper.getClickFrequencyHour())
                 .bidStage(wrapper.getBidStageEnum().getType())
                 .offerId(wrapper.getAdDTO().getAdGroup().getOfferId())
+                .publisherId(Optional.ofNullable(bidRequest.getApp().getPublisher())
+                                     .map(Publisher::getId)
+                                     .orElse(""))
                 .build();
     }
 }

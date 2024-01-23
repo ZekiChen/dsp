@@ -348,4 +348,7 @@ public class ResponseLog implements Serializable {
 
     @JsonProperty("offer_id")
     private Integer offerId;
+
+    @JsonProperty("publisher_id")
+    private String publisherId;
 }
