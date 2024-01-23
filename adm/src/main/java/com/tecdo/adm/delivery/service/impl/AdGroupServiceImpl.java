@@ -188,6 +188,10 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             if (CollUtil.isEmpty(sourceConditions)) {
                 throw new ServiceException("source conditions is empty!");
             }
+            sourceConditions = sourceConditions.stream()
+                    .filter(cond -> !AUTO_BUNDLE.getDesc().equals(cond.getAttribute()) && !AUTO_BUNDLE_EXCEPT.getDesc().equals(cond.getAttribute()))
+                    .collect(Collectors.toList());
+
             List<Integer> sourceAdIds = adService.listIdByGroupIds(Collections.singletonList(sourceAdGroup.getId()));
             List<MultiBidStrategy> sourceStrategies = strategyService.listByAdGroupId(Collections.singletonList(sourceAdGroup.getId()));
 
