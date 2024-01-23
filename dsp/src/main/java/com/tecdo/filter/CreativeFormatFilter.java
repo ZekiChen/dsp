@@ -1,5 +1,6 @@
 package com.tecdo.filter;
 
+import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
@@ -15,11 +16,13 @@ import com.tecdo.domain.openrtb.request.n.Img;
 import com.tecdo.domain.openrtb.request.n.NativeRequestAsset;
 import com.tecdo.enums.biz.VideoMimeEnum;
 import com.tecdo.enums.biz.VideoProtocolEnum;
+import com.tecdo.enums.openrtb.CompanionTypeEnum;
 import com.tecdo.enums.openrtb.ImageAssetTypeEnum;
 import com.tecdo.transform.ProtoTransformFactory;
 
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -45,9 +48,9 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
             case BANNER:
                 return bannerFilter(imp.getBanner(), adDTO);
             case NATIVE:
-                return nativeFilter(imp.getNative1(), adDTO, affiliate);
+                return nativeFilter(imp.getNative1(), adDTOWrapper, affiliate);
             case VIDEO:
-                return videoFilter(imp.getVideo(), adDTO);
+                return videoFilter(imp.getVideo(), adDTOWrapper);
             default:
                 return true;
         }
@@ -81,7 +84,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
         }
     }
 
-    private boolean nativeFilter(Native native1, AdDTO adDTO, Affiliate affiliate) {
+    private boolean nativeFilter(Native native1, AdDTOWrapper w, Affiliate affiliate) {
+        AdDTO adDTO = w.getAdDTO();
         if (affiliate.getApi().equals(ProtoTransformFactory.VIVO)) {
             return true;
         }
@@ -99,7 +103,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                     return false;
                 }
             } else if (asset.getVideo() != null) {
-                if (!videoFilter(asset.getVideo(), adDTO)) {
+                if (!videoFilter(asset.getVideo(), w)) {
                     return false;
                 }
             }
@@ -108,7 +112,8 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
 
     }
 
-    private static boolean videoFilter(Video video, AdDTO adDTO) {
+    private static boolean videoFilter(Video video, AdDTOWrapper w) {
+        AdDTO adDTO = w.getAdDTO();
         if (video == null || video.getW() == null || video.getH() == null) {
             return false;
         }
@@ -121,6 +126,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 || CollUtil.isEmpty(protocols)) {
             return false;
         }
+
         Creative creative = adDTO.getCreativeMap().get(videoId);
         switch (VideoMimeEnum.of(creative.getSuffix())) {
             case MP4:
@@ -132,6 +138,7 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
             case OTHER:
                 return false;
         }
+
         Integer minDuration = video.getMinduration();
         Integer maxDuration = video.getMaxduration();
         Integer duration = creative.getDuration();
@@ -139,9 +146,21 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
                 || (maxDuration != null && duration > maxDuration)) {
             return false;
         }
+
         if ((float) creative.getWidth() / creative.getHeight() != (float) video.getW() / video.getH()) {
             return false;
         }
+
+        List<Banner> companionAds = video.getCompanionad();
+        List<Integer> companionTypes = video.getCompaniontype();
+        if (CollUtil.isNotEmpty(companionAds) && CollUtil.isNotEmpty(companionTypes)) {
+            boolean vcmMatch = companionAds.stream().anyMatch(banner -> banner.getVcm() != null && banner.getVcm() == 1);
+            boolean companionTypeMatch = companionTypes.contains(CompanionTypeEnum.HTML.getValue());
+            if (vcmMatch && companionTypeMatch) {
+                w.setImage(adDTO.getCreativeMap().get(adDTO.getAd().getImage()));
+            }
+        }
+
         return protocols.stream().anyMatch(type -> VideoProtocolEnum.of(type) != VideoProtocolEnum.OTHER);
     }
 
@@ -172,5 +191,12 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
     private boolean isSizeMatch(Integer reqW, Integer reqH, Integer creW, Integer creH) {
         return reqW != null && reqH != null && reqW > 0 && reqH > 0
                 && (float) creW / creH == (float) reqW / reqH;
+    }
+
+    public static void main(String[] args) {
+        List<Integer> companionTypes = new ArrayList<>();
+        companionTypes.add(null);
+        companionTypes.add(null);
+        System.out.println(companionTypes);
     }
 }

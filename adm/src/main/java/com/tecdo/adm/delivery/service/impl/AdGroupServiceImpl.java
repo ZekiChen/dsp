@@ -188,6 +188,10 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
             if (CollUtil.isEmpty(sourceConditions)) {
                 throw new ServiceException("source conditions is empty!");
             }
+            sourceConditions = sourceConditions.stream()
+                    .filter(cond -> !AUTO_BUNDLE.getDesc().equals(cond.getAttribute()) && !AUTO_BUNDLE_EXCEPT.getDesc().equals(cond.getAttribute()))
+                    .collect(Collectors.toList());
+
             List<Integer> sourceAdIds = adService.listIdByGroupIds(Collections.singletonList(sourceAdGroup.getId()));
             List<MultiBidStrategy> sourceStrategies = strategyService.listByAdGroupId(Collections.singletonList(sourceAdGroup.getId()));
 
@@ -464,6 +468,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean limitBundleUpdateBatch(LimitBundleUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
         String operation = vo.getOperation();
@@ -482,6 +487,7 @@ public class AdGroupServiceImpl extends ServiceImpl<AdGroupMapper, AdGroup> impl
     }
 
     @Override
+    @Transactional
     public boolean autoBundleUpdateBatch(AutoBundleUpdateVO vo) {
         List<Integer> adGroupIds = vo.getAdGroupIds();
         List<TargetConditionVO> conditionVOs = vo.getConditionVOs();

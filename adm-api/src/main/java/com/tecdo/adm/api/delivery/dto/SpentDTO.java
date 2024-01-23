@@ -9,7 +9,6 @@ import lombok.Setter;
 @Getter
 @Setter
 public class SpentDTO {
-
     private Long imp;
     private Double cost;
 }

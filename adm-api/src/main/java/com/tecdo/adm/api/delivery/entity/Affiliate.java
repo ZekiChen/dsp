@@ -38,4 +38,6 @@ public class Affiliate extends BaseEntity {
     private Double autoRedirectDelayTime;
     @ApiModelProperty("曝光窗口")
     private Long impExpire;
+    @ApiModelProperty("风控ip检测开关")
+    private Boolean ipCheckEnabled;
 }

@@ -1,5 +1,6 @@
 package com.tecdo.domain.biz.dto;
 
+import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.BidAlgorithmEnum;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
 import com.tecdo.adm.api.delivery.enums.MultiBidStageEnum;
@@ -109,6 +110,7 @@ public class AdDTOWrapper {
   private Double bidProbability;
   private Boolean bundleTestEnable;
 
+  private Creative image;
   private Integer pos;
 
 }

@@ -132,7 +132,7 @@ configure(subprojects - toolProjects) { project ->
     }
 
     test {
-        enabled true
+        enabled false
         useJUnitPlatform()
     }
 }

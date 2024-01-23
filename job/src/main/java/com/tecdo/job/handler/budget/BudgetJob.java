@@ -3,7 +3,6 @@ package com.tecdo.job.handler.budget;
 import cn.hutool.core.map.MapUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.core.toolkit.Wrappers;
-import com.baomidou.mybatisplus.core.toolkit.sql.StringEscape;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
@@ -12,8 +11,8 @@ import com.tecdo.adm.api.delivery.mapper.AdGroupMapper;
 import com.tecdo.adm.api.delivery.mapper.CampaignMapper;
 import com.tecdo.adm.api.doris.entity.AdGroupCost;
 import com.tecdo.job.domain.vo.budget.BudgetWarn;
-import com.tecdo.job.domain.vo.budget.ContentData;
-import com.tecdo.job.domain.vo.budget.MsgContent;
+import com.tecdo.job.domain.vo.feishu.ContentData;
+import com.tecdo.job.domain.vo.feishu.MsgContent;
 import com.tecdo.job.mapper.ImpCostMapper;
 import com.tecdo.job.util.JsonHelper;
 import com.tecdo.job.util.TimeZoneUtils;
@@ -30,6 +29,8 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import static com.tecdo.job.constant.ReportConstant.*;
+
 /**
  * Created by Elwin on 2023/9/26
  */
@@ -37,18 +38,12 @@ import java.util.stream.Collectors;
 @Component
 @RequiredArgsConstructor
 public class BudgetJob {
-    @Value("${feishu.aff.app-id}")
-    private String appId;
-    @Value("${feishu.aff.app-secret}")
-    private String appSecret;
-    @Value("${feishu.aff.get-token.url}")
-    private String tenantTokenUrl;
-    @Value("${feishu.chat.warn.budget.url}")
-    private String sendMsgUrl;
     @Value("${feishu.chat.warn.budget.receive-id}")
     private String receive_id;
     @Value("${feishu.chat.warn.budget.template-id}")
     private String template_id;
+    @Value("${feishu.chat.warn.budget.over-budget}")
+    private String overBudget;
 
     private static final String WARNED_AD_GROUP_CACHE = "pac:dsp:budget:warned:ad_group";
     private static final String WARNED_CAMPAIGN_CACHE = "pac:dsp:budget:warned:campaign";
@@ -60,7 +55,7 @@ public class BudgetJob {
     private Map<String, Double> campaignImpCostMap;
     private Map<String, AdGroupCost> groupImpCostMap;
     private String tenantToken = "";
-    private String msg_type = "interactive";
+    private final String msg_type = "interactive";
 
     @XxlJob("FeishuBudgetWarning")
     public void BudgetWarning() {
@@ -75,10 +70,10 @@ public class BudgetJob {
         List<AdGroupCost> impCosts = impCostMapper.listByGroup();
 
         // 获得ad group, campaign列表，并过滤掉已经被Redis记录的部分
-        List<AdGroup> groupList = getOverBudgetGroups(impCosts).stream()
+        List<AdGroup> groupList = getOverBudgetGroups(impCosts, Double.parseDouble(overBudget)).stream()
                 .filter(adGroup -> !isWarned(false, adGroup.getId()))
                 .collect(Collectors.toList());
-        List<Campaign> campaignList = getOverBudgetCampaigns(impCosts).stream()
+        List<Campaign> campaignList = getOverBudgetCampaigns(impCosts, Double.parseDouble(overBudget)).stream()
                 .filter(campaign -> !isWarned(true, campaign.getId()))
                 .collect(Collectors.toList());
 
@@ -100,7 +95,8 @@ public class BudgetJob {
         // 依次发送budgetWarnList
         for (BudgetWarn warn : budgetWarnList) {
             // 构建消息模板
-            MsgContent content = new MsgContent("template", new ContentData(template_id, warn));
+            ContentData<BudgetWarn> contentData = new ContentData<>(template_id, warn);
+            MsgContent<BudgetWarn> content = new MsgContent<>("template", contentData);
             // 把消息模板序列化为json，并去掉首尾单引号
             String escapedContent = JsonHelper.toJSONString(content)
                     .replaceAll("^'+|'+$", "");
@@ -113,7 +109,7 @@ public class BudgetJob {
             request.put("uuid", UUID.randomUUID().toString());
 
             // 发送请求
-            HttpResult result = OkHttps.sync(sendMsgUrl.concat("?").concat("receive_id_type=chat_id"))
+            HttpResult result = OkHttps.sync(FEISHU_SEND_MSG_URL.concat("?").concat("receive_id_type=chat_id"))
                     .bodyType(OkHttps.JSON)
                     .addHeader("Authorization", "Bearer " + tenantToken)
                     .addBodyPara(request)
@@ -180,7 +176,7 @@ public class BudgetJob {
      * @param impCosts 产生花费的campaign的花费情况
      * @return 超预算的ad_group列表
      */
-    public List<Campaign> getOverBudgetCampaigns(List<AdGroupCost> impCosts) {
+    public List<Campaign> getOverBudgetCampaigns(List<AdGroupCost> impCosts, Double overBudget) {
         // 构建campaignImpCostMap映射(id, Campaign花费)
         campaignImpCostMap = impCosts.stream()
                 .collect(Collectors.groupingBy(AdGroupCost::getCampaignId,
@@ -197,7 +193,7 @@ public class BudgetJob {
         List<Campaign> result = campaigns.stream()
                 .filter(campaign -> {
                     double impCost = campaignImpCostMap.getOrDefault(campaign.getId().toString(), -1.0);
-                    return impCost / 1000 >= campaign.getDailyBudget();
+                    return impCost / 1000 - campaign.getDailyBudget() >= overBudget;
                 })
                 .collect(Collectors.toList());
 
@@ -210,7 +206,7 @@ public class BudgetJob {
      * @param impCosts 产生花费的ad_group的花费情况
      * @return 超预算的ad_group列表
      */
-    public List<AdGroup> getOverBudgetGroups(List<AdGroupCost> impCosts) {
+    public List<AdGroup> getOverBudgetGroups(List<AdGroupCost> impCosts, Double overBudget) {
         // 构建groupImpCostMap映射(id, ad group花费)
         groupImpCostMap = impCosts.stream()
                 .collect(Collectors.toMap(AdGroupCost::getAdGroupId, Function.identity()));
@@ -226,7 +222,7 @@ public class BudgetJob {
         List<AdGroup> filteredAdGroups = adGroups.stream()
                 .filter(adGroup -> {
                     AdGroupCost impCost = groupImpCostMap.getOrDefault(adGroup.getId().toString(), null);
-                    return impCost != null && impCost.getSumSuccessPrice() / 1000 >= adGroup.getDailyBudget();
+                    return impCost != null && impCost.getSumSuccessPrice() / 1000 - adGroup.getDailyBudget() >= overBudget;
                 })
                 .collect(Collectors.toList());
 
@@ -252,9 +248,9 @@ public class BudgetJob {
      */
     public String getAccessToken() {
         Map<String, Object> paramMap = MapUtil.newHashMap();
-        paramMap.put("app_id", appId);
-        paramMap.put("app_secret", appSecret);
-        HttpResult result = OkHttps.sync(tenantTokenUrl).bodyType(OkHttps.JSON).addBodyPara(paramMap).post();
+        paramMap.put("app_id", FEISHU_APP_ID);
+        paramMap.put("app_secret", FEISHU_APP_SECRET);
+        HttpResult result = OkHttps.sync(FEISHU_GET_TOKEN_URL).bodyType(OkHttps.JSON).addBodyPara(paramMap).post();
         String tenantToken;
         if (result.isSuccessful()) {
             tenantToken = result.getBody().toMapper().getString("tenant_access_token");

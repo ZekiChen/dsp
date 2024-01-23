@@ -20,22 +20,17 @@ import java.time.LocalDate;
 @Component
 @RequiredArgsConstructor
 public class TradPlusJob {
+    private final DspReportMapper reportMapper;
+    private final AffReport affReport;
+
     @Value("${feishu.aff.trad.cost-ratio}")
     private String costRatio;
     @Value("${feishu.aff.trad.imp-ratio}")
     private String impRatio;
-    @Value("${feishu.aff.trad.sheet-id}")
-    private String sheetId;
-    @Value("${feishu.aff.trad.sheet-token}")
-    private String sheetToken;
-    @Value("${feishu.aff.trad.sheet-unit-range}")
-    private String unitRange;
-    @Value("${feishu.aff.trad.sheet-range}")
-    private String range;
-
-    private final DspReportMapper reportMapper;
-    private final AffReport affReport;
-
+    private final String sheetId = "259b38";
+    private final String sheetToken = "H0mvsr527hRoE5taaeMcQz0Fnug";
+    private final String unitRange = "?!A3:A3";
+    private final String range = "?!A3:C3";
     private final Integer affId = 140;
 
     @XxlJob("FeishuAff140Job")
@@ -46,7 +41,7 @@ public class TradPlusJob {
         String targetDate = affReport.dateFormat(today);
         SpentDTO spent = reportMapper.getImpCostForAffUTC8(targetDate, affId);
 
-        affReport.postData(today, sheetId, sheetToken, spent, costRatio, impRatio, range);
+        affReport.postData(today, sheetId, sheetToken, spent, null, costRatio, impRatio, range);
         affReport.unitFormatter(sheetId, sheetToken, unitRange);
     }
 }

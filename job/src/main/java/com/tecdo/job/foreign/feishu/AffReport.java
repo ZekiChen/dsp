@@ -2,16 +2,23 @@ package com.tecdo.job.foreign.feishu;
 
 import cn.hutool.core.collection.CollUtil;
 import cn.hutool.core.map.MapUtil;
-import com.ejlchina.data.Array;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import com.ejlchina.data.Mapper;
 import com.ejlchina.okhttps.HttpResult;
 import com.ejlchina.okhttps.OkHttps;
 import com.tecdo.adm.api.delivery.dto.SpentDTO;
 import com.tecdo.adm.api.doris.dto.AffWeekReport;
+import com.tecdo.job.domain.entity.ReportAffGap;
+import com.tecdo.job.domain.vo.affReport.GapWarnUnit;
 import com.tecdo.job.domain.vo.affReport.InsertDimensionVO;
 import com.tecdo.job.domain.vo.camScanner.FeishuValRange;
 import com.tecdo.job.domain.vo.camScanner.FeishuSetUnitStyle;
 import com.tecdo.job.domain.vo.camScanner.UnitStyle;
+import com.tecdo.job.domain.vo.feishu.ContentData;
+import com.tecdo.job.domain.vo.feishu.MsgContent;
+import com.tecdo.job.mapper.ReportAffGapMapper;
+import com.tecdo.job.util.JsonHelper;
 import com.xxl.job.core.context.XxlJobHelper;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,9 +29,9 @@ import java.text.DecimalFormat;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+
+import static com.tecdo.job.constant.ReportConstant.*;
 
 /**
  * Created by Elwin on 2023/11/29
@@ -32,38 +39,20 @@ import java.util.Map;
 @Component
 @RequiredArgsConstructor
 public class AffReport {
-    @Value("${feishu.aff.app-id}")
-    private String appId;
-    @Value("${feishu.aff.app-secret}")
-    private String appSecret;
-    @Value("${feishu.aff.get-token.url}")
-    private String tenantTokenUrl;
+    private final ReportAffGapMapper reportAffGapMapper;
+    private String appId = FEISHU_APP_ID;
+    private String appSecret = FEISHU_APP_SECRET;
+    private String tenantTokenUrl = FEISHU_GET_TOKEN_URL;
 
-    @Value("${feishu.aff.sheet-formatter.url}")
-    private String sheetFormatterUrl;
-    @Value("${feishu.aff.sheet-prepend.url}")
-    private String sheetPrependUrl;
+    private String sheetFormatterUrl = FEISHU_SHEET_FORMATTER_URL;
+    private String sheetPrependUrl = FEISHU_SHEET_PREPEND_URL;
     private final String dateFormat = "yyyy/MM/dd";
-    private final String insertDimensionUrl = "https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/?/insert_dimension_range";
-    private final String valBatchUpdateUrl = "https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/?/values_batch_update";
-    private final String getMetaInfoUrl = "https://open.feishu.cn/open-apis/sheets/v2/spreadsheets/?/metainfo";
-
-    /**
-     * token有过期时间，每次使用token前调用此接口刷新token
-     * @return 返回应用的tenant token
-     */
-    public String getAccessToken() {
-        Map<String, Object> paramMap = MapUtil.newHashMap();
-        paramMap.put("app_id", appId);
-        paramMap.put("app_secret", appSecret);
-        HttpResult result = OkHttps.sync(tenantTokenUrl).bodyType(OkHttps.JSON).addBodyPara(paramMap).post();
-        String tenantToken;
-        if (result.isSuccessful()) {
-            tenantToken = result.getBody().toMapper().getString("tenant_access_token");
-            return tenantToken;
-        }
-        return "";
-    }
+    private final String insertDimensionUrl = FEISHU_SHEET_INSERT_DIMENSION_URL;
+    private final String valBatchUpdateUrl = FEISHU_SHEET_VAL_BATCH_UPDATE_URL;
+    private final String getMetaInfoUrl = FEISHU_SHEET_GET_META_INFO_URL;
+    private final String gapWarnReceiveId = "oc_6b40445785b746681a81b3bc31ac5bbd";
+    @Value("${pac.dsp.aff.gap}")
+    private Double gap;
 
     public void postWeekData(String sheetId, String sheetToken, List<AffWeekReport> data, String tenantToken) {
         if (CollUtil.isEmpty(data)) return;
@@ -98,70 +87,30 @@ public class AffReport {
     }
 
     /**
-     * 调用飞书多范围更新接口
-     * @param tenantToken tenantToken
-     * @param sheetToken sheetToken
-     * @param valRanges valRanges
-     * @return 成功/失败
-     */
-    public boolean valueBatchUpdate(String tenantToken, String sheetToken, List<FeishuValRange> valRanges) {
-        String valBatchUpdateUrl = this.valBatchUpdateUrl.replace("?", sheetToken);
-        Map<String, Object> paramMap = MapUtil.newHashMap();
-        paramMap.put("valueRanges", valRanges);
-        HttpResult result = OkHttps.sync(valBatchUpdateUrl)
-                .bodyType(OkHttps.JSON)
-                .addHeader("Authorization", "Bearer " + tenantToken)
-                .addBodyPara(paramMap)
-                .post();
-        return result.isSuccessful();
-    }
-
-    public boolean insertRow(String tenantToken, String sheetId, String sheetToken) {
-        String insertDimensionUrl = this.insertDimensionUrl.replace("?", sheetToken);
-        InsertDimensionVO dimensionVO = new InsertDimensionVO();
-        dimensionVO.setSheetId(sheetId);
-        dimensionVO.setMajorDimension("ROWS");
-        dimensionVO.setStartIndex(1);
-        dimensionVO.setEndIndex(2);
-
-        Map<String, Object> paramMap = MapUtil.newHashMap();
-        paramMap.put("inheritStyle", "AFTER");
-        paramMap.put("dimension", dimensionVO);
-
-        HttpResult result = OkHttps.sync(insertDimensionUrl)
-                .bodyType(OkHttps.JSON)
-                .addHeader("Authorization", "Bearer " + tenantToken)
-                .addBodyPara(paramMap)
-                .post();
-        return result.isSuccessful();
-    }
-
-    /**
      * 向飞书表格插入数据
-     *
-     * @param impCost 花费
+     * @param dspSpent dsp视角
+     * @Param affSpent 渠道视角，未提供api则传入null
      */
     public void postData(LocalDate today, String sheetId, String sheetToken,
-                         SpentDTO impCost, String costRatio, String impRatio, String range) {
+                         SpentDTO dspSpent, SpentDTO affSpent, String costRatio, String impRatio, String range) {
         // 处理占位符
         range = range.replace("?", sheetId);
         String sheetPrependUrl = this.sheetPrependUrl.replace("?", sheetToken);
 
-        String tenantToken = getAccessToken();
-
+        // 处理小数位和缩放比例
         DecimalFormat df = new DecimalFormat("#.0000"); // 保留4位小数
-        double finalCost = Double.parseDouble(df.format(impCost.getCost() * Double.parseDouble(costRatio)));
-        Long finalImp = Math.round(impCost.getImp() * Double.parseDouble(impRatio));
+        double finalCost = Double.parseDouble(df.format(dspSpent.getCost() * Double.parseDouble(costRatio)));
+        Long finalImp = Math.round(dspSpent.getImp() * Double.parseDouble(impRatio));
+        dspSpent.setCost(finalCost);
+        dspSpent.setImp(finalImp);
 
-        impCost.setCost(finalCost);
-        impCost.setImp(finalImp);
-
-        FeishuValRange request = new FeishuValRange(range, buildSpentDTO(daysFrom1899(today), impCost));
+        // 写入飞书文档
+        FeishuValRange request = new FeishuValRange(range, buildSpentDTO(daysFrom1899(today), dspSpent, affSpent));
         Map<String, Object> paramMap = MapUtil.newHashMap();
         paramMap.put("valueRange", request);
         HttpResult result = OkHttps.sync(sheetPrependUrl)
                 .bodyType(OkHttps.JSON)
-                .addHeader("Authorization", "Bearer " + tenantToken)
+                .addHeader("Authorization", "Bearer " + getAccessToken())
                 .addBodyPara(paramMap)
                 .post();
         String msg = result.isSuccessful() ? "数据写入成功" : "数据写入失败";
@@ -169,13 +118,162 @@ public class AffReport {
     }
 
     /**
-     * 由于飞书表格的特殊要求，为了填入日期类型的数据，需要填当前距离1899年12月30日的天数
-     * @return 当前距离1899年12月30日的天数
+     * 把日期对应的单元格设置为dateFormat日期类型
+     * @return true / false
      */
-    public Long daysFrom1899(LocalDate today) {
+    public boolean unitFormatter(String sheetId, String sheetToken, String unitRange) {
+        // 处理占位符
+        unitRange = unitRange.replace("?", sheetId);
+        String sheetFormatterUrl = this.sheetFormatterUrl.replace("?", sheetToken);
+
+        String tenantToken = getAccessToken();
+
+        FeishuSetUnitStyle request = new FeishuSetUnitStyle(unitRange, new UnitStyle(dateFormat));
+        Map<String, Object> paramMap = MapUtil.newHashMap();
+        paramMap.put("appendStyle", request);
+        HttpResult result = OkHttps.sync(sheetFormatterUrl)
+                .bodyType(OkHttps.JSON)
+                .addHeader("Authorization", "Bearer " + tenantToken)
+                .addBodyPara(paramMap)
+                .put();
+        System.out.println(result.getBody());
+        String msg = result.isSuccessful() ? "单元格格式修改成功" : "单元格格式修改失败";
+        XxlJobHelper.log(msg);
+        return result.isSuccessful();
+    }
+
+    /**
+     * 获取文件的meta信息
+     * @return meta info 响应体
+     */
+    public Mapper getMetaInfo(String sheetToken, String tenantToken) {
+        String getMetaInfoUrl = this.getMetaInfoUrl.replace("?", sheetToken);
+        HttpResult result = OkHttps.sync(getMetaInfoUrl)
+                .bodyType(OkHttps.JSON)
+                .addHeader("Authorization", "Bearer " + tenantToken)
+                .get();
+        return result.getBody().toMapper();
+    }
+
+    /**
+     * token有过期时间，每次使用token前调用此接口刷新token
+     * @return 返回应用的tenant token
+     */
+    public String getAccessToken() {
+        Map<String, Object> paramMap = MapUtil.newHashMap();
+        paramMap.put("app_id", appId);
+        paramMap.put("app_secret", appSecret);
+        HttpResult result = OkHttps.sync(tenantTokenUrl).bodyType(OkHttps.JSON).addBodyPara(paramMap).post();
+        String tenantToken;
+        if (result.isSuccessful()) {
+            tenantToken = result.getBody().toMapper().getString("tenant_access_token");
+            return tenantToken;
+        }
+        return "";
+    }
+
+    /**
+     * 通过飞书群组发送gap报警
+     */
+    public void gapMsgWarn(SpentDTO dspSpent, SpentDTO affSpent, Integer affId, String affName, String date) {
+        if (affSpent == null) return;
+        // 若affSpent可用，则进行gap报警判断
+        Long affImp = affSpent.getImp();
+        Double affRevenue = affSpent.getCost();
+        Long dspImp = dspSpent.getImp();
+        Double dspCost = dspSpent.getCost();
+        double impGap = (dspImp - affImp) * 100 / (double)affImp;
+        double costGap = (dspCost - affRevenue) * 100 / affRevenue;
+        if (Math.abs(costGap) > gap) {
+            GapWarnUnit costWarn = new GapWarnUnit("Cost",
+                    NumberUtil.round(dspCost, 2).toString(),
+                    NumberUtil.round(affRevenue, 2).toString(),
+                    NumberUtil.round(costGap, 2).toString().concat("%"));
+            GapWarnUnit impWarn = new GapWarnUnit("Imp",
+                    StrUtil.toString(dspImp),
+                    StrUtil.toString(affImp),
+                    NumberUtil.round(impGap, 2).toString().concat("%"));
+            List<GapWarnUnit> groupTable = new ArrayList<>();
+            groupTable.add(costWarn);
+            groupTable.add(impWarn);
+
+            Map<String, Object> var = new HashMap<>();
+            var.put("group_table", groupTable);
+            var.put("aff_id", StrUtil.toString(affId));
+            var.put("aff_name", affName);
+            var.put("date", date);
+
+            // 构建消息模板
+            ContentData<Map<String, Object>> contentData = new ContentData<>("ctp_AAi3ekgnsGb5", var);
+            MsgContent<Map<String, Object>> content = new MsgContent<>("template", contentData);
+            // 把消息模板序列化为json，并去掉首尾单引号
+            String escapedContent = JsonHelper.toJSONString(content)
+                    .replaceAll("^'+|'+$", "");
+
+            // 构建请求体request
+            Map<String, Object> request = MapUtil.newHashMap();
+            request.put("receive_id", gapWarnReceiveId);
+            request.put("msg_type", "interactive");
+            request.put("content", escapedContent);
+            request.put("uuid", UUID.randomUUID().toString());
+
+            // 发送请求
+            HttpResult result = OkHttps.sync(FEISHU_SEND_MSG_URL.concat("?").concat("receive_id_type=chat_id"))
+                    .bodyType(OkHttps.JSON)
+                    .addHeader("Authorization", "Bearer " + getAccessToken())
+                    .addBodyPara(request)
+                    .post();
+
+            if (!result.isSuccessful()) {
+                XxlJobHelper.handleFail("消息发送失败");
+            }
+        }
+    }
+
+    /* ------------------------------ Inner Util ------------------------------ */
+
+    /**
+     * 获取前一天时间
+     * @return 前一天日期字符串
+     */
+    public String dateFormat(LocalDate today) {
         LocalDate currentDate = today.minusDays(1);
-        LocalDate date1899 = LocalDate.of(1899, 12, 30);
-        return ChronoUnit.DAYS.between(date1899, currentDate);
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+        return currentDate.format(formatter);
+    }
+
+    /**
+     * 获取sheetPrependUrl中二维数组请求参数
+     * @param date 日期字符串
+     * @param dspSpent dsp视角的spent
+     * @param affSpent 渠道视角的revenue
+     * @return List<List<Object>>对象
+     */
+    public List<List<Object>> buildSpentDTO(Long date, SpentDTO dspSpent, SpentDTO affSpent) {
+        List<List<Object>> list = new ArrayList<>();
+        List<Object> subList = new ArrayList<>();
+        Long dspImp = dspSpent.getImp();
+        Double dspCost = dspSpent.getCost();
+
+        subList.add(date);
+        subList.add(dspImp);
+        subList.add(dspCost);
+
+        if (affSpent != null) {
+            Long affImp = affSpent.getImp();
+            Double affRevenue = affSpent.getCost();
+            double impGap = (dspImp - affImp) / (double)affImp;
+            double costGap = (dspCost - affRevenue) / affRevenue;
+
+            subList.add(affImp);
+            subList.add(NumberUtil.round(affRevenue, 4)); // 同步dspSpent保留4位小数
+            subList.add(NumberUtil.formatPercent(impGap, 2));
+            subList.add(NumberUtil.formatPercent(costGap, 2));
+        }
+
+        list.add(subList);
+
+        return list;
     }
 
     /**
@@ -209,65 +307,72 @@ public class AffReport {
     }
 
     /**
-     * 获取sheetPrependUrl中二维数组请求参数
-     * @param date 日期字符串
-     * @param spentDTO 曝光量+花费
-     * @return List<List<Object>>对象
+     * 由于飞书表格的特殊要求，为了填入日期类型的数据，需要填当前距离1899年12月30日的天数
+     * @return 当前距离1899年12月30日的天数
      */
-    public List<List<Object>> buildSpentDTO(Long date, SpentDTO spentDTO) {
-        List<List<Object>> list = new ArrayList<>();
-        List<Object> subList = new ArrayList<>();
-
-        subList.add(date);
-        subList.add(spentDTO.getImp());
-        subList.add(spentDTO.getCost());
-
-        list.add(subList);
-
-        return list;
+    public Long daysFrom1899(LocalDate today) {
+        LocalDate currentDate = today.minusDays(1);
+        LocalDate date1899 = LocalDate.of(1899, 12, 30);
+        return ChronoUnit.DAYS.between(date1899, currentDate);
     }
 
     /**
-     * 把日期对应的单元格设置为dateFormat日期类型
-     * @return true / false
+     * 插入空行，目的：继承前一行格式
+     * @return 成功/失败
      */
-    public boolean unitFormatter(String sheetId, String sheetToken, String unitRange) {
-        // 处理占位符
-        unitRange = unitRange.replace("?", sheetId);
-        String sheetFormatterUrl = this.sheetFormatterUrl.replace("?", sheetToken);
+    public boolean insertRow(String tenantToken, String sheetId, String sheetToken) {
+        String insertDimensionUrl = this.insertDimensionUrl.replace("?", sheetToken);
+        InsertDimensionVO dimensionVO = new InsertDimensionVO();
+        dimensionVO.setSheetId(sheetId);
+        dimensionVO.setMajorDimension("ROWS");
+        dimensionVO.setStartIndex(1);
+        dimensionVO.setEndIndex(2);
 
-        String tenantToken = getAccessToken();
-
-        FeishuSetUnitStyle request = new FeishuSetUnitStyle(unitRange, new UnitStyle(dateFormat));
         Map<String, Object> paramMap = MapUtil.newHashMap();
-        paramMap.put("appendStyle", request);
-        HttpResult result = OkHttps.sync(sheetFormatterUrl)
+        paramMap.put("inheritStyle", "AFTER");
+        paramMap.put("dimension", dimensionVO);
+
+        HttpResult result = OkHttps.sync(insertDimensionUrl)
                 .bodyType(OkHttps.JSON)
                 .addHeader("Authorization", "Bearer " + tenantToken)
                 .addBodyPara(paramMap)
-                .put();
-        System.out.println(result.getBody());
-        String msg = result.isSuccessful() ? "单元格格式修改成功" : "单元格格式修改失败";
-        XxlJobHelper.log(msg);
+                .post();
         return result.isSuccessful();
     }
 
     /**
-     * 获取前一天时间
-     * @return 前一天日期字符串
+     * 调用飞书多范围更新接口
+     * @param tenantToken tenantToken
+     * @param sheetToken sheetToken
+     * @param valRanges valRanges
+     * @return 成功/失败
      */
-    public String dateFormat(LocalDate today) {
-        LocalDate currentDate = today.minusDays(1);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-        return currentDate.format(formatter);
-    }
-
-    public Mapper getMetaInfo(String sheetToken, String tenantToken) {
-        String getMetaInfoUrl = this.getMetaInfoUrl.replace("?", sheetToken);
-        HttpResult result = OkHttps.sync(getMetaInfoUrl)
+    public boolean valueBatchUpdate(String tenantToken, String sheetToken, List<FeishuValRange> valRanges) {
+        String valBatchUpdateUrl = this.valBatchUpdateUrl.replace("?", sheetToken);
+        Map<String, Object> paramMap = MapUtil.newHashMap();
+        paramMap.put("valueRanges", valRanges);
+        HttpResult result = OkHttps.sync(valBatchUpdateUrl)
                 .bodyType(OkHttps.JSON)
                 .addHeader("Authorization", "Bearer " + tenantToken)
-                .get();
-        return result.getBody().toMapper();
+                .addBodyPara(paramMap)
+                .post();
+        return result.isSuccessful();
     }
+
+    public void insertGapReport(Integer affId, String date, SpentDTO dspSpent, SpentDTO affSpent) {
+        double impGap = ((dspSpent.getImp() - affSpent.getImp()) / (double)affSpent.getImp()) * 100;
+        double costGap = ((dspSpent.getCost() - affSpent.getCost()) / affSpent.getCost()) * 100;
+        ReportAffGap entity = new ReportAffGap();
+        entity.setCreateDate(date);
+        entity.setAffId(affId);
+        entity.setAffImp(affSpent.getImp());
+        entity.setDspImp(dspSpent.getImp());
+        entity.setGapImp(impGap);
+        entity.setAffCost(affSpent.getCost());
+        entity.setDspCost(dspSpent.getCost());
+        entity.setGapCost(costGap);
+        reportAffGapMapper.insert(entity);
+    }
+
+
 }

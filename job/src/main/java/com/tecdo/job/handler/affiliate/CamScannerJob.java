@@ -1,6 +1,7 @@
 package com.tecdo.job.handler.affiliate;
 
 import com.tecdo.adm.api.delivery.dto.SpentDTO;
+import com.tecdo.job.constant.ReportConstant;
 import com.tecdo.job.foreign.feishu.AffReport;
 import com.tecdo.job.mapper.DspReportMapper;
 import com.tecdo.job.util.TimeZoneUtils;
@@ -20,23 +21,17 @@ import java.time.LocalDate;
 @Component
 @RequiredArgsConstructor
 public class CamScannerJob {
+    private final DspReportMapper reportMapper;
+    private final AffReport affReport;
 
     @Value("${feishu.aff.cs.cost-ratio}")
     private String costRatio;
     @Value("${feishu.aff.cs.imp-ratio}")
     private String impRatio;
-    @Value("${feishu.aff.cs.sheet-id}")
-    private String sheetId;
-    @Value("${feishu.aff.cs.sheet-token}")
-    private String sheetToken;
-    @Value("${feishu.aff.sheet-unit-range}")
-    private String unitRange;
-    @Value("${feishu.aff.sheet-range}")
-    private String range;
-
-    private final DspReportMapper reportMapper;
-    private final AffReport affReport;
-
+    private final String sheetId = "0102f8";
+    private final String sheetToken = "QFI6s3KWCh52AdtiLadciQXmnHZ";
+    private final String unitRange = "?!A2:A2";
+    private final String range = "?!A2:C2";
     private final Integer affId = 127;
 
     @XxlJob("FeishuAff127Job")
@@ -47,7 +42,7 @@ public class CamScannerJob {
         String targetDate = affReport.dateFormat(today);
         SpentDTO spent = reportMapper.getImpCostForAffUTC8(targetDate, affId);
 
-        affReport.postData(today, sheetId, sheetToken, spent, costRatio, impRatio, range);
+        affReport.postData(today, sheetId, sheetToken, spent, null, costRatio, impRatio, range);
         affReport.unitFormatter(sheetId, sheetToken, unitRange);
     }
 

@@ -1,10 +1,8 @@
 package com.tecdo.log;
 
-import cn.hutool.core.collection.CollUtil;
-import cn.hutool.core.date.DateUtil;
-import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.Affiliate;
 import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
+import com.tecdo.adm.api.doris.entity.GooglePlayApp;
 import com.tecdo.constant.EventType;
 import com.tecdo.domain.biz.BidCreative;
 import com.tecdo.domain.biz.log.RequestLog;
@@ -12,21 +10,24 @@ import com.tecdo.domain.openrtb.request.BidRequest;
 import com.tecdo.domain.openrtb.request.Deal;
 import com.tecdo.domain.openrtb.request.Device;
 import com.tecdo.domain.openrtb.request.Imp;
-import com.tecdo.adm.api.doris.entity.GooglePlayApp;
+import com.tecdo.domain.openrtb.request.Publisher;
 import com.tecdo.domain.openrtb.request.Video;
 import com.tecdo.enums.openrtb.DeviceTypeEnum;
 import com.tecdo.util.CreativeHelper;
 import com.tecdo.util.ExtHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
+
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
 import java.util.Date;
-import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.date.DateUtil;
+import cn.hutool.core.util.StrUtil;
 
 /**
  * 构建 RequestLog 并持久化至本地文件中
@@ -131,6 +132,9 @@ public class RequestLogger {
                 .schain(ExtHelper.listSChain(bidRequest.getSource()))
                 .exceptionEvent(Optional.ofNullable(exceptionEvent).map(Enum::name).orElse(null))
                 .dealIds(dealIds)
+                .publisherId(Optional.ofNullable(bidRequest.getApp().getPublisher())
+                                     .map(Publisher::getId)
+                                     .orElse(""))
                 .build();
     }
 }

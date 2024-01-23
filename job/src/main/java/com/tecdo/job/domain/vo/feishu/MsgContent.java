@@ -1,4 +1,4 @@
-package com.tecdo.job.domain.vo.budget;
+package com.tecdo.job.domain.vo.feishu;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -8,9 +8,9 @@ import lombok.Data;
  */
 @Data
 @AllArgsConstructor
-public class MsgContent {
+public class MsgContent<T> {
     // 飞书群消息模板号
     private String type;
     // 消息对象
-    private ContentData data;
+    private ContentData<T> data;
 }
