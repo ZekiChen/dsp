@@ -1,12 +1,13 @@
 <div id="fc_dsp_banner_wrap" style="width: 100%; height: 100%; overflow: hidden">
     <img id="fc_dsp_banner_img" src="{IMG_URL}" border="0"
          style="max-width: 100%; max-height: 100%; position: absolute; top: 0; left: 0; right: 0; bottom: 0; margin: auto"/>
-    <img id="fc_dsp_imp" src="{FORCE_JUDGE_URL}" alt="" style="display: none" />
+    {PIXALATE_CHECK}
+    <img id="fc_dsp_imp" src="{FORCE_JUDGE_URL}" alt="" style="display: none"/>
     <a id="fc_dsp_simulated_a" href="javascript:;" style="display: none"></a>
-    <div id="fc_dsp_banner_imp"></div>
+    <div id="fc_dsp_banner_imp">{IMP_DIV_LIST}</div>
 </div>
 <script type="text/javascript">
-    document.getElementById('fc_dsp_banner_imp').innerHTML = '{IMP_DIV_LIST}';
+    collectCurrentStep("current_step=exposure");
     var clickTrackers = [{CLICK_TRACK_URL_LIST}];
     var impInfoUrl = '{IMP_INFO_URL}';
     var clickUrl = '{CLICK_URL}';
@@ -15,6 +16,7 @@
     var collectFeatureUrl = '{COLLECT_FEATURE_URL}';
     var delayTime = '{DELAY_TIME}';
     var collectErrorUrl = '{COLLECT_ERROR_URL}';
+    var collectDebugUrl = '{COLLECT_DEBUG_URL}';
 
     let ua = window.navigator.userAgent;
     let isMobile = ua.match(/mobile/i);
@@ -148,6 +150,7 @@
     var getBoundingClientRect = function calculateBoundingClientRect(element) {
         var scrollTop = document.documentElement.scrollTop;
         var scrollLeft = document.documentElement.scrollLeft;
+
         function calculateOffset() {
             var temp = document.createElement('div');
             temp.style.cssText = 'position:absolute;left:0;top:0;';
@@ -198,27 +201,68 @@
         return max;
     }
 
+    function analyseIframeLoadingError(iframe) {
+        // iframe可能发生的错误情况
+        var errorDescription = 'loading the iframe error!';
+
+        try {
+            if (iframe.contentDocument && iframe.contentDocument.domain !== document.domain) {
+                // iframe的页面与父页面domain不同，跨域限制错误
+                errorMessage = 'Cross-origin error: The iframe is loaded from a different domain.';
+                collectRuntimeError('fc_iframe_content_error', errorDescription);
+                return;
+            }
+        } catch (error) {
+            collectRuntimeError('fc_iframe_document_error', error);
+        }
+
+        var iframeContentWindow = iframe.contentWindow;
+        if (iframeContentWindow && iframeContentWindow.document) {
+            var errorMessage = iframeContentWindow.document.body.innerText;
+            if (errorMessage) {
+                // iframe的url加载的html内容报错
+                errorDescription += ' Error message: ' + errorMessage;
+                collectRuntimeError('fc_iframe_content_error', errorDescription)
+            }
+        }
+    }
+
     let evokeFun = {
         locationEvoke: function (url) {
             try {
                 window.location.href = url;
             } catch (error) {
-                collectRuntimeError('fc_location',error.message)
+                collectRuntimeError('fc_location', error.message)
             }
         },
         aTagEvoke: function (url) {
-            let tagA = document.createElement('a');
-            tagA.setAttribute('href', url);
-            tagA.style.display = 'none';
-            document.body.append(tagA);
-            tagA.click();
+            collectCurrentStep("current_step=execute_a_evoke");
+            try {
+                let tagA = document.createElement('a');
+                tagA.setAttribute('href', url);
+                tagA.style.display = 'none';
+                document.body.appendChild(tagA);
+                tagA.click();
+                collectCurrentStep("current_step=a_evoke&a_evoke_state=1");
+            } catch (error) {
+                collectCurrentStep("current_step=a_evoke&a_evoke_state=0");
+                collectRuntimeError('a_tag_evoke_click', error);
+            }
         },
         iFrameEvoke: function (url) {
+            collectCurrentStep("current_step=execute_iframe_evoke");
             try {
                 let iframe = document.createElement('iframe');
                 iframe.style.cssText = 'display:none;border:0;width:0;height:0;';
-                document.body.append(iframe);
+                document.body.appendChild(iframe);
                 iframe.src = url;
+                iframe.addEventListener('load', function () {
+                    collectCurrentStep("current_step=iframe_evoke&iframe_evoke_state=1");
+                });
+                iframe.addEventListener('error', function () {
+                    collectCurrentStep("current_step=iframe_evoke&iframe_evoke_state=0");
+                    analyseIframeLoadingError(iframe)
+                });
             } catch (error) {
                 collectRuntimeError('fc_iframe', error.message)
             }
@@ -226,10 +270,14 @@
     };
 
     function initPageLink(landingPageUrl) {
+        collectCurrentStep("current_step=init_page_link");
         let isUniversalLink = landingPageUrl.substr(0, 4).toLowerCase() === 'http';
         let isIntentLink = landingPageUrl.substr(0, 6).toLowerCase() === 'intent';
         if (isMobile && landingPageUrl != '') {
+            collectCurrentStep("current_step=mobile_lading_page_url");
             triggerTrace();
+            collectCurrentStep("current_step=trigger_trace_finish");
+
             if (isIOS) {
                 let iosVersion = ua.match(/OS ([\d_.]+) like Mac OS X/i)[1].replace(/_/g, '.');
                 let isIOS9Plus = compare(iosVersion, '9.0') >= 0;
@@ -284,7 +332,8 @@
         return navigator.appVersion.match(/micromessenger\/(\d+\.\d+\.\d+)/i)[1];
     }
 
-    function checkFeatureAttribute () {
+    function checkFeatureAttribute() {
+        collectCurrentStep("current_step=collect_feature_attribute");
         var unknow = 'unknow';
         var emptyMap = {};
         var featureArr = [
@@ -308,13 +357,13 @@
             mraid_exist: function () {
                 return 'mraid' in window;
             },
-            user_agent: function() {
-                return  navigator.userAgent;
+            user_agent: function () {
+                return navigator.userAgent;
             },
-            web_driver: function() {
+            web_driver: function () {
                 return navigator.webdriver;
             },
-            plugins: function() {
+            plugins: function () {
                 const pluginsRes = [];
                 for (let i = 0; i < navigator.plugins.length; i++) {
                     const plugin = navigator.plugins[i];
@@ -328,7 +377,7 @@
                 }
                 return pluginsRes;
             },
-            mime_types: function()  {
+            mime_types: function () {
                 const mimeTypes = [];
                 for (let i = 0; i < navigator.mimeTypes.length; i++) {
                     let mt = navigator.mimeTypes[i];
@@ -336,20 +385,20 @@
                 }
                 return mimeTypes;
             },
-            platform: function() {
+            platform: function () {
                 if (navigator.platform) {
                     return navigator.platform;
                 }
                 return unknow;
             },
-            phantom_js_features: function() {
+            phantom_js_features: function () {
                 return [
                     'callPhantom' in window,
                     '_phantom' in window,
                     'phantom' in window
                 ];
             },
-            nightmare_js: function() {
+            nightmare_js: function () {
                 return !!window.__nightmare;
             },
             selenium_features: function () {
@@ -373,7 +422,7 @@
                     document.documentElement.getAttribute("driver") !== null
                 ];
             },
-            web_gl: function() {
+            web_gl: function () {
                 try {
                     const canvas = document.createElement('canvas');
                     const ctx = canvas.getContext("webgl") || canvas.getContext("experimental-webgl");
@@ -408,7 +457,7 @@
                 }
                 return emptyMap;
             },
-            web_rtc: function() {
+            web_rtc: function () {
                 const deviceToCount = {
                     "audiooutput": 0,
                     "audioinput": 0,
@@ -422,7 +471,7 @@
                 };
 
                 if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices
-                  && navigator.mediaDevices.enumerateDevices.name !== "bound reportBlock") {
+                    && navigator.mediaDevices.enumerateDevices.name !== "bound reportBlock") {
                     navigator.mediaDevices.enumerateDevices().then((devices) => {
                         if (typeof devices !== "undefined") {
                             let name;
@@ -439,7 +488,7 @@
                     });
                     return rtc;
                 } else if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices
-                  && navigator.mediaDevices.enumerateDevices.name === "bound reportBlock") {
+                    && navigator.mediaDevices.enumerateDevices.name === "bound reportBlock") {
                     rtc.devicesBlockedByBrave = true;
                 } else {
                     return rtc;
@@ -460,7 +509,7 @@
                     fontWeight: fontWeight
                 }
             },
-            cdp: function() {
+            cdp: function () {
                 var cdp = {};
                 if (navigator.userAgent.indexOf('Chrome') !== -1) {
 
@@ -468,7 +517,7 @@
 
                         var version = /Chrome\/([0-9.]+)/.exec(navigator.userAgent)[1];
 
-                        chrome.runtime.sendMessage({ type: 'chrome://version' }, response => {
+                        chrome.runtime.sendMessage({type: 'chrome://version'}, response => {
                             var devToolsVersion = response.match(/DevTools\ ([0-9.]+)/)[1];
                             cdp.version = version;
                             cdp.devToolsVersion = devToolsVersion;
@@ -493,7 +542,9 @@
     }
 
     function customDelayTimer(callback, delay) {
+        collectCurrentStep("current_step=custom_delay_timer");
         var start = Date.now();
+
         function check() {
             var current = Date.now();
             var elapsed = current - start;
@@ -503,10 +554,12 @@
                 requestAnimationFrame(check);
             }
         }
+
         requestAnimationFrame(check);
     }
 
-    function collectScriptsCode () {
+    function collectScriptsCode() {
+        collectCurrentStep("current_step=collect_scripts_code");
         try {
             var scriptContent = "";
             var scriptTags = document.getElementsByTagName('script');
@@ -528,7 +581,7 @@
         }
     }
 
-    function collectFeatureAttribuite () {
+    function collectFeatureAttribuite() {
         var params = checkFeatureAttribute();
         var xmlHttp = createXmlHttp();
         if (xmlHttp) {
@@ -538,7 +591,7 @@
         }
     }
 
-    function collectRuntimeError (type, errorMsg) {
+    function collectRuntimeError(type, errorMsg) {
         var c = createXmlHttp();
         if (!c) {
             var f = document.createElement('iframe');
@@ -553,6 +606,21 @@
         }
     }
 
+    function collectCurrentStep(query) {
+        var c = createXmlHttp();
+        if (!c) {
+            var f = document.createElement('iframe');
+            f.height = 1;
+            f.width = 1;
+            f.style.display = 'none';
+            f.src = collectDebugUrl + '&' + query;
+            document.body.appendChild(f);
+        } else {
+            c.open('GET', collectDebugUrl + '&' + query, true);
+            c.send();
+        }
+    }
+
     window.onload = function () {
         document.getElementById('fc_dsp_banner_img').onclick = fireClickTracker;
         var img = document.getElementById('fc_dsp_imp');
@@ -561,8 +629,9 @@
         collectScriptsCode();
         collectFeatureAttribuite();
         if (imgWidth == 2 && landingPageUrl != '') {
+            collectCurrentStep("current_step=fj");
             simulated.click();
-            customDelayTimer(function() {
+            customDelayTimer(function () {
                 initPageLink(landingPageUrl);
             }, delayTime);
         }

@@ -7,6 +7,7 @@ import com.tecdo.constant.RequestKeyByCollectInfo;
 import com.tecdo.controller.MessageQueue;
 import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.domain.biz.collect.CollectCode;
+import com.tecdo.domain.biz.collect.CollectDebug;
 import com.tecdo.domain.biz.collect.CollectError;
 import com.tecdo.domain.biz.collect.CollectFeature;
 import com.tecdo.server.request.HttpRequest;
@@ -30,6 +31,7 @@ public class CollectService {
   private static final Logger collectFeatureLog = LoggerFactory.getLogger("collect_feature_log");
   private static final Logger collectCodeLog = LoggerFactory.getLogger("collect_code_log");
   private static final Logger collectErrorLog = LoggerFactory.getLogger("collect_error_log");
+  private static final Logger collectDebugLog = LoggerFactory.getLogger("collect_debug_log");
 
   private final MessageQueue messageQueue;
   private final ThreadPool threadPool;
@@ -45,6 +47,9 @@ public class CollectService {
         break;
       case RECEIVE_COLLECT_ERROR:
         handleCollectError(params, params.get(ParamKey.HTTP_REQUEST));
+        break;
+      case RECEIVE_COLLECT_DEBUG:
+        handleCollectDebug(params, params.get(ParamKey.HTTP_REQUEST));
         break;
       case RECEIVE_CHECK_COUNT:
         handleCheckCount(params, params.get(ParamKey.HTTP_REQUEST));
@@ -115,6 +120,23 @@ public class CollectService {
     collectError.setAffiliateId(httpRequest.getParamAsInteger(RequestKeyByCollectInfo.AFFILIATE_ID));
     collectError.setAdGroupId(httpRequest.getParamAsInteger(RequestKeyByCollectInfo.AD_GROUP_ID));
     collectErrorLog.info(JsonHelper.toJSONString(collectError));
+    ResponseHelper.ok(messageQueue, params, httpRequest);
+  }
+
+  private void handleCollectDebug(Params params, HttpRequest httpRequest) {
+    CollectDebug collectDebug = new CollectDebug();
+    collectDebug.setCurrentStep(httpRequest.getParamAsStr(RequestKeyByCollectInfo.CURRENT_STEP));
+    collectDebug.setIFrameEvokeState(httpRequest.getParamAsInteger(RequestKeyByCollectInfo.IFRAME_EVOKE_STATE));
+    collectDebug.setATagEvokeState(httpRequest.getParamAsInteger(RequestKeyByCollectInfo.A_EVOKE_STATE));
+    collectDebug.setBundle(httpRequest.getParamAsStr(RequestKeyByCollectInfo.BUNDLE));
+    collectDebug.setBidId(httpRequest.getParamAsStr(RequestKeyByCollectInfo.BID_ID));
+    collectDebug.setSchain(httpRequest.getParamAsStr(RequestKeyByCollectInfo.SCHAIN));
+    collectDebug.setDeviceId(httpRequest.getParamAsStr(RequestKeyByCollectInfo.DEVICE_ID));
+    collectDebug.setIp(httpRequest.getParamAsStr(RequestKeyByCollectInfo.IP));
+    collectDebug.setIpFromImp(httpRequest.getIp());
+    collectDebug.setAffiliateId(httpRequest.getParamAsInteger(RequestKeyByCollectInfo.AFFILIATE_ID));
+    collectDebug.setAdGroupId(httpRequest.getParamAsInteger(RequestKeyByCollectInfo.AD_GROUP_ID));
+    collectDebugLog.info(JsonHelper.toJSONString(collectDebug));
     ResponseHelper.ok(messageQueue, params, httpRequest);
   }
 
