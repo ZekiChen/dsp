@@ -233,4 +233,7 @@ public class RequestLog implements Serializable {
 
     @JsonProperty("deal_ids")
     private String dealIds;
+
+    @JsonProperty("publisher_id")
+    private String publisherId;
 }
