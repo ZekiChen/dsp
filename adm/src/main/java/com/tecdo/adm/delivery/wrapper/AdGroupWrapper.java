@@ -48,10 +48,14 @@ public class AdGroupWrapper extends EntityWrapper<AdGroup, AdGroupVO> {
 		setCountries(vo, conditionVOs);
 
 		if (BidModeEnum.TWO_STAGE_BID.getType() == adGroup.getBidMode() && CollUtil.isNotEmpty(strategies)) {
-			vo.setMultiOptPrice(NumberUtil.toStr(strategies.get(0).getOptPrice(), "0")
-					+ ", " + NumberUtil.toStr(strategies.get(1).getOptPrice(), "0"));
-			vo.setMultiBidStrategy(BidStrategyEnum.of(strategies.get(0).getBidStrategy()).getDesc()
-					+ ", " + BidStrategyEnum.of(strategies.get(1).getBidStrategy()).getDesc());
+			BidStrategyEnum firstStage = BidStrategyEnum.of(strategies.get(0).getBidStrategy());
+			BidStrategyEnum secondStage = BidStrategyEnum.of(strategies.get(1).getBidStrategy());
+			String firstPrice = BidStrategyEnum.DYNAMIC.getType() == firstStage.getType()
+					? ("×" + strategies.get(0).getBidMultiplier()) : NumberUtil.toStr(strategies.get(0).getOptPrice());
+			String secondPrice = BidStrategyEnum.DYNAMIC.getType() == secondStage.getType()
+					? ("×" + strategies.get(1).getBidMultiplier()) : NumberUtil.toStr(strategies.get(1).getOptPrice());
+			vo.setMultiOptPrice(firstPrice + ", " + secondPrice);
+			vo.setMultiBidStrategy(firstStage.getDesc() + ", " + secondStage.getDesc());
 		}
 
 		return vo;
