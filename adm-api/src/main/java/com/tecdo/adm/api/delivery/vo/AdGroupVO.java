@@ -1,5 +1,6 @@
 package com.tecdo.adm.api.delivery.vo;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.MultiBidStrategy;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
@@ -34,6 +35,11 @@ public class AdGroupVO extends AdGroup {
 	private boolean isCostFull;
 	@ApiModelProperty("双阶段出价模式")
 	private List<MultiBidStrategyVO> strategyVOs;
+
+	@ApiModelProperty(value = "竞价策略", notes = "BidStrategyEnum")
+	private String multiBidStrategy;
+	@ApiModelProperty("操作价格")
+	private String multiOptPrice;
 
 	public List<MultiBidStrategy> listStrategies() {
 		List<MultiBidStrategy> strategies = strategyVOs.stream().map(e -> {
