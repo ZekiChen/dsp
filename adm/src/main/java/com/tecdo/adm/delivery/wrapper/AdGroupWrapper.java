@@ -1,8 +1,13 @@
 package com.tecdo.adm.delivery.wrapper;
 
+import cn.hutool.core.collection.CollUtil;
+import cn.hutool.core.util.NumberUtil;
+import cn.hutool.core.util.StrUtil;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
 import com.tecdo.adm.api.delivery.entity.MultiBidStrategy;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
+import com.tecdo.adm.api.delivery.enums.BidModeEnum;
+import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.vo.AdGroupVO;
 import com.tecdo.adm.api.delivery.vo.MultiBidStrategyVO;
@@ -41,6 +46,13 @@ public class AdGroupWrapper extends EntityWrapper<AdGroup, AdGroupVO> {
 		vo.setStrategyVOs(strategyVOs);
 		setAffNames(vo, conditionVOs);
 		setCountries(vo, conditionVOs);
+
+		if (BidModeEnum.TWO_STAGE_BID.getType() == adGroup.getBidMode() && CollUtil.isNotEmpty(strategies)) {
+			vo.setMultiOptPrice(NumberUtil.toStr(strategies.get(0).getOptPrice(), "0")
+					+ ", " + NumberUtil.toStr(strategies.get(1).getOptPrice(), "0"));
+			vo.setMultiBidStrategy(BidStrategyEnum.of(strategies.get(0).getBidStrategy()).getDesc()
+					+ ", " + BidStrategyEnum.of(strategies.get(1).getBidStrategy()).getDesc());
+		}
 
 		return vo;
 	}
