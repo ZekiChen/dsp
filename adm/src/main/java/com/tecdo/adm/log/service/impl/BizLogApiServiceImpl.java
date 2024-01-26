@@ -5,10 +5,7 @@ import cn.hutool.core.util.ArrayUtil;
 import cn.hutool.core.util.ObjectUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
-import com.tecdo.adm.api.delivery.entity.Ad;
-import com.tecdo.adm.api.delivery.entity.AdGroup;
-import com.tecdo.adm.api.delivery.entity.MultiBidStrategy;
-import com.tecdo.adm.api.delivery.entity.TargetCondition;
+import com.tecdo.adm.api.delivery.entity.*;
 import com.tecdo.adm.api.delivery.enums.BidStrategyEnum;
 import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.vo.*;
@@ -21,17 +18,14 @@ import com.tecdo.core.launch.thread.ThreadPool;
 import com.tecdo.starter.mp.entity.IdEntity;
 import com.tecdo.starter.mp.entity.StatusEntity;
 import com.tecdo.starter.mp.enums.BaseStatusEnum;
-import com.tecdo.starter.tool.util.BeanUtil;
 import com.tecdo.starter.tool.util.ClassUtil;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.BeanUtils;
-import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Service;
 
 import java.lang.reflect.Field;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -155,12 +149,13 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
 
     /**
      * 比较对象修改前后并写入修改日志
-     * @param sb 日志字符串
-     * @param beforeVO 修改前对象
-     * @param afterVO 修改后对象
+     *
+     * @param sb       日志字符串
+     * @param before 修改前对象
+     * @param after  修改后对象
      */
-    public void compareObj(StringBuilder sb, Object beforeVO, Object afterVO) throws IllegalAccessException {
-        Class<?> clazz = afterVO.getClass();
+    public void compareObj(StringBuilder sb, Object before, Object after) throws IllegalAccessException {
+        Class<?> clazz = after.getClass();
         Field[] fields = clazz.getDeclaredFields();
 
         // 获取父类的私有字段
@@ -173,10 +168,11 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
         for (Field field : fields) {
             field.setAccessible(true);
 
+            // 不是8种基本类型或包装类型，也不是字符串的话，就不进行处理
             if (!ClassUtil.isPrimitiveOrWrapper(field.getType()) && !(field.getType() == String.class)) continue;
             String fieldName = field.getName();
-            Object beforeValue = field.get(beforeVO);
-            Object afterValue = field.get(afterVO);
+            Object beforeValue = field.get(before);
+            Object afterValue = field.get(after);
 
             //为空则证明不被更新
             if (afterValue == null) continue;
@@ -515,6 +511,26 @@ public class BizLogApiServiceImpl extends ServiceImpl<BizLogApiMapper, BizLogApi
             if (CollUtil.isNotEmpty(bizLogApis)) {
                 saveBatch(bizLogApis);
             }
+        });
+    }
+
+    @Override
+    public void logByUpdateCreative(Creative before, Creative after) {
+        threadPool.execute(() -> {
+            StringBuilder sb = new StringBuilder();
+            try {
+                compareObj(sb, before, after);
+            } catch (IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
+            BizLogApi bizLogApi = new BizLogApi();
+            bizLogApi.setBizId(before.getId());
+            bizLogApi.setOptType(OptTypeEnum.UPDATE.getType());
+            bizLogApi.setBizType(BizTypeEnum.CREATIVE.getType());
+            bizLogApi.setTitle("Creative Update");
+            bizLogApi.setCreator("admin");
+            bizLogApi.setContent(sb.length() > 0 ? sb.substring(0, sb.length() - 1) : null);
+            save(bizLogApi);
         });
     }
 
