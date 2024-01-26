@@ -1,12 +1,15 @@
 package com.tecdo.adm.delivery.service.impl;
 
+import cn.hutool.core.bean.BeanUtil;
 import cn.hutool.core.util.StrUtil;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.enums.CreativeTypeEnum;
 import com.tecdo.adm.api.delivery.mapper.CreativeMapper;
+import com.tecdo.adm.api.delivery.vo.AdGroupVO;
 import com.tecdo.adm.api.delivery.vo.CreativeSpecVO;
 import com.tecdo.adm.delivery.service.ICreativeService;
+import com.tecdo.adm.log.service.IBizLogApiService;
 import com.tecdo.adm.system.service.IDictService;
 import com.tecdo.core.launch.response.R;
 import com.tecdo.starter.oss.OssTemplate;
@@ -23,6 +26,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import static com.tecdo.common.constant.CacheConstant.CREATIVE_CACHE;
 
@@ -32,8 +36,12 @@ import static com.tecdo.common.constant.CacheConstant.CREATIVE_CACHE;
 @Service
 @RequiredArgsConstructor
 public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> implements ICreativeService {
+
     private final IDictService dictService;
+    private final IBizLogApiService bizLogApiService;
+
     private final int maxAttemptCnt = 3;
+
     @Override
     public List<CreativeSpecVO> listSpecs() {
         return baseMapper.listSpecs();
@@ -116,6 +124,7 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
         if (entity == null) {
             return R.failure();
         }
+        Creative before = Objects.requireNonNull(BeanUtil.copyProperties(entity, Creative.class));
         if (file != null) {
             PacFile pacFile = ossTemplate.uploadFile(file.getOriginalFilename(), file.getInputStream());
             entity.setUrl(pacFile.getUrl());
@@ -133,7 +142,9 @@ public class CreativeServiceImpl extends ServiceImpl<CreativeMapper, Creative> i
         entity.setExternalId(externalId);
 
         try {
-            return R.status(updateById(entity));
+            boolean result = updateById(entity);
+            bizLogApiService.logByUpdateCreative(before, entity);
+            return R.status(result);
         } catch (DuplicateKeyException e) {
             // 多个用户同时操作，导致生成的external_id冲突
             return R.data("external id被占用，请重新update!");

@@ -14,7 +14,8 @@ public enum BizTypeEnum {
 
     CAMPAIGN(1, "Campaign"),
     AD_GROUP(2, "AdGroup"),
-    AD(3, "Ad");
+    AD(3, "Ad"),
+    CREATIVE(4, "Creative");
 
     private final Integer type;
     private final String desc;
