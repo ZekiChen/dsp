@@ -37,6 +37,9 @@ public class ECPXManager extends ServiceImpl<ReportMapper, Report> {
     private State currentState = State.INIT;
     private long timerId;
 
+    @Value("${pac.load.doris.history-ecpx.day-period:3}")
+    private Integer dayPeriod;
+
     private Map<String, ECPX> eCPXMap;
 
     @Value("${pac.timeout.load.doris.report.ecpx}")
@@ -125,7 +128,7 @@ public class ECPXManager extends ServiceImpl<ReportMapper, Report> {
             case RUNNING:
                 threadPool.execute(() -> {
                     try {
-                        String startDay = DateUtil.offsetDay(new Date(), -3).toDateStr();
+                        String startDay = DateUtil.offsetDay(new Date(), -dayPeriod).toDateStr();
                         String endDay = DateUtil.offsetDay(new Date(), -1).toDateStr();
                         long startTime = System.currentTimeMillis();
                         List<ECPX> eCPXs = baseMapper.listECPX(startDay, endDay);
@@ -191,7 +194,7 @@ public class ECPXManager extends ServiceImpl<ReportMapper, Report> {
                 switchState(State.INIT);
                 break;
             case UPDATING:
-                log.error("timeout load eCPXs");
+                log.error("vtimeout load eCPXs");
                 startNextReloadTimer(params);
                 switchState(State.RUNNING);
                 break;

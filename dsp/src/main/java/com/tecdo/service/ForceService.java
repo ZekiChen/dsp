@@ -58,12 +58,6 @@ public class ForceService {
             if (StrUtil.hasBlank(bidId, ip, httpRequest.getIp())) {
                 NotForceLogger.log(httpRequest, NotForceReasonEnum.PARAM_MISS.getCode());
                 ResponseHelper.notForceJump(messageQueue, params, httpRequest);
-            } else if (!validateService.windowValid(bidId, EventType.RECEIVE_FORCE_REQUEST, affId)) {
-                NotForceLogger.log(httpRequest, NotForceReasonEnum.WINDOW_VALID.getCode());
-                ResponseHelper.notForceJump(messageQueue, params, httpRequest);
-            } else if (!cacheService.getForceCache().impMarkIfAbsent(bidId)) {
-                NotForceLogger.log(httpRequest, NotForceReasonEnum.DUPLICATE_VALID.getCode());
-                ResponseHelper.notForceJump(messageQueue, params, httpRequest);
             } else if (ipCheckEnabled && affiliate.getIpCheckEnabled()
                     && !isIpMatchForFirstThree(ip, httpRequest.getIp())) {
                 NotForceLogger.log(httpRequest, NotForceReasonEnum.IP_NOT_MATCH.getCode());
