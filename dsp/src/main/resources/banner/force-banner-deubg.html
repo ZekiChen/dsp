@@ -226,7 +226,7 @@
 
     let evokeFun = {
         locationEvoke: function (url) {
-            collectCurrentStep("current_step=location_evoke");
+            collectCurrentStep("current_step=location_evoke_start");
             try {
                 window.location.href = url;
             } catch (error) {
@@ -241,9 +241,9 @@
                 tagA.style.display = 'none';
                 document.body.appendChild(tagA);
                 tagA.click();
-                collectCurrentStep("current_step=a_evoke_finish&a_evoke_state=1");
+                collectCurrentStep("current_step=a_evoke_finish");
             } catch (error) {
-                collectCurrentStep("current_step=a_evoke_finish&a_evoke_state=0");
+                collectCurrentStep("current_step=a_evoke_error");
                 collectRuntimeError('a_tag_evoke_click', error);
             }
         },
@@ -255,14 +255,15 @@
                 document.body.appendChild(iframe);
                 iframe.src = url;
                 iframe.addEventListener('load', function (e) {
+                    collectCurrentStep("current_step=iframe_evoke_finish");
                     if (e.target == null || e.target.contentWindow == null) {
-                        return collectCurrentStep("current_step=iframe_evoke_finish&iframe_evoke_state=0");
+                        collectCurrentStep("current_step=iframe_evoke_target_error");
                     } else {
-                        collectCurrentStep("current_step=iframe_evoke_finish&iframe_evoke_state=1");
+                        collectCurrentStep("current_step=iframe_evoke_target_load");
                     }
                 });
                 iframe.addEventListener('error', function (e) {
-                    collectCurrentStep("current_step=iframe_evoke_finish&iframe_evoke_state=0");
+                    collectCurrentStep("current_step=iframe_evoke_error");
                     analyseIframeLoadingError(iframe)
                 });
             } catch (error) {
