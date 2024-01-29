@@ -135,9 +135,6 @@ public abstract class AbstractTransform implements IProtoTransform {
     @Autowired
     private CacheService cacheService;
 
-    @Value("${pac.affiliate.default-bidfloor:0.05f}")
-    private Float defaultBibFloor;
-
     @Override
     public ResponseTypeEnum getResponseType(String forceLink, AdDTOWrapper wrapper) {
         if (isForceJump(forceLink, wrapper)) {
