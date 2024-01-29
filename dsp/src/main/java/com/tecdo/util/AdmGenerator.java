@@ -41,7 +41,8 @@ public class AdmGenerator {
                                         double delayTime,
                                         String checkUrl,
                                         String checkCountUrl,
-                                        boolean needCheck) {
+                                        boolean needCheck,
+                                        boolean debugEnabled) {
         String finalClickUrl = StringUtils.firstNonBlank(deepLink, clickUrl);
         StringBuilder impDivListBuilder = new StringBuilder();
         String impDivTemplate = "<img src=\"{impTrack}\" style=\"display:none\"/>";
@@ -54,11 +55,15 @@ public class AdmGenerator {
         }
         clickTrackBuilder.delete(clickTrackBuilder.length() - 1, clickTrackBuilder.length());
 
+        String admTemplate = debugEnabled
+                ? StringConfigUtil.getForceBannerDebugTemplate()
+                : StringConfigUtil.getForceBannerTemplate();
+
         String pixalateCode = "<img id=\"fc_dsp_c\" src=\"" + checkUrl + "\" alt=\"\" style=\"display: none\"/>\n" +
                 "    <img id=\"fc_dsp_cc\" src=\"" + checkCountUrl + "\" alt=\"\" style=\"display: none\"/>";
-        String admTemplate = needCheck
-                ? StringConfigUtil.getForceBannerTemplate().replace(FormatKey.PIXALATE_CHECK, pixalateCode)
-                : StringConfigUtil.getForceBannerTemplate().replace(FormatKey.PIXALATE_CHECK, "");
+        admTemplate = needCheck
+                ? admTemplate.replace(FormatKey.PIXALATE_CHECK, pixalateCode)
+                : admTemplate.replace(FormatKey.PIXALATE_CHECK, "");
 
         return admTemplate.replace(FormatKey.CLICK_URL, finalClickUrl)
                 .replace(FormatKey.FORCE_URL, forceLink)
