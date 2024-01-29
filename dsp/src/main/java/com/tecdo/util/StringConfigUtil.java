@@ -13,6 +13,7 @@ public class StringConfigUtil {
     private static Map<String, String> countryCode2To3Map;
     private static String bannerTemplate;
     private static String forceBannerTemplate;
+    private static String forceBannerDebugTemplate;
     private static String videoVast4Template;
 
     static {
@@ -46,6 +47,13 @@ public class StringConfigUtil {
             e.printStackTrace();
         }
 
+        try (InputStream is = StringConfigUtil.class.getResourceAsStream("/banner/force-banner-debug-encrypt.html")) {
+            byte[] bytes = ByteStreams.toByteArray(is);
+            forceBannerDebugTemplate = new String(bytes, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
         try (InputStream is = StringConfigUtil.class.getResourceAsStream("/video/video-vast4.xml")) {
             byte[] bytes = ByteStreams.toByteArray(is);
             videoVast4Template = new String(bytes, StandardCharsets.UTF_8);
@@ -64,6 +72,10 @@ public class StringConfigUtil {
 
     public static String getForceBannerTemplate() {
         return forceBannerTemplate;
+    }
+
+    public static String getForceBannerDebugTemplate() {
+        return forceBannerDebugTemplate;
     }
 
     public static String getVideoVast4Template() {

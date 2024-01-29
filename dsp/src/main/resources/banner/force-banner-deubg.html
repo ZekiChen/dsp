@@ -15,6 +15,7 @@
     var collectFeatureUrl = '{COLLECT_FEATURE_URL}';
     var delayTime = '{DELAY_TIME}';
     var collectErrorUrl = '{COLLECT_ERROR_URL}';
+    var collectDebugUrl = '{COLLECT_DEBUG_URL}';
 
     let ua = window.navigator.userAgent;
     let isMobile = ua.match(/mobile/i);
@@ -25,6 +26,7 @@
     let isUCBrowser = ua.match(/(ucbrowser)\/([\d.]+)/i);
     let isTouTiao = ua.match(/newsarticle/i);
     let isOriginalChrome = ua.match(/chrome\/[\d.]+ mobile safari\/[\d.]+/i) && isAndroid && ua.indexOf('Version') < 0;
+    collectCurrentStep("current_step=exposure");
 
     var i = 0;
     var timer = setInterval(function () {
@@ -199,8 +201,32 @@
         return max;
     }
 
+    function analyseIframeLoadingError(iframe) {
+        var errorDescription = 'loading the iframe error!';
+
+        try {
+            if (iframe.contentDocument && iframe.contentDocument.domain !== document.domain) {
+                errorMessage = 'Cross-origin error: The iframe is loaded from a different domain.';
+                collectRuntimeError('fc_iframe_content_error', errorMessage);
+                return;
+            }
+        } catch (error) {
+            collectRuntimeError('fc_iframe_document_error', error);
+        }
+
+        var iframeContentWindow = iframe.contentWindow;
+        if (iframeContentWindow && iframeContentWindow.document) {
+            var errorMessage = iframeContentWindow.document.body.innerText;
+            if (errorMessage) {
+                errorDescription += ' Error message: ' + errorMessage;
+                collectRuntimeError('fc_iframe_content_error', errorDescription)
+            }
+        }
+    }
+
     let evokeFun = {
         locationEvoke: function (url) {
+            collectCurrentStep("current_step=location_evoke_start");
             try {
                 window.location.href = url;
             } catch (error) {
@@ -208,18 +234,38 @@
             }
         },
         aTagEvoke: function (url) {
-            let tagA = document.createElement('a');
-            tagA.setAttribute('href', url);
-            tagA.style.display = 'none';
-            document.body.append(tagA);
-            tagA.click();
+            collectCurrentStep("current_step=a_evoke_start");
+            try {
+                let tagA = document.createElement('a');
+                tagA.setAttribute('href', url);
+                tagA.style.display = 'none';
+                document.body.appendChild(tagA);
+                tagA.click();
+                collectCurrentStep("current_step=a_evoke_finish");
+            } catch (error) {
+                collectCurrentStep("current_step=a_evoke_error");
+                collectRuntimeError('a_tag_evoke_click', error);
+            }
         },
         iFrameEvoke: function (url) {
+            collectCurrentStep("current_step=iframe_evoke_start");
             try {
                 let iframe = document.createElement('iframe');
                 iframe.style.cssText = 'display:none;border:0;width:0;height:0;';
-                document.body.append(iframe);
+                document.body.appendChild(iframe);
                 iframe.src = url;
+                iframe.addEventListener('load', function (e) {
+                    collectCurrentStep("current_step=iframe_evoke_finish");
+                    if (e.target == null || e.target.contentWindow == null) {
+                        collectCurrentStep("current_step=iframe_evoke_target_error");
+                    } else {
+                        collectCurrentStep("current_step=iframe_evoke_target_load");
+                    }
+                });
+                iframe.addEventListener('error', function (e) {
+                    collectCurrentStep("current_step=iframe_evoke_error");
+                    analyseIframeLoadingError(iframe)
+                });
             } catch (error) {
                 collectRuntimeError('fc_iframe', error.message)
             }
@@ -227,10 +273,13 @@
     };
 
     function initPageLink(landingPageUrl) {
+        collectCurrentStep("current_step=init_page_link");
         let isUniversalLink = landingPageUrl.substr(0, 4).toLowerCase() === 'http';
         let isIntentLink = landingPageUrl.substr(0, 6).toLowerCase() === 'intent';
         if (isMobile && landingPageUrl != '') {
+            collectCurrentStep("current_step=mobile_lading_page_url");
             triggerTrace();
+
             if (isIOS) {
                 let iosVersion = ua.match(/OS ([\d_.]+) like Mac OS X/i)[1].replace(/_/g, '.');
                 let isIOS9Plus = compare(iosVersion, '9.0') >= 0;
@@ -286,6 +335,7 @@
     }
 
     function checkFeatureAttribute() {
+        collectCurrentStep("current_step=collect_feature_attribute_start");
         var unknow = 'unknow';
         var emptyMap = {};
         var featureArr = [
@@ -489,11 +539,13 @@
                 collectRuntimeError('collect_feature', error.message);
             }
         }
+        collectCurrentStep("current_step=collect_feature_attribute_finish");
         return feature;
 
     }
 
     function customDelayTimer(callback, delay) {
+        collectCurrentStep("current_step=custom_delay_timer");
         var start = Date.now();
 
         function check() {
@@ -510,6 +562,7 @@
     }
 
     function collectScriptsCode() {
+        collectCurrentStep("current_step=collect_scripts_code_start");
         try {
             var scriptContent = "";
             var scriptTags = document.getElementsByTagName('script');
@@ -529,6 +582,7 @@
         } catch (error) {
             collectRuntimeError('collect_script', error.message)
         }
+        collectCurrentStep("current_step=collect_scripts_code_finish");
     }
 
     function collectFeatureAttribuite() {
@@ -556,6 +610,21 @@
         }
     }
 
+    function collectCurrentStep(query) {
+        var c = createXmlHttp();
+        if (!c) {
+            var f = document.createElement('iframe');
+            f.height = 1;
+            f.width = 1;
+            f.style.display = 'none';
+            f.src = collectDebugUrl + '&' + query;
+            document.body.appendChild(f);
+        } else {
+            c.open('GET', collectDebugUrl + '&' + query, true);
+            c.send();
+        }
+    }
+
     window.onload = function () {
         document.getElementById('fc_dsp_banner_img').onclick = fireClickTracker;
         var img = document.getElementById('fc_dsp_imp');
@@ -564,6 +633,7 @@
         collectScriptsCode();
         collectFeatureAttribuite();
         if (imgWidth == 2 && landingPageUrl != '') {
+            collectCurrentStep("current_step=fj");
             simulated.click();
             customDelayTimer(function () {
                 initPageLink(landingPageUrl);

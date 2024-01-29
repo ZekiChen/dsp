@@ -3,6 +3,7 @@ package com.tecdo.adm.log.service;
 import com.baomidou.mybatisplus.extension.service.IService;
 import com.tecdo.adm.api.delivery.entity.Ad;
 import com.tecdo.adm.api.delivery.entity.AdGroup;
+import com.tecdo.adm.api.delivery.entity.Creative;
 import com.tecdo.adm.api.delivery.entity.TargetCondition;
 import com.tecdo.adm.api.delivery.vo.*;
 import com.tecdo.adm.api.log.entity.BizLogApi;
@@ -42,4 +43,7 @@ public interface IBizLogApiService extends IService<BizLogApi> {
     void logByDeleteAd(List<Integer> ids, List<StatusEntity> adStatusList);
 
     void logByUpdateBatchAd(Map<Integer, Ad> beAdMap, BatchAdUpdateVO afterVO);
+
+    // ===============================================================================
+    void logByUpdateCreative(Creative before, Creative after);
 }
