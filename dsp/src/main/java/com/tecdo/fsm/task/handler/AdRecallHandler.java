@@ -128,7 +128,7 @@ public class AdRecallHandler {
                 pos = imp.getBanner() == null ? 0 : imp.getBanner().getPos();
                 break;
             case VIDEO:
-                pos = imp.getVideo() == null ? 0 : imp.getBanner().getPos();
+                pos = imp.getVideo() == null ? 0 : imp.getVideo().getPos();
                 break;
             default:
                 pos = 0;
