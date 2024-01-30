@@ -7,6 +7,7 @@ import com.baomidou.mybatisplus.core.toolkit.Wrappers;
 import com.tecdo.adm.api.delivery.dto.AdGroupDTO;
 import com.tecdo.adm.api.delivery.dto.CampaignDTO;
 import com.tecdo.adm.api.delivery.entity.*;
+import com.tecdo.adm.api.delivery.enums.ConditionEnum;
 import com.tecdo.adm.api.delivery.mapper.*;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
@@ -200,7 +201,9 @@ public class AdManager {
                 continue;
             }
             Map<String, TargetCondition> conditionMap = listConditionByGroup(conditions, adGroup);
-            if (conditionMap.isEmpty()) {
+            if (conditionMap.isEmpty()
+                    || !conditionMap.containsKey(ConditionEnum.AFFILIATE.getDesc())
+                    || !conditionMap.containsKey(ConditionEnum.DEVICE_COUNTRY.getDesc())) {
                 continue;
             }
             Map<Integer, MultiBidStrategy> twoStageBidMap = getMultiBidStrategy(multiStrategyMap, adGroup.getId());
