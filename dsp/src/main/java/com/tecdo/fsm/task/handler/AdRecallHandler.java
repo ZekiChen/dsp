@@ -125,10 +125,10 @@ public class AdRecallHandler {
         Integer pos;
         switch (AdTypeEnum.of(adDTO.getAd().getType())) {
             case BANNER:
-                pos = imp.getBanner().getPos();
+                pos = imp.getBanner() == null ? 0 : imp.getBanner().getPos();
                 break;
             case VIDEO:
-                pos = imp.getVideo().getPos();
+                pos = imp.getVideo() == null ? 0 : imp.getBanner().getPos();
                 break;
             default:
                 pos = 0;
