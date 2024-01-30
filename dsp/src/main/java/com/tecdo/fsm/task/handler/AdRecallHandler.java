@@ -1,6 +1,7 @@
 package com.tecdo.fsm.task.handler;
 
 import com.tecdo.adm.api.delivery.entity.Affiliate;
+import com.tecdo.adm.api.delivery.enums.AdTypeEnum;
 import com.tecdo.common.util.Params;
 import com.tecdo.constant.EventType;
 import com.tecdo.constant.ParamKey;
@@ -72,7 +73,7 @@ public class AdRecallHandler {
         List<AdDTOWrapper> adDTOWrapperList = //
           adDTOMap.values()
                   .stream()
-                  .map(adDTO -> buildADDTOWrapper(bidId, imp.getId(), adDTO))
+                  .map(adDTO -> buildADDTOWrapper(bidId, imp, adDTO))
                   .collect(Collectors.toList());
         List<CompletableFuture<AdDTOWrapper>> futureList = new ArrayList<>();
         Map<Integer, AdDTOWrapper> res = new HashMap<>();
@@ -120,8 +121,19 @@ public class AdRecallHandler {
                 : new BidfloorDTO(imp.getBidfloor(), null);
     }
 
-    private AdDTOWrapper buildADDTOWrapper(String bidId, String impId, AdDTO adDTO) {
-        return new AdDTOWrapper(impId, bidId, adDTO);
+    private AdDTOWrapper buildADDTOWrapper(String bidId, Imp imp, AdDTO adDTO) {
+        Integer pos;
+        switch (AdTypeEnum.of(adDTO.getAd().getType())) {
+            case BANNER:
+                pos = imp.getBanner().getPos();
+                break;
+            case VIDEO:
+                pos = imp.getVideo().getPos();
+                break;
+            default:
+                pos = null;
+        }
+        return new AdDTOWrapper(imp.getId(), bidId, adDTO, pos);
     }
 
     private <T> CompletableFuture<List<T>> sequence(List<CompletableFuture<T>> com) {

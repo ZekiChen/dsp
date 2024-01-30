@@ -238,4 +238,30 @@
             date DESC
     </select>
 
+    <select id="listAffBundleData" resultType="com.tecdo.adm.api.doris.entity.Report">
+        SELECT
+            affiliate_id                 as affiliateId,
+            bundle_id                    as bundle,
+            country                      as country,
+            pos                          as position,
+            instl                        as interstitial,
+            first_ssp                    as firstSsp,
+            AVG(click_count / imp_count) as ctr
+        FROM
+            dsp_report_fall_six
+        WHERE
+            response_type = 1 and
+            create_date >= #{startDate} and
+            create_date &lt;= #{endDate}
+        GROUP BY
+            affiliate_id,
+            bundle_id,
+            country,
+            pos,
+            instl,
+            first_ssp
+        HAVING
+            sum(imp_count) > #{minImp}
+    </select>
+
 </mapper>

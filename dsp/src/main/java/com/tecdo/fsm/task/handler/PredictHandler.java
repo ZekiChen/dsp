@@ -29,10 +29,12 @@ import com.tecdo.domain.openrtb.request.Imp;
 import com.tecdo.entity.AbTestConfig;
 import com.tecdo.service.init.AbTestConfigManager;
 import com.tecdo.service.init.doris.AdGroupBundleManager;
+import com.tecdo.service.init.doris.AffBundleDataManager;
 import com.tecdo.service.init.doris.GooglePlayAppManager;
 import com.tecdo.transform.IProtoTransform;
 import com.tecdo.transform.ResponseTypeEnum;
 import com.tecdo.util.CreativeHelper;
+import com.tecdo.util.ExtHelper;
 import com.tecdo.util.FieldFormatHelper;
 import com.tecdo.util.JsonHelper;
 import lombok.RequiredArgsConstructor;
@@ -73,15 +75,13 @@ public class PredictHandler {
     @Value("${pac.cvr-event11-predict.url}")
     private String cvrEvent11PredictUrl;
 
-    @Value("${pac.force-jump.pctr}")
-    private Double forceJumpPCtr;
-
     private final ThreadPool threadPool;
     private final MessageQueue messageQueue;
 
     private final AbTestConfigManager abTestConfigManager;
     private final GooglePlayAppManager googlePlayAppManager;
     private final AdGroupBundleManager adGroupBundleManager;
+    private final AffBundleDataManager affBundleDataManager;
 
     public int callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap, Params params,
                               BidRequest bidRequest, Imp imp, Affiliate affiliate, IProtoTransform protoTransform) {
@@ -99,6 +99,15 @@ public class PredictHandler {
         for (BidStrategyEnum strategy : BidStrategyEnum.values()) {
             strategyAdMap.put(strategy, new HashMap<>());
         }
+
+        // 使用历史强跳真实ctr
+        String queryKey = affiliate.getId() + StrUtil.COMMA +
+                bidRequest.getApp().getBundle() + StrUtil.COMMA +
+                bidRequest.getDevice().getGeo().getCountry() + StrUtil.COMMA +
+                adDTOMap.values().iterator().next().getPos() + StrUtil.COMMA +
+                Optional.ofNullable(ExtHelper.getFirstSSP(bidRequest.getSource())).orElse("") + StrUtil.COMMA +
+                imp.getInstl();
+        Double historyCTR = affBundleDataManager.getCtr(queryKey);
 
         for (Map.Entry<Integer, AdDTOWrapper> entry : adDTOMap.entrySet()) {
             Integer adId = entry.getKey();
@@ -122,7 +131,7 @@ public class PredictHandler {
                 case CPS:
                     String forceLink = w.getAdDTO().getAdGroup().getForceLink();
                     if (ResponseTypeEnum.FORCE.equals(protoTransform.getResponseType(forceLink, w))) {
-                        w.setPCtr(forceJumpPCtr);
+                        w.setPCtr(historyCTR);
                     } else {
                         strategyAdMap.get(BidStrategyEnum.CPC).put(adId, w);
                     }

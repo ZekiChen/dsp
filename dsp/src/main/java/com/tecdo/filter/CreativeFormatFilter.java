@@ -192,11 +192,4 @@ public class CreativeFormatFilter extends AbstractRecallFilter {
         return reqW != null && reqH != null && reqW > 0 && reqH > 0
                 && (float) creW / creH == (float) reqW / reqH;
     }
-
-    public static void main(String[] args) {
-        List<Integer> companionTypes = new ArrayList<>();
-        companionTypes.add(null);
-        companionTypes.add(null);
-        System.out.println(companionTypes);
-    }
 }

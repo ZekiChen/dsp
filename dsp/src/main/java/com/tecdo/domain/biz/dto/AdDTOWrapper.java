@@ -14,10 +14,11 @@ import java.math.BigDecimal;
 @Getter
 public class AdDTOWrapper {
 
-  public AdDTOWrapper(String impId, String bidId, AdDTO adDTO) {
+  public AdDTOWrapper(String impId, String bidId, AdDTO adDTO, Integer pos) {
     this.impId = impId;
     this.bidId = bidId;
     this.adDTO = adDTO;
+    this.pos = pos;
   }
 
   private AdDTO adDTO;
@@ -111,4 +112,6 @@ public class AdDTOWrapper {
   private Boolean bundleTestEnable;
 
   private Creative image;
+  private Integer pos;
+
 }
