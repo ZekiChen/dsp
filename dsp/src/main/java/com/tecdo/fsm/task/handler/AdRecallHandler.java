@@ -131,7 +131,7 @@ public class AdRecallHandler {
                 pos = imp.getVideo().getPos();
                 break;
             default:
-                pos = null;
+                pos = 0;
         }
         return new AdDTOWrapper(imp.getId(), bidId, adDTO, pos);
     }
