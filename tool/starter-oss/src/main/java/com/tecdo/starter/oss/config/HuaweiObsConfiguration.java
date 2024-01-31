@@ -13,6 +13,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Created by Zeki on 2023/3/13
@@ -55,7 +56,7 @@ public class HuaweiObsConfiguration {
 	}
 
 	@Bean
-	@ConditionalOnMissingBean(HuaweiObsTemplate.class)
+	@Primary
 	@ConditionalOnBean({ObsClient.class, OssRule.class})
 	public HuaweiObsTemplate huaweiobsTemplate(ObsClient ossClient, OssRule ossRule) {
 		return new HuaweiObsTemplate(ossClient, ossProperties, ossRule);
