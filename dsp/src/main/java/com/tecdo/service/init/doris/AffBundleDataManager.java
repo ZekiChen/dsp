@@ -152,7 +152,7 @@ public class AffBundleDataManager extends ServiceImpl<ReportMapper, Report> {
                                                         + k.getCountry() + StrUtil.COMMA
                                                         + k.getPosition() + StrUtil.COMMA
                                                         + Optional.ofNullable(k.getFirstSsp()).orElse("") + StrUtil.COMMA
-                                                        + k.getInterstitial() + StrUtil.COMMA,
+                                                        + k.getInterstitial(),
                                         Report::getCtr,
                                         (o, n) -> n
                                         )
