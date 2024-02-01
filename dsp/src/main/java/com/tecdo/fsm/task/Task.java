@@ -145,8 +145,10 @@ public class Task {
     }
 
     public void adRecall() {
-        adRecallHandler.adRecall(assignParams(),
-                this.bidRequest, this.imp, this.affiliate);
+        BidRequest bidRequest = this.bidRequest;
+        Imp imp = this.imp;
+        Affiliate affiliate = this.affiliate;
+        adRecallHandler.adRecall(assignParams(), bidRequest, imp, affiliate);
     }
 
     public void impNotBid() {
@@ -156,8 +158,12 @@ public class Task {
     }
 
     public void callPredictApi(Map<Integer, AdDTOWrapper> adDTOMap) {
+        BidRequest bidRequest = this.bidRequest;
+        Imp imp = this.imp;
+        Affiliate affiliate = this.affiliate;
+        IProtoTransform protoTransform = this.protoTransform;
         this.needReceiveCount = predictHandler.callPredictApi(adDTOMap, assignParams(),
-                this.bidRequest, this.imp, this.affiliate, this.protoTransform);
+                                                              bidRequest, imp, affiliate, protoTransform);
     }
 
     public void savePredictResponse(Map<Integer, AdDTOWrapper> adDTOMap) {
@@ -170,8 +176,11 @@ public class Task {
     }
 
     public void calcPrice() {
+        BidRequest bidRequest = this.bidRequest;
+        Imp imp = this.imp;
+        Affiliate affiliate = this.affiliate;
         priceCalcHandler.calcPrice(assignParams(), this.afterPredictAdMap,
-                this.bidRequest, this.imp, this.affiliate);
+                bidRequest, imp, affiliate);
     }
 
     public boolean calcPriceResponseFinish() {
@@ -202,7 +211,8 @@ public class Task {
     }
 
     public void requestRta() {
-        rtaHandler.requestRta(assignParams(), afterPriceFilterAdMap, this.bidRequest);
+        BidRequest bidRequest = this.bidRequest;
+        rtaHandler.requestRta(assignParams(), afterPriceFilterAdMap, bidRequest);
     }
 
     public boolean rtaResponseFinish() {
